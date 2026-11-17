@@ -1,0 +1,27 @@
+'use client';
+
+import { createBrowserClient } from '@supabase/ssr';
+import type { SupabaseClient } from '@supabase/supabase-js';
+
+let cachedClient: SupabaseClient | null = null;
+
+export function isBrowserSupabaseConfigured(): boolean {
+  return Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() &&
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim(),
+  );
+}
+
+export function getSupabaseBrowserClient(): SupabaseClient {
+  if (cachedClient) return cachedClient;
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+
+  if (!url || !anonKey) {
+    throw new Error('Supabase browser keys are not configured in .env.local.');
+  }
+
+  cachedClient = createBrowserClient(url, anonKey);
+  return cachedClient;
+}

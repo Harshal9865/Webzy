@@ -1,0 +1,63 @@
+name: Supabase Database Nightly Backup (R2 + Secondary Mirror)
+
+on:
+  schedule:
+    # Nightly primary off-site backup at 02:00 UTC (07:30 AM IST)
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      verify_restore_check:
+        description: 'Validate dump file structure with pg_restore --list'
+        required: false
+        default: 'true'
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check SQL migrations are additive-only
+        run: node infra/backup/check-migrations.mjs
+
+      - name: Install PostgreSQL client (pg_dump)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Create compressed custom-format Postgres backup
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          if [ -z "$DB_URL" ]; then
+            echo "ERROR: SUPABASE_DB_URL secret (Session Pooler URI, port 5432) is required."
+            exit 1
+          fi
+          TIMESTAMP=$(date -u +'%Y-%m-%d_%H-%M-%S')
+          FILENAME="webzy-db-$TIMESTAMP.dump"
+          pg_dump "$DB_URL" -F c --no-owner --no-acl -f "$FILENAME"
+          pg_restore --list "$FILENAME" > /dev/null
+          echo "BACKUP_FILE=$FILENAME" >> "$GITHUB_ENV"
+
+      - name: Upload Backup #1 to Cloudflare R2 Primary Backup Bucket
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+        run: |
+          DATE_FOLDER=$(date -u +'%Y-%m-%d')
+          aws s3 cp "$BACKUP_FILE" "s3://${{ secrets.R2_BUCKET }}/daily/$DATE_FOLDER/$BACKUP_FILE" \
+            --endpoint-url "${{ secrets.R2_ENDPOINT }}"
+
+          # Weekly Backup #2 ("backup's backup" cold archive on Sundays)
+          if [ "$(date -u +'%u')" = "7" ]; then
+            aws s3 cp "$BACKUP_FILE" "s3://${{ secrets.R2_BUCKET }}/weekly-archive/$DATE_FOLDER/$BACKUP_FILE" \
+              --endpoint-url "${{ secrets.R2_ENDPOINT }}"
+          fi
+
+      - name: Clean temporary runner artifact
+        if: always()
+        run: rm -f webzy-db-*.dump

@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build & TypeScript artifacts
+.next/
+apps/*/.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+next-env.d.ts
+
+# Test & coverage outputs
+coverage/
+playwright-report/
+test-results/
+
+# Secrets & local runtime files (NEVER commit secrets or customer data)
+.env
+.env*.local
+.env.local
+.env.staging
+.env.production
+
+# Hosting & OS artifacts
+.vercel
+.netlify
+.wrangler
+.DS_Store
+Thumbs.db
+*.pem
+npm-debug.log*

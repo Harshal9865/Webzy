@@ -1,0 +1,31 @@
+# Commercial-friendly Netlify config for Webzy (apps/web base)
+[build]
+  base = "apps/web"
+  command = "npm run build --workspace=@webzy/web"
+  publish = ".next"
+
+# Prevent search engine indexing of private customer links, checkout, account, and admin routes
+[[headers]]
+  for = "/s/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow, noarchive"
+
+[[headers]]
+  for = "/mock-pay/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow, noarchive"
+
+[[headers]]
+  for = "/success/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow, noarchive"
+
+[[headers]]
+  for = "/account*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow, noarchive"
+
+[[headers]]
+  for = "/admin/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow, noarchive"

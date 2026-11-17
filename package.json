@@ -1,0 +1,33 @@
+{
+  "name": "webzy-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Webzy — Apni feeling ka link (Phase 0 Monorepo Foundation)",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm --workspace=@webzy/web run dev",
+    "dev:web": "npm --workspace=@webzy/web run dev",
+    "dev:admin": "npm --workspace=@webzy/admin run dev",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm --workspace=@webzy/core run typecheck && npm --workspace=@webzy/themes run typecheck && npm --workspace=@webzy/jobs run typecheck && npm --workspace=@webzy/web run typecheck && npm --workspace=@webzy/admin run typecheck",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "format": "prettier --write \"apps/**/*.{ts,tsx,json,md}\" \"packages/**/*.{ts,tsx,json,md}\" \"infra/**/*.{ts,md}\" \"docs/**/*.md\"",
+    "format:check": "prettier --check \"apps/**/*.{ts,tsx,json,md}\" \"packages/**/*.{ts,tsx,json,md}\" \"infra/**/*.{ts,md}\" \"docs/**/*.md\"",
+    "seed:admin": "node infra/supabase/seed-admin.mjs",
+    "check:migrations": "node infra/backup/check-migrations.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+  "engines": {
+    "node": ">=20.11.0"
+  }
+}

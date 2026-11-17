@@ -1,0 +1,54 @@
+name: Webzy CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  verify:
+    name: Secret Scan, Lint, Typecheck, Unit Tests & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Secret scan (fail on accidentally committed keys)
+        run: |
+          if grep -rnE "(rzp_live_[A-Za-z0-9]{8,}|sb_secret_[A-Za-z0-9_-]{12,}|re_[A-Za-z0-9]{20,}|AIza[0-9A-Za-z_-]{20,})" apps packages infra docs .env.example; then
+            echo "ERROR: Potential live secret detected in tracked files."
+            exit 1
+          fi
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install workspace dependencies
+        run: npm ci
+
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Run lint
+        run: npm run lint
+
+      - name: Run TypeScript typecheck
+        run: npm run typecheck
+
+      - name: Run unit tests
+        run: npm test
+
+      - name: Run dependency audit (high/critical check)
+        run: npm audit --audit-level=high || true
+
+      - name: Build apps
+        run: npm run build
+        env:
+          NEXT_PUBLIC_APP_ENV: staging
+          PAYMENT_PROVIDER: mock
+          ALLOW_MOCK_IN_PROD: 'false'
