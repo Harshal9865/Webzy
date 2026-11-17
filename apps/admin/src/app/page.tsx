@@ -140,9 +140,9 @@ export default async function AdminHomePage() {
         .limit(8),
       adminClient
         .from('orders')
-        .select('id, status, amount_paise, invoice_no, buyer_name, buyer_email, provider, created_at')
+        .select('id, status, amount_paise, invoice_no, buyer_name, buyer_email, provider, created_at, sites(slug)')
         .order('created_at', { ascending: false })
-        .limit(20),
+        .limit(100),
       adminClient
         .from('reports')
         .select('id, site_id, reason, status, created_at, sites(slug, status, hidden)')
@@ -213,7 +213,26 @@ export default async function AdminHomePage() {
     waitlistItems = (waitlistRes.data as AdminWaitlistItem[] | null) ?? [];
     recentAudits = (recentRes.data as typeof recentAudits | null) ?? [];
     recentModLogs = (modRes.data as typeof recentModLogs | null) ?? [];
-    recentOrders = (ordersRes.data as AdminOrderRow[] | null) ?? [];
+    if (ordersRes.data) {
+      recentOrders = ordersRes.data.map((o) => {
+        const siteRel = o.sites as
+          | { slug?: string }
+          | Array<{ slug?: string }>
+          | null;
+        const s = Array.isArray(siteRel) ? siteRel[0] : siteRel;
+        return {
+          id: o.id,
+          status: o.status,
+          amount_paise: o.amount_paise,
+          invoice_no: o.invoice_no,
+          buyer_name: o.buyer_name,
+          buyer_email: o.buyer_email,
+          provider: o.provider,
+          created_at: o.created_at,
+          site_slug: s?.slug || null,
+        };
+      });
+    }
 
     if (reportsRes.data) {
       recentReports = reportsRes.data.map((r) => {
@@ -369,8 +388,8 @@ export default async function AdminHomePage() {
       {/* 2. Live Webzys Explorer */}
       <AdminSitesClient initialSites={siteItems} webUrl={config.webUrl} />
 
-      {/* 3. Orders, Watchdog & Idempotent Refunds */}
-      <AdminOrdersClient orders={recentOrders} />
+      {/* 3. Orders, GST Accounting & Link Delivery */}
+      <AdminOrdersClient orders={recentOrders} webUrl={config.webUrl} />
 
       {/* 4. Moderation & Safety Queue */}
       <AdminModerationClient

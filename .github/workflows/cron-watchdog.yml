@@ -1,0 +1,50 @@
+name: Webzy Watchdog & Lifecycle Automation
+
+on:
+  schedule:
+    # Run watchdog every 15 minutes
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+    inputs:
+      target_job:
+        description: 'Target job to run (watchdog, lifecycle, or all)'
+        required: true
+        default: 'all'
+
+jobs:
+  run-cron:
+    name: Trigger Watchdog & Daily Lifecycle
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Execute Watchdog Recoveries
+        if: ${{ github.event.inputs.target_job == 'watchdog' || github.event.inputs.target_job == 'all' || github.event_name == 'schedule' }}
+        run: |
+          if [ -z "${{ secrets.PRODUCTION_WEB_URL }}" ]; then
+            echo "PRODUCTION_WEB_URL secret not set. Skipping scheduled watchdog ping."
+            exit 0
+          fi
+          AUTH_HEADER=""
+          if [ -n "${{ secrets.UPTIME_PING_SECRET }}" ]; then
+            AUTH_HEADER="Authorization: Bearer ${{ secrets.UPTIME_PING_SECRET }}"
+          fi
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST "${{ secrets.PRODUCTION_WEB_URL }}/api/cron/watchdog" -H "$AUTH_HEADER" -H "Content-Type: application/json")
+          echo "Watchdog response code: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" -ne 200 ] && [ "$HTTP_STATUS" -ne 204 ]; then
+            echo "Warning: Watchdog responded with status $HTTP_STATUS"
+          fi
+
+      - name: Execute Midnight IST Lifecycle Maintenance (Once daily at 18:30 UTC / 00:00 IST)
+        if: ${{ github.event.inputs.target_job == 'lifecycle' || github.event.inputs.target_job == 'all' }}
+        run: |
+          if [ -z "${{ secrets.PRODUCTION_WEB_URL }}" ]; then
+            echo "PRODUCTION_WEB_URL secret not set. Skipping scheduled lifecycle ping."
+            exit 0
+          fi
+          AUTH_HEADER=""
+          if [ -n "${{ secrets.UPTIME_PING_SECRET }}" ]; then
+            AUTH_HEADER="Authorization: Bearer ${{ secrets.UPTIME_PING_SECRET }}"
+          fi
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST "${{ secrets.PRODUCTION_WEB_URL }}/api/cron/lifecycle" -H "$AUTH_HEADER" -H "Content-Type: application/json")
+          echo "Lifecycle response code: $HTTP_STATUS"

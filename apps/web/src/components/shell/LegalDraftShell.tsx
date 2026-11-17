@@ -4,22 +4,27 @@ import { getWebzyPublicConfig } from '@webzy/core';
 
 interface LegalDraftShellProps {
   title: string;
-  draftVersion?: string;
+  badge?: string;
+  draftVersion?: string; // backwards compatibility
   children: React.ReactNode;
 }
 
 export function LegalDraftShell({
   title,
-  draftVersion = 'DRAFT v0.1 (Pending legal review)',
+  badge = 'Effective 2026',
+  draftVersion,
   children,
 }: LegalDraftShellProps) {
   const config = getWebzyPublicConfig();
+  const displayBadge = draftVersion || badge;
 
   return (
     <article className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
-      <span className="inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-900">
-        {draftVersion}
-      </span>
+      {displayBadge ? (
+        <span className="inline-flex rounded-full bg-webzy-tint px-3 py-1 text-xs font-bold text-webzy-primary">
+          {displayBadge}
+        </span>
+      ) : null}
       <h1 className="mt-3 font-heading text-3xl font-bold text-webzy-ink sm:text-4xl">{title}</h1>
       <p className="mt-2 text-xs text-webzy-ink/60">
         Operator: {config.business.name} ({config.business.address}) · Support:{' '}

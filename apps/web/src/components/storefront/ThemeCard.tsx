@@ -35,7 +35,7 @@ export function ThemeCard({ theme }: ThemeCardProps) {
           <div className="flex shrink-0 items-baseline gap-1.5">
             {hasDiscount ? (
               <span className="text-xs font-medium text-webzy-ink/40 line-through">
-                {formatInr(theme.price.compareAt)}
+                {formatInr(theme.price.compareAt!)}
               </span>
             ) : null}
             <span className="font-heading text-base font-extrabold text-emerald-700 sm:text-lg">

@@ -19,6 +19,20 @@ export const metadata: Metadata = {
     title: 'Someone sent you a special Webzy link',
     description: 'Tap to open your personal page.',
     type: 'website',
+    images: [
+      {
+        url: '/opengraph-image',
+        width: 1200,
+        height: 630,
+        alt: 'A special Webzy is waiting for you',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Someone sent you a special Webzy link',
+    description: 'Tap to open your personal page.',
+    images: ['/opengraph-image'],
   },
 };
 

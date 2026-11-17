@@ -108,7 +108,7 @@ export function SiteHeader({ config }: SiteHeaderProps) {
             href="/weddings"
             className={`transition-colors py-1 ${
               isWeddingsActive
-                ? 'font-bold text-rose-700 border-b-2 border-rose-700'
+                ? 'font-bold text-webzy-primary border-b-2 border-webzy-primary'
                 : 'text-webzy-ink/75 hover:text-webzy-ink'
             }`}
           >
@@ -257,7 +257,7 @@ export function SiteHeader({ config }: SiteHeaderProps) {
               onClick={() => setMenuOpen(false)}
               className={`flex min-h-[44px] items-center rounded-xl px-3 transition ${
                 isWeddingsActive
-                  ? 'bg-rose-50 text-rose-800 font-bold'
+                  ? 'bg-webzy-tint text-webzy-primary font-bold'
                   : 'hover:bg-webzy-surface text-webzy-ink'
               }`}
             >
