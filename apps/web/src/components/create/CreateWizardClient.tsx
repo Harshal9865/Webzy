@@ -18,6 +18,7 @@ import {
 import { compressImageForMobileUpload } from '../../lib/compressImage';
 import { PhoneFrame } from '../shell/PhoneFrame';
 import { useLanguage } from '../shell/LanguageProvider';
+import { getSupabaseBrowserClient } from '../../../../../infra/supabase/browser';
 
 export interface UploadedPhotoItem {
   assetId: string;
@@ -28,6 +29,8 @@ export interface UploadedPhotoItem {
 interface CreateWizardClientProps {
   theme: ThemeManifest;
   supabaseConfigured: boolean;
+  isAuthenticated?: boolean;
+  userEmail?: string;
   initialDraftToken?: string;
   initialLanguage?: LanguageCode;
   initialContent?: {
@@ -60,6 +63,8 @@ const TONES: Array<{ id: AiDraftTone; label: string }> = [
 export function CreateWizardClient({
   theme,
   supabaseConfigured,
+  isAuthenticated = false,
+  userEmail = '',
   initialDraftToken,
   initialLanguage,
   initialContent,
@@ -72,6 +77,34 @@ export function CreateWizardClient({
   const [draftLang, setDraftLang] = useState<LanguageCode>(initialLanguage ?? siteLang);
   const [draftToken, setDraftToken] = useState(initialDraftToken || '');
 
+  // Authentication gating state
+  const [isClientAuthed, setIsClientAuthed] = useState(Boolean(isAuthenticated));
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authTargetAction, setAuthTargetAction] = useState<'preview' | 'checkout' | null>(null);
+  const [authEmail, setAuthEmail] = useState(userEmail || '');
+  const [authOtpCode, setAuthOtpCode] = useState('');
+  const [authStatus, setAuthStatus] = useState<'idle' | 'sending' | 'sent' | 'verifying' | 'error'>('idle');
+  const [authErrorMessage, setAuthErrorMessage] = useState('');
+
+  // Birthday & Event reveal helper
+  const [revealMode, setRevealMode] = useState<'instant' | 'midnight' | 'morning' | 'custom'>(() => {
+    if (!initialRevealAt) return 'instant';
+    if (initialRevealAt.includes('T00:00') || initialRevealAt.includes('18:30:00')) return 'midnight';
+    if (initialRevealAt.includes('T08:00') || initialRevealAt.includes('02:30:00')) return 'morning';
+    return 'custom';
+  });
+
+  const [revealDate, setRevealDate] = useState<string>(() => {
+    if (!initialRevealAt) {
+      const tomorrow = new Date(Date.now() + 86400000 + 330 * 60 * 1000);
+      return tomorrow.toISOString().slice(0, 10);
+    }
+    const ms = Date.parse(initialRevealAt);
+    if (Number.isNaN(ms)) return '';
+    const ist = new Date(ms + 330 * 60 * 1000);
+    return ist.toISOString().slice(0, 10);
+  });
+
   const [receiverName, setReceiverName] = useState(initialContent?.receiverName || '');
   const [senderName, setSenderName] = useState(initialContent?.senderName || '');
   const [relation, setRelation] = useState(
@@ -83,6 +116,28 @@ export function CreateWizardClient({
   const [whatsappPhone, setWhatsappPhone] = useState(initialContent?.whatsappPhone || '');
   const [revealAt, setRevealAt] = useState(() => utcIsoToIstDatetimeLocal(initialRevealAt));
   const [photos, setPhotos] = useState<UploadedPhotoItem[]>(initialPhotos);
+
+  function handleRevealModeChange(mode: 'instant' | 'midnight' | 'morning' | 'custom', dateStr = revealDate) {
+    setRevealMode(mode);
+    if (mode === 'instant') {
+      setRevealAt('');
+    } else if (mode === 'midnight') {
+      const d = dateStr || new Date(Date.now() + 86400000 + 330 * 60 * 1000).toISOString().slice(0, 10);
+      setRevealAt(`${d}T00:00`);
+    } else if (mode === 'morning') {
+      const d = dateStr || new Date(Date.now() + 86400000 + 330 * 60 * 1000).toISOString().slice(0, 10);
+      setRevealAt(`${d}T08:00`);
+    }
+  }
+
+  function handleRevealDateChange(dateStr: string) {
+    setRevealDate(dateStr);
+    if (revealMode === 'midnight') {
+      setRevealAt(`${dateStr}T00:00`);
+    } else if (revealMode === 'morning') {
+      setRevealAt(`${dateStr}T08:00`);
+    }
+  }
 
   const [saving, setSaving] = useState(false);
   const [saveNotice, setSaveNotice] = useState('');
@@ -253,9 +308,125 @@ export function CreateWizardClient({
   async function handleUnlockPreview() {
     setErrorMsg('');
     const token = await handleSaveDraft();
-    if (token) {
-      document.cookie = `webzy_pending_draft=${encodeURIComponent(token)}; path=/; max-age=3600; SameSite=Lax`;
-      router.push(`/preview/${encodeURIComponent(token)}`);
+    if (!token) return;
+
+    document.cookie = `webzy_pending_draft=${encodeURIComponent(token)}; path=/; max-age=3600; SameSite=Lax`;
+
+    if (!isClientAuthed && supabaseConfigured) {
+      setAuthTargetAction('preview');
+      setAuthModalOpen(true);
+      return;
+    }
+
+    router.push(`/preview/${encodeURIComponent(token)}`);
+  }
+
+  async function handleProceedCheckout(e: React.MouseEvent) {
+    e.preventDefault();
+    setErrorMsg('');
+    const token = await handleSaveDraft();
+    if (!token) return;
+
+    document.cookie = `webzy_pending_draft=${encodeURIComponent(token)}; path=/; max-age=3600; SameSite=Lax`;
+
+    if (!isClientAuthed && supabaseConfigured) {
+      setAuthTargetAction('checkout');
+      setAuthModalOpen(true);
+      return;
+    }
+
+    router.push(`/checkout?draft=${encodeURIComponent(token)}`);
+  }
+
+  async function handleSendInlineOtp(e: React.FormEvent) {
+    e.preventDefault();
+    if (!supabaseConfigured) return;
+    const cleanEmail = authEmail.trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      setAuthStatus('error');
+      setAuthErrorMessage('Please enter a valid email address.');
+      return;
+    }
+
+    setAuthStatus('sending');
+    setAuthErrorMessage('');
+
+    try {
+      if (draftToken) {
+        document.cookie = `webzy_pending_draft=${encodeURIComponent(draftToken)}; path=/; max-age=3600; SameSite=Lax`;
+      }
+      const supabase = getSupabaseBrowserClient();
+      const targetNext =
+        authTargetAction === 'checkout'
+          ? `/checkout?draft=${encodeURIComponent(draftToken)}`
+          : `/preview/${encodeURIComponent(draftToken)}`;
+      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(targetNext)}`;
+
+      const { error } = await supabase.auth.signInWithOtp({
+        email: cleanEmail,
+        options: {
+          shouldCreateUser: true,
+          emailRedirectTo: redirectTo,
+        },
+      });
+
+      if (error) {
+        setAuthStatus('error');
+        setAuthErrorMessage(error.message);
+        return;
+      }
+
+      setAuthStatus('sent');
+    } catch (err) {
+      setAuthStatus('error');
+      setAuthErrorMessage(err instanceof Error ? err.message : 'Failed to send OTP code.');
+    }
+  }
+
+  async function handleVerifyInlineOtp(e: React.FormEvent) {
+    e.preventDefault();
+    const cleanEmail = authEmail.trim().toLowerCase();
+    const cleanCode = authOtpCode.replace(/\s+/g, '');
+    if (cleanCode.length < 6) {
+      setAuthErrorMessage('Please enter the 6-digit code.');
+      return;
+    }
+
+    setAuthStatus('verifying');
+    setAuthErrorMessage('');
+
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { error } = await supabase.auth.verifyOtp({
+        email: cleanEmail,
+        token: cleanCode,
+        type: 'email',
+      });
+
+      if (error) {
+        setAuthStatus('sent');
+        setAuthErrorMessage(error.message || 'Invalid or expired code. Please check or resend.');
+        return;
+      }
+
+      setIsClientAuthed(true);
+      if (draftToken) {
+        await fetch('/api/auth/attach-draft', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ draftToken }),
+        }).catch(() => {});
+      }
+
+      setAuthModalOpen(false);
+      if (authTargetAction === 'checkout') {
+        router.push(`/checkout?draft=${encodeURIComponent(draftToken)}`);
+      } else {
+        router.push(`/preview/${encodeURIComponent(draftToken)}`);
+      }
+    } catch (err) {
+      setAuthStatus('sent');
+      setAuthErrorMessage(err instanceof Error ? err.message : 'Could not verify code.');
     }
   }
 
@@ -664,6 +835,19 @@ export function CreateWizardClient({
                       ))}
                     </div>
                   ) : null}
+
+                  {/* DPDP 2023 Trust Shield */}
+                  <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50/70 p-3.5 text-xs text-emerald-950">
+                    <div className="flex items-center gap-2 font-bold text-emerald-900">
+                      <span>✓ 100% Private & Encrypted Vault</span>
+                      <span className="rounded-full bg-emerald-200 px-2 py-0.5 text-[10px] text-emerald-800">DPDP 2023 Compliant</span>
+                    </div>
+                    <ul className="mt-2 space-y-1 text-[11px] leading-relaxed text-emerald-900/90">
+                      <li>• <strong>Never on Google:</strong> Personal photos and Webzy links are strictly blocked from search engines.</li>
+                      <li>• <strong>EXIF & GPS Stripped:</strong> Camera location data is permanently wiped before saving.</li>
+                      <li>• <strong>30-Day Auto Purge:</strong> Uploaded media is automatically wiped after 30 days, or delete anytime in 1 click from your Account.</li>
+                    </ul>
+                  </div>
                 </div>
               ) : (
                 <div className="rounded-2xl bg-white p-4 text-xs text-webzy-ink/75">
@@ -671,17 +855,97 @@ export function CreateWizardClient({
                 </div>
               )}
 
-              <div>
-                <label htmlFor="cw-reveal" className="block text-xs font-bold text-webzy-ink">
-                  Schedule reveal time (IST — optional, leave blank to open immediately)
+              <div className="rounded-2xl border border-webzy-tint bg-white p-4">
+                <label className="block text-xs font-bold text-webzy-ink">
+                  {theme.occasion === 'birthday' ? 'Birthday Surprise Reveal' : 'Schedule Reveal Timing (IST)'}
                 </label>
-                <input
-                  id="cw-reveal"
-                  type="datetime-local"
-                  value={revealAt}
-                  onChange={(e) => setRevealAt(e.target.value)}
-                  className="mt-1.5 min-h-[48px] w-full rounded-xl border border-webzy-tint bg-white px-4 text-sm text-webzy-ink"
-                />
+                <p className="mt-0.5 text-[11px] text-webzy-ink/70">
+                  Choose when the greeting unlocks. Leave as instant to view immediately upon sending.
+                </p>
+
+                <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  <button
+                    type="button"
+                    onClick={() => handleRevealModeChange('instant')}
+                    className={`min-h-[44px] rounded-xl border px-3 text-xs font-bold transition ${
+                      revealMode === 'instant'
+                        ? 'border-webzy-primary bg-webzy-surface text-webzy-primary shadow-xs'
+                        : 'border-webzy-tint bg-white text-webzy-ink hover:bg-webzy-surface/50'
+                    }`}
+                  >
+                    Open Immediately
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleRevealModeChange('midnight')}
+                    className={`min-h-[44px] rounded-xl border px-3 text-xs font-bold transition ${
+                      revealMode === 'midnight'
+                        ? 'border-webzy-primary bg-webzy-surface text-webzy-primary shadow-xs'
+                        : 'border-webzy-tint bg-white text-webzy-ink hover:bg-webzy-surface/50'
+                    }`}
+                  >
+                    12:00 AM Midnight
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleRevealModeChange('morning')}
+                    className={`min-h-[44px] rounded-xl border px-3 text-xs font-bold transition ${
+                      revealMode === 'morning'
+                        ? 'border-webzy-primary bg-webzy-surface text-webzy-primary shadow-xs'
+                        : 'border-webzy-tint bg-white text-webzy-ink hover:bg-webzy-surface/50'
+                    }`}
+                  >
+                    8:00 AM Morning
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleRevealModeChange('custom')}
+                    className={`min-h-[44px] rounded-xl border px-3 text-xs font-bold transition ${
+                      revealMode === 'custom'
+                        ? 'border-webzy-primary bg-webzy-surface text-webzy-primary shadow-xs'
+                        : 'border-webzy-tint bg-white text-webzy-ink hover:bg-webzy-surface/50'
+                    }`}
+                  >
+                    Custom Time
+                  </button>
+                </div>
+
+                {revealMode === 'midnight' || revealMode === 'morning' ? (
+                  <div className="mt-4 rounded-xl border border-webzy-tint bg-webzy-surface/40 p-3">
+                    <label htmlFor="cw-date" className="block text-xs font-bold text-webzy-ink">
+                      {theme.occasion === 'birthday' ? 'Birthday Date' : 'Event Date'}
+                    </label>
+                    <input
+                      id="cw-date"
+                      type="date"
+                      min={new Date().toISOString().slice(0, 10)}
+                      value={revealDate}
+                      onChange={(e) => handleRevealDateChange(e.target.value)}
+                      className="mt-1.5 min-h-[44px] w-full rounded-xl border border-webzy-tint bg-white px-3 text-sm font-semibold text-webzy-ink"
+                    />
+                    <p className="mt-1.5 text-[11px] text-webzy-ink/70">
+                      Unlocks at {revealMode === 'midnight' ? '12:00 AM midnight sharp' : '8:00 AM'} on {revealDate || 'chosen date'} with a live celebration countdown before then.
+                    </p>
+                  </div>
+                ) : null}
+
+                {revealMode === 'custom' ? (
+                  <div className="mt-4 rounded-xl border border-webzy-tint bg-webzy-surface/40 p-3">
+                    <label htmlFor="cw-reveal" className="block text-xs font-bold text-webzy-ink">
+                      Exact Date & Time (IST)
+                    </label>
+                    <input
+                      id="cw-reveal"
+                      type="datetime-local"
+                      value={revealAt}
+                      onChange={(e) => setRevealAt(e.target.value)}
+                      className="mt-1.5 min-h-[44px] w-full rounded-xl border border-webzy-tint bg-white px-3 text-sm text-webzy-ink"
+                    />
+                  </div>
+                ) : null}
               </div>
             </div>
           ) : null}
@@ -722,12 +986,14 @@ export function CreateWizardClient({
                 </button>
 
                 {draftToken ? (
-                  <Link
-                    href={`/checkout?draft=${encodeURIComponent(draftToken)}`}
-                    className="inline-flex min-h-[48px] items-center justify-center rounded-full bg-emerald-600 px-6 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700"
+                  <button
+                    type="button"
+                    disabled={saving}
+                    onClick={handleProceedCheckout}
+                    className="inline-flex min-h-[48px] items-center justify-center rounded-full bg-emerald-600 px-6 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50"
                   >
-                    Continue to Checkout ({formatInr(theme.price.base)}) →
-                  </Link>
+                    {saving ? 'Saving...' : `Continue to Checkout (${formatInr(theme.price.base)}) →`}
+                  </button>
                 ) : null}
               </div>
 
@@ -810,6 +1076,119 @@ export function CreateWizardClient({
           </PhoneFrame>
         </aside>
       </div>
+
+      {/* Auth Gate Inline Modal */}
+      {authModalOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl sm:p-8 animate-scale-in">
+            <div className="flex items-center justify-between">
+              <span className="inline-flex rounded-full bg-webzy-tint px-3 py-1 text-xs font-bold text-webzy-primary">
+                1-Tap Sign In
+              </span>
+              <button
+                type="button"
+                onClick={() => setAuthModalOpen(false)}
+                className="rounded-full p-1 text-webzy-ink/60 hover:bg-webzy-surface hover:text-webzy-ink"
+              >
+                ✕
+              </button>
+            </div>
+
+            <h3 className="mt-3 font-heading text-2xl font-bold text-webzy-ink">
+              {authTargetAction === 'checkout' ? 'Sign in to finish & publish' : 'Sign in to preview & save'}
+            </h3>
+            <p className="mt-1 text-xs leading-relaxed text-webzy-ink/75">
+              Enter your email to receive a 6-digit verification code. Your customized Webzy will be safely saved to your account.
+            </p>
+
+            {authStatus === 'sent' || authStatus === 'verifying' ? (
+              <form onSubmit={handleVerifyInlineOtp} className="mt-5 space-y-4">
+                <div>
+                  <label htmlFor="auth-otp-code" className="block text-xs font-bold text-webzy-ink">
+                    6-digit code sent to {authEmail}
+                  </label>
+                  <input
+                    id="auth-otp-code"
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={authOtpCode}
+                    onChange={(e) => setAuthOtpCode(e.target.value)}
+                    placeholder="123456"
+                    className="mt-1.5 min-h-[48px] w-full rounded-xl border border-webzy-tint bg-white px-4 text-center font-mono text-xl tracking-widest text-webzy-ink focus:border-webzy-primary"
+                    autoFocus
+                  />
+                </div>
+
+                {authErrorMessage ? (
+                  <p className="text-xs text-red-600">{authErrorMessage}</p>
+                ) : null}
+
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    disabled={authStatus === 'verifying' || authOtpCode.trim().length < 6}
+                    className="flex-1 min-h-[44px] rounded-full bg-webzy-primary px-4 text-xs font-bold text-white shadow-sm hover:opacity-95 disabled:opacity-50"
+                  >
+                    {authStatus === 'verifying' ? 'Verifying...' : 'Verify & Continue →'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAuthStatus('idle')}
+                    className="min-h-[44px] rounded-full border border-webzy-tint px-4 text-xs font-bold text-webzy-ink hover:bg-webzy-surface"
+                  >
+                    Change Email
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <form onSubmit={handleSendInlineOtp} className="mt-5 space-y-4">
+                <div>
+                  <label htmlFor="auth-email-input" className="block text-xs font-bold text-webzy-ink">
+                    Email address
+                  </label>
+                  <input
+                    id="auth-email-input"
+                    type="email"
+                    required
+                    value={authEmail}
+                    onChange={(e) => setAuthEmail(e.target.value)}
+                    placeholder="you@gmail.com"
+                    className="mt-1.5 min-h-[48px] w-full rounded-xl border border-webzy-tint bg-white px-4 text-sm text-webzy-ink focus:border-webzy-primary"
+                    autoFocus
+                  />
+                </div>
+
+                {authErrorMessage ? (
+                  <p className="text-xs text-red-600">{authErrorMessage}</p>
+                ) : null}
+
+                <button
+                  type="submit"
+                  disabled={authStatus === 'sending'}
+                  className="min-h-[44px] w-full rounded-full bg-webzy-primary px-4 text-xs font-bold text-white shadow-sm hover:opacity-95 disabled:opacity-50"
+                >
+                  {authStatus === 'sending' ? 'Sending code...' : 'Send 6-digit code →'}
+                </button>
+
+                <p className="text-center text-[11px] text-webzy-ink/60">
+                  Or{' '}
+                  <Link
+                    href={`/login?next=${encodeURIComponent(
+                      authTargetAction === 'checkout'
+                        ? `/checkout?draft=${encodeURIComponent(draftToken)}`
+                        : `/preview/${encodeURIComponent(draftToken)}`,
+                    )}&draftToken=${encodeURIComponent(draftToken)}`}
+                    className="font-bold text-webzy-primary underline"
+                  >
+                    open full login page
+                  </Link>
+                </p>
+              </form>
+            )}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

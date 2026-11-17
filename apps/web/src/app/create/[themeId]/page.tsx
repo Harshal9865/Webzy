@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { getWebzyPublicConfig, type LanguageCode, parseLanguageCode } from '@webzy/core';
 import { getThemeById } from '@webzy/themes';
 import { getSupabaseEnv } from '../../../../../../infra/supabase/env';
+import { getAuthSessionState } from '../../../../../../infra/supabase/auth';
 import { createSupabaseAdminClient } from '../../../../../../infra/supabase/server';
 import {
   CreateWizardClient,
@@ -28,6 +29,10 @@ export default async function CreateWizardPage({
   }
 
   const supabaseConfigured = getSupabaseEnv().adminConfigured;
+  const session = await getAuthSessionState();
+  const isAuthenticated = Boolean(session.user);
+  const userEmail = session.user?.email || '';
+
   let initialDraftToken = '';
   let initialLanguage: LanguageCode | undefined = undefined;
   let initialContent: Record<string, string> | undefined = undefined;
@@ -84,6 +89,8 @@ export default async function CreateWizardPage({
     <CreateWizardClient
       theme={theme}
       supabaseConfigured={supabaseConfigured}
+      isAuthenticated={isAuthenticated}
+      userEmail={userEmail}
       initialDraftToken={initialDraftToken}
       initialLanguage={initialLanguage}
       initialContent={initialContent}

@@ -44,7 +44,12 @@ export async function PATCH(request: NextRequest) {
   try {
     const body = (await request.json().catch(() => ({}))) as {
       siteId?: string;
-      action?: 'pause' | 'unpause' | 'extend_30d';
+      action?: 'pause' | 'unpause' | 'extend_30d' | 'update_content' | 'purge_photos';
+      content?: {
+        receiverName?: string;
+        senderName?: string;
+        message?: string;
+      };
     };
 
     const siteId = typeof body.siteId === 'string' ? body.siteId.trim() : '';
@@ -54,7 +59,7 @@ export async function PATCH(request: NextRequest) {
 
     const { data: site } = await guard.admin
       .from('sites')
-      .select('id, slug, status, hidden, expires_at, reveal_at')
+      .select('id, slug, status, hidden, expires_at, reveal_at, content_json, draft_id')
       .eq('id', siteId)
       .maybeSingle();
 
@@ -77,6 +82,41 @@ export async function PATCH(request: NextRequest) {
       await guard.admin
         .from('sites')
         .update({ expires_at: newExpiresAt, status: 'live', hidden: false })
+        .eq('id', site.id);
+    } else if (body.action === 'update_content' && body.content) {
+      const currentContent = (site.content_json as Record<string, unknown>) || {};
+      const updatedContent = {
+        ...currentContent,
+        ...(body.content.receiverName ? { receiverName: body.content.receiverName.trim() } : {}),
+        ...(body.content.senderName ? { senderName: body.content.senderName.trim() } : {}),
+        ...(body.content.message ? { message: body.content.message.trim() } : {}),
+      };
+      await guard.admin
+        .from('sites')
+        .update({ content_json: updatedContent, updated_at: new Date().toISOString() })
+        .eq('id', site.id);
+    } else if (body.action === 'purge_photos') {
+      const { data: assets } = await guard.admin
+        .from('assets')
+        .select('id, storage_key')
+        .eq('site_id', site.id)
+        .is('deleted_at', null);
+
+      if (assets && assets.length > 0) {
+        const keys = assets.map((a) => a.storage_key).filter(Boolean);
+        if (keys.length > 0) {
+          await guard.admin.storage.from('webzy-media').remove(keys).catch(() => {});
+        }
+        await guard.admin
+          .from('assets')
+          .update({ status: 'purged', deleted_at: new Date().toISOString(), storage_key: 'purged_by_admin' })
+          .eq('site_id', site.id);
+      }
+
+      const currentContent = (site.content_json as Record<string, unknown>) || {};
+      await guard.admin
+        .from('sites')
+        .update({ content_json: { ...currentContent, photos: [] } })
         .eq('id', site.id);
     }
 

@@ -201,15 +201,35 @@ export function SiteHeader({ config }: SiteHeaderProps) {
             ))}
           </div>
 
+          {/* Orders Quick Link */}
           <Link
-            href="/account"
-            className={`hidden min-h-[44px] items-center rounded-full border px-4 text-xs font-bold transition sm:inline-flex ${
+            href="/account#orders"
+            className={`hidden min-h-[40px] items-center gap-1.5 rounded-full border px-3 text-xs font-bold transition md:inline-flex ${
               isAccountActive
                 ? 'border-webzy-primary bg-webzy-tint text-webzy-primary'
-                : 'border-webzy-tint bg-white text-webzy-ink hover:border-webzy-primary'
+                : 'border-webzy-tint bg-white text-webzy-ink/80 hover:border-webzy-primary hover:text-webzy-ink shadow-2xs'
+            }`}
+            title="View your orders, invoices and live links"
+          >
+            <svg className="h-3.5 w-3.5 text-webzy-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+            </svg>
+            <span>My Orders</span>
+          </Link>
+
+          {/* Profile Button */}
+          <Link
+            href="/account"
+            className={`hidden min-h-[40px] items-center gap-1.5 rounded-full border px-3.5 text-xs font-bold transition sm:inline-flex ${
+              isAccountActive
+                ? 'border-webzy-primary bg-webzy-primary text-white shadow-xs'
+                : 'border-webzy-tint bg-webzy-surface text-webzy-ink hover:border-webzy-primary'
             }`}
           >
-            Login / Account
+            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            <span>Profile</span>
           </Link>
 
           <Link
@@ -331,6 +351,18 @@ export function SiteHeader({ config }: SiteHeaderProps) {
               {copy.nav.faq}
             </Link>
             <Link
+              href="/account#orders"
+              onClick={() => setMenuOpen(false)}
+              className="flex min-h-[44px] items-center justify-between rounded-xl px-3 hover:bg-webzy-surface text-webzy-ink font-semibold"
+            >
+              <div className="flex items-center gap-2">
+                <svg className="h-4 w-4 text-webzy-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                <span>My Orders &amp; Receipts</span>
+              </div>
+            </Link>
+            <Link
               href="/account"
               onClick={() => setMenuOpen(false)}
               className={`flex min-h-[44px] items-center rounded-xl px-3 transition ${
@@ -339,7 +371,12 @@ export function SiteHeader({ config }: SiteHeaderProps) {
                   : 'hover:bg-webzy-surface text-webzy-ink'
               }`}
             >
-              Login / Account
+              <div className="flex items-center gap-2">
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span>Profile &amp; Settings</span>
+              </div>
             </Link>
           </div>
         </div>

@@ -7,7 +7,7 @@ import {
   createSupabaseAdminClient,
   createSupabaseServerClient,
 } from '../../../../../infra/supabase/server';
-import { AccountClient, type AccountSiteItem } from '../../components/auth/AccountClient';
+import { AccountClient, type AccountSiteItem, type AccountOrderItem } from '../../components/auth/AccountClient';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,6 +38,16 @@ export default async function AccountPage() {
   if (!session.user) {
     redirect('/login?next=/account');
   }
+
+  const fallbackProfile = session.profile ?? {
+    id: session.user.id,
+    full_name: '',
+    email: session.user.email || '',
+    phone: '',
+    role: 'user' as const,
+    is_banned: false,
+    created_at: new Date().toISOString(),
+  };
 
   let consentCount = 0;
   const userSites: AccountSiteItem[] = [];
@@ -97,25 +107,49 @@ export default async function AccountPage() {
         });
       }
     }
+    const userOrders: AccountOrderItem[] = [];
+    const { data: rawOrders } = await admin
+      .from('orders')
+      .select('id, amount_paise, status, invoice_no, provider_order_id, created_at, sites(slug)')
+      .eq('user_id', session.user.id)
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    if (rawOrders) {
+      for (const o of rawOrders) {
+        const siteRel = o.sites as { slug?: string } | Array<{ slug?: string }> | null;
+        const siteSlug = Array.isArray(siteRel) ? siteRel[0]?.slug : siteRel?.slug;
+        userOrders.push({
+          id: o.id,
+          amountInr: Math.round(o.amount_paise / 100),
+          status: o.status,
+          invoiceNumber: o.invoice_no || `WBZ-${o.id.slice(0, 8).toUpperCase()}`,
+          createdAt: o.created_at,
+          paymentId: o.provider_order_id || null,
+          siteSlug: siteSlug || null,
+        });
+      }
+    }
+
+    return (
+      <AccountClient
+        profile={fallbackProfile}
+        consentRecordsCount={consentCount}
+        sites={userSites}
+        orders={userOrders}
+      />
+    );
   } catch {
     consentCount = 0;
   }
-
-  const fallbackProfile = session.profile ?? {
-    id: session.user.id,
-    full_name: '',
-    email: session.user.email || '',
-    phone: '',
-    role: 'user' as const,
-    is_banned: false,
-    created_at: new Date().toISOString(),
-  };
 
   return (
     <AccountClient
       profile={fallbackProfile}
       consentRecordsCount={consentCount}
       sites={userSites}
+      orders={[]}
     />
   );
 }

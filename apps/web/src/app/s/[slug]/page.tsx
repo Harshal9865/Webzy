@@ -5,36 +5,41 @@ import { getSupabaseEnv } from '../../../../../../infra/supabase/env';
 import { createSupabaseAdminClient } from '../../../../../../infra/supabase/server';
 import { ReceiverClient, type ReceiverPageState } from '../../../components/receiver/ReceiverClient';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 // Non-spoiler OG metadata (Section 18): never expose recipient name, message, or photos.
-export const metadata: Metadata = {
-  title: 'A special Webzy is waiting for you',
-  description: 'Someone made a personal Webzy link for you. Tap to open.',
-  robots: {
-    index: false,
-    follow: false,
-  },
-  openGraph: {
-    title: 'Someone sent you a special Webzy link',
-    description: 'Tap to open your personal page.',
-    type: 'website',
-    images: [
-      {
-        url: '/opengraph-image',
-        width: 1200,
-        height: 630,
-        alt: 'A special Webzy is waiting for you',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Someone sent you a special Webzy link',
-    description: 'Tap to open your personal page.',
-    images: ['/opengraph-image'],
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const cfg = getWebzyPublicConfig();
+  const ogImageUrl = `${cfg.webUrl}/opengraph-image`;
+
+  return {
+    title: 'A special Webzy is waiting for you',
+    description: 'Someone made a personal Webzy link for you. Tap to open.',
+    robots: {
+      index: false,
+      follow: false,
+    },
+    openGraph: {
+      title: 'Someone sent you a special Webzy link',
+      description: 'Tap to open your personal page.',
+      type: 'website',
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: 'A special Webzy is waiting for you',
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'Someone sent you a special Webzy link',
+      description: 'Tap to open your personal page.',
+      images: [ogImageUrl],
+    },
+  };
+}
 
 export default async function ReceiverSitePage({
   params,

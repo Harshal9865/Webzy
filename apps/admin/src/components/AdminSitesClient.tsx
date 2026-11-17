@@ -28,6 +28,14 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
   const [busyId, setBusyId] = useState<string | null>(null);
   const [notice, setNotice] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [copiedId, setCopiedId] = useState('');
+
+  // Live Typo Hot-Fixer Modal
+  const [editingSite, setEditingSite] = useState<AdminSiteItem | null>(null);
+  const [editReceiverName, setEditReceiverName] = useState('');
+  const [editSenderName, setEditSenderName] = useState('');
+  const [editMessage, setEditMessage] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
 
   const filtered = sites.filter((site) => {
     if (filterStatus !== 'all' && site.status !== filterStatus) return false;
@@ -39,7 +47,72 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
     return site.slug.toLowerCase().includes(q) || receiver.includes(q) || sender.includes(q);
   });
 
-  async function handleSiteAction(siteId: string, action: 'pause' | 'unpause' | 'extend_30d') {
+  async function handleCopy(url: string, id: string) {
+    await navigator.clipboard.writeText(url).catch(() => {});
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(''), 2000);
+  }
+
+  function openEditModal(site: AdminSiteItem) {
+    const content = (site.content_json as Record<string, string>) || {};
+    setEditingSite(site);
+    setEditReceiverName(content.receiverName || '');
+    setEditSenderName(content.senderName || '');
+    setEditMessage(content.message || '');
+  }
+
+  async function handleSaveContent(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editingSite) return;
+
+    setSavingEdit(true);
+    setErrorMsg('');
+    setNotice('');
+
+    try {
+      const res = await fetch('/api/sites', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          siteId: editingSite.id,
+          action: 'update_content',
+          content: {
+            receiverName: editReceiverName,
+            senderName: editSenderName,
+            message: editMessage,
+          },
+        }),
+      });
+
+      const data = (await res.json()) as { ok?: boolean; error?: string };
+      if (!res.ok) throw new Error(data.error || 'Failed to update greeting content.');
+
+      setSites((prev) =>
+        prev.map((s) => {
+          if (s.id !== editingSite.id) return s;
+          const currentContent = (s.content_json as Record<string, unknown>) || {};
+          return {
+            ...s,
+            content_json: {
+              ...currentContent,
+              receiverName: editReceiverName,
+              senderName: editSenderName,
+              message: editMessage,
+            },
+          };
+        }),
+      );
+
+      setNotice(`Updated content for /s/${editingSite.slug} in live site.`);
+      setEditingSite(null);
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'Error updating content.');
+    } finally {
+      setSavingEdit(false);
+    }
+  }
+
+  async function handleSiteAction(siteId: string, action: 'pause' | 'unpause' | 'extend_30d' | 'purge_photos') {
     setBusyId(siteId);
     setErrorMsg('');
     setNotice('');
@@ -66,6 +139,13 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
               expires_at: new Date(Math.max(Date.now(), base) + 30 * 86400000).toISOString(),
             };
           }
+          if (action === 'purge_photos') {
+            const currentContent = (s.content_json as Record<string, unknown>) || {};
+            return {
+              ...s,
+              content_json: { ...currentContent, photos: [] },
+            };
+          }
           return s;
         }),
       );
@@ -88,7 +168,7 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
             </span>
           </div>
           <p className="mt-1 text-xs text-webzy-ink/70">
-            Monitor and manage published recipient links, view counts, expiry windows, or pause content.
+            Monitor and manage published recipient links, hot-fix spelling typos, view counts, or pause content.
           </p>
         </div>
 
@@ -159,14 +239,23 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
                 return (
                   <tr key={site.id} className="hover:bg-webzy-surface/30">
                     <td className="py-3 pr-4">
-                      <a
-                        href={liveUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="font-mono font-bold text-webzy-primary hover:underline"
-                      >
-                        /s/{site.slug} ↗
-                      </a>
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={liveUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="font-mono font-bold text-webzy-primary hover:underline"
+                        >
+                          /s/{site.slug} ↗
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => handleCopy(liveUrl, site.id)}
+                          className="rounded-md border border-webzy-tint bg-white px-2 py-0.5 text-[10px] font-semibold text-webzy-ink hover:bg-webzy-surface"
+                        >
+                          {copiedId === site.id ? 'Copied' : 'Copy'}
+                        </button>
+                      </div>
                       <p suppressHydrationWarning className="text-[11px] text-webzy-ink/50">
                         Created {site.created_at ? site.created_at.slice(0, 10) : '—'}
                       </p>
@@ -201,6 +290,13 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
                     <td className="py-3 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
+                          type="button"
+                          onClick={() => openEditModal(site)}
+                          className="min-h-[28px] rounded-lg border border-webzy-tint bg-white px-2 text-[11px] font-semibold text-webzy-primary hover:bg-webzy-surface"
+                        >
+                          Edit Content
+                        </button>
+                        <button
                           suppressHydrationWarning
                           type="button"
                           disabled={busyId === site.id}
@@ -222,6 +318,18 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
                         >
                           +30 Days
                         </button>
+                        <button
+                          type="button"
+                          disabled={busyId === site.id}
+                          onClick={() => {
+                            if (window.confirm(`Purge photos for /s/${site.slug}?`)) {
+                              void handleSiteAction(site.id, 'purge_photos');
+                            }
+                          }}
+                          className="min-h-[28px] rounded-lg border border-red-200 bg-red-50 px-2 text-[11px] font-semibold text-red-700 hover:bg-red-100 disabled:opacity-50"
+                        >
+                          Purge
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -231,6 +339,81 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
           </tbody>
         </table>
       </div>
+
+      {/* Inline Content Typo Hot-Fixer Modal */}
+      {editingSite ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl animate-scale-in">
+            <div className="flex items-center justify-between border-b border-webzy-tint pb-3">
+              <div>
+                <h3 className="font-heading text-lg font-bold text-webzy-ink">
+                  Edit Live Content: /s/{editingSite.slug}
+                </h3>
+                <p className="text-xs text-webzy-ink/60">
+                  Fix typos instantly without altering the live link or breaking WhatsApp shares.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingSite(null)}
+                className="rounded-full p-1 text-webzy-ink/60 hover:bg-webzy-surface hover:text-webzy-ink"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveContent} className="mt-4 space-y-4 text-xs">
+              <div>
+                <label className="block font-bold text-webzy-ink">Recipient Name (Receiver)</label>
+                <input
+                  type="text"
+                  required
+                  value={editReceiverName}
+                  onChange={(e) => setEditReceiverName(e.target.value)}
+                  className="mt-1 min-h-[40px] w-full rounded-xl border border-webzy-tint px-3 text-sm text-webzy-ink outline-none focus:border-webzy-primary"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-webzy-ink">Sender Name</label>
+                <input
+                  type="text"
+                  value={editSenderName}
+                  onChange={(e) => setEditSenderName(e.target.value)}
+                  className="mt-1 min-h-[40px] w-full rounded-xl border border-webzy-tint px-3 text-sm text-webzy-ink outline-none focus:border-webzy-primary"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-webzy-ink">Message Body</label>
+                <textarea
+                  rows={4}
+                  value={editMessage}
+                  onChange={(e) => setEditMessage(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-webzy-tint p-3 text-sm text-webzy-ink outline-none focus:border-webzy-primary"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingSite(null)}
+                  className="rounded-full border border-webzy-tint px-4 py-2 font-bold text-webzy-ink hover:bg-webzy-surface"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingEdit}
+                  className="rounded-full bg-webzy-primary px-5 py-2 font-bold text-white hover:opacity-95 disabled:opacity-50"
+                >
+                  {savingEdit ? 'Updating Live Site...' : 'Save & Hot-Fix Now'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
