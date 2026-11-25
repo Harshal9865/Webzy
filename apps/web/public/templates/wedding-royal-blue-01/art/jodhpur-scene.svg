@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1600" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Neela Rajwada Royal Jodhpur starlit indigo palace and golden temple portrait">
+  <defs>
+    <linearGradient id="twilightSky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#060E23"/>
+      <stop offset="34%" stop-color="#102148"/>
+      <stop offset="58%" stop-color="#1D376D"/>
+      <stop offset="76%" stop-color="#334B7B"/>
+      <stop offset="100%" stop-color="#0A1530"/>
+    </linearGradient>
+    <radialGradient id="moonGlow" cx="50%" cy="54%" r="38%">
+      <stop offset="0%" stop-color="#FFECAF" stop-opacity="0.56"/>
+      <stop offset="48%" stop-color="#D4AF37" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#102148" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="goldDome" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFF5D0"/>
+      <stop offset="45%" stop-color="#E5BE62"/>
+      <stop offset="100%" stop-color="#8B631E"/>
+    </linearGradient>
+    <linearGradient id="sandstone" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#CCA35E"/>
+      <stop offset="55%" stop-color="#86653B"/>
+      <stop offset="100%" stop-color="#382B2D"/>
+    </linearGradient>
+    <linearGradient id="waterIndigo" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1A3263"/>
+      <stop offset="50%" stop-color="#0E1E42"/>
+      <stop offset="100%" stop-color="#050C1D"/>
+    </linearGradient>
+    <linearGradient id="archFrame" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFF2C2"/>
+      <stop offset="50%" stop-color="#D7B257"/>
+      <stop offset="100%" stop-color="#7B591B"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Starry Twilight Sky (Upper 42% clean for couple typography) -->
+  <rect width="900" height="1600" fill="url(#twilightSky)"/>
+  <rect width="900" height="1600" fill="url(#moonGlow)"/>
+
+  <!-- Soft Stars & Twinkling Constellations -->
+  <g fill="#FFF5D6" opacity="0.78">
+    <circle cx="145" cy="160" r="2"/><circle cx="240" cy="115" r="1.5"/><circle cx="330" cy="210" r="2.2"/>
+    <circle cx="585" cy="145" r="1.8"/><circle cx="710" cy="195" r="2.4"/><circle cx="775" cy="285" r="1.6"/>
+    <circle cx="195" cy="310" r="1.8"/><circle cx="645" cy="295" r="1.5"/><circle cx="450" cy="95" r="2.5"/>
+    <circle cx="115" cy="420" r="1.6"/><circle cx="790" cy="410" r="2"/>
+    <path d="M180 218 L182 226 L190 228 L182 230 L180 238 L178 230 L170 228 L178 226 Z"/>
+    <path d="M724 238 L726 246 L734 248 L726 250 L724 258 L722 250 L714 248 L722 246 Z"/>
+  </g>
+
+  <!-- Distant Moon Halo behind Temple Spire -->
+  <circle cx="450" cy="835" r="165" fill="#FFF2C6" fill-opacity="0.18"/>
+  <circle cx="450" cy="835" r="110" fill="#FFF7DC" fill-opacity="0.24"/>
+
+  <!-- Grand Jodhpur Golden Temple & Sandstone Palace Silhouette -->
+  <g>
+    <!-- Main Palace Base & Carved Crenellations -->
+    <rect x="120" y="956" width="660" height="196" fill="url(#sandstone)" stroke="#E6C370" stroke-width="1.2"/>
+    <rect x="65" y="1005" width="110" height="147" fill="#5D4735" stroke="#C89F5B" stroke-width="1"/>
+    <rect x="725" y="1005" width="110" height="147" fill="#5D4735" stroke="#C89F5B" stroke-width="1"/>
+
+    <!-- Left & Right Chhatri Pavilions with Fluted Domes -->
+    <path d="M160 956 L160 886 C160 850 192 830 225 814 C258 830 290 850 290 886 L290 956 Z" fill="url(#goldDome)" stroke="#8B631E" stroke-width="1.2"/>
+    <line x1="225" y1="814" x2="225" y2="782" stroke="#FFF0B8" stroke-width="3"/>
+    <circle cx="225" cy="780" r="5.5" fill="#FFF0B8"/>
+
+    <path d="M610 956 L610 886 C610 850 642 830 675 814 C708 830 740 850 740 886 L740 956 Z" fill="url(#goldDome)" stroke="#8B631E" stroke-width="1.2"/>
+    <line x1="675" y1="814" x2="675" y2="782" stroke="#FFF0B8" stroke-width="3"/>
+    <circle cx="675" cy="780" r="5.5" fill="#FFF0B8"/>
+
+    <!-- Central Golden Temple Shikhara & Grand Fluted Dome -->
+    <path d="M318 956 L318 872 C318 800 382 752 450 718 C518 752 582 800 582 872 L582 956 Z" fill="url(#goldDome)" stroke="#8B631E" stroke-width="1.5"/>
+    <!-- Shikhara Fluted Lines -->
+    <path d="M362 950 C362 862 404 786 450 726 M404 950 C404 862 426 786 450 726 M496 950 C496 862 474 786 450 726 M538 950 C538 862 496 786 450 726" stroke="#8C6018" stroke-width="1.6" fill="none" opacity="0.55"/>
+    <!-- Kalash Spire & Dhwaja Flag -->
+    <line x1="450" y1="718" x2="450" y2="656" stroke="#FFF5D2" stroke-width="4.2" stroke-linecap="round"/>
+    <path d="M450 660 L482 670 L450 680 Z" fill="#F2B33D"/>
+    <circle cx="450" cy="688" r="9.5" fill="#FFE69B"/>
+    <circle cx="450" cy="656" r="5.5" fill="#FFF8DC"/>
+
+    <!-- Illuminated Palace Cusped Jharokha Windows & Lanterns -->
+    <g fill="#FFE8A3" opacity="0.9">
+      <path d="M196 1125 L196 1052 C196 1030 232 1030 232 1052 L232 1125 Z"/>
+      <path d="M268 1125 L268 1052 C268 1030 304 1030 304 1052 L304 1125 Z"/>
+      <path d="M368 1134 L368 1032 C368 1002 422 990 450 976 C478 990 532 1002 532 1032 L532 1134 Z"/>
+      <path d="M596 1125 L596 1052 C596 1030 632 1030 632 1052 L632 1125 Z"/>
+      <path d="M668 1125 L668 1052 C668 1030 704 1030 704 1052 L704 1125 Z"/>
+    </g>
+    <!-- Sandstone Balcony Cornice & Stepped Ghat -->
+    <rect x="110" y="948" width="680" height="12" rx="3" fill="#E6C370"/>
+    <rect x="85" y="1136" width="730" height="14" rx="3" fill="#D5AD56"/>
+    <rect x="65" y="1150" width="770" height="12" rx="2" fill="#B58E3E"/>
+  </g>
+
+  <!-- Midnight Blue Reflection Pool -->
+  <rect x="0" y="1162" width="900" height="438" fill="url(#waterIndigo)"/>
+  <line x1="65" y1="1162" x2="835" y2="1162" stroke="#F4DC92" stroke-width="2" opacity="0.72"/>
+
+  <!-- Shimmering Gold Water Reflections -->
+  <g fill="#F4D37B" opacity="0.32">
+    <rect x="365" y="1182" width="170" height="6" rx="3"/>
+    <rect x="330" y="1210" width="240" height="5" rx="2.5"/>
+    <rect x="385" y="1240" width="130" height="4" rx="2"/>
+    <rect x="205" y="1192" width="76" height="4" rx="2"/>
+    <rect x="619" y="1192" width="76" height="4" rx="2"/>
+    <rect x="355" y="1276" width="190" height="4" rx="2" opacity="0.65"/>
+    <rect x="400" y="1320" width="100" height="3.5" rx="2" opacity="0.55"/>
+  </g>
+
+  <!-- Floating Brass Diyas & Blooming Night Lotuses in Foreground Water -->
+  <g>
+    <ellipse cx="220" cy="1345" rx="28" ry="9" fill="#8B5A1C" stroke="#F4DC92" stroke-width="1"/>
+    <path d="M220 1314 C227 1326 229 1336 220 1341 C211 1336 213 1326 220 1314 Z" fill="#FFE680"/>
+    <circle cx="220" cy="1328" r="26" fill="#FFD464" fill-opacity="0.26"/>
+
+    <ellipse cx="685" cy="1368" rx="28" ry="9" fill="#8B5A1C" stroke="#F4DC92" stroke-width="1"/>
+    <path d="M685 1337 C692 1349 694 1359 685 1364 C676 1359 678 1349 685 1337 Z" fill="#FFE680"/>
+    <circle cx="685" cy="1352" r="26" fill="#FFD464" fill-opacity="0.26"/>
+
+    <ellipse cx="450" cy="1435" rx="34" ry="11" fill="#9A661F" stroke="#F4DC92" stroke-width="1.2"/>
+    <path d="M450 1398 C459 1412 461 1424 450 1430 C439 1424 441 1412 450 1398 Z" fill="#FFF0A0"/>
+    <circle cx="450" cy="1416" r="34" fill="#FFD464" fill-opacity="0.28"/>
+  </g>
+
+  <!-- Outer Carved Indigo & Silver-Gold Jharokha Arch Framing with Hanging Lanterns -->
+  <path d="M0 0 H900 V1600 H0 Z M72 1525 H828 V330 C828 215 730 145 610 120 C540 105 485 78 450 48 C415 78 360 105 290 120 C170 145 72 215 72 330 Z" fill="#071128" fill-rule="evenodd"/>
+  <path d="M72 1525 H828 V330 C828 215 730 145 610 120 C540 105 485 78 450 48 C415 78 360 105 290 120 C170 145 72 215 72 330 Z" fill="none" stroke="url(#archFrame)" stroke-width="5"/>
+  <path d="M56 1542 H844 V324 C844 198 740 126 616 100 C544 85 488 60 450 28 C412 60 356 85 284 100 C160 126 56 198 56 324 Z" fill="none" stroke="#F4DC92" stroke-width="1.6" stroke-dasharray="6 5" opacity="0.68"/>
+
+  <!-- Hanging Starry Brass Lanterns from Upper Jharokha Corners (Leaves center sky open) -->
+  <g stroke="#F4DC92" stroke-width="1.6">
+    <line x1="142" y1="192" x2="142" y2="296"/>
+    <polygon points="142,296 158,318 142,344 126,318" fill="#FFF2B8"/>
+    <circle cx="142" cy="320" r="24" fill="#FFD978" fill-opacity="0.28" stroke="none"/>
+
+    <line x1="758" y1="192" x2="758" y2="296"/>
+    <polygon points="758,296 774,318 758,344 742,318" fill="#FFF2B8"/>
+    <circle cx="758" cy="320" r="24" fill="#FFD978" fill-opacity="0.28" stroke="none"/>
+  </g>
+</svg>

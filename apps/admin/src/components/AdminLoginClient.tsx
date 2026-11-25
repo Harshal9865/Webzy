@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { getSupabaseBrowserClient } from '../../../../infra/supabase/browser';
 
 interface AdminLoginClientProps {
@@ -11,7 +11,6 @@ interface AdminLoginClientProps {
 
 export function AdminLoginClient({ supabaseConfigured, initialError }: AdminLoginClientProps) {
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
   const [authTab, setAuthTab] = useState<'password' | 'otp'>('password');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,10 +20,6 @@ export function AdminLoginClient({ supabaseConfigured, initialError }: AdminLogi
     initialError ? 'error' : 'idle',
   );
   const [errorMsg, setErrorMsg] = useState(initialError || '');
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   async function handlePasswordLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -143,12 +138,20 @@ export function AdminLoginClient({ supabaseConfigured, initialError }: AdminLogi
         className="rounded-3xl border border-webzy-tint bg-webzy-surface p-7 shadow-sm sm:p-9"
         suppressHydrationWarning
       >
-        {/* Brand Tag */}
-        <div className="flex items-center justify-between">
-          <span className="inline-flex rounded-full bg-webzy-tint px-3 py-1 text-xs font-bold text-webzy-primary">
-            Webzy Founder Console
+        {/* Brand Emblem matching Storefront Logo + Founder Tag */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="inline-flex items-center gap-2 font-heading text-xl font-bold tracking-tight text-webzy-ink">
+            <span
+              className="flex h-8 w-8 items-center justify-center rounded-xl bg-webzy-primary text-sm font-bold text-white shadow-btn-primary"
+              aria-hidden="true"
+            >
+              w
+            </span>
+            <span className="font-heading tracking-tight">Webzy</span>
+          </div>
+          <span className="inline-flex rounded-full bg-webzy-tint px-3 py-1 text-[11px] font-bold text-webzy-primary">
+            Founder Console
           </span>
-          <span className="text-[11px] font-semibold text-webzy-ink/50">Admin Ops</span>
         </div>
 
         <h1 className="mt-3 font-heading text-3xl font-bold text-webzy-ink">Admin Sign In</h1>
@@ -214,7 +217,7 @@ export function AdminLoginClient({ supabaseConfigured, initialError }: AdminLogi
                 suppressHydrationWarning
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="harshalkr220@gmail.com"
+                placeholder="admin@webzy.in"
                 className="mt-1 min-h-[48px] w-full rounded-xl border border-webzy-tint bg-white px-4 text-sm text-webzy-ink outline-none transition focus:border-webzy-primary"
               />
             </div>
@@ -301,10 +304,10 @@ export function AdminLoginClient({ supabaseConfigured, initialError }: AdminLogi
                 id="admin-otp"
                 type="text"
                 inputMode="numeric"
-                maxLength={8}
+                maxLength={6}
                 suppressHydrationWarning
                 value={otpCode}
-                onChange={(e) => setOtpCode(e.target.value)}
+                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 placeholder="123456"
                 className="mt-1 min-h-[48px] w-full rounded-xl border border-emerald-300 bg-white px-4 text-center font-mono text-lg tracking-widest text-webzy-ink outline-none focus:border-webzy-primary"
               />
@@ -359,7 +362,7 @@ export function AdminLoginClient({ supabaseConfigured, initialError }: AdminLogi
                 suppressHydrationWarning
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="harshalkr220@gmail.com"
+                placeholder="admin@webzy.in"
                 className="mt-1 min-h-[48px] w-full rounded-xl border border-webzy-tint bg-white px-4 text-sm text-webzy-ink outline-none transition focus:border-webzy-primary"
               />
             </div>

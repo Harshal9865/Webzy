@@ -2,16 +2,27 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ADDON_CATALOG,
   type AddonId,
   computeOrderPricingPaise,
+  expandThemeAddons,
   formatPaiseAsInr,
+  getSiteCopy,
+  isValidityAddonId,
   LanguageCode,
+  pickLocalizedText,
+  VALIDITY_TARGET_DAYS,
+  type ValidityAddonId,
 } from '@webzy/core';
 import type { ThemeManifest } from '@webzy/themes';
-import { getSupabaseBrowserClient } from '../../../../../infra/supabase/browser';
+import {
+  getSupabaseBrowserClient,
+  isBrowserSupabaseConfigured,
+} from '../../../../../infra/supabase/browser';
+import { useAuth } from '../auth/AuthProvider';
+import { useLanguage } from '../shell/LanguageProvider';
 
 interface CheckoutClientProps {
   theme: ThemeManifest;
@@ -24,6 +35,12 @@ interface CheckoutClientProps {
   payButtonDisabled: boolean;
   defaultValidityDays: number;
 }
+
+const CALENDAR_ICON = (
+  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+  </svg>
+);
 
 const ADDON_META: Record<AddonId, { title: string; subtitle: string; icon: React.ReactNode }> = {
   pin: {
@@ -44,14 +61,20 @@ const ADDON_META: Record<AddonId, { title: string; subtitle: string; icon: React
       </svg>
     ),
   },
+  extend_14d: {
+    title: '14 Days Total Validity',
+    subtitle: 'Extend from 7 days to 14 days live hosting',
+    icon: CALENDAR_ICON,
+  },
+  extend_21d: {
+    title: '21 Days Total Validity',
+    subtitle: 'Extend from 7 days to 21 days live hosting',
+    icon: CALENDAR_ICON,
+  },
   extend: {
-    title: 'Extra 90 Days Validity',
-    subtitle: 'Total 120 days of active online access',
-    icon: (
-      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-      </svg>
-    ),
+    title: '3 Months (90 Days) Validity',
+    subtitle: 'Full 90 days of active online access',
+    icon: CALENDAR_ICON,
   },
 };
 
@@ -67,7 +90,19 @@ export function CheckoutClient({
   defaultValidityDays,
 }: CheckoutClientProps) {
   const router = useRouter();
+  const { language: siteLang } = useLanguage();
+  const site = getSiteCopy(siteLang);
+  const {
+    isAuthenticated: clientAuthenticated,
+    loading: authLoading,
+    profile: clientProfile,
+    refreshAuth,
+  } = useAuth();
+  const effectiveAuthenticated = authLoading ? isAuthenticated : clientAuthenticated;
+  const supabaseConfigured = isBrowserSupabaseConfigured();
+
   const [selectedAddons, setSelectedAddons] = useState<AddonId[]>([]);
+  const [secretPin, setSecretPin] = useState('');
   const [fullName, setFullName] = useState(initialFullName);
   const [phone, setPhone] = useState(initialPhone);
   const [ageConfirmed, setAgeConfirmed] = useState(false);
@@ -75,6 +110,59 @@ export function CheckoutClient({
   const [photoPermConfirmed, setPhotoPermConfirmed] = useState(!hasPhotos);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  const expandedAllowedAddons = useMemo(
+    () => expandThemeAddons(theme.price.addons),
+    [theme.price.addons],
+  );
+  const featureAddons = useMemo(
+    () => expandedAllowedAddons.filter((id) => !isValidityAddonId(id)),
+    [expandedAllowedAddons],
+  );
+  const validityAddons = useMemo(
+    () => expandedAllowedAddons.filter(isValidityAddonId),
+    [expandedAllowedAddons],
+  );
+  const selectedValidityAddon = useMemo(
+    () => validityAddons.find((id) => selectedAddons.includes(id)) ?? null,
+    [validityAddons, selectedAddons],
+  );
+
+  // Pre-select any add-ons the user toggled on the /pricing page
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem('webzy_preferred_addons');
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as unknown;
+      if (Array.isArray(parsed)) {
+        const allowed = new Set(expandedAllowedAddons);
+        const rawValid = parsed.filter(
+          (id): id is AddonId => typeof id === 'string' && allowed.has(id as AddonId),
+        );
+        const chosenValidity = (['extend', 'extend_21d', 'extend_14d'] as const).find((vId) =>
+          rawValid.includes(vId),
+        );
+        const valid = Array.from(
+          new Set([
+            ...rawValid.filter((id) => !isValidityAddonId(id)),
+            ...(chosenValidity ? [chosenValidity] : []),
+          ]),
+        );
+        if (valid.length > 0) {
+          setSelectedAddons(valid);
+        }
+      }
+    } catch {
+      // Ignore storage read errors
+    }
+  }, [expandedAllowedAddons]);
+
+  // Auto-fill profile fields if user signs in via modal/inline auth while on checkout
+  useEffect(() => {
+    if (!clientProfile) return;
+    setFullName((prev) => (prev.trim() ? prev : clientProfile.full_name || ''));
+    setPhone((prev) => (prev.trim() ? prev : clientProfile.phone || ''));
+  }, [clientProfile]);
 
   // Inline email OTP auth state for unauthenticated users
   const [authEmail, setAuthEmail] = useState('');
@@ -86,6 +174,10 @@ export function CheckoutClient({
 
   async function handleSendInlineOtp(e: React.FormEvent) {
     e.preventDefault();
+    if (!supabaseConfigured) {
+      setAuthError('Authentication keys are not configured in this environment.');
+      return;
+    }
     const cleanEmail = authEmail.trim().toLowerCase();
     if (!cleanEmail || !cleanEmail.includes('@')) {
       setAuthError('Please enter a valid email address.');
@@ -120,6 +212,10 @@ export function CheckoutClient({
 
   async function handleVerifyInlineOtp(e: React.FormEvent) {
     e.preventDefault();
+    if (!supabaseConfigured) {
+      setAuthError('Authentication keys are not configured in this environment.');
+      return;
+    }
     const cleanEmail = authEmail.trim().toLowerCase();
     const cleanCode = authOtp.replace(/\s+/g, '');
     if (cleanCode.length < 6) {
@@ -145,6 +241,9 @@ export function CheckoutClient({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ draftToken }),
       }).catch(() => {});
+      await refreshAuth();
+      window.dispatchEvent(new Event('webzy_auth_updated'));
+      window.dispatchEvent(new Event('webzy_orders_updated'));
       router.refresh();
     } catch (err) {
       setAuthError(err instanceof Error ? err.message : 'Verification failed.');
@@ -165,9 +264,21 @@ export function CheckoutClient({
   );
 
   function toggleAddon(id: AddonId) {
-    setSelectedAddons((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
-    );
+    setSelectedAddons((prev) => {
+      if (isValidityAddonId(id)) {
+        const alreadySelected = prev.includes(id);
+        const withoutValidity = prev.filter((item) => !isValidityAddonId(item));
+        return alreadySelected ? withoutValidity : [...withoutValidity, id];
+      }
+      return prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id];
+    });
+  }
+
+  function selectValidityAddon(id: ValidityAddonId | null) {
+    setSelectedAddons((prev) => {
+      const withoutValidity = prev.filter((item) => !isValidityAddonId(item));
+      return id ? [...withoutValidity, id] : withoutValidity;
+    });
   }
 
   async function handleCheckout(e: React.FormEvent) {
@@ -175,6 +286,13 @@ export function CheckoutClient({
     setErrorMsg('');
     if (payButtonDisabled) {
       setErrorMsg('Payments are temporarily paused while Mock mode is restricted in production.');
+      return;
+    }
+
+    const pinSelected = selectedAddons.includes('pin');
+    const cleanPin = secretPin.replace(/\D/g, '').slice(0, 4);
+    if (pinSelected && cleanPin.length !== 4) {
+      setErrorMsg('Please enter a 4-digit Secret PIN (numbers only) to lock your page.');
       return;
     }
 
@@ -186,6 +304,7 @@ export function CheckoutClient({
         body: JSON.stringify({
           draftToken,
           addons: selectedAddons,
+          secretPin: pinSelected ? cleanPin : undefined,
           fullName,
           phone,
           consent: {
@@ -195,13 +314,14 @@ export function CheckoutClient({
           },
         }),
       });
-      const data = (await res.json()) as {
+      const data = (await res.json().catch(() => ({}))) as {
         redirectUrl?: string;
         error?: string;
       };
       if (!res.ok || !data.redirectUrl) {
         throw new Error(data.error || 'Could not start payment. Please retry.');
       }
+      window.dispatchEvent(new Event('webzy_orders_updated'));
       router.push(data.redirectUrl);
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : 'Checkout error. Please retry.');
@@ -214,22 +334,26 @@ export function CheckoutClient({
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
       <div className="mb-6">
         <Link
-          href={`/create/${theme.id}?draft=${encodeURIComponent(draftToken)}`}
+          href={
+            theme.occasion === 'wedding'
+              ? `/weddings/${theme.id}/customize?draft=${encodeURIComponent(draftToken)}`
+              : `/create/${theme.id}?draft=${encodeURIComponent(draftToken)}`
+          }
           className="inline-flex min-h-[44px] items-center text-xs font-bold text-webzy-primary hover:underline"
         >
           ← Back to edit draft
         </Link>
         <h1 className="font-heading text-3xl font-bold text-webzy-ink">
-          Review & Pay ({formatPaiseAsInr(pricing.totalPaise)})
+          {site.account.checkoutReviewAndPay} ({formatPaiseAsInr(pricing.totalPaise)})
         </h1>
       </div>
 
-      {!isAuthenticated ? (
-        <div className="rounded-3xl border border-webzy-tint bg-webzy-surface p-6 shadow-sm sm:p-8">
-          <span className="inline-flex rounded-full bg-webzy-tint px-3 py-1 text-xs font-bold text-webzy-primary">
-            Step 1 · Quick Email Verification
-          </span>
-          <h2 className="mt-3 font-heading text-2xl font-bold text-webzy-ink">
+      {!effectiveAuthenticated ? (
+        <div className="rounded-2xl border border-webzy-ink/[0.09] bg-white p-6 shadow-sm sm:p-8">
+          <p className="text-xs font-semibold text-webzy-primary">
+            Step 1 of 2
+          </p>
+          <h2 className="mt-2 font-heading text-2xl font-bold text-webzy-ink">
             Where should we send your receipt and live link?
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-webzy-ink/80">
@@ -294,8 +418,8 @@ export function CheckoutClient({
                   id="chk-auth-code"
                   type="text"
                   inputMode="numeric"
-                  pattern="[0-9]*"
-                  maxLength={6}
+                  autoComplete="one-time-code"
+                  maxLength={8}
                   required
                   autoFocus
                   value={authOtp}
@@ -322,7 +446,12 @@ export function CheckoutClient({
                 </button>
                 <button
                   type="button"
-                  onClick={() => setAuthSent(false)}
+                  onClick={() => {
+                    setAuthSent(false);
+                    setAuthOtp('');
+                    setAuthError('');
+                    setAuthNotice('');
+                  }}
                   className="text-xs text-webzy-ink/65 hover:text-webzy-primary hover:underline"
                 >
                   Change email
@@ -367,14 +496,14 @@ export function CheckoutClient({
               />
             </div>
 
-            {theme.price.addons.length > 0 ? (
+            {expandedAllowedAddons.length > 0 ? (
               <div className="rounded-2xl bg-white p-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-bold text-webzy-ink">Optional Add-Ons</p>
-                  <span className="text-[11px] text-webzy-ink/50">Tap to include</span>
+                  <p className="text-xs font-bold text-webzy-ink">{site.account.checkoutOptionalAddons}</p>
+                  <span className="text-[11px] text-webzy-ink/50">{site.common.tapToSelect}</span>
                 </div>
                 <div className="mt-3 space-y-2.5">
-                  {theme.price.addons.map((addonId) => {
+                  {featureAddons.map((addonId) => {
                     const isSelected = selectedAddons.includes(addonId);
                     const catalog = ADDON_CATALOG[addonId];
                     const meta = ADDON_META[addonId];
@@ -385,7 +514,7 @@ export function CheckoutClient({
                         key={addonId}
                         className={`flex min-h-[56px] cursor-pointer items-center justify-between gap-3 rounded-2xl border p-3.5 transition-all ${
                           isSelected
-                            ? 'border-emerald-500 bg-emerald-50/50 shadow-xs ring-1 ring-emerald-500/20'
+                            ? 'border-emerald-500 bg-emerald-50/50 shadow-sm ring-1 ring-emerald-500/20'
                             : 'border-webzy-tint bg-white hover:border-webzy-tint/80'
                         }`}
                       >
@@ -407,10 +536,12 @@ export function CheckoutClient({
                           </div>
                           <div>
                             <p className="text-xs font-bold text-webzy-ink">
-                              {meta?.title || catalog.label[language]}
+                              {site.pricing.addons[addonId]?.title ||
+                                meta?.title ||
+                                pickLocalizedText(catalog.label, language)}
                             </p>
                             <p className="text-[11px] text-webzy-ink/60">
-                              {meta?.subtitle}
+                              {site.pricing.addons[addonId]?.description || meta?.subtitle}
                             </p>
                           </div>
                         </div>
@@ -434,6 +565,119 @@ export function CheckoutClient({
                     );
                   })}
                 </div>
+
+                {validityAddons.length > 0 ? (
+                  <div className="mt-4 border-t border-webzy-tint/70 pt-3.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs font-bold text-webzy-ink">
+                        Link Validity Duration
+                      </p>
+                      <span className="text-[11px] text-webzy-ink/60 font-tabular">
+                        {pricing.validityDays} {site.common.daysLink}
+                      </span>
+                    </div>
+                    <div
+                      role="radiogroup"
+                      aria-label="Link Validity Duration"
+                      className="mt-2.5 grid grid-cols-2 gap-2 sm:grid-cols-4"
+                    >
+                      <button
+                        type="button"
+                        role="radio"
+                        aria-checked={selectedValidityAddon === null}
+                        onClick={() => selectValidityAddon(null)}
+                        className={`flex flex-col items-start rounded-xl border p-2.5 text-left transition ${
+                          selectedValidityAddon === null
+                            ? 'border-emerald-600 bg-emerald-50/70 shadow-xs ring-1 ring-emerald-500/25'
+                            : 'border-webzy-tint bg-white hover:border-webzy-ink/25'
+                        }`}
+                      >
+                        <span className="text-xs font-bold text-webzy-ink">
+                          {defaultValidityDays} Days
+                        </span>
+                        <span className="mt-0.5 text-[10px] font-semibold text-emerald-700">
+                          Included · Free
+                        </span>
+                      </button>
+
+                      {validityAddons.map((vId) => {
+                        const isSelected = selectedValidityAddon === vId;
+                        const catalog = ADDON_CATALOG[vId];
+                        const targetDays = VALIDITY_TARGET_DAYS[vId];
+                        const durationTitle =
+                          vId === 'extend_14d'
+                            ? '14 Days'
+                            : vId === 'extend_21d'
+                              ? '21 Days'
+                              : '3 Months';
+
+                        return (
+                          <button
+                            key={vId}
+                            type="button"
+                            role="radio"
+                            aria-checked={isSelected}
+                            onClick={() => selectValidityAddon(vId)}
+                            className={`flex flex-col items-start rounded-xl border p-2.5 text-left transition font-tabular ${
+                              isSelected
+                                ? 'border-emerald-600 bg-emerald-50/70 shadow-xs ring-1 ring-emerald-500/25'
+                                : 'border-webzy-tint bg-white hover:border-webzy-ink/25'
+                            }`}
+                          >
+                            <span className="text-xs font-bold text-webzy-ink">
+                              {durationTitle}
+                            </span>
+                            <span className="text-[10px] text-webzy-ink/60">
+                              {targetDays} {site.common.daysLink}
+                            </span>
+                            <div className="mt-1 flex items-baseline gap-1">
+                              <span className="text-[10px] text-webzy-ink/40 line-through">
+                                ₹{catalog.compareAtInr}
+                              </span>
+                              <span className="text-[11px] font-bold text-emerald-700">
+                                +₹{catalog.priceInr}
+                              </span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+
+                {selectedAddons.includes('pin') ? (
+                  <div className="mt-3 rounded-2xl border border-emerald-200 bg-emerald-50/50 p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <label htmlFor="chk-secret-pin" className="text-xs font-bold text-emerald-950">
+                        Set your 4-digit Secret PIN *
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setSecretPin(String(Math.floor(1000 + Math.random() * 9000)))
+                        }
+                        className="text-[11px] font-bold text-emerald-800 underline hover:text-emerald-950"
+                      >
+                        Pick random PIN
+                      </button>
+                    </div>
+                    <input
+                      id="chk-secret-pin"
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]{4}"
+                      maxLength={4}
+                      required
+                      value={secretPin}
+                      onChange={(e) => setSecretPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      placeholder="e.g. 2408"
+                      className="mt-2 min-h-[48px] w-full rounded-xl border border-emerald-300 bg-white px-4 text-center font-mono text-lg font-bold tracking-[0.35em] text-webzy-ink outline-none focus:border-emerald-600"
+                    />
+                    <p className="mt-1.5 text-[11px] text-emerald-900/80">
+                      Only people who enter this 4-digit PIN can unlock and view your live page.
+                    </p>
+                  </div>
+                ) : null}
               </div>
             ) : null}
 
@@ -494,25 +738,43 @@ export function CheckoutClient({
           </section>
 
           <aside className="rounded-3xl border border-webzy-tint bg-white p-6 shadow-sm lg:col-span-5">
-            <h2 className="font-heading text-xl font-bold text-webzy-ink">Order summary</h2>
+            <h2 className="font-heading text-xl font-bold text-webzy-ink">{site.account.checkoutOrderSummary}</h2>
             <dl className="mt-4 space-y-2 text-sm">
               <div className="flex justify-between">
-                <dt className="text-webzy-ink/75">{theme.name[language]}</dt>
+                <dt className="text-webzy-ink/75">{pickLocalizedText(theme.name, siteLang)}</dt>
                 <dd className="font-semibold">{formatPaiseAsInr(pricing.basePaise)}</dd>
               </div>
               {pricing.addonsPaise > 0 ? (
                 <div className="flex justify-between">
-                  <dt className="text-webzy-ink/75">Add-ons</dt>
+                  <dt className="text-webzy-ink/75">{site.account.checkoutOptionalAddons}</dt>
                   <dd className="font-semibold">{formatPaiseAsInr(pricing.addonsPaise)}</dd>
                 </div>
               ) : null}
               <div className="flex justify-between border-t border-webzy-tint pt-2.5 text-base font-bold text-webzy-ink">
-                <dt>Total (GST-inclusive)</dt>
+                <dt>{site.account.checkoutTotalGst}</dt>
                 <dd className="font-extrabold text-emerald-700">{formatPaiseAsInr(pricing.totalPaise)}</dd>
               </div>
             </dl>
+            {(() => {
+              const totalInr = pricing.totalPaise / 100;
+              const halfGst = Number(((totalInr - totalInr / 1.18) / 2).toFixed(2));
+              const taxable = Number((totalInr - halfGst * 2).toFixed(2));
+              return (
+                <div className="mt-3 rounded-2xl border border-webzy-tint/80 bg-webzy-surface/50 px-3.5 py-2.5 text-[11px] text-webzy-ink/70 font-tabular">
+                  <div className="flex justify-between">
+                    <span>Taxable Value (SAC 998314):</span>
+                    <span>₹{taxable.toFixed(2)}</span>
+                  </div>
+                  <div className="mt-0.5 flex justify-between">
+                    <span>CGST (9%) + SGST (9%):</span>
+                    <span>₹{halfGst.toFixed(2)} + ₹{halfGst.toFixed(2)}</span>
+                  </div>
+                </div>
+              );
+            })()}
             <p className="mt-2 text-xs text-webzy-ink/60">
-              Link validity: {pricing.validityDays} days · Includes instant link delivery
+              {pricing.validityDays} {site.common.daysLink}
+              {pricing.validityDays === 90 ? ' (3 months)' : ''}
             </p>
 
             <button
@@ -525,7 +787,7 @@ export function CheckoutClient({
                 ? 'Pay temporarily disabled'
                 : submitting
                   ? 'Creating order...'
-                  : `Pay ${formatPaiseAsInr(pricing.totalPaise)} by UPI →`}
+                  : `${site.account.checkoutPayByUpi} (${formatPaiseAsInr(pricing.totalPaise)}) →`}
             </button>
           </aside>
         </form>

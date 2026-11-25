@@ -41,16 +41,51 @@ export async function getAuthSessionState(): Promise<AuthSessionState> {
     const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
     const aal = (aalData?.currentLevel as AuthenticatorAssuranceLevel) ?? 'aal1';
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('id, full_name, email, phone, role, is_banned, created_at')
-      .eq('id', user.id)
-      .maybeSingle();
+    let profile: UserProfileRecord | null = null;
+    if (getSupabaseEnv().adminConfigured) {
+      const admin = createSupabaseAdminClient();
+      const { data: adminProfile } = await admin
+        .from('profiles')
+        .select('id, full_name, email, phone, role, is_banned, created_at')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (adminProfile) {
+        profile = adminProfile as UserProfileRecord;
+      } else {
+        const metaFullName =
+          typeof user.user_metadata?.full_name === 'string'
+            ? user.user_metadata.full_name.trim()
+            : '';
+        const { data: insertedProfile } = await admin
+          .from('profiles')
+          .upsert(
+            {
+              id: user.id,
+              email: user.email || '',
+              full_name: metaFullName,
+              role: 'user',
+              is_banned: false,
+            },
+            { onConflict: 'id' },
+          )
+          .select('id, full_name, email, phone, role, is_banned, created_at')
+          .maybeSingle();
+        profile = (insertedProfile as UserProfileRecord | null) ?? null;
+      }
+    } else {
+      const { data: anonProfile } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, phone, role, is_banned, created_at')
+        .eq('id', user.id)
+        .maybeSingle();
+      profile = (anonProfile as UserProfileRecord | null) ?? null;
+    }
 
     return {
       configured: true,
       user,
-      profile: (profile as UserProfileRecord | null) ?? null,
+      profile,
       aal,
     };
   } catch (err) {

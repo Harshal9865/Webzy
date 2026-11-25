@@ -1,0 +1,158 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-label="Grace Cathedral candlelit white rose and olive chapel altar with stained glass and pews">
+  <defs>
+    <linearGradient id="altarBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FDFCF9"/>
+      <stop offset="55%" stop-color="#EFEAE0"/>
+      <stop offset="100%" stop-color="#C9C2B3"/>
+    </linearGradient>
+    <linearGradient id="goldAlt" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#F6E2B7"/>
+      <stop offset="50%" stop-color="#C49A55"/>
+      <stop offset="100%" stop-color="#87612B"/>
+    </linearGradient>
+    <radialGradient id="windowGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFF7DC"/>
+      <stop offset="45%" stop-color="#E9D6A6"/>
+      <stop offset="75%" stop-color="#A9BCAE"/>
+      <stop offset="100%" stop-color="#7C9287"/>
+    </radialGradient>
+    <radialGradient id="candleHalo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFF4C8" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#FFF4C8" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="sunbeam" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFBEA" stop-opacity="0.75"/>
+      <stop offset="100%" stop-color="#FFFBEA" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="pew" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8A6A4A"/>
+      <stop offset="100%" stop-color="#5A4230"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#altarBg)"/>
+
+  <!-- Flanking Gothic Side Windows -->
+  <g stroke="url(#goldAlt)" stroke-width="2.5">
+    <path d="M190 520 L190 250 Q190 170 250 150 Q310 170 310 250 L310 520 Z" fill="url(#windowGlow)" opacity="0.82"/>
+    <path d="M1290 520 L1290 250 Q1290 170 1350 150 Q1410 170 1410 250 L1410 520 Z" fill="url(#windowGlow)" opacity="0.82"/>
+    <line x1="250" y1="160" x2="250" y2="520" stroke-width="1.4"/>
+    <line x1="190" y1="330" x2="310" y2="330" stroke-width="1.4"/>
+    <line x1="1350" y1="160" x2="1350" y2="520" stroke-width="1.4"/>
+    <line x1="1290" y1="330" x2="1410" y2="330" stroke-width="1.4"/>
+  </g>
+
+  <!-- Soft Diagonal Sunbeams -->
+  <polygon points="250,180 330,180 640,900 420,900" fill="url(#sunbeam)" opacity="0.45"/>
+  <polygon points="1270,180 1350,180 1180,900 960,900" fill="url(#sunbeam)" opacity="0.45"/>
+
+  <!-- Central Rose Window -->
+  <g transform="translate(800 210)">
+    <circle r="96" fill="url(#windowGlow)" stroke="url(#goldAlt)" stroke-width="4"/>
+    <circle r="70" fill="none" stroke="#FFFFFF" stroke-opacity="0.7" stroke-width="1.5"/>
+    <circle r="24" fill="#FFF6D9" stroke="url(#goldAlt)" stroke-width="2"/>
+    <g stroke="url(#goldAlt)" stroke-width="1.6">
+      <line x1="0" y1="-96" x2="0" y2="96"/>
+      <line x1="-96" y1="0" x2="96" y2="0"/>
+      <line x1="-68" y1="-68" x2="68" y2="68"/>
+      <line x1="68" y1="-68" x2="-68" y2="68"/>
+    </g>
+  </g>
+
+  <!-- Gothic Arch & Botanical Floral Arbor -->
+  <g transform="translate(800 0)">
+    <path d="M-360 770 L-360 400 Q-360 180 0 120 Q360 180 360 400 L360 770" fill="none" stroke="url(#goldAlt)" stroke-width="10"/>
+    <path d="M-334 770 L-334 408 Q-334 208 0 152 Q334 208 334 408 L334 770" fill="none" stroke="#C49A55" stroke-width="2" opacity="0.6"/>
+
+    <!-- Hanging Ivory Drapes -->
+    <path d="M-334 410 Q-280 560 -330 770 L-290 770 Q-250 560 -300 400 Z" fill="#FFFFFF" opacity="0.85"/>
+    <path d="M334 410 Q280 560 330 770 L290 770 Q250 560 300 400 Z" fill="#FFFFFF" opacity="0.85"/>
+
+    <!-- White Rose & Olive Garland -->
+    <g>
+      <ellipse cx="-300" cy="300" rx="34" ry="13" transform="rotate(-50 -300 300)" fill="#7A8F74"/>
+      <ellipse cx="300" cy="300" rx="34" ry="13" transform="rotate(50 300 300)" fill="#7A8F74"/>
+      <ellipse cx="-220" cy="200" rx="36" ry="13" transform="rotate(-30 -220 200)" fill="#889C82"/>
+      <ellipse cx="220" cy="200" rx="36" ry="13" transform="rotate(30 220 200)" fill="#889C82"/>
+      <ellipse cx="-110" cy="150" rx="34" ry="12" transform="rotate(-12 -110 150)" fill="#7A8F74"/>
+      <ellipse cx="110" cy="150" rx="34" ry="12" transform="rotate(12 110 150)" fill="#7A8F74"/>
+      <g fill="#FFFFFF" stroke="#E5DCCB" stroke-width="1">
+        <circle cx="-280" cy="272" r="22"/><circle cx="-250" cy="250" r="16"/>
+        <circle cx="280" cy="272" r="22"/><circle cx="250" cy="250" r="16"/>
+        <circle cx="-180" cy="182" r="20"/><circle cx="180" cy="182" r="20"/>
+        <circle cx="-60" cy="138" r="18"/><circle cx="60" cy="138" r="18"/>
+        <circle cx="0" cy="124" r="28"/>
+      </g>
+      <g fill="#F2EAD9">
+        <circle cx="-280" cy="272" r="9"/><circle cx="280" cy="272" r="9"/>
+        <circle cx="0" cy="124" r="12"/>
+      </g>
+    </g>
+
+    <!-- Marble Altar & Brass Cross -->
+    <rect x="-210" y="610" width="420" height="150" fill="#FFFFFF" stroke="#D3C9B8" stroke-width="2"/>
+    <rect x="-230" y="594" width="460" height="20" fill="#F7F2E8" stroke="url(#goldAlt)" stroke-width="1.6"/>
+    <rect x="-180" y="640" width="360" height="90" fill="none" stroke="#C49A55" stroke-width="1.2" opacity="0.6"/>
+    <path d="M-30 685 L30 685 M0 655 L0 715" stroke="url(#goldAlt)" stroke-width="3" stroke-linecap="round"/>
+    <line x1="0" y1="450" x2="0" y2="594" stroke="url(#goldAlt)" stroke-width="7" stroke-linecap="round"/>
+    <line x1="-38" y1="492" x2="38" y2="492" stroke="url(#goldAlt)" stroke-width="7" stroke-linecap="round"/>
+
+    <!-- Altar Lily Vases -->
+    <g>
+      <path d="M-170 594 Q-176 560 -160 544 L-140 544 Q-124 560 -130 594 Z" fill="url(#goldAlt)"/>
+      <path d="M130 594 Q124 560 140 544 L160 544 Q176 560 170 594 Z" fill="url(#goldAlt)"/>
+      <g fill="#FFFFFF" stroke="#E2D8C6" stroke-width="1">
+        <path d="M-150 544 Q-180 500 -160 470 Q-150 500 -150 544 Z"/>
+        <path d="M-150 544 Q-120 500 -140 470 Q-150 500 -150 544 Z"/>
+        <path d="M150 544 Q120 500 140 470 Q150 500 150 544 Z"/>
+        <path d="M150 544 Q180 500 160 470 Q150 500 150 544 Z"/>
+      </g>
+      <g stroke="#7A8F74" stroke-width="2" fill="none">
+        <path d="M-150 544 Q-190 520 -200 490"/><path d="M150 544 Q190 520 200 490"/>
+      </g>
+    </g>
+
+    <!-- Candelabras -->
+    <g>
+      <circle cx="-260" cy="520" r="40" fill="url(#candleHalo)"/>
+      <circle cx="260" cy="520" r="40" fill="url(#candleHalo)"/>
+      <rect x="-265" y="540" width="10" height="230" fill="url(#goldAlt)"/>
+      <rect x="255" y="540" width="10" height="230" fill="url(#goldAlt)"/>
+      <rect x="-275" y="520" width="30" height="24" fill="#FFFDF8" stroke="#E2D9C8"/>
+      <rect x="245" y="520" width="30" height="24" fill="#FFFDF8" stroke="#E2D9C8"/>
+      <path d="M-260 498 Q-253 510 -260 520 Q-267 510 -260 498 Z" fill="#F6C35A"/>
+      <path d="M260 498 Q267 510 260 520 Q253 510 260 498 Z" fill="#F6C35A"/>
+      <rect x="-142" y="516" width="22" height="78" fill="#FFFDF8" stroke="#E2D9C8"/>
+      <path d="M-131 490 Q-125 504 -131 514 Q-137 504 -131 490 Z" fill="#F6C35A"/>
+      <rect x="120" y="516" width="22" height="78" fill="#FFFDF8" stroke="#E2D9C8"/>
+      <path d="M131 490 Q137 504 131 514 Q125 504 131 490 Z" fill="#F6C35A"/>
+    </g>
+
+    <!-- Marble Steps -->
+    <rect x="-470" y="760" width="940" height="30" fill="#F6F2EA"/>
+    <rect x="-540" y="790" width="1080" height="110" fill="#E3DDD0"/>
+  </g>
+
+  <!-- Ivory Aisle Runner & Petals -->
+  <polygon points="700,790 900,790 1040,900 560,900" fill="#FFFFFF" opacity="0.92"/>
+  <g fill="#F4ECDC">
+    <ellipse cx="760" cy="830" rx="6" ry="3"/><ellipse cx="840" cy="845" rx="5" ry="3"/>
+    <ellipse cx="720" cy="870" rx="6" ry="3"/><ellipse cx="880" cy="880" rx="6" ry="3"/>
+    <ellipse cx="800" cy="860" rx="5" ry="3"/>
+  </g>
+
+  <!-- Wooden Pews with White Bows -->
+  <g>
+    <rect x="80" y="800" width="460" height="22" fill="url(#pew)"/>
+    <rect x="40" y="850" width="500" height="26" fill="url(#pew)"/>
+    <rect x="1060" y="800" width="460" height="22" fill="url(#pew)"/>
+    <rect x="1060" y="850" width="500" height="26" fill="url(#pew)"/>
+    <g fill="#FFFFFF">
+      <circle cx="540" cy="806" r="10"/><circle cx="540" cy="858" r="11"/>
+      <circle cx="1060" cy="806" r="10"/><circle cx="1060" cy="858" r="11"/>
+    </g>
+    <g fill="#7A8F74">
+      <ellipse cx="526" cy="814" rx="9" ry="4"/><ellipse cx="1074" cy="814" rx="9" ry="4"/>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1600" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Neela Rajwada Royal Jodhpur midnight indigo and silver-gold palace gates cover">
+  <defs>
+    <linearGradient id="indigoBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#09132B"/>
+      <stop offset="50%" stop-color="#13264E"/>
+      <stop offset="100%" stop-color="#070F22"/>
+    </linearGradient>
+    <radialGradient id="centerHalo" cx="50%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#2B4E91" stop-opacity="0.48"/>
+      <stop offset="60%" stop-color="#102042" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#050B1A" stop-opacity="0.65"/>
+    </radialGradient>
+    <linearGradient id="silverGold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFF7DC"/>
+      <stop offset="45%" stop-color="#E5C878"/>
+      <stop offset="100%" stop-color="#9A7830"/>
+    </linearGradient>
+    <pattern id="jaliPattern" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M30 0 L60 30 L30 60 L0 30 Z" fill="none" stroke="#E5C878" stroke-width="0.7" stroke-opacity="0.22"/>
+      <circle cx="30" cy="30" r="9" fill="none" stroke="#FFF2C8" stroke-width="0.6" stroke-opacity="0.18"/>
+      <circle cx="30" cy="30" r="2.2" fill="#E5C878" fill-opacity="0.25"/>
+      <path d="M0 0 L12 12 M60 0 L48 12 M0 60 L12 48 M60 60 L48 48" stroke="#E5C878" stroke-width="0.5" stroke-opacity="0.16"/>
+    </pattern>
+  </defs>
+
+  <rect width="900" height="1600" fill="url(#indigoBg)"/>
+  <rect width="900" height="1600" fill="url(#jaliPattern)"/>
+  <rect width="900" height="1600" fill="url(#centerHalo)"/>
+
+  <!-- Top & Bottom Royal Marwar Zardozi Frieze Bands -->
+  <rect x="0" y="0" width="900" height="84" fill="#071024" stroke="url(#silverGold)" stroke-width="2"/>
+  <rect x="0" y="1516" width="900" height="84" fill="#071024" stroke="url(#silverGold)" stroke-width="2"/>
+
+  <!-- Left Door Architectural Frame & Multi-Cusped Rajput Arch -->
+  <g fill="none" stroke="url(#silverGold)">
+    <rect x="34" y="104" width="400" height="1392" rx="6" stroke-width="3.2" stroke-opacity="0.86"/>
+    <rect x="52" y="122" width="364" height="1356" rx="4" stroke-width="1.2" stroke-opacity="0.58" stroke-dasharray="6 4"/>
+    <!-- Left Cusped Mughal/Rajput Arch Panel -->
+    <path d="M84 1444 L84 420 C84 300 160 220 260 190 C325 170 370 142 402 108 L402 1444 Z" fill="#0A152D" fill-opacity="0.52" stroke-width="2.5" stroke-opacity="0.9"/>
+    <path d="M104 1426 L104 435 C104 328 174 252 268 224 C320 208 358 178 386 144 L386 1426 Z" stroke-width="1.2" stroke-opacity="0.55"/>
+
+    <!-- Hanging Silver-Gold Palace Lantern in Upper Left Arch -->
+    <line x1="234" y1="238" x2="234" y2="306" stroke-width="1.6"/>
+    <polygon points="234,306 250,328 234,354 218,328" fill="#FCE7A2" fill-opacity="0.45" stroke-width="1.4"/>
+
+    <!-- Left Surya-Chandra (Sun & Crescent) & Mor (Peacock/Lotus) Medallions -->
+    <g transform="translate(234 495)">
+      <circle r="74" stroke-width="1.8" stroke-opacity="0.72"/>
+      <circle r="54" stroke-width="1" stroke-opacity="0.5" stroke-dasharray="4 4"/>
+      <path d="M0 -58 C14 -28 28 -14 58 0 C28 14 14 28 0 58 C-14 28 -28 14 -58 0 C-28 -14 -14 -28 0 -58 Z" fill="#E5C878" fill-opacity="0.16" stroke-width="1.4"/>
+      <circle r="16" fill="#E5C878" fill-opacity="0.22" stroke-width="1.2"/>
+    </g>
+    <g transform="translate(234 1115)">
+      <circle r="74" stroke-width="1.8" stroke-opacity="0.72"/>
+      <circle r="54" stroke-width="1" stroke-opacity="0.5" stroke-dasharray="4 4"/>
+      <path d="M0 -58 C14 -28 28 -14 58 0 C28 14 14 28 0 58 C-14 28 -28 14 -58 0 C-28 -14 -14 -28 0 -58 Z" fill="#E5C878" fill-opacity="0.16" stroke-width="1.4"/>
+      <circle r="16" fill="#E5C878" fill-opacity="0.22" stroke-width="1.2"/>
+    </g>
+    <!-- Crescent & Star Motif Left -->
+    <path d="M142 170 A34 34 0 1 0 176 214 A26 26 0 1 1 142 170 Z" fill="#F2DA8E" fill-opacity="0.42" stroke-width="1.1"/>
+    <circle cx="174" cy="182" r="3.5" fill="#FFF7DC"/>
+  </g>
+
+  <!-- Right Door Architectural Frame (Exact Mirror) -->
+  <g fill="none" stroke="url(#silverGold)">
+    <rect x="466" y="104" width="400" height="1392" rx="6" stroke-width="3.2" stroke-opacity="0.86"/>
+    <rect x="484" y="122" width="364" height="1356" rx="4" stroke-width="1.2" stroke-opacity="0.58" stroke-dasharray="6 4"/>
+    <path d="M816 1444 L816 420 C816 300 740 220 640 190 C575 170 530 142 498 108 L498 1444 Z" fill="#0A152D" fill-opacity="0.52" stroke-width="2.5" stroke-opacity="0.9"/>
+    <path d="M796 1426 L796 435 C796 328 726 252 632 224 C580 208 542 178 514 144 L514 1426 Z" stroke-width="1.2" stroke-opacity="0.55"/>
+
+    <line x1="666" y1="238" x2="666" y2="306" stroke-width="1.6"/>
+    <polygon points="666,306 682,328 666,354 650,328" fill="#FCE7A2" fill-opacity="0.45" stroke-width="1.4"/>
+
+    <g transform="translate(666 495)">
+      <circle r="74" stroke-width="1.8" stroke-opacity="0.72"/>
+      <circle r="54" stroke-width="1" stroke-opacity="0.5" stroke-dasharray="4 4"/>
+      <path d="M0 -58 C14 -28 28 -14 58 0 C28 14 14 28 0 58 C-14 28 -28 14 -58 0 C-28 -14 -14 -28 0 -58 Z" fill="#E5C878" fill-opacity="0.16" stroke-width="1.4"/>
+      <circle r="16" fill="#E5C878" fill-opacity="0.22" stroke-width="1.2"/>
+    </g>
+    <g transform="translate(666 1115)">
+      <circle r="74" stroke-width="1.8" stroke-opacity="0.72"/>
+      <circle r="54" stroke-width="1" stroke-opacity="0.5" stroke-dasharray="4 4"/>
+      <path d="M0 -58 C14 -28 28 -14 58 0 C28 14 14 28 0 58 C-14 28 -28 14 -58 0 C-28 -14 -14 -28 0 -58 Z" fill="#E5C878" fill-opacity="0.16" stroke-width="1.4"/>
+      <circle r="16" fill="#E5C878" fill-opacity="0.22" stroke-width="1.2"/>
+    </g>
+    <path d="M758 170 A34 34 0 1 1 724 214 A26 26 0 1 0 758 170 Z" fill="#F2DA8E" fill-opacity="0.42" stroke-width="1.1"/>
+    <circle cx="726" cy="182" r="3.5" fill="#FFF7DC"/>
+  </g>
+
+  <!-- Central Embossed Star-Lotus Halo Around Seam -->
+  <circle cx="450" cy="800" r="152" fill="#0B1733" fill-opacity="0.78" stroke="url(#silverGold)" stroke-width="2.8"/>
+  <circle cx="450" cy="800" r="130" fill="none" stroke="#F6E2A2" stroke-width="1.1" stroke-dasharray="5 5" opacity="0.8"/>
+  <line x1="450" y1="0" x2="450" y2="1600" stroke="url(#silverGold)" stroke-width="4.5" opacity="0.92"/>
+</svg>

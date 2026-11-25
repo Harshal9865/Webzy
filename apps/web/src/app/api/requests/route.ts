@@ -29,6 +29,7 @@ export async function POST(request: NextRequest) {
       occasion?: string;
       budgetTier?: string;
       targetDate?: string;
+      referenceUrl?: string;
       brief?: string;
       turnstileToken?: string;
     };
@@ -50,23 +51,31 @@ export async function POST(request: NextRequest) {
     const budgetTier = typeof body.budgetTier === 'string' && ALLOWED_BUDGETS.has(body.budgetTier)
       ? body.budgetTier
       : '2999-4999';
-    const brief = (body.brief || '').trim().slice(0, 1000);
+    const rawBrief = (body.brief || '').trim().slice(0, 1000);
+    const referenceUrl = (body.referenceUrl || '').trim().slice(0, 300);
+    const brief = referenceUrl
+      ? `${rawBrief}\n\nReference Link: ${referenceUrl}`.slice(0, 1350)
+      : rawBrief;
     const targetDate =
       typeof body.targetDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(body.targetDate)
         ? body.targetDate
         : null;
 
-    if (name.length < 2 || !email.includes('@') || brief.length < 15) {
+    if (name.length < 2 || !email.includes('@') || rawBrief.length < 15) {
       return NextResponse.json(
         { error: 'Please fill your name, a valid email, and a short brief (at least 15 characters).' },
         { status: 400 },
       );
     }
 
-    const scam = detectScamPatterns(`${name} ${brief}`);
-    if (!scam.allowed) {
+    // Custom studio requests naturally include reference URLs, phone numbers, or email addresses.
+    // Only block explicit scam/phishing phrases or bank IFSC harvesting patterns.
+    const SCAM_PHRASE_RE =
+      /\b(?:kyc\s*expired|pan\s*card\s*block|lottery\s*winner|claim\s*your\s*prize|instant\s*loan\s*approval|crypto\s*airdrop|send\s*otp|verify\s*bank\s*account)\b/i;
+    const scamCheck = detectScamPatterns(`${name} ${rawBrief}`, { allowPhone: true });
+    if (SCAM_PHRASE_RE.test(`${name} ${rawBrief}`) || scamCheck.violation === 'ifsc') {
       return NextResponse.json(
-        { error: 'Your brief contains restricted links or promotional phrases. Please describe your event in plain text.' },
+        { error: 'Your brief contains restricted promotional or banking phrases. Please describe your event in plain text.' },
         { status: 400 },
       );
     }

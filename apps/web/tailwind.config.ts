@@ -4,9 +4,13 @@ const config: Config = {
   content: [
     './src/**/*.{ts,tsx}',
     '../../packages/themes/src/**/*.{ts,tsx}',
+    '../admin/src/**/*.{ts,tsx}',
   ],
   theme: {
     extend: {
+      screens: {
+        xs: '420px',
+      },
       colors: {
         webzy: {
           primary: '#E11D63',
@@ -16,7 +20,15 @@ const config: Config = {
           tint: '#FFE8EF',
         },
       },
+      borderRadius: {
+        xs: '0.125rem',
+      },
+      backdropBlur: {
+        xs: '2px',
+      },
       boxShadow: {
+        '2xs': '0 1px 0 0 rgba(43, 27, 46, 0.04)',
+        xs: '0 1px 2px 0 rgba(43, 27, 46, 0.05)',
         card: '0 2px 8px -2px rgba(43, 27, 46, 0.05), 0 8px 24px -4px rgba(43, 27, 46, 0.08)',
         'card-hover': '0 8px 16px -2px rgba(43, 27, 46, 0.08), 0 20px 40px -4px rgba(225, 29, 99, 0.14)',
         'glow-primary': '0 0 24px -4px rgba(225, 29, 99, 0.35)',
@@ -24,6 +36,15 @@ const config: Config = {
         'elevation-1': '0 1px 3px rgba(43, 27, 46, 0.06), 0 1px 2px rgba(43, 27, 46, 0.04)',
         'elevation-2': '0 4px 10px -1px rgba(43, 27, 46, 0.08), 0 2px 5px -1px rgba(43, 27, 46, 0.04)',
         'elevation-3': '0 12px 24px -4px rgba(43, 27, 46, 0.10), 0 4px 8px -2px rgba(43, 27, 46, 0.05)',
+        physical: '0 0 0 1px rgba(255, 255, 255, 0.7) inset, 0 1px 3px 0 rgba(43, 27, 46, 0.05), 0 6px 16px -2px rgba(43, 27, 46, 0.06)',
+        'physical-hover': '0 0 0 1px rgba(255, 255, 255, 0.9) inset, 0 4px 12px -2px rgba(43, 27, 46, 0.08), 0 16px 32px -4px rgba(225, 29, 99, 0.12)',
+        'btn-primary': 'inset 0 1px 0 0 rgba(255, 255, 255, 0.35), 0 2px 4px 0 rgba(225, 29, 99, 0.25), 0 8px 16px -4px rgba(225, 29, 99, 0.35)',
+        'btn-secondary': 'inset 0 1px 0 0 rgba(255, 255, 255, 0.9), 0 1px 2px 0 rgba(43, 27, 46, 0.05)',
+        'floating-phone': '0 25px 60px -15px rgba(225, 29, 99, 0.18), 0 10px 25px -5px rgba(43, 27, 46, 0.08)',
+      },
+      letterSpacing: {
+        'tighter-display': '-0.035em',
+        'tight-display': '-0.025em',
       },
       keyframes: {
         fadeIn: {

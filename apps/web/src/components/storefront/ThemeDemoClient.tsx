@@ -1,26 +1,39 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useState } from 'react';
-import { ADDON_CATALOG, formatInr, LanguageCode } from '@webzy/core';
+import React, { useEffect, useState } from 'react';
+import {
+  ADDON_CATALOG,
+  formatInr,
+  getLanguageMeta,
+  getSiteCopy,
+  LanguageCode,
+  pickLocalizedText,
+  toCoreLanguageCode,
+} from '@webzy/core';
 import { OCCASION_LABELS, ThemeManifest, ThemeRenderer } from '@webzy/themes';
 import { useLanguage } from '../shell/LanguageProvider';
-import { PhoneFrame } from '../shell/PhoneFrame';
+import { AdaptivePreviewStage } from '../shell/AdaptivePreviewStage';
 
 interface ThemeDemoClientProps {
   theme: ThemeManifest;
   defaultValidityDays: number;
 }
 
-const LANG_NAME: Record<LanguageCode, string> = {
-  hinglish: 'Hinglish',
-  hi: 'हिन्दी',
-  en: 'English',
-};
-
 export function ThemeDemoClient({ theme, defaultValidityDays }: ThemeDemoClientProps) {
   const { language: siteLanguage } = useLanguage();
-  const [demoLanguage, setDemoLanguage] = useState<LanguageCode>(siteLanguage);
+  const site = getSiteCopy(siteLanguage);
+  const [demoLanguage, setDemoLanguage] = useState<LanguageCode>(() =>
+    theme.languages.includes(siteLanguage) ? siteLanguage : toCoreLanguageCode(siteLanguage),
+  );
+  const [replayKey, setReplayKey] = useState(0);
+
+  // Reflect global language selector changes immediately inside the demo preview too
+  useEffect(() => {
+    setDemoLanguage(
+      theme.languages.includes(siteLanguage) ? siteLanguage : toCoreLanguageCode(siteLanguage),
+    );
+  }, [siteLanguage, theme.languages]);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:py-12">
@@ -29,52 +42,74 @@ export function ThemeDemoClient({ theme, defaultValidityDays }: ThemeDemoClientP
           href="/themes"
           className="inline-flex min-h-[44px] items-center text-sm font-bold text-webzy-primary hover:underline"
         >
-          ← Back to all themes
+          ← {site.common.browseAllThemes}
         </Link>
       </div>
 
       <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-12">
-        {/* Left: Interactive Phone Frame Demo */}
+        {/* Left: Adaptive Interactive Preview Stage */}
         <div className="lg:col-span-6">
-          <div className="mb-4 flex flex-wrap items-center justify-center gap-2">
-            {theme.languages.map((langCode) => (
-              <button
-                key={langCode}
-                type="button"
-                onClick={() => setDemoLanguage(langCode)}
-                aria-pressed={demoLanguage === langCode}
-                className={`min-h-[44px] rounded-full px-4 text-xs font-bold transition ${
-                  demoLanguage === langCode
-                    ? 'bg-webzy-primary text-white shadow-sm'
-                    : 'border border-webzy-tint bg-webzy-surface text-webzy-ink'
-                }`}
-              >
-                Preview in {LANG_NAME[langCode]}
-              </button>
-            ))}
-          </div>
-
-          <PhoneFrame caption={theme.signatureMoment[demoLanguage]}>
-            <ThemeRenderer manifest={theme} language={demoLanguage} watermarked />
-          </PhoneFrame>
+          <AdaptivePreviewStage
+            title={pickLocalizedText(theme.name, siteLanguage)}
+            caption={pickLocalizedText(theme.signatureMoment, demoLanguage)}
+            accentColor={theme.palette.primary || '#E11D63'}
+            onReplay={() => setReplayKey((k) => k + 1)}
+            toolbar={
+              <div className="inline-flex items-center gap-2">
+                <label htmlFor="theme-demo-lang" className="text-xs font-semibold text-webzy-ink/70">
+                  Preview language:
+                </label>
+                <select
+                  id="theme-demo-lang"
+                  value={demoLanguage}
+                  onChange={(e) => setDemoLanguage(e.target.value as LanguageCode)}
+                  className="min-h-[40px] rounded-full border border-webzy-tint bg-white px-4 text-xs font-bold text-webzy-ink outline-none focus:border-webzy-primary"
+                >
+                  {theme.languages.map((langCode) => {
+                    const meta = getLanguageMeta(langCode);
+                    return (
+                      <option key={langCode} value={langCode}>
+                        {meta.nativeLabel} ({meta.englishLabel})
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+            }
+            fullscreenChildren={
+              <ThemeRenderer
+                key={`fs-${theme.id}-${demoLanguage}-${replayKey}`}
+                manifest={theme}
+                language={demoLanguage}
+                watermarked
+              />
+            }
+          >
+            <ThemeRenderer
+              key={`${theme.id}-${demoLanguage}-${replayKey}`}
+              manifest={theme}
+              language={demoLanguage}
+              watermarked
+            />
+          </AdaptivePreviewStage>
         </div>
 
         {/* Right: Side Panel with Price, Inputs Needed & Languages (Section 5) */}
-        <aside className="rounded-3xl border border-webzy-tint bg-webzy-surface/60 p-6 lg:col-span-6 lg:p-8">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="rounded-full bg-webzy-tint px-3 py-1 text-xs font-bold text-webzy-primary">
-              {OCCASION_LABELS[theme.occasion][siteLanguage]}
+        <aside className="rounded-2xl border border-webzy-ink/[0.09] bg-white p-6 lg:col-span-6 lg:p-8">
+          <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+            <span className="font-semibold text-webzy-primary">
+              {pickLocalizedText(OCCASION_LABELS[theme.occasion], siteLanguage)}
             </span>
-            <span className="text-xs font-semibold text-webzy-ink/70">
-              Instant WhatsApp Delivery · {defaultValidityDays}-day link
+            <span className="text-webzy-ink/60">
+              {defaultValidityDays}-day active link
             </span>
           </div>
 
           <h1 className="mt-4 font-heading text-3xl font-bold text-webzy-ink">
-            {theme.name[siteLanguage]}
+            {pickLocalizedText(theme.name, siteLanguage)}
           </h1>
           <p className="mt-2 text-sm leading-relaxed text-webzy-ink/80">
-            {theme.audience[siteLanguage]}
+            {pickLocalizedText(theme.audience, siteLanguage)}
           </p>
 
           <div className="mt-5 rounded-2xl bg-white p-4 shadow-sm">
@@ -99,7 +134,7 @@ export function ThemeDemoClient({ theme, defaultValidityDays }: ThemeDemoClientP
             {theme.price.addons.length > 0 ? (
               <p className="mt-2 text-xs text-webzy-ink/75">
                 Optional add-ons:{' '}
-                {theme.price.addons.map((a) => ADDON_CATALOG[a].label[siteLanguage]).join(' · ')}
+                {theme.price.addons.map((a) => pickLocalizedText(ADDON_CATALOG[a].label, siteLanguage)).join(' · ')}
               </p>
             ) : null}
           </div>
@@ -116,7 +151,7 @@ export function ThemeDemoClient({ theme, defaultValidityDays }: ThemeDemoClientP
                 >
                   <span>
                     <span className="mr-2 font-bold text-webzy-primary">{idx + 1}.</span>
-                    {field.label[siteLanguage]}
+                    {pickLocalizedText(field.label, siteLanguage)}
                   </span>
                   <span className="text-xs text-webzy-ink/60">
                     {field.required ? 'Required' : 'Optional'}
@@ -129,13 +164,17 @@ export function ThemeDemoClient({ theme, defaultValidityDays }: ThemeDemoClientP
           <div className="mt-6">
             <h2 className="text-sm font-bold text-webzy-ink">Languages included</h2>
             <p className="mt-1 text-sm text-webzy-ink/75">
-              {theme.languages.map((l) => LANG_NAME[l]).join(' · ')}
+              {theme.languages.map((l) => getLanguageMeta(l).nativeLabel).join(' · ')}
             </p>
           </div>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
-              href={`/create/${theme.id}`}
+              href={
+                theme.occasion === 'wedding'
+                  ? `/weddings/${theme.id}/customize`
+                  : `/create/${theme.id}`
+              }
               className="inline-flex min-h-[48px] flex-1 items-center justify-center rounded-full bg-webzy-primary px-6 py-3 text-sm font-bold text-white shadow-sm transition hover:opacity-95"
             >
               Use this theme ({formatInr(theme.price.base)})

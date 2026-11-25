@@ -138,6 +138,27 @@ export async function settleOrderAndPublish(params: {
   const cfg = getWebzyPublicConfig();
   const slug = crypto.randomBytes(9).toString('base64url'); // 12 random URL-safe chars
 
+  // Respect server-computed validityDays from the order's pricing_breakdown (e.g. 7d default, 14d, 21d, or 90d/3m extended)
+  let orderValidityDays = cfg.defaultValidityDays;
+  try {
+    const { data: ordMeta } = await params.admin
+      .from('orders')
+      .select('pricing_breakdown')
+      .eq('id', params.orderId)
+      .maybeSingle();
+    const breakdown = ordMeta?.pricing_breakdown as { validityDays?: number } | null | undefined;
+    if (
+      breakdown &&
+      typeof breakdown.validityDays === 'number' &&
+      breakdown.validityDays >= 1 &&
+      breakdown.validityDays <= 365
+    ) {
+      orderValidityDays = breakdown.validityDays;
+    }
+  } catch {
+    // Fall back to default validity days
+  }
+
   const { data, error } = await params.admin.rpc('settle_order_payment_tx', {
     p_order_id: params.orderId,
     p_provider_payment_id: params.providerPaymentId,
@@ -146,7 +167,7 @@ export async function settleOrderAndPublish(params: {
     p_raw_event: params.rawEvent ?? {},
     p_slug: slug,
     p_fy: getCurrentIndianFiscalYear(),
-    p_validity_days: cfg.defaultValidityDays,
+    p_validity_days: orderValidityDays,
     p_auto_publish: params.autoPublish ?? true,
   });
 

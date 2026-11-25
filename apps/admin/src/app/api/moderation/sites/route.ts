@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { logEvent } from '@webzy/core';
+import { reportServerError } from '../../../../../../../infra/sentry/monitor';
 import { writeAuditLog } from '../../../../../../../infra/supabase/auth';
 import { requireVerifiedAdmin } from '../../../../lib/requireAdmin';
 
@@ -41,7 +42,7 @@ export async function POST(request: Request) {
 
     const { data: owner } = await guard.admin
       .from('profiles')
-      .select('id, email, full_name, is_banned')
+      .select('id, email, full_name, role, is_banned')
       .eq('id', site.user_id)
       .maybeSingle();
 
@@ -52,17 +53,63 @@ export async function POST(request: Request) {
     const reason = (body.reason || '').trim().slice(0, 200) || `Admin ${body.action} on /s/${slug}`;
 
     if (body.action === 'pause') {
-      await guard.admin.from('sites').update({ hidden: true, status: 'hidden' }).eq('id', site.id);
+      const { error } = await guard.admin
+        .from('sites')
+        .update({ hidden: true, status: 'hidden' })
+        .eq('id', site.id);
+      if (error) {
+        reportServerError(error, { route: '/api/moderation/sites', app: 'admin', action: 'pause' });
+        return NextResponse.json({ error: 'Unable to pause site right now.' }, { status: 500 });
+      }
     } else if (body.action === 'restore') {
       const isScheduled = site.reveal_at && Date.parse(site.reveal_at) > Date.now();
-      await guard.admin
+      const { error } = await guard.admin
         .from('sites')
         .update({ hidden: false, status: isScheduled ? 'scheduled' : 'live' })
         .eq('id', site.id);
+      if (error) {
+        reportServerError(error, {
+          route: '/api/moderation/sites',
+          app: 'admin',
+          action: 'restore',
+        });
+        return NextResponse.json({ error: 'Unable to restore site right now.' }, { status: 500 });
+      }
     } else if (body.action === 'remove') {
-      await guard.admin.from('sites').update({ hidden: true, status: 'removed' }).eq('id', site.id);
+      const { error } = await guard.admin
+        .from('sites')
+        .update({ hidden: true, status: 'removed' })
+        .eq('id', site.id);
+      if (error) {
+        reportServerError(error, {
+          route: '/api/moderation/sites',
+          app: 'admin',
+          action: 'remove',
+        });
+        return NextResponse.json({ error: 'Unable to remove site right now.' }, { status: 500 });
+      }
     } else if (body.action === 'ban_owner') {
-      await guard.admin.from('profiles').update({ is_banned: true }).eq('id', site.user_id);
+      if (site.user_id === guard.userId || owner?.role === 'admin') {
+        return NextResponse.json(
+          { error: 'Admin / Founder accounts cannot be banned.' },
+          { status: 403 },
+        );
+      }
+      const { error: banErr } = await guard.admin
+        .from('profiles')
+        .update({ is_banned: true })
+        .eq('id', site.user_id);
+      if (banErr) {
+        reportServerError(banErr, {
+          route: '/api/moderation/sites',
+          app: 'admin',
+          action: 'ban_owner',
+        });
+        return NextResponse.json(
+          { error: 'Unable to ban site owner right now.' },
+          { status: 500 },
+        );
+      }
       await guard.admin
         .from('sites')
         .update({ hidden: true, status: 'removed' })
@@ -97,6 +144,7 @@ export async function POST(request: Request) {
       message: `Site /s/${slug} updated (${body.action}).`,
     });
   } catch (err) {
+    reportServerError(err, { route: '/api/moderation/sites', app: 'admin' });
     logEvent('error', 'admin.site_lookup_error', {
       message: err instanceof Error ? err.message.slice(0, 80) : 'unknown',
     });

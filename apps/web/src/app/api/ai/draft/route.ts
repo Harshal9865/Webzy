@@ -9,8 +9,8 @@ import {
   parseLanguageCode,
 } from '@webzy/core';
 import { getThemeById } from '@webzy/themes';
+import { guardMutationRequest } from '../../../../../../../infra/security/requestGuard';
 import { getSupabaseEnv } from '../../../../../../../infra/supabase/env';
-import { consumeRateLimit, hashIpForRateLimit } from '../../../../../../../infra/supabase/rateLimit';
 import { createSupabaseAdminClient } from '../../../../../../../infra/supabase/server';
 
 const VALID_TONES = new Set<AiDraftTone>(['cute', 'emotional', 'funny', 'formal']);
@@ -80,40 +80,32 @@ async function generateWithGemini(params: {
 
 export async function POST(request: NextRequest) {
   try {
-    const ip =
-      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-      request.headers.get('x-real-ip') ||
-      'local';
-    const rl = await consumeRateLimit({
-      key: `ai_draft:${hashIpForRateLimit(ip)}`,
+    const guard = await guardMutationRequest(request, {
+      bucket: 'ai_draft',
       maxHits: 15,
       windowSeconds: 3600,
     });
-    if (!rl.allowed) {
-      return NextResponse.json(
-        { error: 'AI helper limit reached for this hour. You can edit your message directly!' },
-        { status: 429 },
-      );
-    }
+    if (guard) return guard;
 
     const body = (await request.json().catch(() => ({}))) as {
-      themeId?: string;
-      draftToken?: string;
-      tone?: string;
-      language?: string;
-      receiverName?: string;
+      themeId?: unknown;
+      draftToken?: unknown;
+      tone?: unknown;
+      language?: unknown;
+      receiverName?: unknown;
     };
 
     const config = getWebzyPublicConfig();
-    const theme = getThemeById(body.themeId || '', {
+    const theme = getThemeById(typeof body.themeId === 'string' ? body.themeId : '', {
       includeMaanJao: config.flags.maanJaoTheme,
     });
     const occasion = theme?.occasion ?? 'birthday';
-    const tone: AiDraftTone = VALID_TONES.has(body.tone as AiDraftTone)
-      ? (body.tone as AiDraftTone)
-      : 'cute';
-    const language = parseLanguageCode(body.language);
-    const safeReceiver = (body.receiverName || '')
+    const tone: AiDraftTone =
+      typeof body.tone === 'string' && VALID_TONES.has(body.tone as AiDraftTone)
+        ? (body.tone as AiDraftTone)
+        : 'cute';
+    const language = parseLanguageCode(typeof body.language === 'string' ? body.language : undefined);
+    const safeReceiver = (typeof body.receiverName === 'string' ? body.receiverName : '')
       .replace(/[\r\n\t]/g, ' ')
       .trim()
       .slice(0, 40);
@@ -122,7 +114,7 @@ export async function POST(request: NextRequest) {
 
     let remainingCredits = MAX_AI_GENERATIONS_PER_DRAFT;
     if (
-      body.draftToken &&
+      typeof body.draftToken === 'string' &&
       /^[A-Za-z0-9_-]{24,128}$/.test(body.draftToken) &&
       getSupabaseEnv().adminConfigured
     ) {

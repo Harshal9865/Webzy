@@ -22,7 +22,9 @@ export default async function CheckoutPage({
       <div className="mx-auto max-w-xl px-4 py-12 text-center">
         <div className="rounded-3xl border border-amber-300 bg-amber-50 p-6 text-sm text-amber-950">
           <h1 className="font-heading text-2xl font-bold">Supabase setup required for checkout</h1>
-          <p className="mt-2">Add Supabase keys in `.env.local` and run migration `0004`.</p>
+          <p className="mt-2">
+            Add Supabase keys in <code>.env.local</code> and run migration <code>0004</code>.
+          </p>
           <Link
             href="/themes"
             className="mt-4 inline-flex min-h-[44px] items-center rounded-full bg-webzy-primary px-5 text-xs font-bold text-white"
@@ -83,7 +85,23 @@ export default async function CheckoutPage({
 
   const theme = getThemeById(draft.theme_id, { includeMaanJao: config.flags.maanJaoTheme });
   if (!theme) {
-    return null;
+    return (
+      <div className="mx-auto max-w-xl px-4 py-12 text-center">
+        <div className="rounded-3xl border border-webzy-tint bg-webzy-surface p-7">
+          <h1 className="font-heading text-2xl font-bold text-webzy-ink">Theme unavailable</h1>
+          <p className="mt-2 text-sm text-webzy-ink/75">
+            The theme for this draft is currently unavailable. Please choose another celebration
+            theme.
+          </p>
+          <Link
+            href="/themes"
+            className="mt-5 inline-flex min-h-[44px] items-center rounded-full bg-webzy-primary px-6 text-sm font-bold text-white"
+          >
+            Browse themes
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   const [{ count: photoCount }, session] = await Promise.all([
@@ -96,6 +114,8 @@ export default async function CheckoutPage({
     getAuthSessionState(),
   ]);
 
+  const baseValidityDays = config.defaultValidityDays;
+
   return (
     <CheckoutClient
       theme={theme}
@@ -106,7 +126,7 @@ export default async function CheckoutPage({
       initialFullName={session.profile?.full_name || ''}
       initialPhone={session.profile?.phone || ''}
       payButtonDisabled={config.payButtonDisabled}
-      defaultValidityDays={config.defaultValidityDays}
+      defaultValidityDays={baseValidityDays}
     />
   );
 }

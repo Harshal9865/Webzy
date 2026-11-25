@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { getWebzyPublicConfig } from './config';
+import { getWebzyPublicConfig, resolveAppEnvironment } from './config';
 import { WebzyError } from './logger';
 import type {
   CreateGatewayOrderInput,
@@ -7,6 +7,91 @@ import type {
   ParsedWebhookEvent,
   PaymentProvider,
 } from './types';
+
+const LOCAL_DEV_MOCK_WEBHOOK_SECRET = 'webzy-local-mock-secret-2026-keep-safe-32ch';
+
+function resolveMockWebhookSecret(
+  env: NodeJS.ProcessEnv = process.env,
+  explicitSecret?: string,
+): string {
+  const explicit = explicitSecret?.trim();
+  if (explicit) return explicit;
+
+  const configured = env.MOCK_WEBHOOK_SECRET?.trim();
+  if (configured) return configured;
+
+  if (resolveAppEnvironment(env) === 'local') {
+    return LOCAL_DEV_MOCK_WEBHOOK_SECRET;
+  }
+
+  throw new WebzyError('MOCK_WEBHOOK_SECRET is required outside local development.', {
+    code: 'MISSING_WEBHOOK_SECRET',
+    statusCode: 500,
+    retryable: false,
+  });
+}
+
+export function parseGatewayEventPayload(
+  rawBody: string,
+  eventIdHeader?: string | null,
+  hmacSecret?: string,
+): ParsedWebhookEvent {
+  let parsed: {
+    id?: string;
+    event?: string;
+    payload?: {
+      payment?: { entity?: { id?: string; order_id?: string; amount?: number; currency?: string } };
+      order?: { entity?: { id?: string; amount?: number; currency?: string } };
+      refund?: { entity?: { id?: string; payment_id?: string; amount?: number; currency?: string } };
+    };
+  } = {};
+  try {
+    const rawParsed = JSON.parse(rawBody) as unknown;
+    parsed = rawParsed && typeof rawParsed === 'object' ? (rawParsed as typeof parsed) : {};
+  } catch {
+    const fallbackEventId =
+      eventIdHeader?.trim() ||
+      (hmacSecret
+        ? computeHmacSha256Hex(hmacSecret, rawBody).slice(0, 24)
+        : `evt_sha_${crypto.createHash('sha256').update(rawBody).digest('hex').slice(0, 20)}`);
+    return {
+      eventId: fallbackEventId,
+      eventType: 'unknown',
+      rawBody,
+    };
+  }
+
+  const rawType = parsed.event || 'unknown';
+  const allowedTypes = new Set<ParsedWebhookEvent['eventType']>([
+    'payment.authorized',
+    'payment.captured',
+    'payment.failed',
+    'order.paid',
+    'refund.processed',
+    'refund.failed',
+  ]);
+
+  const paymentEntity = parsed.payload?.payment?.entity;
+  const orderEntity = parsed.payload?.order?.entity;
+  const refundEntity = parsed.payload?.refund?.entity;
+
+  return {
+    eventId:
+      eventIdHeader?.trim() ||
+      parsed.id ||
+      `evt_sha_${crypto.createHash('sha256').update(rawBody).digest('hex').slice(0, 20)}`,
+    eventType: allowedTypes.has(rawType as ParsedWebhookEvent['eventType'])
+      ? (rawType as ParsedWebhookEvent['eventType'])
+      : 'unknown',
+    providerOrderId: paymentEntity?.order_id || orderEntity?.id,
+    providerPaymentId: paymentEntity?.id || refundEntity?.payment_id,
+    providerRefundId: refundEntity?.id,
+    amountPaise: paymentEntity?.amount ?? orderEntity?.amount,
+    refundAmountPaise: refundEntity?.amount,
+    currency: paymentEntity?.currency || orderEntity?.currency || 'INR',
+    rawBody,
+  };
+}
 
 function timingSafeHexEqual(a: string, b: string): boolean {
   if (!a || !b || a.length !== b.length) return false;
@@ -39,11 +124,13 @@ export class MockPaymentProvider implements PaymentProvider {
   private readonly webhookSecret: string;
   private readonly statusStore?: MockStatusStore;
 
-  constructor(options?: { webhookSecret?: string; statusStore?: MockStatusStore }) {
-    this.webhookSecret =
-      options?.webhookSecret ||
-      process.env.MOCK_WEBHOOK_SECRET?.trim() ||
-      'webzy-local-mock-secret-2026-keep-safe-32ch';
+  constructor(options?: {
+    webhookSecret?: string;
+    statusStore?: MockStatusStore;
+    env?: NodeJS.ProcessEnv;
+  }) {
+    const env = options?.env ?? process.env;
+    this.webhookSecret = resolveMockWebhookSecret(env, options?.webhookSecret);
     this.statusStore = options?.statusStore;
   }
 
@@ -86,55 +173,7 @@ export class MockPaymentProvider implements PaymentProvider {
   }
 
   public parseEvent(rawBody: string, eventIdHeader?: string | null): ParsedWebhookEvent {
-    let parsed: {
-      id?: string;
-      event?: string;
-      payload?: {
-        payment?: { entity?: { id?: string; order_id?: string; amount?: number; currency?: string } };
-        order?: { entity?: { id?: string; amount?: number; currency?: string } };
-        refund?: { entity?: { id?: string; payment_id?: string; amount?: number; currency?: string } };
-      };
-    } = {};
-    try {
-      parsed = JSON.parse(rawBody);
-    } catch {
-      return {
-        eventId: eventIdHeader || computeHmacSha256Hex(this.webhookSecret, rawBody).slice(0, 24),
-        eventType: 'unknown',
-        rawBody,
-      };
-    }
-
-    const rawType = parsed.event || 'unknown';
-    const allowedTypes = new Set<ParsedWebhookEvent['eventType']>([
-      'payment.authorized',
-      'payment.captured',
-      'payment.failed',
-      'order.paid',
-      'refund.processed',
-      'refund.failed',
-    ]);
-
-    const paymentEntity = parsed.payload?.payment?.entity;
-    const orderEntity = parsed.payload?.order?.entity;
-    const refundEntity = parsed.payload?.refund?.entity;
-
-    return {
-      eventId:
-        eventIdHeader?.trim() ||
-        parsed.id ||
-        `evt_sha_${crypto.createHash('sha256').update(rawBody).digest('hex').slice(0, 20)}`,
-      eventType: allowedTypes.has(rawType as ParsedWebhookEvent['eventType'])
-        ? (rawType as ParsedWebhookEvent['eventType'])
-        : 'unknown',
-      providerOrderId: paymentEntity?.order_id || orderEntity?.id,
-      providerPaymentId: paymentEntity?.id || refundEntity?.payment_id,
-      providerRefundId: refundEntity?.id,
-      amountPaise: paymentEntity?.amount ?? orderEntity?.amount,
-      refundAmountPaise: refundEntity?.amount,
-      currency: paymentEntity?.currency || orderEntity?.currency || 'INR',
-      rawBody,
-    };
+    return parseGatewayEventPayload(rawBody, eventIdHeader, this.webhookSecret);
   }
 
   public async fetchPaymentStatus(providerOrderId: string) {
@@ -206,7 +245,7 @@ export class RazorpayPaymentProvider implements PaymentProvider {
   }
 
   public parseEvent(rawBody: string, eventIdHeader?: string | null): ParsedWebhookEvent {
-    return new MockPaymentProvider().parseEvent(rawBody, eventIdHeader);
+    return parseGatewayEventPayload(rawBody, eventIdHeader, this.webhookSecret || undefined);
   }
 
   public async fetchPaymentStatus(_providerOrderId: string): Promise<{
@@ -253,5 +292,6 @@ export function resolvePaymentProviderInstance(options?: {
   return new MockPaymentProvider({
     webhookSecret: env.MOCK_WEBHOOK_SECRET,
     statusStore: options?.statusStore,
+    env,
   });
 }

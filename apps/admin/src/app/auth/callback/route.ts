@@ -1,6 +1,6 @@
 import type { EmailOtpType } from '@supabase/supabase-js';
 import { NextResponse, type NextRequest } from 'next/server';
-import { logEvent } from '@webzy/core';
+import { isAdminMfaRequired, logEvent } from '@webzy/core';
 import { writeAuditLog } from '../../../../../../infra/supabase/auth';
 import { createSupabaseServerClient } from '../../../../../../infra/supabase/server';
 
@@ -60,6 +60,10 @@ export async function GET(request: NextRequest) {
       entity: 'auth',
       entityId: data.user.id,
     });
+
+    if (!isAdminMfaRequired()) {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
 
     const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
     if (aal?.currentLevel === 'aal2') {

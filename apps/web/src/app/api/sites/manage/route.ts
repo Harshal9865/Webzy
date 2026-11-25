@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { logEvent } from '@webzy/core';
+import { assertSafeReadyMadeText, logEvent, WebzyError } from '@webzy/core';
 import { guardMutationRequest } from '../../../../../../../infra/security/requestGuard';
 import { getAuthSessionState } from '../../../../../../../infra/supabase/auth';
 import { createSupabaseAdminClient } from '../../../../../../../infra/supabase/server';
@@ -20,19 +20,22 @@ export async function POST(request: NextRequest | Request) {
 
     const body = (await request.json().catch(() => ({}))) as {
       siteId?: string;
-      action?: 'hide' | 'unhide';
+      action?: 'hide' | 'unhide' | 'update_content';
+      receiverName?: string;
+      senderName?: string;
+      message?: string;
     };
     const siteId = typeof body.siteId === 'string' ? body.siteId.trim() : '';
     const action = body.action;
 
-    if (!siteId || (action !== 'hide' && action !== 'unhide')) {
+    if (!siteId || (action !== 'hide' && action !== 'unhide' && action !== 'update_content')) {
       return NextResponse.json({ error: 'Invalid site action.' }, { status: 400 });
     }
 
     const admin = createSupabaseAdminClient();
     const { data: site } = await admin
       .from('sites')
-      .select('id, user_id, status, hidden, reveal_at, expires_at, deleted_at')
+      .select('id, user_id, status, hidden, reveal_at, expires_at, deleted_at, created_at, free_edit_until, content_json')
       .eq('id', siteId)
       .eq('user_id', session.user.id)
       .is('deleted_at', null)
@@ -43,7 +46,95 @@ export async function POST(request: NextRequest | Request) {
     }
 
     if (site.status === 'removed' || site.status === 'expired') {
-      return NextResponse.json({ error: 'This site cannot be toggled.' }, { status: 409 });
+      return NextResponse.json({ error: 'This site cannot be modified.' }, { status: 409 });
+    }
+
+    // 1. Creator Typo Hot-Fixer (within free_edit_until window or 48 hours of creation)
+    if (action === 'update_content') {
+      const freeEditUntilMs = Date.parse(site.free_edit_until || '');
+      const createdAtMs = Date.parse(site.created_at || '');
+      const isWithinEditWindow = !Number.isNaN(freeEditUntilMs)
+        ? Date.now() <= freeEditUntilMs
+        : !Number.isNaN(createdAtMs) && Date.now() - createdAtMs <= 48 * 60 * 60 * 1000;
+
+      if (!isWithinEditWindow && process.env.NODE_ENV === 'production') {
+        return NextResponse.json(
+          { error: 'The 48-hour free edit window for this Webzy has ended.' },
+          { status: 403 },
+        );
+      }
+
+      const existingContent = (typeof site.content_json === 'object' && site.content_json ? site.content_json : {}) as Record<string, unknown>;
+      const nextContent: Record<string, unknown> = {
+        ...existingContent,
+      };
+
+      const updatedWeddingBase =
+        existingContent.weddingData && typeof existingContent.weddingData === 'object'
+          ? { ...(existingContent.weddingData as Record<string, unknown>) }
+          : null;
+
+      if (typeof body.receiverName === 'string' && body.receiverName.trim()) {
+        const safeReceiver = assertSafeReadyMadeText(
+          'Receiver name',
+          body.receiverName.slice(0, 60),
+          { allowPhone: Boolean(updatedWeddingBase) },
+        );
+        nextContent.receiverName = safeReceiver;
+        if (updatedWeddingBase) {
+          const parts = safeReceiver.split(/\s*(?:&|and|\+|संग)\s*/i).filter(Boolean);
+          if (parts.length >= 2) {
+            const nextBride = parts[0].trim().slice(0, 50);
+            const nextGroom = parts[1].trim().slice(0, 50);
+            updatedWeddingBase.brideName = nextBride;
+            updatedWeddingBase.groomName = nextGroom;
+            updatedWeddingBase.couple = `${nextBride} & ${nextGroom}`;
+          }
+        }
+      }
+      if (typeof body.senderName === 'string' && body.senderName.trim()) {
+        nextContent.senderName = assertSafeReadyMadeText(
+          'Your name',
+          body.senderName.slice(0, 60),
+          { allowPhone: Boolean(updatedWeddingBase) },
+        );
+      }
+      if (typeof body.message === 'string' && body.message.trim()) {
+        const safeMessage = assertSafeReadyMadeText(
+          'Message',
+          body.message.slice(0, 2000),
+          { allowPhone: Boolean(updatedWeddingBase) },
+        );
+        nextContent.message = safeMessage;
+        if (updatedWeddingBase) {
+          updatedWeddingBase.personalMessage = safeMessage;
+        }
+      }
+
+      if (updatedWeddingBase) {
+        nextContent.weddingData = updatedWeddingBase;
+      }
+
+      const { error: updateError } = await admin
+        .from('sites')
+        .update({ content_json: nextContent })
+        .eq('id', site.id);
+
+      if (updateError) {
+        throw new Error(updateError.message);
+      }
+
+      logEvent('info', 'web.site.sender_updated_content', {
+        siteId: site.id,
+        userId: session.user.id,
+        receiverName: nextContent.receiverName,
+      });
+
+      return NextResponse.json({
+        ok: true,
+        receiverName: nextContent.receiverName,
+        senderName: nextContent.senderName,
+      });
     }
 
     if (action === 'unhide') {
@@ -80,6 +171,12 @@ export async function POST(request: NextRequest | Request) {
     logEvent('info', 'web.site.sender_hidden', { siteId: site.id, userId: session.user.id });
     return NextResponse.json({ ok: true, hidden: true, status: 'hidden' });
   } catch (err) {
+    if (err instanceof WebzyError) {
+      return NextResponse.json(
+        { error: err.message, code: err.code },
+        { status: err.statusCode },
+      );
+    }
     logEvent('warn', 'web.site.manage_error', {
       message: err instanceof Error ? err.message.slice(0, 80) : 'unknown',
     });

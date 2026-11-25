@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { LanguageCode, parseLanguageCode } from '@webzy/core';
+import { getLanguageMeta, LanguageCode, parseLanguageCode } from '@webzy/core';
 
 interface LanguageContextValue {
   language: LanguageCode;
@@ -22,7 +22,9 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY);
       if (saved) {
-        setLanguageState(parseLanguageCode(saved));
+        const parsed = parseLanguageCode(saved);
+        setLanguageState(parsed);
+        document.documentElement.lang = getLanguageMeta(parsed).htmlLang;
       }
     } catch {
       // Ignore storage failures in strict privacy browsers.
@@ -33,7 +35,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     setLanguageState(next);
     try {
       window.localStorage.setItem(STORAGE_KEY, next);
-      document.documentElement.lang = next === 'hi' ? 'hi' : 'en';
+      document.documentElement.lang = getLanguageMeta(next).htmlLang;
     } catch {
       // Ignore storage failures cleanly.
     }

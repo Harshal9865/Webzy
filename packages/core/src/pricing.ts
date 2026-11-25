@@ -1,22 +1,57 @@
-import type { LanguageCode } from './types';
+import type { LocalizedText } from './types';
 import { WebzyError } from './logger';
 
-export type AddonId = 'pin' | 'video' | 'extend';
+export type ValidityAddonId = 'extend_14d' | 'extend_21d' | 'extend';
+export type AddonId = 'pin' | 'video' | ValidityAddonId;
+
+export const VALIDITY_EXTENSION_ADDON_IDS: readonly ValidityAddonId[] = [
+  'extend_14d',
+  'extend_21d',
+  'extend',
+] as const;
+
+export const VALIDITY_TARGET_DAYS: Record<ValidityAddonId, number> = {
+  extend_14d: 14,
+  extend_21d: 21,
+  extend: 90,
+};
+
+export function isValidityAddonId(id: string): id is ValidityAddonId {
+  return id === 'extend_14d' || id === 'extend_21d' || id === 'extend';
+}
+
+/**
+ * Ensures any theme offering the `'extend'` add-on also exposes the 14-day and 21-day tiers.
+ */
+export function expandThemeAddons(addons: readonly AddonId[]): AddonId[] {
+  const expanded: AddonId[] = [];
+  for (const id of addons) {
+    if (id === 'extend') {
+      for (const vId of VALIDITY_EXTENSION_ADDON_IDS) {
+        if (!expanded.includes(vId)) expanded.push(vId);
+      }
+    } else if (!expanded.includes(id)) {
+      expanded.push(id);
+    }
+  }
+  return expanded;
+}
 
 export interface PriceTierInfo {
   id: 'ready_made' | 'semi_custom' | 'request_only' | 'business_plan';
   rangeLabel: string;
   compareRangeLabel?: string;
   validityDays: number;
-  title: Record<LanguageCode, string>;
-  summary: Record<LanguageCode, string>;
+  title: LocalizedText;
+  summary: LocalizedText;
 }
 
 export interface AddonCatalogItem {
   id: AddonId;
   priceInr: number;
   compareAtInr: number;
-  label: Record<LanguageCode, string>;
+  targetValidityDays?: number;
+  label: LocalizedText;
 }
 
 export const ADDON_CATALOG: Record<AddonId, AddonCatalogItem> = {
@@ -40,14 +75,37 @@ export const ADDON_CATALOG: Record<AddonId, AddonCatalogItem> = {
       hi: 'स्टेटस वीडियो (+₹19)',
     },
   },
+  extend_14d: {
+    id: 'extend_14d',
+    priceInr: 9,
+    compareAtInr: 19,
+    targetValidityDays: 14,
+    label: {
+      en: '14 days total validity (+₹9)',
+      hinglish: '14 din total validity (+₹9)',
+      hi: '14 दिन कुल वैधता (+₹9)',
+    },
+  },
+  extend_21d: {
+    id: 'extend_21d',
+    priceInr: 14,
+    compareAtInr: 29,
+    targetValidityDays: 21,
+    label: {
+      en: '21 days total validity (+₹14)',
+      hinglish: '21 din total validity (+₹14)',
+      hi: '21 दिन कुल वैधता (+₹14)',
+    },
+  },
   extend: {
     id: 'extend',
     priceInr: 19,
     compareAtInr: 49,
+    targetValidityDays: 90,
     label: {
-      en: 'Extra 90 days validity (+₹19)',
-      hinglish: 'Extra 90 days validity (+₹19)',
-      hi: '90 दिन अतिरिक्त वैधता (+₹19)',
+      en: '3 months (90 days) validity (+₹19)',
+      hinglish: '3 months (90 din) validity (+₹19)',
+      hi: '3 महीने (90 दिन) वैधता (+₹19)',
     },
   },
 };
@@ -57,7 +115,7 @@ export const BUSINESS_PRICE_TIERS: PriceTierInfo[] = [
     id: 'ready_made',
     rangeLabel: '₹29 – ₹99',
     compareRangeLabel: '₹99 – ₹249',
-    validityDays: 30,
+    validityDays: 7,
     title: {
       en: 'Ready-made Celebrations',
       hinglish: 'Ready-made Celebrations',
@@ -73,7 +131,7 @@ export const BUSINESS_PRICE_TIERS: PriceTierInfo[] = [
     id: 'semi_custom',
     rangeLabel: '₹299 – ₹999',
     compareRangeLabel: '₹599 – ₹2,499',
-    validityDays: 90,
+    validityDays: 7,
     title: {
       en: 'Semi-custom Keepsakes',
       hinglish: 'Semi-custom Keepsakes',
@@ -89,7 +147,7 @@ export const BUSINESS_PRICE_TIERS: PriceTierInfo[] = [
     id: 'request_only',
     rangeLabel: '₹1,499+',
     compareRangeLabel: '₹2,999+',
-    validityDays: 180,
+    validityDays: 90,
     title: {
       en: 'Custom request',
       hinglish: 'Custom request',
@@ -105,7 +163,7 @@ export const BUSINESS_PRICE_TIERS: PriceTierInfo[] = [
     id: 'business_plan',
     rangeLabel: '₹99 – ₹199 / mo',
     compareRangeLabel: '₹299 – ₹499 / mo',
-    validityDays: 30,
+    validityDays: 7,
     title: {
       en: 'Small business',
       hinglish: 'Small business',
@@ -148,10 +206,19 @@ export function computeOrderPricingPaise(params: {
     });
   }
 
-  const allowedSet = new Set(params.allowedAddons);
-  const validAddonIds = Array.from(
+  const allowedSet = new Set(expandThemeAddons(params.allowedAddons));
+  const rawAllowed = Array.from(
     new Set((params.selectedAddons ?? []).filter((id): id is AddonId => allowedSet.has(id as AddonId))),
   );
+
+  // Enforce mutual exclusivity for validity tiers (highest selected tier wins: extend 90d > extend_21d > extend_14d)
+  const chosenValidityAddon: ValidityAddonId | undefined = (['extend', 'extend_21d', 'extend_14d'] as const).find(
+    (vId) => rawAllowed.includes(vId),
+  );
+  const validAddonIds: AddonId[] = [
+    ...rawAllowed.filter((id) => !isValidityAddonId(id)),
+    ...(chosenValidityAddon ? [chosenValidityAddon] : []),
+  ];
 
   const basePaise = Math.round(params.basePriceInr * 100);
   const addonsPaise = validAddonIds.reduce(
@@ -166,8 +233,10 @@ export function computeOrderPricingPaise(params: {
 
   const feeEstimatePaise = Math.round(totalPaise * 0.0236);
   const baseDays =
-    params.defaultValidityDays && params.defaultValidityDays > 0 ? params.defaultValidityDays : 30;
-  const validityDays = validAddonIds.includes('extend') ? baseDays + 90 : baseDays;
+    params.defaultValidityDays && params.defaultValidityDays > 0 ? params.defaultValidityDays : 7;
+  const validityDays = chosenValidityAddon
+    ? Math.max(baseDays, VALIDITY_TARGET_DAYS[chosenValidityAddon])
+    : baseDays;
 
   return {
     basePaise,

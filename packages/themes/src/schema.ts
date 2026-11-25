@@ -1,8 +1,9 @@
-import { AddonId, LanguageCode, WebzyError } from '@webzy/core';
+import { AddonId, LanguageCode, LocalizedText, WebzyError } from '@webzy/core';
 
 export type ThemeMode = 'ready-made' | 'semi-custom';
 
 export type ThemeOccasion =
+  | 'wedding'
   | 'birthday'
   | 'love'
   | 'anniversary'
@@ -20,19 +21,19 @@ export type ThemeFieldType =
 
 export interface ThemeFieldOption {
   value: string;
-  label: Record<LanguageCode, string>;
+  label: LocalizedText;
 }
 
 export interface ThemeFieldSchema {
   key: string;
   type: ThemeFieldType;
-  label: Record<LanguageCode, string>;
+  label: LocalizedText;
   required?: boolean;
   optional?: boolean;
   max?: number;
   aiDraft?: boolean;
   options?: ThemeFieldOption[];
-  placeholder?: Record<LanguageCode, string>;
+  placeholder?: LocalizedText;
 }
 
 export interface ThemeMusicOption {
@@ -49,14 +50,14 @@ export interface ThemeDemoPayload {
   photos?: string[];
   revealAt?: string;
   timezone?: string;
-  headline: Record<LanguageCode, string>;
-  message: Record<LanguageCode, string>;
+  headline: LocalizedText;
+  message: LocalizedText;
   highlights?: Array<{
-    title: Record<LanguageCode, string>;
-    detail: Record<LanguageCode, string>;
+    title: LocalizedText;
+    detail: LocalizedText;
   }>;
   whatsappPhone?: string;
-  offerTag?: Record<LanguageCode, string>;
+  offerTag?: LocalizedText;
 }
 
 export interface ThemePalette {
@@ -79,9 +80,9 @@ export interface ThemeManifest {
   };
   isActive: boolean;
   featureFlag?: 'maanJaoTheme';
-  name: Record<LanguageCode, string>;
-  audience: Record<LanguageCode, string>;
-  signatureMoment: Record<LanguageCode, string>;
+  name: LocalizedText;
+  audience: LocalizedText;
+  signatureMoment: LocalizedText;
   palette: ThemePalette;
   fields: ThemeFieldSchema[];
   music: ThemeMusicOption[];

@@ -1,8 +1,18 @@
 import type { Metadata } from 'next';
-import { Fraunces, Noto_Sans_Devanagari, Plus_Jakarta_Sans } from 'next/font/google';
+import {
+  Cormorant_Garamond,
+  Fraunces,
+  Noto_Sans_Devanagari,
+  Noto_Serif_Gujarati,
+  Pinyon_Script,
+  Plus_Jakarta_Sans,
+} from 'next/font/google';
 import { getWebzyPublicConfig } from '@webzy/core';
+import { AuthProvider } from '../components/auth/AuthProvider';
 import { LanguageProvider } from '../components/shell/LanguageProvider';
+import { OrdersCountProvider } from '../components/shell/OrdersCountProvider';
 import { StorefrontChrome } from '../components/shell/StorefrontChrome';
+import { ensureWeddingArtSynced } from '../lib/syncWeddingArt';
 import './globals.css';
 
 const fraunces = Fraunces({
@@ -23,6 +33,28 @@ const notoSansDevanagari = Noto_Sans_Devanagari({
   display: 'swap',
 });
 
+const cormorantGaramond = Cormorant_Garamond({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  style: ['normal', 'italic'],
+  variable: '--font-cormorant',
+  display: 'swap',
+});
+
+const pinyonScript = Pinyon_Script({
+  subsets: ['latin'],
+  weight: '400',
+  variable: '--font-pinyon',
+  display: 'swap',
+});
+
+const notoSerifGujarati = Noto_Serif_Gujarati({
+  subsets: ['gujarati'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-gujarati',
+  display: 'swap',
+});
+
 export const metadata: Metadata = {
   title: 'Webzy — Turn your feelings into a shareable link',
   description:
@@ -34,17 +66,22 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  ensureWeddingArtSynced();
   const config = getWebzyPublicConfig();
 
   return (
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${fraunces.variable} ${plusJakartaSans.variable} ${notoSansDevanagari.variable}`}
+      className={`${fraunces.variable} ${plusJakartaSans.variable} ${notoSansDevanagari.variable} ${cormorantGaramond.variable} ${pinyonScript.variable} ${notoSerifGujarati.variable}`}
     >
       <body suppressHydrationWarning className="flex min-h-screen flex-col bg-white text-webzy-ink antialiased">
         <LanguageProvider>
-          <StorefrontChrome config={config}>{children}</StorefrontChrome>
+          <AuthProvider>
+            <OrdersCountProvider>
+              <StorefrontChrome config={config}>{children}</StorefrontChrome>
+            </OrdersCountProvider>
+          </AuthProvider>
         </LanguageProvider>
       </body>
     </html>

@@ -11,7 +11,7 @@ export default async function LoginPage({
   searchParams: Promise<{ next?: string; draftToken?: string; error?: string }>;
 }) {
   const params = await searchParams;
-  const nextPath = sanitizeRedirectPath(params.next, '/account');
+  const nextPath = sanitizeRedirectPath(params.next, '/orders');
   const session = await getAuthSessionState();
 
   if (session.user) {

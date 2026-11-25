@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { formatPaiseAsInr } from '@webzy/core';
 
 interface SuccessClientProps {
@@ -15,6 +15,11 @@ interface SuccessClientProps {
   businessName: string;
   businessAddress: string;
   freeEditUntil?: string;
+  isWedding?: boolean;
+  coupleTitle?: string;
+  siteMessage?: string;
+  hasVideoAddon?: boolean;
+  hasPinAddon?: boolean;
 }
 
 export function SuccessClient({
@@ -28,11 +33,65 @@ export function SuccessClient({
   businessName,
   businessAddress,
   freeEditUntil,
+  isWedding = false,
+  coupleTitle,
+  siteMessage,
+  hasVideoAddon = false,
+  hasPinAddon = false,
 }: SuccessClientProps) {
   const [copied, setCopied] = useState(false);
+  const [guestName, setGuestName] = useState('Sharma Family');
+  const [guestCopied, setGuestCopied] = useState(false);
+  const [bulkGuestText, setBulkGuestText] = useState(
+    'Sharma Family\nKapoor Family\nDr. Mehta & Family',
+  );
+  const [copiedBulkKey, setCopiedBulkKey] = useState<string | null>(null);
+  const [exportingVideo, setExportingVideo] = useState(false);
+  const [videoNotice, setVideoNotice] = useState('');
+
+  useEffect(() => {
+    try {
+      window.localStorage.removeItem('webzy_draft_cart');
+      const savedGuests = window.localStorage.getItem('webzy_wedding_guest_list');
+      if (savedGuests && savedGuests.trim()) {
+        setBulkGuestText(savedGuests);
+        const firstGuest = savedGuests
+          .split(/\r?\n|,/)
+          .map((s) => s.trim())
+          .find(Boolean);
+        if (firstGuest) {
+          setGuestName(firstGuest);
+        }
+      }
+      window.dispatchEvent(new Event('webzy_orders_updated'));
+    } catch {
+      // Ignore storage errors
+    }
+  }, []);
+
+  const bulkGuests = useMemo(() => {
+    return bulkGuestText
+      .split(/\r?\n|,/)
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0)
+      .slice(0, 100);
+  }, [bulkGuestText]);
+
+  const isProvisioning = !siteId;
+  const cleanGuest = guestName.trim();
+  const personalizedUrl =
+    isWedding && cleanGuest
+      ? `${liveUrl}?to=${encodeURIComponent(cleanGuest)}`
+      : liveUrl;
 
   const waShareHref = `https://wa.me/?text=${encodeURIComponent(
-    `I made a special Webzy surprise for you! Tap here to open it: ${liveUrl}`,
+    isWedding
+      ? `Warm greetings! With immense joy, we invite you and your family to celebrate the wedding of ${coupleTitle || 'our family'}. Open your invitation here: ${liveUrl}`
+      : `I made a special Webzy surprise for you! Tap here to open it: ${liveUrl}`,
+  )}`;
+
+  const personalizedWaHref = `https://wa.me/?text=${encodeURIComponent(
+    `Dear ${cleanGuest || 'Family'}, with immense joy we invite you to celebrate the wedding of ${coupleTitle || 'our family'}. Open your personal invitation here: ${personalizedUrl}`,
   )}`;
 
   async function handleCopy() {
@@ -41,14 +100,169 @@ export function SuccessClient({
     setTimeout(() => setCopied(false), 2500);
   }
 
+  async function handleCopyPersonalized() {
+    await navigator.clipboard.writeText(personalizedUrl).catch(() => {});
+    setGuestCopied(true);
+    setTimeout(() => setGuestCopied(false), 2200);
+  }
+
+  async function handleExportStatusVideo() {
+    if (exportingVideo || typeof document === 'undefined') return;
+    setExportingVideo(true);
+    setVideoNotice('Rendering your 9:16 vertical keepsake...');
+
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1080;
+      canvas.height = 1920;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Canvas unavailable');
+
+      const titleText = coupleTitle || (isWedding ? 'Wedding Invitation' : 'A Special Webzy');
+      const bodyText =
+        siteMessage ||
+        (isWedding
+          ? 'With immense joy, we invite you and your family to celebrate with us.'
+          : 'Tap the link to open your personalized surprise.');
+
+      const drawFrame = (progress: number) => {
+        const bgGrad = ctx.createLinearGradient(0, 0, 1080, 1920);
+        if (isWedding) {
+          bgGrad.addColorStop(0, '#1B3322');
+          bgGrad.addColorStop(0.5, '#122417');
+          bgGrad.addColorStop(1, '#0C170F');
+        } else {
+          bgGrad.addColorStop(0, '#4A1030');
+          bgGrad.addColorStop(0.55, '#2A0B1D');
+          bgGrad.addColorStop(1, '#180711');
+        }
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, 1080, 1920);
+
+        // Soft animated golden shimmer halo
+        const glowRadius = 460 + Math.sin(progress * Math.PI * 2) * 55;
+        const glow = ctx.createRadialGradient(540, 820, 40, 540, 820, glowRadius);
+        glow.addColorStop(0, 'rgba(229, 193, 88, 0.28)');
+        glow.addColorStop(1, 'rgba(229, 193, 88, 0)');
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, 1080, 1920);
+
+        // Ornamental double gold frame
+        ctx.strokeStyle = 'rgba(229, 193, 88, 0.72)';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(64, 64, 952, 1792);
+        ctx.strokeStyle = 'rgba(229, 193, 88, 0.35)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(86, 86, 908, 1748);
+
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#E5C158';
+        ctx.font = '600 32px Georgia, serif';
+        ctx.fillText(isWedding ? 'WEDDING INVITATION' : 'A PERSONAL WEBZY SURPRISE', 540, 420);
+
+        // Main title
+        ctx.fillStyle = '#FFF9EC';
+        ctx.font = 'bold 88px Georgia, serif';
+        const titleLines = titleText.length > 18 ? titleText.split(/\s*&\s*/).map((s, i) => (i === 0 ? `${s} &` : s)) : [titleText];
+        titleLines.slice(0, 2).forEach((line, idx) => {
+          ctx.fillText(line.slice(0, 26), 540, 680 + idx * 108);
+        });
+
+        // Message body wrapped nicely
+        ctx.fillStyle = 'rgba(255, 249, 236, 0.88)';
+        ctx.font = '400 40px system-ui, sans-serif';
+        const words = bodyText.split(/\s+/);
+        const lines: string[] = [];
+        let current = '';
+        for (const word of words) {
+          const test = current ? `${current} ${word}` : word;
+          if (test.length > 36 && current) {
+            lines.push(current);
+            current = word;
+          } else {
+            current = test;
+          }
+        }
+        if (current) lines.push(current);
+        lines.slice(0, 5).forEach((line, i) => {
+          ctx.fillText(line, 540, 1040 + i * 58);
+        });
+
+        // Footer link callout
+        ctx.fillStyle = '#E5C158';
+        ctx.font = 'bold 34px system-ui, sans-serif';
+        ctx.fillText('Tap our link to open the full experience', 540, 1560);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.78)';
+        ctx.font = '500 28px monospace';
+        ctx.fillText(`webzy.in/s/${siteSlug}`.slice(0, 42), 540, 1625);
+      };
+
+      const canRecord =
+        typeof MediaRecorder !== 'undefined' && typeof canvas.captureStream === 'function';
+
+      if (canRecord) {
+        const mimeType = MediaRecorder.isTypeSupported('video/mp4')
+          ? 'video/mp4'
+          : MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+            ? 'video/webm;codecs=vp9'
+            : 'video/webm';
+        const stream = canvas.captureStream(24);
+        const recorder = new MediaRecorder(stream, { mimeType });
+        const chunks: BlobPart[] = [];
+        recorder.ondataavailable = (ev) => {
+          if (ev.data.size > 0) chunks.push(ev.data);
+        };
+
+        const done = new Promise<Blob>((resolve) => {
+          recorder.onstop = () => resolve(new Blob(chunks, { type: mimeType }));
+        });
+
+        recorder.start();
+        const totalFrames = 96; // 4 seconds at 24fps
+        for (let f = 0; f < totalFrames; f++) {
+          drawFrame(f / totalFrames);
+          await new Promise((r) => setTimeout(r, 40));
+        }
+        recorder.stop();
+
+        const blob = await done;
+        const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `webzy-status-${siteSlug}.${ext}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        setVideoNotice(`Status video downloaded (.${ext}) — ready to post on WhatsApp Status!`);
+      } else {
+        // High-res vertical poster fallback on browsers without MediaRecorder
+        drawFrame(0.5);
+        const dataUrl = canvas.toDataURL('image/png');
+        const a = document.createElement('a');
+        a.href = dataUrl;
+        a.download = `webzy-status-${siteSlug}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setVideoNotice('1080×1920 vertical Status card downloaded — ready for WhatsApp Status!');
+      }
+    } catch {
+      setVideoNotice('Could not generate video on this browser. Please try in Chrome or Safari.');
+    } finally {
+      setExportingVideo(false);
+    }
+  }
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-      <div className="rounded-3xl border border-webzy-tint bg-webzy-surface p-6 shadow-sm sm:p-8">
-        <span className="inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-900">
-          Published & Ready to Share
-        </span>
+      <div className="rounded-2xl border border-webzy-ink/[0.09] bg-white p-6 shadow-sm sm:p-8">
+        <p className="text-xs font-semibold text-emerald-700">
+          Published
+        </p>
 
-        <h1 className="mt-3 font-heading text-3xl font-bold text-webzy-ink sm:text-4xl">
+        <h1 className="mt-2 font-heading text-3xl font-bold text-webzy-ink sm:text-4xl">
           Your Webzy is live!
         </h1>
         <p className="mt-2 text-sm text-webzy-ink/80">
@@ -56,54 +270,242 @@ export function SuccessClient({
           open it directly without logging in:
         </p>
 
-        <div className="mt-5 rounded-2xl border border-webzy-tint bg-white p-4">
-          <p className="text-xs font-semibold text-webzy-ink/60">Your shareable Webzy link</p>
-          <p className="mt-1 break-all font-mono text-sm font-bold text-webzy-primary">{liveUrl}</p>
-
-          <div className="mt-4 flex flex-wrap gap-3">
-            <Link
-              href={`/s/${siteSlug}`}
-              className="inline-flex min-h-[48px] items-center justify-center rounded-full bg-webzy-primary px-6 text-sm font-bold text-white shadow-sm"
-            >
-              Open Live Page →
-            </Link>
-            <a
-              href={waShareHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex min-h-[48px] items-center justify-center rounded-full bg-[#15803D] px-6 text-sm font-bold text-white"
-            >
-              Share on WhatsApp
-            </a>
+        {isProvisioning ? (
+          <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50/80 p-5">
+            <p className="text-xs font-bold uppercase tracking-wider text-amber-900">
+              Payment received · Finalizing your live page
+            </p>
+            <p className="mt-1.5 text-sm text-amber-950/85">
+              Your payment succeeded and your shareable link is finishing publishing. Refresh in a
+              moment to see your live link.
+            </p>
             <button
-              suppressHydrationWarning
               type="button"
-              onClick={handleCopy}
-              className="inline-flex min-h-[48px] items-center justify-center rounded-full border border-webzy-tint bg-white px-5 text-sm font-bold text-webzy-ink"
+              onClick={() => window.location.reload()}
+              className="mt-4 inline-flex min-h-[44px] items-center justify-center rounded-full bg-amber-900 px-5 text-xs font-bold text-white"
             >
-              {copied ? '✓ Link copied' : 'Copy link'}
+              Refresh Status
             </button>
-            {siteId ? (
+          </div>
+        ) : (
+          <div className="mt-5 rounded-2xl border border-webzy-tint bg-white p-4">
+            <p className="text-xs font-semibold text-webzy-ink/60">Your shareable Webzy link</p>
+            <p className="mt-1 break-all font-mono text-sm font-bold text-webzy-primary">{liveUrl}</p>
+
+            <div className="mt-4 flex flex-wrap gap-3">
               <Link
-                href={`/edit/${siteId}`}
+                href={`/s/${siteSlug}`}
+                className="inline-flex min-h-[48px] items-center justify-center rounded-full bg-webzy-primary px-6 text-sm font-bold text-white shadow-sm"
+              >
+                Open Live Page →
+              </Link>
+              <a
+                href={waShareHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-[48px] items-center justify-center rounded-full bg-[#15803D] px-6 text-sm font-bold text-white"
+              >
+                Share on WhatsApp
+              </a>
+              <button
+                suppressHydrationWarning
+                type="button"
+                onClick={handleCopy}
                 className="inline-flex min-h-[48px] items-center justify-center rounded-full border border-webzy-tint bg-white px-5 text-sm font-bold text-webzy-ink"
               >
-                Free 24h Edit
-              </Link>
+                {copied ? '✓ Link copied' : 'Copy link'}
+              </button>
+              {siteId ? (
+                <Link
+                  href={`/edit/${siteId}`}
+                  className="inline-flex min-h-[48px] items-center justify-center rounded-full border border-webzy-tint bg-white px-5 text-sm font-bold text-webzy-ink"
+                >
+                  Free 24h Edit
+                </Link>
+              ) : null}
+            </div>
+            {freeEditUntil ? (
+              <p suppressHydrationWarning className="mt-3 text-[11px] text-webzy-ink/60">
+                Free edit window open until{' '}
+                {new Intl.DateTimeFormat('en-IN', {
+                  dateStyle: 'medium',
+                  timeStyle: 'short',
+                  timeZone: 'Asia/Kolkata',
+                }).format(new Date(freeEditUntil))}{' '}
+                IST.
+              </p>
             ) : null}
           </div>
-          {freeEditUntil ? (
-            <p suppressHydrationWarning className="mt-3 text-[11px] text-webzy-ink/60">
-              Free edit window open until{' '}
-              {new Intl.DateTimeFormat('en-IN', {
-                dateStyle: 'medium',
-                timeStyle: 'short',
-                timeZone: 'Asia/Kolkata',
-              }).format(new Date(freeEditUntil))}{' '}
-              IST.
+        )}
+
+        {/* Personalized Family Link Generator for Paid Wedding Websites */}
+        {isWedding && !isProvisioning ? (
+          <div className="mt-6 rounded-2xl border border-[#C9A243]/40 bg-[#FAF6EE] p-5 space-y-4">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-[#8C6B22]">
+                Send Personalized Family Links (/s/{siteSlug}?to=...)
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-webzy-ink/75">
+                Type a single family name or paste your full guest list (one family per line) to generate permanent personalized WhatsApp invitation links.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-2.5 sm:flex-row">
+              <input
+                type="text"
+                aria-label="Guest or family name"
+                value={guestName}
+                onChange={(e) => setGuestName(e.target.value)}
+                maxLength={50}
+                placeholder="e.g. Sharma Family"
+                className="min-h-[44px] flex-1 rounded-xl border border-[#C9A243]/45 bg-white px-3.5 text-sm text-webzy-ink outline-none focus:border-[#8C6B22]"
+              />
+              <button
+                type="button"
+                onClick={handleCopyPersonalized}
+                className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-[#C9A243]/55 bg-white px-4 text-xs font-bold text-[#5D4314] hover:bg-[#FFFDF9]"
+              >
+                {guestCopied ? 'Copied' : 'Copy Family Link'}
+              </button>
+              <a
+                href={personalizedWaHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-[#15803D] px-4 text-xs font-bold text-white hover:bg-[#166534]"
+              >
+                Send on WhatsApp
+              </a>
+            </div>
+            <p className="break-all font-mono text-[11px] text-webzy-ink/65">
+              {personalizedUrl}
             </p>
-          ) : null}
-        </div>
+
+            {/* Bulk Family Guest List Generator */}
+            <div className="border-t border-[#C9A243]/30 pt-4 space-y-2.5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <label htmlFor="success-bulk-guests" className="text-xs font-bold text-webzy-ink">
+                  Bulk Family List ({bulkGuests.length} families)
+                </label>
+                {bulkGuests.length > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const allLines = bulkGuests
+                        .map((g) => `${g}: ${liveUrl}?to=${encodeURIComponent(g)}`)
+                        .join('\n');
+                      void navigator.clipboard.writeText(allLines).catch(() => {});
+                      setCopiedBulkKey('all');
+                      setTimeout(() => setCopiedBulkKey(null), 2200);
+                    }}
+                    className="rounded-lg border border-[#C9A243]/60 bg-white px-3 py-1 text-[11px] font-bold text-[#5D4314] hover:bg-[#FFFDF9]"
+                  >
+                    {copiedBulkKey === 'all' ? 'Copied All Links!' : 'Copy All Links'}
+                  </button>
+                ) : null}
+              </div>
+
+              <textarea
+                id="success-bulk-guests"
+                rows={3}
+                value={bulkGuestText}
+                onChange={(e) => {
+                  setBulkGuestText(e.target.value);
+                  try {
+                    window.localStorage.setItem('webzy_wedding_guest_list', e.target.value);
+                  } catch {
+                    // Ignore storage errors
+                  }
+                }}
+                placeholder="One family name per line..."
+                className="w-full rounded-xl border border-[#C9A243]/40 bg-white px-3.5 py-2 text-xs text-webzy-ink outline-none focus:border-[#8C6B22]"
+              />
+
+              {bulkGuests.length > 0 ? (
+                <div className="max-h-52 space-y-1.5 overflow-y-auto rounded-xl border border-[#C9A243]/30 bg-white/80 p-2.5">
+                  {bulkGuests.map((fam, idx) => {
+                    const famUrl = `${liveUrl}?to=${encodeURIComponent(fam)}`;
+                    const famWa = `https://wa.me/?text=${encodeURIComponent(
+                      `Dear ${fam}, with immense joy we invite you to celebrate the wedding of ${coupleTitle || 'our family'}. Open your personal invitation here: ${famUrl}`,
+                    )}`;
+                    return (
+                      <div
+                        key={fam + idx}
+                        className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-stone-200/80 bg-white px-3 py-1.5 text-xs"
+                      >
+                        <span className="font-bold text-webzy-ink">{fam}</span>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              void navigator.clipboard.writeText(famUrl).catch(() => {});
+                              setCopiedBulkKey(`g-${idx}`);
+                              setTimeout(() => setCopiedBulkKey(null), 1800);
+                            }}
+                            className="rounded-md border border-stone-200 px-2.5 py-1 text-[11px] font-bold text-stone-700 hover:border-[#8C6B22]"
+                          >
+                            {copiedBulkKey === `g-${idx}` ? 'Copied' : 'Copy Link'}
+                          </button>
+                          <a
+                            href={famWa}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="rounded-md bg-[#15803D] px-2.5 py-1 text-[11px] font-bold text-white hover:bg-[#166534]"
+                          >
+                            Send on WhatsApp
+                          </a>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+
+        {/* Active Add-On Fulfillment Cards (PIN Lock + Status Video Export) */}
+        {!isProvisioning && (hasPinAddon || hasVideoAddon) ? (
+          <div className="mt-6 space-y-4">
+            {hasPinAddon ? (
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 text-xs leading-relaxed text-emerald-950">
+                <p className="font-bold uppercase tracking-wider text-emerald-800">
+                  Secret PIN Lock Active
+                </p>
+                <p className="mt-1">
+                  Your page is protected by the 4-digit PIN you set at checkout. Remember to share
+                  that 4-digit PIN with your recipient so they can unlock the page.
+                </p>
+              </div>
+            ) : null}
+
+            {hasVideoAddon ? (
+              <div className="rounded-2xl border border-webzy-primary/25 bg-webzy-surface/70 p-5">
+                <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wider text-webzy-primary">
+                      Status Video Export Included
+                    </p>
+                    <p className="mt-1 text-xs leading-relaxed text-webzy-ink/75">
+                      Download your 9:16 vertical keepsake formatted for WhatsApp Status &amp;
+                      Instagram Stories.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={exportingVideo}
+                    onClick={() => void handleExportStatusVideo()}
+                    className="btn-spring inline-flex min-h-[46px] shrink-0 items-center justify-center rounded-full bg-webzy-primary px-5 text-xs font-bold text-white shadow-sm transition hover:opacity-95 disabled:opacity-60"
+                  >
+                    {exportingVideo ? 'Creating video...' : 'Download Status Video (9:16)'}
+                  </button>
+                </div>
+                {videoNotice ? (
+                  <p className="mt-2.5 text-xs font-semibold text-emerald-800">{videoNotice}</p>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
 
         {/* Receipt & Invoice Summary */}
         <div className="mt-6 rounded-2xl border border-webzy-tint bg-white p-5 text-xs leading-relaxed">

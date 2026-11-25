@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { getWebzyPublicConfig, type LanguageCode, parseLanguageCode } from '@webzy/core';
 import { getThemeById } from '@webzy/themes';
 import { getSupabaseEnv } from '../../../../../../infra/supabase/env';
@@ -26,6 +26,11 @@ export default async function CreateWizardPage({
 
   if (!theme) {
     notFound();
+  }
+
+  if (theme.occasion === 'wedding') {
+    const query = draftTokenParam ? `?draft=${encodeURIComponent(draftTokenParam)}` : '';
+    redirect(`/weddings/${theme.id}/customize${query}`);
   }
 
   const supabaseConfigured = getSupabaseEnv().adminConfigured;
@@ -71,12 +76,28 @@ export default async function CreateWizardPage({
           .order('created_at', { ascending: true })
           .limit(3);
 
-        for (const a of assets || []) {
-          const { data: signed } = await admin.storage
+        const validAssets = (assets || []).filter(
+          (a): a is { id: string; storage_key: string } => Boolean(a.storage_key),
+        );
+        if (validAssets.length > 0) {
+          const { data: signedList } = await admin.storage
             .from('webzy-media')
-            .createSignedUrl(a.storage_key, 900);
-          if (signed?.signedUrl) {
-            initialPhotos.push({ assetId: a.id, signedUrl: signed.signedUrl });
+            .createSignedUrls(
+              validAssets.map((a) => a.storage_key),
+              900,
+            );
+          const signedByPath = new Map<string, string>();
+          for (const item of signedList || []) {
+            if (item?.path && item?.signedUrl) {
+              signedByPath.set(item.path, item.signedUrl);
+            }
+          }
+          for (let i = 0; i < validAssets.length; i += 1) {
+            const asset = validAssets[i];
+            const signedUrl = signedByPath.get(asset.storage_key) || signedList?.[i]?.signedUrl;
+            if (signedUrl) {
+              initialPhotos.push({ assetId: asset.id, signedUrl });
+            }
           }
         }
       }

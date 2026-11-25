@@ -12,6 +12,8 @@ const ALLOWED_REASONS = [
   'Inappropriate content',
 ] as const;
 
+const EPHEMERAL_REPORT_SALT = crypto.randomBytes(32).toString('hex');
+
 export async function POST(
   request: NextRequest,
   context: { params: Promise<{ slug: string }> },
@@ -52,7 +54,10 @@ export async function POST(
     }
 
     const ua = request.headers.get('user-agent') || 'unknown';
-    const salt = process.env.MOCK_WEBHOOK_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || 'webzy-salt';
+    const salt =
+      process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ||
+      process.env.RATE_LIMIT_SALT?.trim() ||
+      EPHEMERAL_REPORT_SALT;
     const deviceHash = crypto
       .createHmac('sha256', salt)
       .update(`${ip}|${ua.slice(0, 120)}`)

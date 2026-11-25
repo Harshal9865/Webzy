@@ -1,6 +1,10 @@
 export type AppEnvironment = 'local' | 'staging' | 'production';
 export type PaymentProviderName = 'mock' | 'razorpay';
-export type LanguageCode = 'hinglish' | 'hi' | 'en';
+export type CoreLanguageCode = 'hinglish' | 'hi' | 'en';
+export type RegionalLanguageCode = 'gu' | 'mr' | 'pa' | 'bn' | 'ta' | 'te' | 'kn';
+export type LanguageCode = CoreLanguageCode | RegionalLanguageCode;
+export type LocalizedText = Record<CoreLanguageCode, string> &
+  Partial<Record<RegionalLanguageCode, string>>;
 
 export const ORDER_STATES = [
   'draft',

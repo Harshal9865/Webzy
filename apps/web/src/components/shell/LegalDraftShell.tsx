@@ -21,11 +21,11 @@ export function LegalDraftShell({
   return (
     <article className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
       {displayBadge ? (
-        <span className="inline-flex rounded-full bg-webzy-tint px-3 py-1 text-xs font-bold text-webzy-primary">
+        <p className="text-xs font-medium text-webzy-ink/55">
           {displayBadge}
-        </span>
+        </p>
       ) : null}
-      <h1 className="mt-3 font-heading text-3xl font-bold text-webzy-ink sm:text-4xl">{title}</h1>
+      <h1 className="mt-2 font-heading text-3xl font-bold text-webzy-ink sm:text-4xl">{title}</h1>
       <p className="mt-2 text-xs text-webzy-ink/60">
         Operator: {config.business.name} ({config.business.address}) · Support:{' '}
         {config.business.supportEmail}

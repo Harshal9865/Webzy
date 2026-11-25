@@ -1,13 +1,14 @@
 import type { NextConfig } from 'next';
 
 const supabaseOrigin = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || 'https://*.supabase.co';
+const supabaseWsOrigin = supabaseOrigin.replace(/^http(s?):\/\//i, (_, s) => (s ? 'wss://' : 'ws://'));
 
 const cspDirectives = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
   "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' ${supabaseOrigin} blob:`,
-  `connect-src 'self' ${supabaseOrigin}`,
+  `img-src 'self' ${supabaseOrigin} data: blob: https:`,
+  `connect-src 'self' ${supabaseOrigin} ${supabaseWsOrigin} wss://*.supabase.co`,
   "font-src 'self' https://fonts.gstatic.com data:",
   "object-src 'none'",
   "base-uri 'self'",
@@ -33,11 +34,11 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        source: '/(s|mock-pay|success|account|login|create|preview|checkout|edit)',
+        source: '/(s|mock-pay|success|account|login|create|preview|checkout|edit|admin)',
         headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' }],
       },
       {
-        source: '/(s|mock-pay|success|account|login|create|preview|checkout|edit)/:path*',
+        source: '/(s|mock-pay|success|account|login|create|preview|checkout|edit|admin)/:path*',
         headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' }],
       },
     ];

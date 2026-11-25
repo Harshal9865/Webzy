@@ -129,7 +129,7 @@ CREATE TABLE IF NOT EXISTS public.drafts (
   content_json jsonb NOT NULL DEFAULT '{}'::jsonb,
   language text NOT NULL DEFAULT 'hinglish',
   contact text NOT NULL DEFAULT '',
-  expires_at timestamptz NOT NULL DEFAULT (now() + interval '30 days'),
+  expires_at timestamptz NOT NULL DEFAULT (now() + interval '7 days'),
   deleted_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
@@ -256,7 +256,7 @@ CREATE TABLE IF NOT EXISTS public.sites (
   reveal_at timestamptz,
   timezone text NOT NULL DEFAULT 'Asia/Kolkata',
   pin_hash text,
-  expires_at timestamptz NOT NULL DEFAULT (now() + interval '30 days'),
+  expires_at timestamptz NOT NULL DEFAULT (now() + interval '7 days'),
   hidden boolean NOT NULL DEFAULT false,
   deleted_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now(),

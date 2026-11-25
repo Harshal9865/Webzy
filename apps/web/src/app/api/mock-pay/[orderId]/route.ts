@@ -59,8 +59,15 @@ export async function POST(
       return NextResponse.json({ error: 'Order not found.' }, { status: 404 });
     }
 
-    const secret =
-      process.env.MOCK_WEBHOOK_SECRET?.trim() || 'webzy-local-mock-secret-2026-keep-safe-32ch';
+    const configuredSecret = process.env.MOCK_WEBHOOK_SECRET?.trim();
+    if (cfg.appEnv !== 'local' && !configuredSecret) {
+      logEvent('error', 'web.mock_pay.missing_webhook_secret', { appEnv: cfg.appEnv });
+      return NextResponse.json(
+        { error: 'Mock webhook secret is not configured for this environment.' },
+        { status: 500 },
+      );
+    }
+    const secret = configuredSecret || 'webzy-local-mock-secret-2026-keep-safe-32ch';
     const paymentId = `pay_mock_${crypto.randomBytes(6).toString('hex')}`;
 
     const fireSignedWebhook = async (

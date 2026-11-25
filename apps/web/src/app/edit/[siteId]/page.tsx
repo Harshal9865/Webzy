@@ -24,7 +24,7 @@ export default async function EditSitePage({
   const { data: site } = await admin
     .from('sites')
     .select(
-      'id, slug, user_id, content_json, status, free_edit_until, edit_count, deleted_at, theme_versions(theme_id)',
+      'id, slug, user_id, content_json, status, created_at, free_edit_until, edit_count, deleted_at, theme_versions(theme_id)',
     )
     .eq('id', siteId)
     .eq('user_id', session.user.id)
@@ -49,8 +49,11 @@ export default async function EditSitePage({
     notFound();
   }
 
-  const editWindowOpen =
-    Boolean(site.free_edit_until) && Date.parse(site.free_edit_until) > Date.now();
+  const freeEditUntilMs = site.free_edit_until ? Date.parse(site.free_edit_until) : NaN;
+  const createdAtMs = site.created_at ? Date.parse(site.created_at) : NaN;
+  const editWindowOpen = !Number.isNaN(freeEditUntilMs)
+    ? freeEditUntilMs > Date.now()
+    : !Number.isNaN(createdAtMs) && Date.now() - createdAtMs <= 48 * 60 * 60 * 1000;
 
   if (!editWindowOpen || site.status === 'removed' || site.status === 'expired') {
     return (
@@ -91,19 +94,26 @@ export default async function EditSitePage({
     .limit(6);
 
   const signedPhotos: string[] = [];
-  if (assets && assets.length > 0) {
-    for (const asset of assets) {
-      if (!asset.storage_key) continue;
-      const { data: signed } = await admin.storage
-        .from('webzy-media')
-        .createSignedUrl(asset.storage_key, 900);
-      if (signed?.signedUrl) {
-        signedPhotos.push(signed.signedUrl);
+  const storageKeys = (assets || [])
+    .map((asset) => asset.storage_key)
+    .filter((key): key is string => Boolean(key));
+  if (storageKeys.length > 0) {
+    const { data: signedList } = await admin.storage
+      .from('webzy-media')
+      .createSignedUrls(storageKeys, 900);
+    for (const item of signedList || []) {
+      if (item?.signedUrl) {
+        signedPhotos.push(item.signedUrl);
       }
     }
   }
 
-  const rawContent = (site.content_json as Record<string, string>) || {};
+  const rawContent = (site.content_json as Record<string, unknown>) || {};
+  const hasPinLock =
+    typeof rawContent.secretPinHash === 'string' && rawContent.secretPinHash.length >= 32;
+  const effectiveFreeEditUntil =
+    site.free_edit_until ||
+    new Date((!Number.isNaN(createdAtMs) ? createdAtMs : Date.now()) + 48 * 60 * 60 * 1000).toISOString();
 
   return (
     <EditSiteClient
@@ -111,15 +121,23 @@ export default async function EditSitePage({
       slug={site.slug}
       theme={theme}
       initialContent={{
-        receiverName: rawContent.receiverName || '',
-        senderName: rawContent.senderName || '',
-        relation: rawContent.relation || '',
-        message: rawContent.message || '',
-        language: parseLanguageCode(rawContent.language),
-        whatsappPhone: rawContent.whatsappPhone || '',
+        receiverName: typeof rawContent.receiverName === 'string' ? rawContent.receiverName : '',
+        senderName: typeof rawContent.senderName === 'string' ? rawContent.senderName : '',
+        relation: typeof rawContent.relation === 'string' ? rawContent.relation : '',
+        message: typeof rawContent.message === 'string' ? rawContent.message : '',
+        language: parseLanguageCode(
+          typeof rawContent.language === 'string' ? rawContent.language : undefined,
+        ),
+        whatsappPhone: typeof rawContent.whatsappPhone === 'string' ? rawContent.whatsappPhone : '',
       }}
+      initialWeddingData={
+        rawContent.weddingData && typeof rawContent.weddingData === 'object'
+          ? (rawContent.weddingData as Record<string, unknown>)
+          : undefined
+      }
+      initialHasPinLock={hasPinLock}
       signedPhotos={signedPhotos}
-      freeEditUntilIso={site.free_edit_until!}
+      freeEditUntilIso={effectiveFreeEditUntil}
       editCount={site.edit_count ?? 0}
     />
   );

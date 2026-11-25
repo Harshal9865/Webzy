@@ -1,0 +1,177 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-label="Grace Cathedral coastal heritage chapel and garden courtyard wide scene">
+  <defs>
+    <linearGradient id="skyGW" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFEFC"/>
+      <stop offset="36%" stop-color="#FAF6EE"/>
+      <stop offset="58%" stop-color="#EAE4D8"/>
+      <stop offset="80%" stop-color="#BCC5B8"/>
+      <stop offset="100%" stop-color="#485B4C"/>
+    </linearGradient>
+    <radialGradient id="haloGW" cx="50%" cy="46%" r="48%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.95"/>
+      <stop offset="55%" stop-color="#F8E9C8" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#EAE4D8" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="stoneGW" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="60%" stop-color="#F3EDE2"/>
+      <stop offset="100%" stop-color="#D4C8B6"/>
+    </linearGradient>
+    <linearGradient id="goldGW" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#F7E4BA"/>
+      <stop offset="52%" stop-color="#C49A55"/>
+      <stop offset="100%" stop-color="#876029"/>
+    </linearGradient>
+    <radialGradient id="roseWinGW" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFF9E6"/>
+      <stop offset="50%" stop-color="#E1C68D"/>
+      <stop offset="100%" stop-color="#5E7164"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Airy Ivory Sky (Top 42% clean for couple typography) -->
+  <rect width="1600" height="900" fill="url(#skyGW)"/>
+  <ellipse cx="800" cy="430" rx="680" ry="290" fill="url(#haloGW)"/>
+
+  <!-- Soft Coastal Hills & Mediterranean/Goan Cypress Groves -->
+  <path d="M0 565 Q320 505 640 544 T1280 534 T1600 552 L1600 670 L0 670 Z" fill="#A6B3A2" opacity="0.44"/>
+  <path d="M0 595 Q400 545 800 575 T1600 565 L1600 675 L0 675 Z" fill="#7D917B" opacity="0.42"/>
+  <g fill="#536852" opacity="0.8">
+    <ellipse cx="136" cy="542" rx="22" ry="106"/>
+    <ellipse cx="188" cy="560" rx="18" ry="88"/>
+    <ellipse cx="234" cy="575" rx="15" ry="72"/>
+    <ellipse cx="276" cy="586" rx="13" ry="58"/>
+    <ellipse cx="1464" cy="542" rx="22" ry="106"/>
+    <ellipse cx="1412" cy="560" rx="18" ry="88"/>
+    <ellipse cx="1366" cy="575" rx="15" ry="72"/>
+    <ellipse cx="1324" cy="586" rx="13" ry="58"/>
+  </g>
+
+  <!-- Panoramic White Heritage Basilica, Twin Belfries & Arched Cloister Colonnades -->
+  <g transform="translate(800 0)">
+    <!-- Outer Cloister Wings & Balustrade -->
+    <rect x="-520" y="542" width="286" height="126" fill="url(#stoneGW)" stroke="#C8BCAA" stroke-width="1.4"/>
+    <rect x="234" y="542" width="286" height="126" fill="url(#stoneGW)" stroke="#C8BCAA" stroke-width="1.4"/>
+    <rect x="-526" y="534" width="296" height="8" fill="#E8DEC9" stroke="url(#goldGW)" stroke-width="1"/>
+    <rect x="230" y="534" width="296" height="8" fill="#E8DEC9" stroke="url(#goldGW)" stroke-width="1"/>
+
+    <!-- Cloister Arches with Warm Interior Lanterns -->
+    <g fill="#617164" stroke="url(#goldGW)" stroke-width="1.2">
+      <path d="M-492 668 L-492 586 Q-466 562 -440 586 L-440 668 Z"/>
+      <path d="M-412 668 L-412 586 Q-386 562 -360 586 L-360 668 Z"/>
+      <path d="M-332 668 L-332 586 Q-306 562 -280 586 L-280 668 Z"/>
+      <path d="M280 668 L280 586 Q306 562 332 586 L332 668 Z"/>
+      <path d="M360 668 L360 586 Q386 562 412 586 L412 668 Z"/>
+      <path d="M440 668 L440 586 Q466 562 492 586 L492 668 Z"/>
+    </g>
+    <g fill="#FFF2C6" opacity="0.55">
+      <circle cx="-466" cy="614" r="10"/><circle cx="-386" cy="614" r="10"/><circle cx="-306" cy="614" r="10"/>
+      <circle cx="306" cy="614" r="10"/><circle cx="386" cy="614" r="10"/><circle cx="466" cy="614" r="10"/>
+    </g>
+
+    <!-- Twin Bell Towers with Cross Finials & Hanging Brass Bells -->
+    <line x1="-200" y1="382" x2="-200" y2="416" stroke="url(#goldGW)" stroke-width="3" stroke-linecap="round"/>
+    <line x1="-211" y1="395" x2="-189" y2="395" stroke="url(#goldGW)" stroke-width="3" stroke-linecap="round"/>
+    <path d="M-238 458 L-200 412 L-162 458 Z" fill="#E6DBC8" stroke="url(#goldGW)" stroke-width="1.4"/>
+    <rect x="-234" y="458" width="68" height="210" fill="url(#stoneGW)" stroke="#C8BCAA" stroke-width="1.5"/>
+    <path d="M-214 516 L-214 480 Q-200 466 -186 480 L-186 516 Z" fill="#5D6E61" stroke="url(#goldGW)" stroke-width="1.2"/>
+    <circle cx="-200" cy="494" r="5" fill="url(#goldGW)"/>
+    <path d="M-212 604 L-212 554 Q-200 540 -188 554 L-188 604 Z" fill="url(#roseWinGW)" stroke="url(#goldGW)" stroke-width="1.2"/>
+
+    <line x1="200" y1="382" x2="200" y2="416" stroke="url(#goldGW)" stroke-width="3" stroke-linecap="round"/>
+    <line x1="189" y1="395" x2="211" y2="395" stroke="url(#goldGW)" stroke-width="3" stroke-linecap="round"/>
+    <path d="M162 458 L200 412 L238 458 Z" fill="#E6DBC8" stroke="url(#goldGW)" stroke-width="1.4"/>
+    <rect x="166" y="458" width="68" height="210" fill="url(#stoneGW)" stroke="#C8BCAA" stroke-width="1.5"/>
+    <path d="M186 516 L186 480 Q200 466 214 480 L214 516 Z" fill="#5D6E61" stroke="url(#goldGW)" stroke-width="1.2"/>
+    <circle cx="200" cy="494" r="5" fill="url(#goldGW)"/>
+    <path d="M188 604 L188 554 Q200 540 212 554 L212 604 Z" fill="url(#roseWinGW)" stroke="url(#goldGW)" stroke-width="1.2"/>
+
+    <!-- Central Baroque Chapel Gable & Cross -->
+    <line x1="0" y1="358" x2="0" y2="412" stroke="url(#goldGW)" stroke-width="4.5" stroke-linecap="round"/>
+    <line x1="-18" y1="378" x2="18" y2="378" stroke="url(#goldGW)" stroke-width="4.5" stroke-linecap="round"/>
+    <path d="M-166 516 L-166 468 Q-96 460 -64 418 Q0 392 64 418 Q96 460 166 468 L166 516 Z" fill="url(#stoneGW)" stroke="#C8BCAA" stroke-width="1.6"/>
+    <circle cx="0" cy="458" r="16" fill="#FAF3E4" stroke="url(#goldGW)" stroke-width="1.6"/>
+
+    <!-- Main Nave & Stained-Glass Rose Window -->
+    <rect x="-166" y="516" width="332" height="152" fill="url(#stoneGW)" stroke="#C8BCAA" stroke-width="1.6"/>
+    <rect x="-152" y="516" width="12" height="152" fill="#FAF6EE"/>
+    <rect x="140" y="516" width="12" height="152" fill="#FAF6EE"/>
+    <circle cx="0" cy="556" r="30" fill="url(#roseWinGW)" stroke="url(#goldGW)" stroke-width="2.6"/>
+    <circle cx="0" cy="556" r="18" fill="none" stroke="#FFFFFF" stroke-width="1" stroke-dasharray="2 3"/>
+    <line x1="0" y1="526" x2="0" y2="586" stroke="#FFFFFF" stroke-width="1"/>
+    <line x1="-30" y1="556" x2="30" y2="556" stroke="#FFFFFF" stroke-width="1"/>
+
+    <!-- Side Lancet Windows on Nave -->
+    <path d="M-116 632 L-116 572 Q-102 556 -88 572 L-88 632 Z" fill="url(#roseWinGW)" stroke="url(#goldGW)" stroke-width="1.4"/>
+    <path d="M88 632 L88 572 Q102 556 116 572 L116 632 Z" fill="url(#roseWinGW)" stroke="url(#goldGW)" stroke-width="1.4"/>
+
+    <!-- Grand Portal & White Rose Arch Garland -->
+    <path d="M-52 668 L-52 604 Q0 572 52 604 L52 668 Z" fill="#5D4738" stroke="url(#goldGW)" stroke-width="2.2"/>
+    <line x1="0" y1="588" x2="0" y2="668" stroke="url(#goldGW)" stroke-width="1.5"/>
+    <ellipse cx="0" cy="638" rx="28" ry="30" fill="#FFF2C6" opacity="0.52"/>
+    <path d="M-56 612 Q0 568 56 612" fill="none" stroke="#687E63" stroke-width="8" stroke-linecap="round"/>
+    <path d="M-56 612 Q0 568 56 612" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-dasharray="2 12" stroke-linecap="round"/>
+
+    <!-- Stepped Limestone Plinth -->
+    <rect x="-548" y="668" width="1096" height="12" fill="#F5EFE5" stroke="#C8BCAA" stroke-width="1"/>
+    <rect x="-576" y="680" width="1152" height="12" fill="#E6DDD0" stroke="#C8BCAA" stroke-width="1"/>
+  </g>
+
+  <!-- Courtyard Lawn, Parterre Walkways & Stone Processional Aisle -->
+  <rect x="0" y="692" width="1600" height="208" fill="#495C4C"/>
+  <polygon points="705,692 895,692 1060,900 540,900" fill="#EAE3D6"/>
+  <line x1="705" y1="692" x2="540" y2="900" stroke="url(#goldGW)" stroke-width="2.4"/>
+  <line x1="895" y1="692" x2="1060" y2="900" stroke="url(#goldGW)" stroke-width="2.4"/>
+
+  <!-- Flanking Garden Fountains & White Lily Courtyard Urns -->
+  <g>
+    <!-- Left & Right Courtyard Parterre Fountain Basins -->
+    <ellipse cx="370" cy="795" rx="95" ry="28" fill="#8BA193" stroke="#E8DEC9" stroke-width="4"/>
+    <path d="M370 792 Q360 755 348 776 M370 792 Q380 755 392 776 M370 792 L370 748" stroke="#FFFFFF" stroke-width="2" fill="none" opacity="0.75"/>
+    <ellipse cx="1230" cy="795" rx="95" ry="28" fill="#8BA193" stroke="#E8DEC9" stroke-width="4"/>
+    <path d="M1230 792 Q1220 755 1208 776 M1230 792 Q1240 755 1252 776 M1230 792 L1230 748" stroke="#FFFFFF" stroke-width="2" fill="none" opacity="0.75"/>
+
+    <!-- White Lily & Olive Urns Flanking the Processional Walk -->
+    <g transform="translate(625 765)">
+      <rect x="-12" y="12" width="24" height="30" rx="3" fill="#F4EEE3" stroke="#C49A55" stroke-width="1.2"/>
+      <ellipse cx="0" cy="4" rx="24" ry="10" fill="#6E8469"/>
+      <circle cx="-10" cy="-2" r="12" fill="#FFFFFF"/><circle cx="10" cy="-2" r="12" fill="#FAF3E6"/>
+      <circle cx="0" cy="-10" r="14" fill="#FFFFFF"/><circle cx="0" cy="-10" r="3.5" fill="#D9B166"/>
+    </g>
+    <g transform="translate(975 765)">
+      <rect x="-12" y="12" width="24" height="30" rx="3" fill="#F4EEE3" stroke="#C49A55" stroke-width="1.2"/>
+      <ellipse cx="0" cy="4" rx="24" ry="10" fill="#6E8469"/>
+      <circle cx="-10" cy="-2" r="12" fill="#FFFFFF"/><circle cx="10" cy="-2" r="12" fill="#FAF3E6"/>
+      <circle cx="0" cy="-10" r="14" fill="#FFFFFF"/><circle cx="0" cy="-10" r="3.5" fill="#D9B166"/>
+    </g>
+    <g transform="translate(565 845)">
+      <rect x="-15" y="15" width="30" height="38" rx="3" fill="#F4EEE3" stroke="#C49A55" stroke-width="1.3"/>
+      <ellipse cx="0" cy="4" rx="30" ry="12" fill="#6E8469"/>
+      <circle cx="-13" cy="-2" r="15" fill="#FFFFFF"/><circle cx="13" cy="-2" r="15" fill="#FAF3E6"/>
+      <circle cx="0" cy="-12" r="16" fill="#FFFFFF"/><circle cx="0" cy="-12" r="4" fill="#D9B166"/>
+    </g>
+    <g transform="translate(1035 845)">
+      <rect x="-15" y="15" width="30" height="38" rx="3" fill="#F4EEE3" stroke="#C49A55" stroke-width="1.3"/>
+      <ellipse cx="0" cy="4" rx="30" ry="12" fill="#6E8469"/>
+      <circle cx="-13" cy="-2" r="15" fill="#FFFFFF"/><circle cx="13" cy="-2" r="15" fill="#FAF3E6"/>
+      <circle cx="0" cy="-12" r="16" fill="#FFFFFF"/><circle cx="0" cy="-12" r="4" fill="#D9B166"/>
+    </g>
+  </g>
+
+  <!-- Champagne-Gold Outer Border & Corner Olive/Lily Boughs -->
+  <rect x="24" y="24" width="1552" height="852" fill="none" stroke="url(#goldGW)" stroke-width="2.2" opacity="0.76"/>
+  <rect x="36" y="36" width="1528" height="828" fill="none" stroke="#C49A55" stroke-width="0.9" opacity="0.48"/>
+  <g opacity="0.88">
+    <path d="M26 108 Q68 54 152 28" fill="none" stroke="#6E8469" stroke-width="3"/>
+    <ellipse cx="72" cy="64" rx="22" ry="8" transform="rotate(-26 72 64)" fill="#7E9478"/>
+    <ellipse cx="116" cy="44" rx="20" ry="7" transform="rotate(-12 116 44)" fill="#8FA489"/>
+    <circle cx="50" cy="84" r="14" fill="#FFFFFF" stroke="#C49A55" stroke-width="1"/>
+    <circle cx="50" cy="84" r="4" fill="#D9B166"/>
+
+    <path d="M1574 108 Q1532 54 1448 28" fill="none" stroke="#6E8469" stroke-width="3"/>
+    <ellipse cx="1528" cy="64" rx="22" ry="8" transform="rotate(26 1528 64)" fill="#7E9478"/>
+    <ellipse cx="1484" cy="44" rx="20" ry="7" transform="rotate(12 1484 44)" fill="#8FA489"/>
+    <circle cx="1550" cy="84" r="14" fill="#FFFFFF" stroke="#C49A55" stroke-width="1"/>
+    <circle cx="1550" cy="84" r="4" fill="#D9B166"/>
+  </g>
+</svg>

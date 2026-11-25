@@ -1,0 +1,139 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Neela Rajwada Royal Jodhpur starlit indigo palace and golden temple wide landscape">
+  <defs>
+    <linearGradient id="wideSky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#060E23"/>
+      <stop offset="38%" stop-color="#11234D"/>
+      <stop offset="65%" stop-color="#223D76"/>
+      <stop offset="100%" stop-color="#0A1632"/>
+    </linearGradient>
+    <radialGradient id="wideMoon" cx="50%" cy="54%" r="40%">
+      <stop offset="0%" stop-color="#FFECAF" stop-opacity="0.52"/>
+      <stop offset="50%" stop-color="#D4AF37" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#11234D" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="wideGold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFF5D0"/>
+      <stop offset="50%" stop-color="#E4BD60"/>
+      <stop offset="100%" stop-color="#8A611C"/>
+    </linearGradient>
+    <linearGradient id="wideStone" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#CCA25F"/>
+      <stop offset="60%" stop-color="#816039"/>
+      <stop offset="100%" stop-color="#35292B"/>
+    </linearGradient>
+    <linearGradient id="wideLake" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1A3366"/>
+      <stop offset="55%" stop-color="#0C1C3E"/>
+      <stop offset="100%" stop-color="#050C1D"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#wideSky)"/>
+  <rect width="1600" height="900" fill="url(#wideMoon)"/>
+
+  <!-- Starry Sky across upper 42% (clean for couple typography) -->
+  <g fill="#FFF5D4" opacity="0.78">
+    <circle cx="180" cy="90" r="2"/><circle cx="340" cy="145" r="1.6"/><circle cx="520" cy="75" r="2.2"/>
+    <circle cx="800" cy="60" r="2.4"/><circle cx="1090" cy="88" r="1.8"/><circle cx="1290" cy="140" r="2.1"/>
+    <circle cx="1430" cy="92" r="1.6"/><circle cx="240" cy="240" r="1.5"/><circle cx="1370" cy="245" r="1.8"/>
+    <circle cx="410" cy="220" r="1.4"/><circle cx="1180" cy="215" r="1.6"/>
+    <path d="M285 112 L287 120 L295 122 L287 124 L285 132 L283 124 L275 122 L283 120 Z"/>
+    <path d="M1315 112 L1317 120 L1325 122 L1317 124 L1315 132 L1313 124 L1305 122 L1313 120 Z"/>
+  </g>
+
+  <!-- Panoramic Mehrangarh & Umaid Bhawan Golden Temple Skyline -->
+  <g>
+    <!-- Far Left & Right Palace Ramparts & Colonnade Wings -->
+    <rect x="96" y="552" width="1408" height="108" fill="url(#wideStone)" stroke="#E8C674" stroke-width="1"/>
+    <rect x="250" y="518" width="1100" height="142" fill="url(#wideStone)" stroke="#E8C674" stroke-width="1.2"/>
+
+    <!-- Far Left & Right Chhatri Domes & Finials -->
+    <line x1="225" y1="428" x2="225" y2="452" stroke="#FFF4CE" stroke-width="2.5"/>
+    <circle cx="225" cy="436" r="4" fill="#FFE69A"/>
+    <path d="M178 552 L178 498 C178 472 204 458 225 448 C246 458 272 472 272 498 L272 552 Z" fill="url(#wideGold)" stroke="#8A611C" stroke-width="1.2"/>
+
+    <line x1="1375" y1="428" x2="1375" y2="452" stroke="#FFF4CE" stroke-width="2.5"/>
+    <circle cx="1375" cy="436" r="4" fill="#FFE69A"/>
+    <path d="M1328 552 L1328 498 C1328 472 1354 458 1375 448 C1396 458 1422 472 1422 498 L1422 552 Z" fill="url(#wideGold)" stroke="#8A611C" stroke-width="1.2"/>
+
+    <!-- Mid Left & Right Fluted Domes -->
+    <line x1="485" y1="368" x2="485" y2="396" stroke="#FFF4CE" stroke-width="3"/>
+    <circle cx="485" cy="378" r="5" fill="#FFE69A"/>
+    <path d="M418 518 L418 462 C418 428 454 408 485 394 C516 408 552 428 552 462 L552 518 Z" fill="url(#wideGold)" stroke="#8A611C" stroke-width="1.3"/>
+
+    <line x1="1115" y1="368" x2="1115" y2="396" stroke="#FFF4CE" stroke-width="3"/>
+    <circle cx="1115" cy="378" r="5" fill="#FFE69A"/>
+    <path d="M1048 518 L1048 462 C1048 428 1084 408 1115 394 C1146 408 1182 428 1182 462 L1182 518 Z" fill="url(#wideGold)" stroke="#8A611C" stroke-width="1.3"/>
+
+    <!-- Grand Central Golden Temple Dome, Fluted Ribs & Dhwaja Spire -->
+    <path d="M662 518 L662 442 C662 382 728 338 800 310 C872 338 938 382 938 442 L938 518 Z" fill="url(#wideGold)" stroke="#8A611C" stroke-width="1.6"/>
+    <path d="M712 518 C712 436 754 366 800 316 M756 518 C756 436 778 366 800 316 M844 518 C844 436 822 366 800 316 M888 518 C888 436 846 366 800 316" stroke="#8A611C" stroke-width="1.4" fill="none" opacity="0.5"/>
+    <line x1="800" y1="310" x2="800" y2="258" stroke="#FFF4CE" stroke-width="4.2" stroke-linecap="round"/>
+    <path d="M800 262 L828 270 L800 278 Z" fill="#F2B33D"/>
+    <circle cx="800" cy="284" r="8.5" fill="#FFE69A"/>
+    <circle cx="800" cy="258" r="5" fill="#FFF9E0"/>
+
+    <!-- Illuminated Cusped Palace Arches Across All Wings -->
+    <g fill="#FFEBA8" opacity="0.9">
+      <path d="M140 650 V594 C140 578 168 578 168 594 V650 Z"/>
+      <path d="M204 650 V594 C204 578 232 578 232 594 V650 Z"/>
+      <path d="M336 650 V582 C336 564 368 564 368 582 V650 Z"/>
+      <path d="M462 650 V572 C462 552 508 552 508 572 V650 Z"/>
+      <path d="M596 650 V578 C596 560 632 560 632 578 V650 Z"/>
+      <path d="M736 652 V558 C736 530 780 518 800 506 C820 518 864 530 864 558 V652 Z"/>
+      <path d="M968 650 V578 C968 560 1004 560 1004 578 V650 Z"/>
+      <path d="M1092 650 V572 C1092 552 1138 552 1138 572 V650 Z"/>
+      <path d="M1232 650 V582 C1232 564 1264 564 1264 582 V650 Z"/>
+      <path d="M1368 650 V594 C1368 578 1396 578 1396 594 V650 Z"/>
+      <path d="M1432 650 V594 C1432 578 1460 578 1460 594 V650 Z"/>
+    </g>
+    <rect x="236" y="512" width="1128" height="10" rx="3" fill="#E8C674"/>
+    <rect x="80" y="650" width="1440" height="12" rx="3" fill="#D5AD56"/>
+    <rect x="64" y="662" width="1472" height="8" rx="2" fill="#B58E3E"/>
+  </g>
+
+  <!-- Indigo Reflection Lake -->
+  <rect x="0" y="670" width="1600" height="230" fill="url(#wideLake)"/>
+  <line x1="64" y1="670" x2="1536" y2="670" stroke="#F4DC92" stroke-width="1.8" opacity="0.72"/>
+
+  <!-- Shimmering Gold Reflections -->
+  <g fill="#F4D37B" opacity="0.32">
+    <rect x="700" y="692" width="200" height="5" rx="2.5"/>
+    <rect x="655" y="718" width="290" height="4.5" rx="2"/>
+    <rect x="725" y="748" width="150" height="4" rx="2"/>
+    <rect x="440" y="700" width="95" height="4" rx="2"/>
+    <rect x="1065" y="700" width="95" height="4" rx="2"/>
+    <rect x="315" y="732" width="65" height="3.5" rx="2"/>
+    <rect x="1220" y="732" width="65" height="3.5" rx="2"/>
+  </g>
+
+  <!-- Floating Glowing Brass Diyas & Royal Boats/Lotuses -->
+  <g>
+    <ellipse cx="420" cy="805" rx="26" ry="8" fill="#8E5D1D" stroke="#F4DC92" stroke-width="1"/>
+    <path d="M420 779 C426 789 428 797 420 801 C412 797 414 789 420 779 Z" fill="#FFE888"/>
+    <circle cx="420" cy="792" r="22" fill="#FFD464" fill-opacity="0.24"/>
+
+    <ellipse cx="1180" cy="810" rx="26" ry="8" fill="#8E5D1D" stroke="#F4DC92" stroke-width="1"/>
+    <path d="M1180 784 C1186 794 1188 802 1180 806 C1172 802 1174 794 1180 784 Z" fill="#FFE888"/>
+    <circle cx="1180" cy="797" r="22" fill="#FFD464" fill-opacity="0.24"/>
+
+    <ellipse cx="800" cy="834" rx="30" ry="9" fill="#9A661F" stroke="#F4DC92" stroke-width="1.2"/>
+    <path d="M800 804 C808 816 810 825 800 830 C790 825 792 816 800 804 Z" fill="#FFF2A8"/>
+    <circle cx="800" cy="820" r="28" fill="#FFD464" fill-opacity="0.26"/>
+  </g>
+
+  <!-- Left & Right Carved Sandstone Pillars & Hanging Starry Lanterns Framing Wide View -->
+  <rect x="0" y="0" width="64" height="900" fill="#071128"/>
+  <rect x="1536" y="0" width="64" height="900" fill="#071128"/>
+  <line x1="64" y1="0" x2="64" y2="900" stroke="#E4C16B" stroke-width="3" opacity="0.8"/>
+  <line x1="1536" y1="0" x2="1536" y2="900" stroke="#E4C16B" stroke-width="3" opacity="0.8"/>
+  <g stroke="#F4DC92" stroke-width="1.5">
+    <line x1="118" y1="0" x2="118" y2="116"/>
+    <polygon points="118,116 132,136 118,158 104,136" fill="#FFF2B8"/>
+    <circle cx="118" cy="138" r="22" fill="#FFD978" fill-opacity="0.26" stroke="none"/>
+
+    <line x1="1482" y1="0" x2="1482" y2="116"/>
+    <polygon points="1482,116 1496,136 1482,158 1468,136" fill="#FFF2B8"/>
+    <circle cx="1482" cy="138" r="22" fill="#FFD978" fill-opacity="0.26" stroke="none"/>
+  </g>
+</svg>

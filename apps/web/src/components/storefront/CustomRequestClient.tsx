@@ -1,7 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { getSiteCopy } from '@webzy/core';
+import { useLanguage } from '../shell/LanguageProvider';
 
 interface CustomRequestClientProps {
   defaultName?: string;
@@ -10,22 +12,44 @@ interface CustomRequestClientProps {
   supportEmail: string;
 }
 
+const VALID_OCCASIONS = new Set(['wedding', 'birthday', 'anniversary', 'family', 'business', 'other']);
+const BUDGET_TIERS = [
+  { value: '2999-4999', label: '₹2,999 – ₹4,999', sub: 'Single-page custom design' },
+  { value: '5000-9999', label: '₹5,000 – ₹9,999', sub: 'Multi-section + custom art' },
+  { value: '10000+', label: '₹10,000+', sub: 'Bespoke portal + custom domain' },
+] as const;
+
 export function CustomRequestClient({
   defaultName = '',
   defaultEmail = '',
   waHref,
   supportEmail,
 }: CustomRequestClientProps) {
+  const { language } = useLanguage();
+  const site = getSiteCopy(language);
   const [name, setName] = useState(defaultName);
   const [email, setEmail] = useState(defaultEmail);
   const [phone, setPhone] = useState('');
   const [occasion, setOccasion] = useState('wedding');
   const [budgetTier, setBudgetTier] = useState('2999-4999');
   const [targetDate, setTargetDate] = useState('');
+  const [referenceUrl, setReferenceUrl] = useState('');
   const [brief, setBrief] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submittedId, setSubmittedId] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const qOccasion = params.get('occasion')?.toLowerCase().trim();
+      if (qOccasion && VALID_OCCASIONS.has(qOccasion)) {
+        setOccasion(qOccasion);
+      }
+    } catch {
+      // Ignore URL parse issues
+    }
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -42,6 +66,7 @@ export function CustomRequestClient({
           occasion,
           budgetTier,
           targetDate,
+          referenceUrl,
           brief,
         }),
       });
@@ -60,16 +85,14 @@ export function CustomRequestClient({
   return (
     <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
       <div className="max-w-2xl">
-        <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-900">
-          Custom & Semi-Custom Studio Requests
-        </span>
-        <h1 className="mt-3 font-heading text-3xl font-bold text-webzy-ink sm:text-4xl">
-          Need something built specially for you?
+        <p className="text-xs font-semibold uppercase tracking-wider text-webzy-primary">
+          {site.account.customRequestEyebrow}
+        </p>
+        <h1 className="mt-2 font-heading text-3xl font-bold text-webzy-ink sm:text-4xl">
+          {site.account.customRequestTitle}
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-webzy-ink/80 sm:text-base">
-          Share your brief for wedding invites, milestone timelines, or brand launches. Our founder
-          replies within 24 hours by email or a quick 15-minute call (custom builds start at ₹2,999+
-          with 50% advance after quote approval).
+          {site.account.customRequestSubtitle}
         </p>
       </div>
 
@@ -77,10 +100,10 @@ export function CustomRequestClient({
         <div className="rounded-3xl border border-webzy-tint bg-webzy-surface/60 p-6 lg:col-span-8">
           {submittedId ? (
             <div className="rounded-2xl border border-emerald-200 bg-white p-6 text-center">
-              <span className="inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-900">
-                Brief Received
-              </span>
-              <h2 className="mt-3 font-heading text-2xl font-bold text-webzy-ink">
+              <p className="text-xs font-semibold text-emerald-700">
+                Brief received
+              </p>
+              <h2 className="mt-2 font-heading text-2xl font-bold text-webzy-ink">
                 Thank you, {name}!
               </h2>
               <p className="mt-2 text-sm text-webzy-ink/75">
@@ -187,17 +210,61 @@ export function CustomRequestClient({
               </div>
 
               <div>
-                <label htmlFor="req-date" className="block text-xs font-bold text-webzy-ink">
-                  Target live date (optional)
-                </label>
-                <input
-                  suppressHydrationWarning
-                  id="req-date"
-                  type="date"
-                  value={targetDate}
-                  onChange={(e) => setTargetDate(e.target.value)}
-                  className="mt-1 min-h-[44px] w-full rounded-xl border border-webzy-tint bg-white px-3.5 text-sm text-webzy-ink sm:max-w-xs"
-                />
+                <span className="block text-xs font-bold text-webzy-ink">
+                  Select your budget tier
+                </span>
+                <div className="mt-1.5 grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+                  {BUDGET_TIERS.map((tier) => {
+                    const active = budgetTier === tier.value;
+                    return (
+                      <button
+                        key={tier.value}
+                        type="button"
+                        onClick={() => setBudgetTier(tier.value)}
+                        aria-pressed={active}
+                        className={`flex min-h-[54px] flex-col items-start justify-center rounded-2xl border px-3.5 py-2 text-left transition ${
+                          active
+                            ? 'border-webzy-primary bg-webzy-primary/[0.08] text-webzy-ink ring-1 ring-webzy-primary/30'
+                            : 'border-webzy-tint bg-white text-webzy-ink hover:border-webzy-primary/40'
+                        }`}
+                      >
+                        <span className="text-xs font-bold text-webzy-ink">{tier.label}</span>
+                        <span className="text-[11px] text-webzy-ink/60">{tier.sub}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="req-date" className="block text-xs font-bold text-webzy-ink">
+                    Target live date (optional)
+                  </label>
+                  <input
+                    suppressHydrationWarning
+                    id="req-date"
+                    type="date"
+                    value={targetDate}
+                    onChange={(e) => setTargetDate(e.target.value)}
+                    className="mt-1 min-h-[44px] w-full rounded-xl border border-webzy-tint bg-white px-3.5 text-sm text-webzy-ink"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="req-ref-url" className="block text-xs font-bold text-webzy-ink">
+                    Reference / Inspiration Link (optional)
+                  </label>
+                  <input
+                    suppressHydrationWarning
+                    id="req-ref-url"
+                    type="url"
+                    maxLength={300}
+                    value={referenceUrl}
+                    onChange={(e) => setReferenceUrl(e.target.value)}
+                    placeholder="https://pinterest.com/... or Google Drive link"
+                    className="mt-1 min-h-[44px] w-full rounded-xl border border-webzy-tint bg-white px-3.5 text-sm text-webzy-ink"
+                  />
+                </div>
               </div>
 
               <div>

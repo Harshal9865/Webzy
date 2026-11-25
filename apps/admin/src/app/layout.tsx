@@ -37,7 +37,7 @@ export default function AdminRootLayout({
       suppressHydrationWarning
       className={`${fraunces.variable} ${plusJakartaSans.variable} ${notoSansDevanagari.variable}`}
     >
-      <body suppressHydrationWarning className="min-h-screen bg-white text-webzy-ink antialiased">
+      <body suppressHydrationWarning className="min-h-screen bg-[#FAF8F6] text-webzy-ink antialiased">
         {children}
       </body>
     </html>

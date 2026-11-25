@@ -38,7 +38,11 @@ export function MfaClient({ adminEmail }: MfaClientProps) {
       for (const stale of factorsData.all.filter(
         (f) => f.factor_type === 'totp' && f.status === 'unverified',
       )) {
-        await supabase.auth.mfa.unenroll({ factorId: stale.id });
+        try {
+          await supabase.auth.mfa.unenroll({ factorId: stale.id });
+        } catch {
+          // Ignore stale factor unenroll error so enrollment continues cleanly
+        }
       }
 
       const { data: enrolled, error: enrollErr } = await supabase.auth.mfa.enroll({
@@ -116,9 +120,20 @@ export function MfaClient({ adminEmail }: MfaClientProps) {
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-5 py-12">
       <div className="rounded-3xl border border-webzy-tint bg-webzy-surface p-7 shadow-sm">
-        <span className="inline-flex rounded-full bg-webzy-tint px-3 py-1 text-xs font-bold text-webzy-primary">
-          Webzy Admin · Step 2 of 2 (Mandatory 2FA)
-        </span>
+        <div className="flex items-center justify-between gap-3">
+          <div className="inline-flex items-center gap-2 font-heading text-xl font-bold tracking-tight text-webzy-ink">
+            <span
+              className="flex h-8 w-8 items-center justify-center rounded-xl bg-webzy-primary text-sm font-bold text-white shadow-btn-primary"
+              aria-hidden="true"
+            >
+              w
+            </span>
+            <span className="font-heading tracking-tight">Webzy</span>
+          </div>
+          <span className="inline-flex rounded-full bg-webzy-tint px-3 py-1 text-[11px] font-bold text-webzy-primary">
+            Step 2 of 2 · 2FA
+          </span>
+        </div>
 
         <h1 className="mt-3 font-heading text-2xl font-bold text-webzy-ink">
           {mode === 'enroll' ? 'Set up Authenticator 2FA' : 'Enter 6-digit 2FA Code'}
@@ -184,7 +199,7 @@ export function MfaClient({ adminEmail }: MfaClientProps) {
                       }}
                       className="mt-2 inline-flex min-h-[32px] items-center rounded-full border border-webzy-tint bg-white px-3 text-[11px] font-bold text-webzy-primary"
                     >
-                      {copiedSecret ? '✓ Setup Key Copied' : 'Copy Manual Setup Key'}
+                      {copiedSecret ? 'Setup Key Copied' : 'Copy Manual Setup Key'}
                     </button>
                   </div>
                 ) : null}

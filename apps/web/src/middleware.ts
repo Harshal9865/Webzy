@@ -17,5 +17,12 @@ export const config = {
     '/edit/:path*',
     '/api/profile',
     '/api/orders',
+    '/api/sites/:path*',
+    '/api/payments/:path*',
+    '/api/uploads/:path*',
+    '/api/drafts/:path*',
+    '/api/requests',
+    '/api/custom-requests',
+    '/api/takedown',
   ],
 };

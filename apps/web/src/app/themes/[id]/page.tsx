@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { getWebzyPublicConfig } from '@webzy/core';
 import { getActiveThemes, getThemeById } from '@webzy/themes';
 import { ThemeDemoClient } from '../../../components/storefront/ThemeDemoClient';
@@ -23,6 +23,10 @@ export default async function ThemeDemoPage({
 
   if (!theme) {
     notFound();
+  }
+
+  if (theme.occasion === 'wedding') {
+    redirect(`/weddings/${theme.id}`);
   }
 
   return (

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { logEvent } from '@webzy/core';
+import { reportServerError } from '../../../../../../../infra/sentry/monitor';
 import { writeAuditLog } from '../../../../../../../infra/supabase/auth';
 import { requireVerifiedAdmin } from '../../../../lib/requireAdmin';
 
@@ -76,10 +77,33 @@ export async function POST(request: Request) {
 
         if (site) {
           if (body.action === 'ban_user') {
-            await guard.admin
+            if (site.user_id === guard.userId) {
+              return NextResponse.json({ error: 'Cannot ban your own admin account.' }, { status: 403 });
+            }
+            const { data: targetOwner } = await guard.admin
+              .from('profiles')
+              .select('role')
+              .eq('id', site.user_id)
+              .maybeSingle();
+            if (targetOwner?.role === 'admin') {
+              return NextResponse.json({ error: 'Cannot ban an admin account.' }, { status: 403 });
+            }
+
+            const { error: banErr } = await guard.admin
               .from('profiles')
               .update({ is_banned: true })
               .eq('id', site.user_id);
+            if (banErr) {
+              reportServerError(banErr, {
+                route: '/api/moderation/reports',
+                app: 'admin',
+                action: 'ban_user',
+              });
+              return NextResponse.json(
+                { error: 'Unable to ban user account right now.' },
+                { status: 500 },
+              );
+            }
 
             await guard.admin
               .from('sites')
@@ -127,13 +151,13 @@ export async function POST(request: Request) {
       }
 
       const nextStatus =
-        body.action === 'dismiss'
+        body.action === 'dismiss' || body.action === 'restore'
           ? 'dismissed'
           : body.action === 'remove'
             ? 'removed_site'
             : 'hidden_site';
 
-      await guard.admin
+      const { error: tdUpdateErr } = await guard.admin
         .from('takedown_requests')
         .update({
           status: nextStatus,
@@ -141,6 +165,18 @@ export async function POST(request: Request) {
           resolution_note: note,
         })
         .eq('id', td.id);
+
+      if (tdUpdateErr) {
+        reportServerError(tdUpdateErr, {
+          route: '/api/moderation/reports',
+          app: 'admin',
+          action: 'takedown_update',
+        });
+        return NextResponse.json(
+          { error: 'Unable to update takedown request right now.' },
+          { status: 500 },
+        );
+      }
 
       if (td.site_id) {
         if (nextStatus === 'removed_site') {
@@ -152,6 +188,11 @@ export async function POST(request: Request) {
           await guard.admin
             .from('sites')
             .update({ hidden: true, status: 'hidden' })
+            .eq('id', td.site_id);
+        } else if (body.action === 'restore') {
+          await guard.admin
+            .from('sites')
+            .update({ hidden: false, status: 'live' })
             .eq('id', td.site_id);
         }
       }
@@ -174,6 +215,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ error: 'Unsupported moderation action.' }, { status: 400 });
   } catch (err) {
+    reportServerError(err, { route: '/api/moderation/reports', app: 'admin' });
     logEvent('error', 'admin.moderation_error', {
       message: err instanceof Error ? err.message.slice(0, 80) : 'unknown',
     });

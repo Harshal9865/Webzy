@@ -167,7 +167,7 @@ export function ReceiverClient({
             : 'Please double-check the link with the person who sent it to you.';
 
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-webzy-surface to-white px-4 py-10 text-center">
+      <div className="flex min-h-dvh flex-col items-center justify-center bg-gradient-to-b from-webzy-surface to-white px-4 py-10 text-center">
         <div className="w-full max-w-md rounded-3xl border border-webzy-tint bg-white p-8 shadow-sm">
           <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-webzy-tint font-heading text-xl font-bold text-webzy-primary">
             W
@@ -197,12 +197,12 @@ export function ReceiverClient({
       : '';
 
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-webzy-surface to-white px-4 py-10 text-center">
-        <div className="w-full max-w-md rounded-3xl border border-webzy-tint bg-white p-8 shadow-md">
-          <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-900">
+      <div className="flex min-h-dvh flex-col items-center justify-center bg-gradient-to-b from-webzy-surface to-white px-4 py-10 text-center">
+        <div className="w-full max-w-md rounded-2xl border border-webzy-ink/[0.09] bg-white p-8 shadow-md">
+          <p className="text-xs font-semibold uppercase tracking-wider text-webzy-primary">
             Scheduled Surprise
-          </span>
-          <h1 className="mt-4 font-heading text-2xl font-bold text-webzy-ink">
+          </p>
+          <h1 className="mt-2 font-heading text-2xl font-bold text-webzy-ink">
             Something special is waiting for you
           </h1>
           <p className="mt-2 text-sm text-webzy-ink/75">
@@ -231,7 +231,7 @@ export function ReceiverClient({
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-between bg-gradient-to-b from-webzy-surface via-white to-webzy-surface/40 px-4 py-6 sm:py-10">
+    <div className="flex min-h-dvh flex-col items-center justify-between bg-gradient-to-b from-webzy-surface via-white to-webzy-surface/40 px-4 py-6 sm:py-10">
       <div className="w-full max-w-md">
         <ThemeRenderer
           manifest={theme}
@@ -264,7 +264,7 @@ export function ReceiverClient({
                       type="button"
                       disabled={replyBusy}
                       onClick={() => void submitReply(preset)}
-                      className="rounded-full border border-webzy-tint bg-webzy-surface px-3 py-1.5 text-xs font-semibold text-webzy-ink hover:border-webzy-primary"
+                      className="inline-flex min-h-[44px] items-center rounded-full border border-webzy-tint bg-webzy-surface px-3.5 py-2 text-xs font-semibold text-webzy-ink hover:border-webzy-primary"
                     >
                       {preset}
                     </button>
@@ -284,13 +284,13 @@ export function ReceiverClient({
                     value={replyText}
                     onChange={(e) => setReplyText(e.target.value)}
                     placeholder="Or write a short note..."
-                    className="min-h-[42px] flex-1 rounded-xl border border-webzy-tint bg-webzy-surface/50 px-3 text-xs text-webzy-ink outline-none focus:border-webzy-primary"
+                    className="min-h-[44px] flex-1 rounded-xl border border-webzy-tint bg-webzy-surface/50 px-3.5 text-base sm:text-xs text-webzy-ink outline-none focus:border-webzy-primary"
                   />
                   <button
                     suppressHydrationWarning
                     type="submit"
                     disabled={replyBusy || !replyText.trim()}
-                    className="min-h-[42px] rounded-xl bg-webzy-primary px-4 text-xs font-bold text-white disabled:opacity-50"
+                    className="min-h-[44px] shrink-0 rounded-xl bg-webzy-primary px-5 text-xs font-bold text-white disabled:opacity-50"
                   >
                     Send
                   </button>
@@ -306,7 +306,7 @@ export function ReceiverClient({
       <footer className="mt-8 flex w-full max-w-md flex-col items-center gap-3 text-center">
         <Link
           href="/themes"
-          className="inline-flex min-h-[40px] items-center rounded-full border border-webzy-tint bg-white px-5 text-xs font-bold text-webzy-primary shadow-sm hover:border-webzy-primary"
+          className="inline-flex min-h-[44px] items-center rounded-full border border-webzy-tint bg-white px-5 text-xs font-bold text-webzy-primary shadow-sm hover:border-webzy-primary"
         >
           Make a Webzy like this from ₹29 →
         </Link>
@@ -315,7 +315,7 @@ export function ReceiverClient({
           suppressHydrationWarning
           type="button"
           onClick={() => setReportOpen((prev) => !prev)}
-          className="text-[11px] font-medium text-webzy-ink/50 underline hover:text-webzy-ink/80"
+          className="inline-flex min-h-[44px] items-center px-3 text-xs font-medium text-webzy-ink/55 underline hover:text-webzy-ink/85"
         >
           Report inappropriate or unsafe page
         </button>
@@ -333,7 +333,7 @@ export function ReceiverClient({
               suppressHydrationWarning
               value={reportReason}
               onChange={(e) => setReportReason(e.target.value)}
-              className="mt-2.5 min-h-[40px] w-full rounded-xl border border-webzy-tint bg-webzy-surface px-3 text-xs text-webzy-ink"
+              className="mt-2.5 min-h-[44px] w-full rounded-xl border border-webzy-tint bg-webzy-surface px-3 text-base sm:text-xs text-webzy-ink"
             >
               {REPORT_REASONS.map((r) => (
                 <option key={r} value={r}>
@@ -347,7 +347,7 @@ export function ReceiverClient({
                 suppressHydrationWarning
                 type="button"
                 onClick={() => setReportOpen(false)}
-                className="min-h-[36px] rounded-lg px-3 text-xs font-semibold text-webzy-ink/70"
+                className="min-h-[44px] rounded-lg px-4 text-xs font-semibold text-webzy-ink/70"
               >
                 Cancel
               </button>
@@ -355,7 +355,7 @@ export function ReceiverClient({
                 suppressHydrationWarning
                 type="submit"
                 disabled={reportBusy}
-                className="min-h-[36px] rounded-lg bg-red-600 px-4 text-xs font-bold text-white disabled:opacity-50"
+                className="min-h-[44px] rounded-lg bg-red-600 px-4 text-xs font-bold text-white disabled:opacity-50"
               >
                 {reportBusy ? 'Hiding...' : 'Submit & Hide Page'}
               </button>

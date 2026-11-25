@@ -8,6 +8,8 @@ import {
   detectScamPatterns,
   formatInr,
   LanguageCode,
+  pickLocalizedText,
+  SUPPORTED_LANGUAGES,
 } from '@webzy/core';
 import {
   buildThemePayloadFromDraft,
@@ -16,7 +18,7 @@ import {
   ThemeRenderer,
 } from '@webzy/themes';
 import { compressImageForMobileUpload } from '../../lib/compressImage';
-import { PhoneFrame } from '../shell/PhoneFrame';
+import { AdaptivePreviewStage } from '../shell/AdaptivePreviewStage';
 import { useLanguage } from '../shell/LanguageProvider';
 import { getSupabaseBrowserClient } from '../../../../../infra/supabase/browser';
 
@@ -76,6 +78,11 @@ export function CreateWizardClient({
   const [step, setStep] = useState(1);
   const [draftLang, setDraftLang] = useState<LanguageCode>(initialLanguage ?? siteLang);
   const [draftToken, setDraftToken] = useState(initialDraftToken || '');
+
+  // Keep draft language synced when user changes the global header language
+  useEffect(() => {
+    setDraftLang(siteLang);
+  }, [siteLang]);
 
   // Authentication gating state
   const [isClientAuthed, setIsClientAuthed] = useState(Boolean(isAuthenticated));
@@ -307,6 +314,16 @@ export function CreateWizardClient({
 
   async function handleUnlockPreview() {
     setErrorMsg('');
+    if (!receiverName.trim()) {
+      setStep(1);
+      setErrorMsg('Please enter the recipient name in Step 1 first.');
+      return;
+    }
+    if (!message.trim()) {
+      setStep(2);
+      setErrorMsg('Please write or generate a personal message in Step 2 first.');
+      return;
+    }
     const token = await handleSaveDraft();
     if (!token) return;
 
@@ -321,9 +338,19 @@ export function CreateWizardClient({
     router.push(`/preview/${encodeURIComponent(token)}`);
   }
 
-  async function handleProceedCheckout(e: React.MouseEvent) {
-    e.preventDefault();
+  async function handleProceedCheckout(e?: React.MouseEvent) {
+    if (e) e.preventDefault();
     setErrorMsg('');
+    if (!receiverName.trim()) {
+      setStep(1);
+      setErrorMsg('Please enter the recipient name in Step 1 before checkout.');
+      return;
+    }
+    if (!message.trim()) {
+      setStep(2);
+      setErrorMsg('Please write or generate a personal message in Step 2 before checkout.');
+      return;
+    }
     const token = await handleSaveDraft();
     if (!token) return;
 
@@ -336,6 +363,24 @@ export function CreateWizardClient({
     }
 
     router.push(`/checkout?draft=${encodeURIComponent(token)}`);
+  }
+
+  async function handleStepSelect(targetStep: number) {
+    setErrorMsg('');
+    if (targetStep >= 2 && !receiverName.trim()) {
+      setStep(1);
+      setErrorMsg('Please enter the recipient name in Step 1 before continuing.');
+      return;
+    }
+    if (targetStep >= 3 && !message.trim()) {
+      setStep(2);
+      setErrorMsg('Please write or choose a greeting message in Step 2 before continuing.');
+      return;
+    }
+    setStep(targetStep);
+    if (targetStep === 4 && supabaseConfigured && !draftToken && receiverName.trim() && message.trim()) {
+      await handleSaveDraft();
+    }
   }
 
   async function handleSendInlineOtp(e: React.FormEvent) {
@@ -555,17 +600,17 @@ export function CreateWizardClient({
   const totalSteps = 4;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+    <div className="mx-auto max-w-7xl px-4 py-6 pb-24 sm:px-6 sm:py-8 lg:pb-10">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <Link
             href={`/themes/${theme.id}`}
             className="inline-flex min-h-[44px] items-center text-xs font-bold text-webzy-primary hover:underline"
           >
-            ← Back to {theme.name[draftLang]} demo
+            ← Back to {pickLocalizedText(theme.name, draftLang)} demo
           </Link>
           <h1 className="font-heading text-2xl font-bold text-webzy-ink sm:text-3xl">
-            Apna {theme.name[draftLang]} banao ({formatInr(theme.price.base)})
+            Create your {pickLocalizedText(theme.name, draftLang)} ({formatInr(theme.price.base)})
           </h1>
         </div>
 
@@ -584,7 +629,7 @@ export function CreateWizardClient({
           <button
             key={num}
             type="button"
-            onClick={() => setStep(num)}
+            onClick={() => void handleStepSelect(num)}
             className={`min-h-[44px] rounded-2xl border px-2 text-xs font-bold transition ${
               step === num
                 ? 'border-webzy-primary bg-webzy-primary text-white shadow-sm'
@@ -613,36 +658,31 @@ export function CreateWizardClient({
               </div>
 
               <div>
-                <p className="text-xs font-bold text-webzy-ink">Greeting language</p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {(
-                    [
-                      { code: 'hinglish', label: 'Hinglish' },
-                      { code: 'hi', label: 'हिन्दी' },
-                      { code: 'en', label: 'English' },
-                    ] as const
-                  ).map((l) => (
-                    <button
-                      suppressHydrationWarning
-                      key={l.code}
-                      type="button"
-                      onClick={() => setDraftLang(l.code)}
-                      className={`min-h-[44px] rounded-full px-5 text-xs font-bold ${
-                        draftLang === l.code
-                          ? 'bg-webzy-primary text-white'
-                          : 'border border-webzy-tint bg-white text-webzy-ink'
-                      }`}
-                    >
-                      {l.label}
-                    </button>
+                <label htmlFor="cw-lang-select" className="block text-xs font-bold text-webzy-ink">
+                  Greeting language
+                </label>
+                <select
+                  suppressHydrationWarning
+                  id="cw-lang-select"
+                  value={draftLang}
+                  onChange={(e) => setDraftLang(e.target.value as LanguageCode)}
+                  className="mt-1.5 min-h-[48px] w-full rounded-xl border border-webzy-tint bg-white px-4 text-sm font-semibold text-webzy-ink outline-none focus:border-webzy-primary"
+                >
+                  {SUPPORTED_LANGUAGES.map((l) => (
+                    <option key={l.code} value={l.code}>
+                      {l.nativeLabel} ({l.englishLabel})
+                    </option>
                   ))}
-                </div>
+                </select>
               </div>
 
               <div>
                 <label htmlFor="cw-receiver" className="block text-xs font-bold text-webzy-ink">
-                  {theme.fields.find((f) => f.key === 'receiverName')?.label[draftLang] ||
-                    'Receiver name'}
+                  {pickLocalizedText(
+                    theme.fields.find((f) => f.key === 'receiverName')?.label,
+                    draftLang,
+                    'Receiver name',
+                  )}
                 </label>
                 <input
                   suppressHydrationWarning
@@ -651,14 +691,14 @@ export function CreateWizardClient({
                   maxLength={40}
                   value={receiverName}
                   onChange={(e) => setReceiverName(e.target.value)}
-                  placeholder="e.g. Priti / Mummy"
+                  placeholder="e.g. Priya / Mummy"
                   className="mt-1.5 min-h-[48px] w-full rounded-xl border border-webzy-tint bg-white px-4 text-sm text-webzy-ink"
                 />
               </div>
 
               <div>
                 <label htmlFor="cw-sender" className="block text-xs font-bold text-webzy-ink">
-                  Aapka naam (Shown on gift cover)
+                  Your name (shown on gift cover)
                 </label>
                 <input
                   suppressHydrationWarning
@@ -667,7 +707,7 @@ export function CreateWizardClient({
                   maxLength={40}
                   value={senderName}
                   onChange={(e) => setSenderName(e.target.value)}
-                  placeholder="e.g. Honey"
+                  placeholder="e.g. Aarav"
                   className="mt-1.5 min-h-[48px] w-full rounded-xl border border-webzy-tint bg-white px-4 text-sm text-webzy-ink"
                 />
               </div>
@@ -675,7 +715,7 @@ export function CreateWizardClient({
               {relationField?.options ? (
                 <div>
                   <p className="text-xs font-bold text-webzy-ink">
-                    {relationField.label[draftLang]}
+                    {pickLocalizedText(relationField.label, draftLang)}
                   </p>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {relationField.options.map((opt) => (
@@ -690,7 +730,7 @@ export function CreateWizardClient({
                             : 'border border-webzy-tint bg-white text-webzy-ink'
                         }`}
                       >
-                        {opt.label[draftLang]}
+                        {pickLocalizedText(opt.label, draftLang)}
                       </button>
                     ))}
                   </div>
@@ -706,7 +746,7 @@ export function CreateWizardClient({
                   Step 2 of {totalSteps} · Personal Message &amp; Tone
                 </span>
                 <h2 className="mt-1 font-heading text-2xl font-bold text-webzy-ink">
-                  Dil ki baat likho
+                  Write your message
                 </h2>
               </div>
 
@@ -716,7 +756,7 @@ export function CreateWizardClient({
                     Suggested greeting ideas by tone:
                   </span>
                   <span className="text-[11px] text-webzy-ink/60">
-                    {OCCASION_LABELS[theme.occasion][draftLang]}
+                    {pickLocalizedText(OCCASION_LABELS[theme.occasion], draftLang)}
                   </span>
                 </div>
                 <div className="mt-2.5 flex flex-wrap gap-2">
@@ -738,7 +778,7 @@ export function CreateWizardClient({
               <div>
                 <div className="flex items-center justify-between">
                   <label htmlFor="cw-msg" className="text-xs font-bold text-webzy-ink">
-                    {messageField?.label[draftLang] || 'Message'}
+                    {pickLocalizedText(messageField?.label, draftLang, 'Message')}
                   </label>
                   <span className="text-xs text-webzy-ink/60">
                     {message.length} / {maxMessageLen}
@@ -815,7 +855,7 @@ export function CreateWizardClient({
                   ) : null}
 
                   {photos.length > 0 ? (
-                    <div className="mt-4 grid grid-cols-3 gap-2.5">
+                    <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
                       {photos.map((p, idx) => (
                         <div key={p.assetId} className="relative overflow-hidden rounded-xl border">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -827,7 +867,8 @@ export function CreateWizardClient({
                           <button
                             type="button"
                             onClick={() => handleRemovePhoto(p.assetId)}
-                            className="absolute right-1 top-1 min-h-[32px] min-w-[32px] rounded-full bg-black/75 px-2 text-[11px] font-bold text-white"
+                            aria-label={`Remove upload ${idx + 1}`}
+                            className="absolute right-1.5 top-1.5 flex h-10 w-10 items-center justify-center rounded-full bg-black/75 text-xs font-bold text-white"
                           >
                             ✕
                           </button>
@@ -836,18 +877,9 @@ export function CreateWizardClient({
                     </div>
                   ) : null}
 
-                  {/* DPDP 2023 Trust Shield */}
-                  <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50/70 p-3.5 text-xs text-emerald-950">
-                    <div className="flex items-center gap-2 font-bold text-emerald-900">
-                      <span>✓ 100% Private & Encrypted Vault</span>
-                      <span className="rounded-full bg-emerald-200 px-2 py-0.5 text-[10px] text-emerald-800">DPDP 2023 Compliant</span>
-                    </div>
-                    <ul className="mt-2 space-y-1 text-[11px] leading-relaxed text-emerald-900/90">
-                      <li>• <strong>Never on Google:</strong> Personal photos and Webzy links are strictly blocked from search engines.</li>
-                      <li>• <strong>EXIF & GPS Stripped:</strong> Camera location data is permanently wiped before saving.</li>
-                      <li>• <strong>30-Day Auto Purge:</strong> Uploaded media is automatically wiped after 30 days, or delete anytime in 1 click from your Account.</li>
-                    </ul>
-                  </div>
+                  <p className="mt-3 text-xs leading-relaxed text-webzy-ink/65">
+                    Photos are kept private, blocked from search engines, stripped of GPS location data, and automatically deleted after 30 days.
+                  </p>
                 </div>
               ) : (
                 <div className="rounded-2xl bg-white p-4 text-xs text-webzy-ink/75">
@@ -963,7 +995,7 @@ export function CreateWizardClient({
 
               <div className="rounded-2xl bg-white p-4 text-sm shadow-sm">
                 <p>
-                  <strong>Theme:</strong> {theme.name[draftLang]} ({formatInr(theme.price.base)} GST
+                  <strong>Theme:</strong> {pickLocalizedText(theme.name, draftLang)} ({formatInr(theme.price.base)} GST
                   included)
                 </p>
                 <p className="mt-1">
@@ -985,16 +1017,14 @@ export function CreateWizardClient({
                   {saving ? 'Preparing preview...' : 'View Free Watermarked Preview →'}
                 </button>
 
-                {draftToken ? (
-                  <button
-                    type="button"
-                    disabled={saving}
-                    onClick={handleProceedCheckout}
-                    className="inline-flex min-h-[48px] items-center justify-center rounded-full bg-emerald-600 px-6 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50"
-                  >
-                    {saving ? 'Saving...' : `Continue to Checkout (${formatInr(theme.price.base)}) →`}
-                  </button>
-                ) : null}
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={handleProceedCheckout}
+                  className="inline-flex min-h-[48px] items-center justify-center rounded-full bg-emerald-600 px-6 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50"
+                >
+                  {saving ? 'Saving...' : `Continue to Checkout (${formatInr(theme.price.base)}) →`}
+                </button>
               </div>
 
               <p className="text-xs text-webzy-ink/70">
@@ -1042,10 +1072,7 @@ export function CreateWizardClient({
               <button
                 type="button"
                 onClick={async () => {
-                  if (supabaseConfigured && (receiverName || message)) {
-                    await handleSaveDraft();
-                  }
-                  setStep((s) => Math.min(totalSteps, s + 1));
+                  await handleStepSelect(Math.min(totalSteps, step + 1));
                 }}
                 className="inline-flex min-h-[48px] items-center rounded-full bg-webzy-primary px-6 text-xs font-bold text-white"
               >
@@ -1064,39 +1091,49 @@ export function CreateWizardClient({
           </div>
         </section>
 
-        {/* Right: Live Phone Frame Preview */}
-        <aside className="lg:col-span-5">
-          <PhoneFrame caption="Live preview (tap gift cover to test your edits)">
+        {/* Right: Adaptive Live Preview (First on mobile/tablet so builders never hunt at bottom) */}
+        <aside className="order-first lg:order-last lg:sticky lg:top-24 lg:col-span-5">
+          <AdaptivePreviewStage
+            title={pickLocalizedText(theme.name, draftLang)}
+            caption="Tap gift cover to test your edits"
+            accentColor={theme.palette.primary || '#E11D63'}
+            mobileVariant="compact"
+            fullscreenChildren={
+              <ThemeRenderer
+                manifest={theme}
+                data={previewPayload}
+                language={draftLang}
+                watermarked
+              />
+            }
+          >
             <ThemeRenderer
               manifest={theme}
               data={previewPayload}
               language={draftLang}
               watermarked
             />
-          </PhoneFrame>
+          </AdaptivePreviewStage>
         </aside>
       </div>
 
       {/* Auth Gate Inline Modal */}
       {authModalOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl sm:p-8 animate-scale-in">
-            <div className="flex items-center justify-between">
-              <span className="inline-flex rounded-full bg-webzy-tint px-3 py-1 text-xs font-bold text-webzy-primary">
-                1-Tap Sign In
-              </span>
+          <div className="max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-3xl bg-white p-5 shadow-2xl sm:p-8 animate-scale-in">
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="font-heading text-xl font-bold text-webzy-ink sm:text-2xl">
+                {authTargetAction === 'checkout' ? 'Sign in to finish & publish' : 'Sign in to preview & save'}
+              </h3>
               <button
                 type="button"
                 onClick={() => setAuthModalOpen(false)}
-                className="rounded-full p-1 text-webzy-ink/60 hover:bg-webzy-surface hover:text-webzy-ink"
+                aria-label="Close"
+                className="flex h-11 w-11 -mr-2 shrink-0 items-center justify-center rounded-xl text-webzy-ink/60 hover:bg-webzy-surface hover:text-webzy-ink"
               >
                 ✕
               </button>
             </div>
-
-            <h3 className="mt-3 font-heading text-2xl font-bold text-webzy-ink">
-              {authTargetAction === 'checkout' ? 'Sign in to finish & publish' : 'Sign in to preview & save'}
-            </h3>
             <p className="mt-1 text-xs leading-relaxed text-webzy-ink/75">
               Enter your email to receive a 6-digit verification code. Your customized Webzy will be safely saved to your account.
             </p>

@@ -1,17 +1,22 @@
 import type { Metadata } from 'next';
 import React from 'react';
+import { getWebzyPublicConfig } from '@webzy/core';
 import { StudioWaitlistClient } from '../../components/studio/StudioWaitlistClient';
 
 export const metadata: Metadata = {
-  title: 'Webzy Studio — Custom Scratch Builds for Coaching, Clinics & E-Commerce',
+  title: 'Webzy Studio — Custom Websites for Coaching, Clinics, Shops & Weddings',
   description:
-    'Webzy Studio is launching in 15 days for custom scratch-built websites tailored for coaching centers, medical clinics, and e-commerce stores. Join the priority waitlist for early access and founder pricing.',
+    'Request a custom website built personally by Webzy Studio for coaching institutes, medical clinics, retail shops, local businesses, and destination weddings.',
 };
 
 export default function StudioPage() {
+  const cfg = getWebzyPublicConfig();
   return (
-    <main className="min-h-screen bg-webzy-surface/30">
-      <StudioWaitlistClient />
-    </main>
+    <div className="min-h-screen bg-webzy-surface/30">
+      <StudioWaitlistClient
+        supportWhatsapp={cfg.business.supportWhatsapp}
+        supportEmail={cfg.business.supportEmail}
+      />
+    </div>
   );
 }

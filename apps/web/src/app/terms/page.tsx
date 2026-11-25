@@ -13,7 +13,7 @@ export default function TermsPage() {
       <p>
         You retain full ownership of the text and photos you upload, and confirm you hold permission to
         use any photos of other people. Ready-made links stay online for the validity period selected
-        at checkout (30 days by default, extendable).
+        at checkout (7 days by default, extendable to 14 days, 21 days, or 3 months).
       </p>
       <p>
         Harassment, impersonation, non-consensual private photos, hate speech, financial fraud, and spam links on

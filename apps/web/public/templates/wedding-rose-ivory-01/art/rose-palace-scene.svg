@@ -1,0 +1,183 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1600" width="900" height="1600" role="img" aria-label="Gulab Bagh pastel rose marble pavilion and lotus garden portrait">
+  <defs>
+    <linearGradient id="skyRose" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFDFC"/>
+      <stop offset="34%" stop-color="#FCEFEE"/>
+      <stop offset="56%" stop-color="#F6DCE0"/>
+      <stop offset="80%" stop-color="#DDAEB9"/>
+      <stop offset="100%" stop-color="#874F5E"/>
+    </linearGradient>
+    <radialGradient id="haloRose" cx="50%" cy="46%" r="48%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.92"/>
+      <stop offset="55%" stop-color="#FDE9EC" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#F6DCE0" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="marbleWhite" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFDFB"/>
+      <stop offset="55%" stop-color="#F6E6E8"/>
+      <stop offset="100%" stop-color="#D7B5BD"/>
+    </linearGradient>
+    <linearGradient id="pondRose" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#CA97A4"/>
+      <stop offset="45%" stop-color="#8D5868"/>
+      <stop offset="100%" stop-color="#4D2936"/>
+    </linearGradient>
+    <linearGradient id="goldTrim" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#F6DFB0"/>
+      <stop offset="52%" stop-color="#C7985A"/>
+      <stop offset="100%" stop-color="#8C6030"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Clear Airy Blush-Ivory Sky (Top 42% clean for couple typography) -->
+  <rect width="900" height="1600" fill="url(#skyRose)"/>
+  <circle cx="450" cy="700" r="320" fill="url(#haloRose)"/>
+
+  <!-- Soft Distant Aravalli Hills & Garden Cypresses -->
+  <path d="M0 935 Q210 865 450 910 T900 895 L900 1080 L0 1080 Z" fill="#C99AA7" opacity="0.38"/>
+  <path d="M0 978 Q250 925 510 960 T900 950 L900 1120 L0 1120 Z" fill="#A97483" opacity="0.34"/>
+  <g fill="#687A65" opacity="0.72">
+    <ellipse cx="92" cy="922" rx="20" ry="96"/>
+    <ellipse cx="138" cy="942" rx="16" ry="76"/>
+    <ellipse cx="178" cy="958" rx="13" ry="60"/>
+    <ellipse cx="808" cy="922" rx="20" ry="96"/>
+    <ellipse cx="762" cy="942" rx="16" ry="76"/>
+    <ellipse cx="722" cy="958" rx="13" ry="60"/>
+  </g>
+
+  <!-- White Marble Mughal Lotus Baradari Pavilion (Samode / Rambagh Heritage Style) -->
+  <g transform="translate(450 0)">
+    <!-- Central Fluted Lotus Dome & Kalash Finial -->
+    <line x1="0" y1="654" x2="0" y2="714" stroke="url(#goldTrim)" stroke-width="4.5" stroke-linecap="round"/>
+    <circle cx="0" cy="676" r="6" fill="url(#goldTrim)"/>
+    <circle cx="0" cy="692" r="9" fill="url(#goldTrim)"/>
+    <path d="M-104 838 Q-118 750 0 710 Q118 750 104 838 Z" fill="url(#marbleWhite)" stroke="url(#goldTrim)" stroke-width="1.8"/>
+    <!-- Fluted Dome Ribs -->
+    <path d="M-54 838 Q-58 764 0 714 M54 838 Q58 764 0 714 M0 714 L0 838" stroke="#D7B2BA" stroke-width="1.1" fill="none"/>
+
+    <!-- Side Chhatri Kiosks with Kalash Finials -->
+    <line x1="-186" y1="756" x2="-186" y2="790" stroke="url(#goldTrim)" stroke-width="3"/>
+    <circle cx="-186" cy="770" r="4.5" fill="url(#goldTrim)"/>
+    <path d="M-234 862 Q-242 806 -186 786 Q-130 806 -138 862 Z" fill="url(#marbleWhite)" stroke="url(#goldTrim)" stroke-width="1.4"/>
+
+    <line x1="186" y1="756" x2="186" y2="790" stroke="url(#goldTrim)" stroke-width="3"/>
+    <circle cx="186" cy="770" r="4.5" fill="url(#goldTrim)"/>
+    <path d="M138 862 Q130 806 186 786 Q242 806 234 862 Z" fill="url(#marbleWhite)" stroke="url(#goldTrim)" stroke-width="1.4"/>
+
+    <!-- Overhanging Marble Chhajja Cornice & Roof Parapet -->
+    <rect x="-274" y="838" width="548" height="16" fill="#F7DEE3" stroke="url(#goldTrim)" stroke-width="1.4"/>
+    <path d="M-292 868 L-274 854 L274 854 L292 868 Z" fill="url(#goldTrim)"/>
+
+    <!-- Main Marble Baradari Facade & Carved Jali Screens -->
+    <rect x="-268" y="868" width="536" height="268" fill="url(#marbleWhite)" stroke="#CFA5AE" stroke-width="1.6"/>
+    <!-- Pietra-Dura Floral Inlay Band Along Frieze -->
+    <rect x="-252" y="880" width="504" height="18" fill="#FBECEF" stroke="#C7985A" stroke-width="1"/>
+    <g fill="#D98998">
+      <circle cx="-200" cy="889" r="4"/><circle cx="-130" cy="889" r="4"/><circle cx="-60" cy="889" r="4"/>
+      <circle cx="0" cy="889" r="5"/><circle cx="60" cy="889" r="4"/><circle cx="130" cy="889" r="4"/><circle cx="200" cy="889" r="4"/>
+    </g>
+
+    <!-- Fluted Marble Columns -->
+    <rect x="-262" y="868" width="16" height="268" fill="#FFFDFC" stroke="#C7985A" stroke-width="1"/>
+    <rect x="-112" y="868" width="16" height="268" fill="#FFFDFC" stroke="#C7985A" stroke-width="1"/>
+    <rect x="96" y="868" width="16" height="268" fill="#FFFDFC" stroke="#C7985A" stroke-width="1"/>
+    <rect x="246" y="868" width="16" height="268" fill="#FFFDFC" stroke="#C7985A" stroke-width="1"/>
+
+    <!-- Central Multi-Cusped Shahi Archway & Chandelier Glow -->
+    <path d="M-84 1136 L-84 966 Q-84 920 0 898 Q84 920 84 966 L84 1136 Z" fill="#9E6272" stroke="url(#goldTrim)" stroke-width="2.2"/>
+    <path d="M-66 1136 L-66 976 Q-66 936 0 918 Q66 936 66 976 L66 1136 Z" fill="#743E4E" stroke="#F4DBA9" stroke-width="1.2"/>
+    <ellipse cx="0" cy="1048" rx="44" ry="58" fill="#FFE7C8" opacity="0.5"/>
+    <!-- Hanging Crystal & Rose-Gold Chandelier Inside Central Arch -->
+    <line x1="0" y1="918" x2="0" y2="964" stroke="#F6DFB0" stroke-width="1.6"/>
+    <path d="M-20 976 Q0 956 20 976 Z" fill="#FFF4D8" stroke="#C7985A" stroke-width="1"/>
+    <circle cx="0" cy="984" r="6" fill="#FFF9E6"/>
+
+    <!-- Draped Blush Silk Curtains Inside Central Arch -->
+    <path d="M-66 968 Q-36 1020 -58 1136" fill="#F2C2CB" fill-opacity="0.45" stroke="#F6DFB0" stroke-width="1"/>
+    <path d="M66 968 Q36 1020 58 1136" fill="#F2C2CB" fill-opacity="0.45" stroke="#F6DFB0" stroke-width="1"/>
+
+    <!-- Flanking Side Cusped Arches with Carved Marble Jali Lattice -->
+    <path d="M-228 1136 L-228 982 Q-180 944 -132 982 L-132 1136 Z" fill="#945969" stroke="url(#goldTrim)" stroke-width="1.8"/>
+    <ellipse cx="-180" cy="1058" rx="26" ry="38" fill="#FFE7C8" opacity="0.35"/>
+    <path d="M132 1136 L132 982 Q180 944 228 982 L228 1136 Z" fill="#945969" stroke="url(#goldTrim)" stroke-width="1.8"/>
+    <ellipse cx="180" cy="1058" rx="26" ry="38" fill="#FFE7C8" opacity="0.35"/>
+
+    <!-- Stepped Rose-Marble Ghat Terrace & Fountain Jet -->
+    <rect x="-310" y="1136" width="620" height="16" fill="#F8E7EA" stroke="#C7985A" stroke-width="1"/>
+    <rect x="-346" y="1152" width="692" height="16" fill="#EDD1D7" stroke="#C7985A" stroke-width="1"/>
+    <rect x="-382" y="1168" width="764" height="16" fill="#DFBAC2" stroke="#C7985A" stroke-width="1"/>
+  </g>
+
+  <!-- Reflecting Lotus Charbagh Water Pool -->
+  <rect x="0" y="1184" width="900" height="416" fill="url(#pondRose)"/>
+  <line x1="0" y1="1184" x2="900" y2="1184" stroke="url(#goldTrim)" stroke-width="2.2" opacity="0.8"/>
+
+  <!-- Central Marble Lotus Fountain Basin & Water Plume -->
+  <g transform="translate(450 1246)">
+    <ellipse cx="0" cy="12" rx="112" ry="24" fill="#A96E7E" stroke="url(#goldTrim)" stroke-width="2.5"/>
+    <ellipse cx="0" cy="4" rx="48" ry="12" fill="#F8E7EA" stroke="url(#goldTrim)" stroke-width="1.6"/>
+    <path d="M0 0 Q-18 -46 -42 -16 M0 0 Q18 -46 42 -16 M0 0 L0 -54" stroke="#FFF6F8" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="0.82"/>
+  </g>
+
+  <!-- Shimmering Golden-Rose Water Ripples -->
+  <g stroke="#FCE3E6" stroke-linecap="round" opacity="0.38">
+    <line x1="330" y1="1296" x2="570" y2="1296" stroke-width="2.6"/>
+    <line x1="365" y1="1338" x2="535" y2="1338" stroke-width="2"/>
+    <line x1="392" y1="1382" x2="508" y2="1382" stroke-width="1.6"/>
+    <line x1="418" y1="1426" x2="482" y2="1426" stroke-width="1.2"/>
+  </g>
+
+  <!-- Blooming Pink Lotuses, Floating Brass Diyas & Pair of Royal Swans -->
+  <g>
+    <!-- Left Lotus Cluster -->
+    <ellipse cx="196" cy="1364" rx="58" ry="16" fill="#5D745C" opacity="0.85"/>
+    <path d="M196 1326 Q212 1346 196 1360 Q180 1346 196 1326 Z" fill="#FFF4F6" stroke="#C7985A" stroke-width="0.8"/>
+    <path d="M168 1340 Q186 1346 196 1360 Q176 1362 168 1340 Z" fill="#F0AAB6"/>
+    <path d="M224 1340 Q206 1346 196 1360 Q216 1362 224 1340 Z" fill="#F0AAB6"/>
+
+    <!-- Right Lotus Cluster -->
+    <ellipse cx="704" cy="1416" rx="64" ry="18" fill="#5D745C" opacity="0.85"/>
+    <path d="M704 1376 Q722 1398 704 1412 Q686 1398 704 1376 Z" fill="#FFF4F6" stroke="#C7985A" stroke-width="0.8"/>
+    <path d="M672 1392 Q692 1398 704 1412 Q682 1414 672 1392 Z" fill="#F0AAB6"/>
+    <path d="M736 1392 Q716 1398 704 1412 Q726 1414 736 1392 Z" fill="#F0AAB6"/>
+
+    <!-- Foreground Center-Left & Center-Right Lotus Buds & Floating Diyas -->
+    <ellipse cx="310" cy="1495" rx="46" ry="13" fill="#5D745C" opacity="0.82"/>
+    <path d="M310 1468 Q322 1482 310 1492 Q298 1482 310 1468 Z" fill="#FAD2D9"/>
+    <ellipse cx="590" cy="1510" rx="46" ry="13" fill="#5D745C" opacity="0.82"/>
+    <path d="M590 1483 Q602 1497 590 1507 Q578 1497 590 1483 Z" fill="#FAD2D9"/>
+
+    <circle cx="256" cy="1432" r="14" fill="#FFE6B8" opacity="0.45"/>
+    <path d="M256 1422 Q260 1428 256 1434 Q252 1428 256 1422 Z" fill="#FFF9E2"/>
+    <circle cx="644" cy="1464" r="14" fill="#FFE6B8" opacity="0.45"/>
+    <path d="M644 1454 Q648 1460 644 1466 Q640 1460 644 1454 Z" fill="#FFF9E2"/>
+  </g>
+
+  <!-- Subtle Rose-Gold Foreground Frame & Corner Climbing Damask Roses (Sky stays open) -->
+  <path d="M0 0 L900 0 L900 1600 L0 1600 Z M34 34 L34 1566 L866 1566 L866 34 Z" fill="#8C5160" fill-opacity="0.15" fill-rule="evenodd"/>
+  <rect x="26" y="26" width="848" height="1548" fill="none" stroke="url(#goldTrim)" stroke-width="2.2" opacity="0.78"/>
+  <rect x="38" y="38" width="824" height="1524" fill="none" stroke="#C7985A" stroke-width="0.9" opacity="0.48"/>
+
+  <!-- Corner Climbing Blush Damask Roses -->
+  <g opacity="0.92">
+    <path d="M28 142 Q56 68 144 30" fill="none" stroke="#687E64" stroke-width="3"/>
+    <ellipse cx="86" cy="58" rx="20" ry="7.5" transform="rotate(-24 86 58)" fill="#7E947A"/>
+    <ellipse cx="48" cy="108" rx="18" ry="7" transform="rotate(24 48 108)" fill="#6C8268"/>
+    <circle cx="60" cy="74" r="24" fill="#DC8F9D" stroke="#C7985A" stroke-width="1"/>
+    <circle cx="60" cy="74" r="14" fill="#F5C4CE"/>
+    <circle cx="60" cy="74" r="6" fill="#FFF5F7"/>
+    <circle cx="106" cy="48" r="16" fill="#E6A4B0"/>
+    <circle cx="106" cy="48" r="8" fill="#FCE4E8"/>
+    <circle cx="48" cy="122" r="14" fill="#E6A4B0"/>
+
+    <path d="M872 142 Q844 68 756 30" fill="none" stroke="#687E64" stroke-width="3"/>
+    <ellipse cx="814" cy="58" rx="20" ry="7.5" transform="rotate(24 814 58)" fill="#7E947A"/>
+    <ellipse cx="852" cy="108" rx="18" ry="7" transform="rotate(-24 852 108)" fill="#6C8268"/>
+    <circle cx="840" cy="74" r="24" fill="#DC8F9D" stroke="#C7985A" stroke-width="1"/>
+    <circle cx="840" cy="74" r="14" fill="#F5C4CE"/>
+    <circle cx="840" cy="74" r="6" fill="#FFF5F7"/>
+    <circle cx="794" cy="48" r="16" fill="#E6A4B0"/>
+    <circle cx="794" cy="48" r="8" fill="#FCE4E8"/>
+    <circle cx="852" cy="122" r="14" fill="#E6A4B0"/>
+  </g>
+</svg>

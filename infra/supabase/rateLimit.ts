@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { logEvent } from '@webzy/core';
+import { logEvent, resolveAppEnvironment } from '@webzy/core';
 import { getSupabaseEnv } from './env';
 import { createSupabaseAdminClient } from './server';
 
@@ -9,8 +9,36 @@ export interface RateLimitDecision {
   retryAfterSeconds: number;
 }
 
+const EPHEMERAL_BOOT_SALT = crypto.randomBytes(32).toString('hex');
+
+function getRateLimitSalt(): string {
+  const configured =
+    process.env.RATE_LIMIT_SALT?.trim() ||
+    process.env.MOCK_WEBHOOK_SECRET?.trim() ||
+    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+  if (configured) {
+    return configured;
+  }
+
+  if (resolveAppEnvironment() === 'local') {
+    return 'webzy-rate-limit-salt';
+  }
+
+  return EPHEMERAL_BOOT_SALT;
+}
+
+function fallbackRateLimitDecision(params: {
+  maxHits: number;
+  failClosed?: boolean;
+}): RateLimitDecision {
+  if (params.failClosed && resolveAppEnvironment() === 'production') {
+    return { allowed: false, remaining: 0, retryAfterSeconds: 60 };
+  }
+  return { allowed: true, remaining: params.maxHits, retryAfterSeconds: 0 };
+}
+
 export function hashIpForRateLimit(ip: string): string {
-  const salt = process.env.MOCK_WEBHOOK_SECRET || 'webzy-rate-limit-salt';
+  const salt = getRateLimitSalt();
   return crypto.createHmac('sha256', salt).update(ip || 'unknown').digest('hex').slice(0, 24);
 }
 
@@ -19,9 +47,10 @@ export async function consumeRateLimit(params: {
   maxHits: number;
   windowSeconds: number;
   blockSeconds?: number;
+  failClosed?: boolean;
 }): Promise<RateLimitDecision> {
   if (!getSupabaseEnv().adminConfigured) {
-    return { allowed: true, remaining: params.maxHits, retryAfterSeconds: 0 };
+    return fallbackRateLimitDecision(params);
   }
 
   try {
@@ -36,8 +65,9 @@ export async function consumeRateLimit(params: {
     if (error || !Array.isArray(data) || data.length === 0) {
       logEvent('warn', 'infra.rate_limit.degraded', {
         dbCode: error?.code || 'empty',
+        failClosed: Boolean(params.failClosed),
       });
-      return { allowed: true, remaining: params.maxHits, retryAfterSeconds: 0 };
+      return fallbackRateLimitDecision(params);
     }
 
     const row = data[0] as {
@@ -54,7 +84,8 @@ export async function consumeRateLimit(params: {
   } catch (err) {
     logEvent('warn', 'infra.rate_limit.exception', {
       message: err instanceof Error ? err.message.slice(0, 80) : 'unknown',
+      failClosed: Boolean(params.failClosed),
     });
-    return { allowed: true, remaining: params.maxHits, retryAfterSeconds: 0 };
+    return fallbackRateLimitDecision(params);
   }
 }

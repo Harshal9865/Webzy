@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import { NextResponse, type NextRequest } from 'next/server';
 import { getWebzyPublicConfig, logEvent } from '@webzy/core';
 import { getSupabaseEnv } from '../../../../../../../infra/supabase/env';
@@ -12,10 +13,22 @@ export async function POST(request: NextRequest) {
 
     const cfg = getWebzyPublicConfig();
     const secret = process.env.UPTIME_PING_SECRET?.trim();
-    const authHeader = request.headers.get('authorization');
 
-    if (secret && authHeader !== `Bearer ${secret}` && cfg.appEnv === 'production') {
-      return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
+    if (cfg.appEnv !== 'local' && !secret) {
+      return NextResponse.json({ error: 'Cron secret not configured.' }, { status: 503 });
+    }
+
+    if (secret) {
+      const authHeader = request.headers.get('authorization') ?? '';
+      const expected = `Bearer ${secret}`;
+      const authBuf = Buffer.from(authHeader, 'utf8');
+      const expectedBuf = Buffer.from(expected, 'utf8');
+      if (
+        authBuf.length !== expectedBuf.length ||
+        !crypto.timingSafeEqual(authBuf, expectedBuf)
+      ) {
+        return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
+      }
     }
 
     const admin = createSupabaseAdminClient();

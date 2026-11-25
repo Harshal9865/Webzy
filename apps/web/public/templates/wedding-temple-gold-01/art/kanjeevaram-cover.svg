@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1600" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Kashi Swarna Kanjeevaram crimson silk and temple gold zari wedding cover">
+  <defs>
+    <linearGradient id="kanjeeSilk" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#52100C"/>
+      <stop offset="48%" stop-color="#751A13"/>
+      <stop offset="100%" stop-color="#3E0907"/>
+    </linearGradient>
+    <linearGradient id="zariGold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFF2B8"/>
+      <stop offset="45%" stop-color="#E1B24A"/>
+      <stop offset="100%" stop-color="#9A6616"/>
+    </linearGradient>
+    <radialGradient id="sanctumWarmth" cx="50%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#C87A28" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="#3E0907" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="zariWeave" width="64" height="64" patternUnits="userSpaceOnUse">
+      <path d="M32 6 C42 18 46 28 32 54 C18 28 22 18 32 6 Z" fill="#E1B24A" fill-opacity="0.14" stroke="#F5D782" stroke-width="0.7" stroke-opacity="0.28"/>
+      <circle cx="32" cy="24" r="3" fill="#FFF2B8" fill-opacity="0.22"/>
+      <path d="M0 32 H64 M32 0 V64" stroke="#E1B24A" stroke-width="0.35" stroke-opacity="0.14"/>
+    </pattern>
+    <pattern id="korvaiTriangle" width="45" height="24" patternUnits="userSpaceOnUse">
+      <polygon points="0,24 22.5,0 45,24" fill="url(#zariGold)" fill-opacity="0.72"/>
+    </pattern>
+  </defs>
+
+  <rect width="900" height="1600" fill="url(#kanjeeSilk)"/>
+  <rect width="900" height="1600" fill="url(#zariWeave)"/>
+  <rect width="900" height="1600" fill="url(#sanctumWarmth)"/>
+
+  <!-- Rich Woven Temple Korvai Zari Borders (Top & Bottom) -->
+  <rect x="0" y="0" width="900" height="118" fill="url(#zariGold)" fill-opacity="0.26"/>
+  <rect x="0" y="118" width="900" height="24" fill="url(#korvaiTriangle)"/>
+  <rect x="0" y="1458" width="900" height="24" fill="url(#korvaiTriangle)"/>
+  <rect x="0" y="1482" width="900" height="118" fill="url(#zariGold)" fill-opacity="0.26"/>
+  <line x1="0" y1="118" x2="900" y2="118" stroke="url(#zariGold)" stroke-width="4"/>
+  <line x1="0" y1="1482" x2="900" y2="1482" stroke="url(#zariGold)" stroke-width="4"/>
+
+  <!-- Top & Bottom Mango-Leaf & Mallipoo Jasmine Band -->
+  <path d="M36 62 Q240 108 450 54 Q660 108 864 62" fill="none" stroke="#FFFDF4" stroke-width="5" stroke-dasharray="2 12" stroke-linecap="round" opacity="0.85"/>
+
+  <!-- Left & Right Symmetrical Carved Temple Sanctum Door Panels -->
+  <g fill="none" stroke="url(#zariGold)">
+    <rect x="34" y="156" width="396" height="1288" rx="4" stroke-width="3.2"/>
+    <rect x="52" y="174" width="360" height="1252" rx="2" stroke-width="1.3" stroke-dasharray="6 4" opacity="0.75"/>
+    <rect x="470" y="156" width="396" height="1288" rx="4" stroke-width="3.2"/>
+    <rect x="488" y="174" width="360" height="1252" rx="2" stroke-width="1.3" stroke-dasharray="6 4" opacity="0.75"/>
+
+    <!-- Tiered Temple Gopuram Arch Motifs on Each Door Leaf -->
+    <path d="M86 1396 V456 L146 392 L182 326 L232 256 L282 326 L318 392 L378 456 V1396 Z" fill="#3B0906" fill-opacity="0.48" stroke-width="2.4"/>
+    <path d="M522 1396 V456 L582 392 L618 326 L668 256 L718 326 L754 392 L814 456 V1396 Z" fill="#3B0906" fill-opacity="0.48" stroke-width="2.4"/>
+
+    <!-- Gopuram Kalasham Finials on Left & Right Arches -->
+    <circle cx="212" cy="244" r="4" fill="#FFF0B8"/><circle cx="232" cy="238" r="5" fill="#FFF0B8"/><circle cx="252" cy="244" r="4" fill="#FFF0B8"/>
+    <circle cx="648" cy="244" r="4" fill="#FFF0B8"/><circle cx="668" cy="238" r="5" fill="#FFF0B8"/><circle cx="688" cy="244" r="4" fill="#FFF0B8"/>
+
+    <!-- Upper Sacred Annapakshi (Mythical Temple Swan) & Lotus Medallions -->
+    <g transform="translate(232 520)">
+      <circle r="76" stroke-width="1.8" opacity="0.82"/>
+      <circle r="60" stroke-width="1" stroke-dasharray="4 4" opacity="0.65"/>
+      <path d="M0 -42 C18 -18 18 14 0 34 C-18 14 -18 -18 0 -42 Z" fill="#E1B24A" fill-opacity="0.22" stroke-width="1.6"/>
+      <path d="M-34 -10 C-10 -18 8 4 0 34 C-26 24 -38 4 -34 -10 Z" fill="#E1B24A" fill-opacity="0.16" stroke-width="1.4"/>
+      <path d="M34 -10 C10 -18 -8 4 0 34 C26 24 38 4 34 -10 Z" fill="#E1B24A" fill-opacity="0.16" stroke-width="1.4"/>
+    </g>
+    <g transform="translate(668 520)">
+      <circle r="76" stroke-width="1.8" opacity="0.82"/>
+      <circle r="60" stroke-width="1" stroke-dasharray="4 4" opacity="0.65"/>
+      <path d="M0 -42 C18 -18 18 14 0 34 C-18 14 -18 -18 0 -42 Z" fill="#E1B24A" fill-opacity="0.22" stroke-width="1.6"/>
+      <path d="M-34 -10 C-10 -18 8 4 0 34 C-26 24 -38 4 -34 -10 Z" fill="#E1B24A" fill-opacity="0.16" stroke-width="1.4"/>
+      <path d="M34 -10 C10 -18 -8 4 0 34 C26 24 38 4 34 -10 Z" fill="#E1B24A" fill-opacity="0.16" stroke-width="1.4"/>
+    </g>
+
+    <!-- Lower Kuthuvilakku Brass Lamp Medallions -->
+    <g transform="translate(232 1110)">
+      <circle r="76" stroke-width="1.8" opacity="0.82"/>
+      <circle r="60" stroke-width="1" stroke-dasharray="4 4" opacity="0.65"/>
+      <line x1="0" y1="-22" x2="0" y2="34" stroke-width="4"/>
+      <ellipse cx="0" cy="-22" rx="20" ry="6" fill="#E1B24A" fill-opacity="0.35"/>
+      <ellipse cx="0" cy="34" rx="24" ry="7" fill="#E1B24A" fill-opacity="0.35"/>
+      <path d="M0 -44 C8 -34 8 -26 0 -22 C-8 -26 -8 -34 0 -44 Z" fill="#FFF2B8"/>
+    </g>
+    <g transform="translate(668 1110)">
+      <circle r="76" stroke-width="1.8" opacity="0.82"/>
+      <circle r="60" stroke-width="1" stroke-dasharray="4 4" opacity="0.65"/>
+      <line x1="0" y1="-22" x2="0" y2="34" stroke-width="4"/>
+      <ellipse cx="0" cy="-22" rx="20" ry="6" fill="#E1B24A" fill-opacity="0.35"/>
+      <ellipse cx="0" cy="34" rx="24" ry="7" fill="#E1B24A" fill-opacity="0.35"/>
+      <path d="M0 -44 C8 -34 8 -26 0 -22 C-8 -26 -8 -34 0 -44 Z" fill="#FFF2B8"/>
+    </g>
+
+    <!-- Hanging Temple Brass Bells Along Upper Arch -->
+    <line x1="156" y1="392" x2="156" y2="438" stroke-width="1.4"/>
+    <path d="M148 448 C148 438 156 436 156 436 C156 436 164 438 164 448 Z" fill="url(#zariGold)"/>
+    <line x1="308" y1="392" x2="308" y2="438" stroke-width="1.4"/>
+    <path d="M300 448 C300 438 308 436 308 436 C308 436 316 438 316 448 Z" fill="url(#zariGold)"/>
+    <line x1="592" y1="392" x2="592" y2="438" stroke-width="1.4"/>
+    <path d="M584 448 C584 438 592 436 592 436 C592 436 600 438 600 448 Z" fill="url(#zariGold)"/>
+    <line x1="744" y1="392" x2="744" y2="438" stroke-width="1.4"/>
+    <path d="M736 448 C736 438 744 436 744 436 C744 436 752 438 752 448 Z" fill="url(#zariGold)"/>
+  </g>
+
+  <!-- Central Sacred Zari Seam & Mandala Halo -->
+  <circle cx="450" cy="800" r="154" fill="#460C08" fill-opacity="0.86" stroke="url(#zariGold)" stroke-width="3.2"/>
+  <circle cx="450" cy="800" r="132" fill="none" stroke="#FFF0B8" stroke-width="1.3" stroke-dasharray="5 4" opacity="0.85"/>
+  <line x1="450" y1="0" x2="450" y2="1600" stroke="url(#zariGold)" stroke-width="5"/>
+</svg>

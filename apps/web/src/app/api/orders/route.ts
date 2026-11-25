@@ -59,6 +59,7 @@ export async function POST(request: NextRequest) {
     const body = (await request.json().catch(() => ({}))) as {
       draftToken?: string;
       addons?: string[];
+      secretPin?: string;
       fullName?: string;
       phone?: string;
       idempotencyKey?: string;
@@ -93,6 +94,13 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    if (draft.user_id && draft.user_id !== session.user.id) {
+      return NextResponse.json(
+        { error: 'This draft belongs to another account.', code: 'DRAFT_OWNERSHIP_CONFLICT' },
+        { status: 403 },
+      );
+    }
+
     const theme = getThemeById(draft.theme_id, { includeMaanJao: cfg.flags.maanJaoTheme });
     if (!theme) {
       throw new WebzyError('Selected theme is unavailable.', {
@@ -122,17 +130,48 @@ export async function POST(request: NextRequest) {
     });
 
     // Server-computed pricing ONLY (ignores any price passed by browser - Section 10)
+    const baseValidityDays = cfg.defaultValidityDays;
     const pricing = computeOrderPricingPaise({
       basePriceInr: theme.price.base,
       allowedAddons: theme.price.addons,
       selectedAddons: body.addons,
-      defaultValidityDays: cfg.defaultValidityDays,
+      defaultValidityDays: baseValidityDays,
     });
+
+    const baseContentSnapshot =
+      draft.content_json && typeof draft.content_json === 'object'
+        ? { ...(draft.content_json as Record<string, unknown>) }
+        : {};
+
+    if (pricing.validAddonIds.includes('pin')) {
+      const cleanPin = typeof body.secretPin === 'string' ? body.secretPin.replace(/\D/g, '') : '';
+      if (cleanPin.length !== 4) {
+        throw new WebzyError('Please enter a 4-digit Secret PIN to enable PIN Lock.', {
+          code: 'ORDER_INVALID_PIN',
+          statusCode: 400,
+        });
+      }
+      baseContentSnapshot.pinSalt = draft.id;
+      baseContentSnapshot.secretPinHash = crypto
+        .createHash('sha256')
+        .update(`webzy-pin:${draft.id}:${cleanPin}`)
+        .digest('hex');
+    }
+
+    const contentHash = crypto
+      .createHash('sha256')
+      .update(JSON.stringify(baseContentSnapshot))
+      .digest('hex')
+      .slice(0, 10);
 
     const idempotencyKey =
       body.idempotencyKey && body.idempotencyKey.length >= 8
         ? body.idempotencyKey.slice(0, 80)
-        : `ord_${draft.id}_${crypto.createHash('sha256').update(pricing.validAddonIds.join(',')).digest('hex').slice(0, 12)}`;
+        : `ord_${draft.id}_${crypto
+            .createHash('sha256')
+            .update(`${pricing.validAddonIds.join(',')}:${contentHash}`)
+            .digest('hex')
+            .slice(0, 12)}`;
 
     // Return existing pending/settled order on double-click Pay retry
     const { data: existingOrder } = await admin
@@ -155,11 +194,23 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Bind draft to logged-in user + update profile snapshot
-    await admin
-      .from('drafts')
-      .update({ user_id: session.user.id, claimed_at: new Date().toISOString() })
-      .eq('id', draft.id);
+    // Bind anonymous draft to logged-in user + update profile snapshot
+    if (!draft.user_id) {
+      const { data: claimedDraft, error: claimErr } = await admin
+        .from('drafts')
+        .update({ user_id: session.user.id, claimed_at: new Date().toISOString() })
+        .eq('id', draft.id)
+        .is('user_id', null)
+        .select('id')
+        .maybeSingle();
+
+      if (claimErr || !claimedDraft) {
+        return NextResponse.json(
+          { error: 'This draft belongs to another account.', code: 'DRAFT_OWNERSHIP_CONFLICT' },
+          { status: 403 },
+        );
+      }
+    }
 
     await admin
       .from('profiles')
@@ -192,7 +243,7 @@ export async function POST(request: NextRequest) {
       status: 'payment_pending',
       provider: provider.name,
       provider_order_id: gwOrder.providerOrderId,
-      content_snapshot: draft.content_json,
+      content_snapshot: baseContentSnapshot,
       theme_version_id: draft.theme_version_id,
       fee_estimate_paise: pricing.feeEstimatePaise,
       is_test: cfg.isMockPaymentMode,

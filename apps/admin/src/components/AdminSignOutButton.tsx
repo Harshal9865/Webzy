@@ -4,7 +4,11 @@ import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { getSupabaseBrowserClient } from '../../../../infra/supabase/browser';
 
-export function AdminSignOutButton() {
+interface AdminSignOutButtonProps {
+  redirectTo?: string;
+}
+
+export function AdminSignOutButton({ redirectTo = '/login' }: AdminSignOutButtonProps) {
   const router = useRouter();
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -14,7 +18,7 @@ export function AdminSignOutButton() {
       const supabase = getSupabaseBrowserClient();
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      router.push('/login');
+      router.push(redirectTo);
       router.refresh();
     } catch {
       setErrorMsg('Sign out failed. Retry.');
@@ -27,7 +31,7 @@ export function AdminSignOutButton() {
         suppressHydrationWarning
         type="button"
         onClick={handleSignOut}
-        className="inline-flex min-h-[44px] items-center rounded-full border border-webzy-tint bg-white px-5 text-xs font-bold text-webzy-ink hover:bg-webzy-surface"
+        className="inline-flex min-h-[38px] items-center rounded-xl border border-webzy-tint bg-white px-4 text-xs font-bold text-webzy-ink transition hover:bg-webzy-surface"
       >
         Sign out
       </button>

@@ -1,22 +1,20 @@
 'use client';
 
 import React from 'react';
-import type { LanguageCode } from '@webzy/core';
+import { type LanguageCode, pickLocalizedText } from '@webzy/core';
 import type { ThemeDemoPayload, ThemeManifest } from '../schema';
-import {
-  BirthdayAshirwadView,
-  BirthdayConfettiView,
-  MakeThemSmileView,
-  OurTimelineView,
-} from './CelebrationViews';
-import {
-  BusinessGreetingView,
-  HarvestGreetingView,
-  MaanJaoView,
-  OurYearView,
-  WillYouView,
-} from './LoveFestivalBusinessViews';
-import { TapToOpenCover } from './TapToOpenCover';
+import { BirthdayAshirwadSite } from '../occasions/BirthdayAshirwadSite';
+import { BirthdayConfettiSite } from '../occasions/BirthdayConfettiSite';
+import { BusinessGreetingSite } from '../occasions/BusinessGreetingSite';
+import { HarvestGreetingSite } from '../occasions/HarvestGreetingSite';
+import { MaanJaoSite } from '../occasions/MaanJaoSite';
+import { MakeThemSmileSite } from '../occasions/MakeThemSmileSite';
+import { OurTimelineSite } from '../occasions/OurTimelineSite';
+import { OurYearWrappedSite } from '../occasions/OurYearWrappedSite';
+import { WillYouSite } from '../occasions/WillYouSite';
+import { getWeddingMockByTemplateId } from '../weddings/mockData';
+import { isWeddingTemplateId } from '../weddings/schema';
+import { WeddingScroll } from '../weddings/shared/WeddingScroll';
 
 interface ThemeRendererProps {
   manifest: ThemeManifest;
@@ -26,32 +24,41 @@ interface ThemeRendererProps {
   onOpened?: () => void;
 }
 
-function renderInnerView(
-  manifest: ThemeManifest,
-  data: ThemeDemoPayload,
-  language: LanguageCode,
-) {
+function renderOccasionMiniSite({
+  manifest,
+  data,
+  language,
+  watermarked,
+  onOpened,
+}: {
+  manifest: ThemeManifest;
+  data: ThemeDemoPayload;
+  language: LanguageCode;
+  watermarked: boolean;
+  onOpened?: () => void;
+}) {
+  const sharedProps = { manifest, data, language, watermarked, onOpened };
   switch (manifest.id) {
     case 'birthday-confetti-01':
-      return <BirthdayConfettiView manifest={manifest} data={data} language={language} />;
+      return <BirthdayConfettiSite {...sharedProps} />;
     case 'birthday-ashirwad-01':
-      return <BirthdayAshirwadView manifest={manifest} data={data} language={language} />;
+      return <BirthdayAshirwadSite {...sharedProps} />;
     case 'will-you-01':
-      return <WillYouView manifest={manifest} data={data} language={language} />;
+      return <WillYouSite {...sharedProps} />;
     case 'our-timeline-01':
-      return <OurTimelineView manifest={manifest} data={data} language={language} />;
+      return <OurTimelineSite {...sharedProps} />;
     case 'maan-jao-01':
-      return <MaanJaoView manifest={manifest} data={data} language={language} />;
+      return <MaanJaoSite {...sharedProps} />;
     case 'make-them-smile-01':
-      return <MakeThemSmileView manifest={manifest} data={data} language={language} />;
+      return <MakeThemSmileSite {...sharedProps} />;
     case 'our-year-01':
-      return <OurYearView manifest={manifest} data={data} language={language} />;
+      return <OurYearWrappedSite {...sharedProps} />;
     case 'harvest-greeting-01':
-      return <HarvestGreetingView manifest={manifest} data={data} language={language} />;
+      return <HarvestGreetingSite {...sharedProps} />;
     case 'business-greeting-01':
-      return <BusinessGreetingView manifest={manifest} data={data} language={language} />;
+      return <BusinessGreetingSite {...sharedProps} />;
     default:
-      return <BirthdayConfettiView manifest={manifest} data={data} language={language} />;
+      return <BirthdayConfettiSite {...sharedProps} />;
   }
 }
 
@@ -62,29 +69,63 @@ export function ThemeRenderer({
   watermarked = false,
   onOpened,
 }: ThemeRendererProps) {
+  if (isWeddingTemplateId(manifest.id)) {
+    const baseWedding = getWeddingMockByTemplateId(manifest.id);
+    const weddingLang =
+      language === 'hi' ||
+        language === 'gu' ||
+        language === 'mr' ||
+        language === 'pa' ||
+        language === 'bn' ||
+        language === 'ta' ||
+        language === 'te' ||
+        language === 'kn'
+        ? language
+        : 'en';
+
+    let brideName = baseWedding.brideName;
+    let groomName = baseWedding.groomName;
+    if (data?.receiverName?.trim()) {
+      const parts = data.receiverName
+        .split(/\s*(?:&|and|weds|संग)\s*/i)
+        .map((part) => part.trim())
+        .filter(Boolean);
+      if (parts.length >= 2) {
+        brideName = parts[0];
+        groomName = parts[1];
+      } else if (parts.length === 1) {
+        brideName = parts[0];
+      }
+    }
+
+    const customMessage = pickLocalizedText(data?.message, language).trim();
+    const customGallery =
+      data?.photos && data.photos.length > 0
+        ? [...data.photos, ...baseWedding.gallery]
+        : baseWedding.gallery;
+
+    return (
+      <WeddingScroll
+        data={{
+          ...baseWedding,
+          language: weddingLang,
+          brideName,
+          groomName,
+          personalMessage: customMessage || baseWedding.personalMessage,
+          gallery: customGallery,
+        }}
+        embedded
+        onOpen={onOpened}
+      />
+    );
+  }
+
   const payload = data ?? manifest.demoData;
-  const footerText =
-    language === 'hi'
-      ? 'Webzy से बना · अपना बनाओ'
-      : language === 'hinglish'
-        ? 'Made with Webzy · Apna banao'
-        : 'Made with Webzy · Create yours';
-
-  return (
-    <TapToOpenCover
-      recipientName={payload.receiverName}
-      senderName={payload.senderName}
-      primaryColor={manifest.palette.primary}
-      accentColor={manifest.palette.secondary}
-      language={language}
-      watermarked={watermarked}
-      onOpened={onOpened}
-    >
-      {renderInnerView(manifest, payload, language)}
-
-      <footer className="mt-3 border-t border-black/5 pt-2.5 text-center text-[11px] text-[#2B1B2E]/60">
-        {footerText}
-      </footer>
-    </TapToOpenCover>
-  );
+  return renderOccasionMiniSite({
+    manifest,
+    data: payload,
+    language,
+    watermarked,
+    onOpened,
+  });
 }

@@ -21,7 +21,7 @@ export default async function SuccessPage({
   const admin = createSupabaseAdminClient();
   const { data: order } = await admin
     .from('orders')
-    .select('id, user_id, draft_id, amount_paise, status, invoice_no, is_test')
+    .select('id, user_id, draft_id, amount_paise, status, invoice_no, is_test, addons_json')
     .eq('id', orderId)
     .eq('user_id', session.user.id)
     .maybeSingle();
@@ -36,9 +36,29 @@ export default async function SuccessPage({
 
   const { data: site } = await admin
     .from('sites')
-    .select('id, slug, free_edit_until')
+    .select('id, slug, free_edit_until, content_json, theme_versions(theme_id)')
     .eq('order_id', order.id)
     .maybeSingle();
+
+  const themeRel = site?.theme_versions as
+    | { theme_id?: string }
+    | Array<{ theme_id?: string }>
+    | null
+    | undefined;
+  const themeId = Array.isArray(themeRel) ? themeRel[0]?.theme_id : themeRel?.theme_id;
+  const isWedding = typeof themeId === 'string' && themeId.startsWith('wedding-');
+  const rawContent = (site?.content_json as Record<string, unknown> | null | undefined) || {};
+  const coupleTitle =
+    typeof rawContent.receiverName === 'string' && rawContent.receiverName.trim()
+      ? rawContent.receiverName.trim()
+      : undefined;
+  const siteMessage =
+    typeof rawContent.message === 'string' && rawContent.message.trim()
+      ? rawContent.message.trim()
+      : undefined;
+  const addonsList = Array.isArray(order.addons_json) ? (order.addons_json as string[]) : [];
+  const hasVideoAddon = addonsList.includes('video');
+  const hasPinAddon = addonsList.includes('pin');
 
   const cfg = getWebzyPublicConfig();
   const slug = site?.slug || order.id.slice(0, 12);
@@ -56,6 +76,11 @@ export default async function SuccessPage({
       businessName={cfg.business.name}
       businessAddress={cfg.business.address}
       freeEditUntil={site?.free_edit_until || undefined}
+      isWedding={isWedding}
+      coupleTitle={coupleTitle}
+      siteMessage={siteMessage}
+      hasVideoAddon={hasVideoAddon}
+      hasPinAddon={hasPinAddon}
     />
   );
 }

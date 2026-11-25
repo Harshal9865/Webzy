@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
-import type { LanguageCode } from '@webzy/core';
+import React, { useEffect, useState } from 'react';
+import { type CoreLanguageCode, type LanguageCode, toCoreLanguageCode } from '@webzy/core';
 
 interface TapToOpenCoverProps {
   recipientName: string;
@@ -15,32 +15,29 @@ interface TapToOpenCoverProps {
 }
 
 const COVER_COPY: Record<
-  LanguageCode,
-  { badge: string; fromLabel: string; tapButton: string; replay: string; muteOn: string; muteOff: string }
+  CoreLanguageCode,
+  { badge: string; fromLabel: string; tapButton: string; replay: string; hintText: string }
 > = {
   hinglish: {
     badge: 'Aapke liye ek khaas link',
     fromLabel: 'Bheja hai:',
     tapButton: 'Tap karke kholo',
     replay: 'Dobara dekho',
-    muteOn: 'Sound off',
-    muteOff: 'Sound on',
+    hintText: 'Kholne ke liye button ya screen par tap karein',
   },
   hi: {
     badge: 'आपके लिए एक खास तोहफ़ा',
     fromLabel: 'प्रेषक:',
     tapButton: 'टैप करके खोलें',
     replay: 'फिर से देखें',
-    muteOn: 'आवाज़ बंद',
-    muteOff: 'आवाज़ चालू',
+    hintText: 'तोहफ़ा देखने के लिए स्क्रीन पर टैप करें',
   },
   en: {
     badge: 'A special link for you',
     fromLabel: 'From:',
     tapButton: 'Tap to open',
     replay: 'Replay gift',
-    muteOn: 'Sound off',
-    muteOff: 'Sound on',
+    hintText: 'Tap the button or screen to reveal',
   },
 };
 
@@ -55,87 +52,33 @@ export function TapToOpenCover({
   children,
 }: TapToOpenCoverProps) {
   const [opened, setOpened] = useState(false);
-  const [muted, setMuted] = useState(false);
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const gainNodeRef = useRef<GainNode | null>(null);
+  const [showTapHint, setShowTapHint] = useState(false);
 
-  useEffect(() => {
-    const handleHidden = () => {
-      if (document.hidden && audioCtxRef.current && audioCtxRef.current.state === 'running') {
-        void audioCtxRef.current.suspend().catch(() => {});
-      }
-    };
-    document.addEventListener('visibilitychange', handleHidden);
-    return () => {
-      document.removeEventListener('visibilitychange', handleHidden);
-      if (audioCtxRef.current) {
-        void audioCtxRef.current.close().catch(() => {});
-        audioCtxRef.current = null;
-      }
-    };
-  }, []);
-
-  const copy = COVER_COPY[language] ?? COVER_COPY.en;
-
-  function playSoftWelcomeChime(): void {
-    if (typeof window === 'undefined') return;
-    try {
-      const AudioCtx =
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-      if (!AudioCtx) return;
-
-      if (!audioCtxRef.current) {
-        audioCtxRef.current = new AudioCtx();
-      }
-      const ctx = audioCtxRef.current;
-      if (ctx.state === 'suspended') {
-        void ctx.resume().catch(() => {});
-      }
-
-      const masterGain = ctx.createGain();
-      masterGain.gain.value = muted ? 0 : 1;
-      masterGain.connect(ctx.destination);
-      gainNodeRef.current = masterGain;
-
-      const notes = [523.25, 659.25, 783.99];
-      notes.forEach((freq, idx) => {
-        const osc = ctx.createOscillator();
-        const noteGain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.value = freq;
-        const start = ctx.currentTime + idx * 0.11;
-        noteGain.gain.setValueAtTime(0.001, start);
-        noteGain.gain.exponentialRampToValueAtTime(0.06, start + 0.03);
-        noteGain.gain.exponentialRampToValueAtTime(0.001, start + 0.45);
-        osc.connect(noteGain);
-        noteGain.connect(masterGain);
-        osc.start(start);
-        osc.stop(start + 0.46);
-      });
-    } catch {
-      // Audio playback is optional and fails gracefully in locked-down WebViews.
-    }
-  }
-
-  function handleToggleMute() {
-    const nextMuted = !muted;
-    setMuted(nextMuted);
-    if (gainNodeRef.current && audioCtxRef.current) {
-      gainNodeRef.current.gain.setValueAtTime(nextMuted ? 0 : 1, audioCtxRef.current.currentTime);
-    }
-  }
+  const copy = COVER_COPY[toCoreLanguageCode(language)] ?? COVER_COPY.en;
 
   function handleOpen() {
     setOpened(true);
-    if (!muted) {
-      playSoftWelcomeChime();
-    }
     onOpened?.();
   }
 
+  // Accessibility & elder-friendly auto-reveal fallback:
+  // If unopened after 7s, show tap hint; if untouched after 15s, auto-reveal surprise.
+  useEffect(() => {
+    if (opened) return;
+    const hintTimer = setTimeout(() => {
+      setShowTapHint(true);
+    }, 7000);
+    const autoOpenTimer = setTimeout(() => {
+      handleOpen();
+    }, 15000);
+    return () => {
+      clearTimeout(hintTimer);
+      clearTimeout(autoOpenTimer);
+    };
+  }, [opened]);
+
   return (
-    <div className="relative flex min-h-[520px] w-full flex-col justify-between overflow-hidden rounded-[28px] bg-white text-[#2B1B2E]">
+    <div className="relative flex h-full min-h-full w-full flex-col justify-between overflow-hidden rounded-[28px] bg-white text-[#2B1B2E]">
       {watermarked ? (
         <div
           aria-hidden="true"
@@ -145,37 +88,46 @@ export function TapToOpenCover({
         </div>
       ) : null}
 
-      <div className="relative z-20 flex items-center justify-between px-4 pt-3">
-        <button
-          type="button"
-          onClick={handleToggleMute}
-          className="inline-flex min-h-[44px] items-center rounded-full bg-white/95 px-3 text-xs font-medium text-[#2B1B2E] shadow-sm ring-1 ring-black/10 transition hover:bg-[#FFF5F8]"
-          aria-pressed={muted}
-        >
-          {muted ? copy.muteOn : copy.muteOff}
-        </button>
-
-        {opened ? (
+      {opened ? (
+        <div className="relative z-20 flex items-center justify-end px-4 pt-3.5 sm:pt-5">
           <button
             type="button"
-            onClick={() => setOpened(false)}
-            className="inline-flex min-h-[44px] items-center rounded-full bg-white/95 px-3 text-xs font-medium text-[#2B1B2E] shadow-sm ring-1 ring-black/10 transition hover:bg-[#FFF5F8]"
+            onClick={() => {
+              setShowTapHint(false);
+              setOpened(false);
+            }}
+            className="inline-flex min-h-[44px] items-center rounded-full bg-white/95 px-4 text-xs font-semibold text-[#2B1B2E] shadow-sm ring-1 ring-black/10 transition hover:bg-[#FFF5F8]"
           >
             {copy.replay}
           </button>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
 
       {!opened ? (
-        <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 py-8 text-center transition-all duration-500 motion-reduce:transition-none">
+        <div
+          onClick={handleOpen}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleOpen();
+            }
+          }}
+          className="relative z-10 mx-auto flex w-full max-w-lg flex-1 flex-col items-center justify-center px-5 py-6 text-center cursor-pointer transition-all duration-500 motion-reduce:transition-none sm:px-6 sm:py-8"
+        >
           <div
-            className="mb-5 flex h-20 w-20 items-center justify-center rounded-3xl shadow-md"
+            className="relative mb-4 sm:mb-5 flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-3xl shadow-md transition-transform duration-300 hover:scale-105 active:scale-95 animate-float motion-reduce:animate-none"
             style={{
               background: `linear-gradient(135deg, ${primaryColor}, ${accentColor})`,
             }}
             aria-hidden="true"
           >
-            <svg viewBox="0 0 48 48" className="h-10 w-10 text-white" fill="none">
+            <span
+              className="pointer-events-none absolute -inset-2 rounded-[28px] opacity-30 blur-md animate-pulse"
+              style={{ backgroundColor: primaryColor }}
+            />
+            <svg viewBox="0 0 48 48" className="relative h-8 w-8 sm:h-10 sm:w-10 text-white drop-shadow-sm" fill="none">
               <rect x="8" y="20" width="32" height="20" rx="4" stroke="currentColor" strokeWidth="3" />
               <path d="M6 16h36v6H6z" stroke="currentColor" strokeWidth="3" strokeLinejoin="round" />
               <path d="M24 16v24" stroke="currentColor" strokeWidth="3" />
@@ -191,21 +143,30 @@ export function TapToOpenCover({
             {copy.badge}
           </span>
 
-          <h2 className="mt-4 max-w-full break-words font-heading text-2xl font-bold leading-snug text-[#2B1B2E]">
+          <h2 className="mt-3.5 sm:mt-4 max-w-full break-words font-heading text-2xl font-bold leading-snug text-[#2B1B2E] sm:text-3xl">
             {recipientName}
           </h2>
-          <p className="mt-1 max-w-full break-words text-sm text-[#2B1B2E]/70">
+          <p className="mt-1 max-w-full break-words text-sm text-[#2B1B2E]/70 sm:text-base">
             {copy.fromLabel} <span className="font-semibold text-[#2B1B2E]">{senderName}</span>
           </p>
 
           <button
             type="button"
-            onClick={handleOpen}
-            className="mt-7 inline-flex min-h-[48px] items-center justify-center rounded-full px-7 py-3 text-sm font-bold text-white shadow-md transition hover:scale-[1.02] active:scale-[0.98] motion-reduce:transition-none"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleOpen();
+            }}
+            className="mt-5 sm:mt-7 inline-flex min-h-[48px] items-center justify-center rounded-full px-7 py-3 text-sm font-bold text-white shadow-md transition hover:scale-[1.02] active:scale-[0.98] motion-reduce:transition-none"
             style={{ backgroundColor: primaryColor }}
           >
             {copy.tapButton}
           </button>
+
+          {showTapHint ? (
+            <p className="mt-3 text-xs font-semibold text-[#E11D63] animate-pulse">
+              {copy.hintText}
+            </p>
+          ) : null}
         </div>
       ) : (
         <div className="flex flex-1 flex-col justify-between px-4 pb-4 pt-2 animate-[fadeIn_320ms_ease-out] motion-reduce:animate-none">

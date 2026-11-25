@@ -48,15 +48,20 @@ export default async function WatermarkedPreviewPage({
     .eq('status', 'ready')
     .is('deleted_at', null)
     .order('created_at', { ascending: true })
-    .limit(3);
+    .limit(theme.occasion === 'wedding' ? 6 : 3);
 
   const photoUrls: string[] = [];
-  for (const row of assets || []) {
-    const { data: signed } = await admin.storage
+  const storageKeys = (assets || [])
+    .map((row) => row.storage_key)
+    .filter((key): key is string => Boolean(key));
+  if (storageKeys.length > 0) {
+    const { data: signedList } = await admin.storage
       .from('webzy-media')
-      .createSignedUrl(row.storage_key, 900);
-    if (signed?.signedUrl) {
-      photoUrls.push(signed.signedUrl);
+      .createSignedUrls(storageKeys, 900);
+    for (const item of signedList || []) {
+      if (item?.signedUrl) {
+        photoUrls.push(item.signedUrl);
+      }
     }
   }
 
@@ -65,7 +70,7 @@ export default async function WatermarkedPreviewPage({
       theme={theme}
       draftToken={token}
       language={parseLanguageCode(draft.language)}
-      content={(draft.content_json as Record<string, string>) || {}}
+      content={(draft.content_json as Record<string, unknown>) || {}}
       photoUrls={photoUrls}
       revealAt={draft.reveal_at}
     />

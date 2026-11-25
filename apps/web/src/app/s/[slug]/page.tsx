@@ -1,11 +1,22 @@
 import type { Metadata } from 'next';
+import { cookies } from 'next/headers';
 import { getWebzyPublicConfig, parseLanguageCode } from '@webzy/core';
-import { buildThemePayloadFromDraft, getThemeById } from '@webzy/themes';
+import {
+  buildThemePayloadFromDraft,
+  getThemeById,
+  getWeddingMockByTemplateId,
+  isWeddingTemplateId,
+  parseWeddingLanguage,
+  WeddingScroll,
+  type WeddingInvitation,
+} from '@webzy/themes';
+import { verifyPinUnlockCookie } from '../../../../../../infra/security/requestGuard';
 import { getSupabaseEnv } from '../../../../../../infra/supabase/env';
 import { createSupabaseAdminClient } from '../../../../../../infra/supabase/server';
+import { PinGateClient } from '../../../components/receiver/PinGateClient';
 import { ReceiverClient, type ReceiverPageState } from '../../../components/receiver/ReceiverClient';
 
-export const revalidate = 60;
+export const dynamic = 'force-dynamic';
 
 // Non-spoiler OG metadata (Section 18): never expose recipient name, message, or photos.
 export async function generateMetadata(): Promise<Metadata> {
@@ -43,10 +54,13 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function ReceiverSitePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ to?: string; lang?: string }>;
 }) {
   const { slug } = await params;
+  const { to, lang } = await searchParams;
   const serverNowMs = Date.now();
 
   if (!slug || !/^[A-Za-z0-9_-]{6,64}$/.test(slug) || !getSupabaseEnv().adminConfigured) {
@@ -109,19 +123,84 @@ export default async function ReceiverSitePage({
     .limit(6);
 
   const signedPhotos: string[] = [];
-  if (assets && assets.length > 0) {
-    for (const asset of assets) {
-      if (!asset.storage_key) continue;
-      const { data: signed } = await admin.storage
-        .from('webzy-media')
-        .createSignedUrl(asset.storage_key, 900);
-      if (signed?.signedUrl) {
-        signedPhotos.push(signed.signedUrl);
+  const storageKeys = (assets || [])
+    .map((asset) => asset.storage_key)
+    .filter((key): key is string => Boolean(key));
+
+  if (storageKeys.length > 0) {
+    const { data: signedList } = await admin.storage
+      .from('webzy-media')
+      .createSignedUrls(storageKeys, 900);
+
+    const urlByKey = new Map<string, string>();
+    for (const item of signedList || []) {
+      if (item.path && item.signedUrl) {
+        urlByKey.set(item.path, item.signedUrl);
+      }
+    }
+
+    for (const key of storageKeys) {
+      const signedUrl = urlByKey.get(key);
+      if (signedUrl) {
+        signedPhotos.push(signedUrl);
       }
     }
   }
 
-  const content = (site.content_json as Record<string, string>) || {};
+  const rawContent = (site.content_json as Record<string, unknown>) || {};
+
+  // Enforce Secret PIN Lock add-on if configured on this published site
+  if (typeof rawContent.secretPinHash === 'string' && rawContent.secretPinHash.length >= 32) {
+    const cookieStore = await cookies();
+    const unlockCookie = cookieStore.get(`webzy_unlock_${slug}`)?.value;
+    if (
+      !verifyPinUnlockCookie({
+        token: unlockCookie,
+        slug,
+        expectedHash: rawContent.secretPinHash,
+        nowMs: serverNowMs,
+      })
+    ) {
+      return <PinGateClient slug={slug} />;
+    }
+  }
+
+  // Render full royal WeddingScroll natively when a paid wedding invitation is opened at /s/[slug]
+  if (theme.occasion === 'wedding') {
+    const fallbackWedding = getWeddingMockByTemplateId(theme.id);
+    const savedWedding =
+      rawContent.weddingData && typeof rawContent.weddingData === 'object'
+        ? (rawContent.weddingData as Partial<WeddingInvitation>)
+        : {};
+    const mergedWedding: WeddingInvitation = {
+      ...fallbackWedding,
+      ...savedWedding,
+      slug,
+      templateId: isWeddingTemplateId(theme.id) ? theme.id : fallbackWedding.templateId,
+      language:
+        parseWeddingLanguage(lang) ?? savedWedding.language ?? fallbackWedding.language,
+      gallery:
+        signedPhotos.length > 0
+          ? signedPhotos
+          : savedWedding.gallery && savedWedding.gallery.length > 0
+            ? savedWedding.gallery
+            : fallbackWedding.gallery,
+    };
+
+    let guestName: string | null = null;
+    if (to) {
+      const plusCleaned = to.trim().replace(/\+/g, ' ');
+      try {
+        guestName = decodeURIComponent(plusCleaned).trim().slice(0, 60) || null;
+      } catch {
+        guestName = plusCleaned.slice(0, 60) || null;
+      }
+    }
+
+    return <WeddingScroll data={mergedWedding} guestName={guestName} />;
+  }
+
+  const content = rawContent as Record<string, string>;
   const language = parseLanguageCode(content.language);
   const payload = buildThemePayloadFromDraft(theme, {
     receiverName: content.receiverName,

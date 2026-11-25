@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1200" width="900" height="1200" role="img" aria-label="Gulab Bagh pastel rose and champagne gold embossed invitation folio cover">
+  <defs>
+    <linearGradient id="roseSilk" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFF7F6"/>
+      <stop offset="48%" stop-color="#F7E1E3"/>
+      <stop offset="100%" stop-color="#E6BFC6"/>
+    </linearGradient>
+    <linearGradient id="champagneGold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#F7E3B6"/>
+      <stop offset="50%" stop-color="#C89B5B"/>
+      <stop offset="100%" stop-color="#8D612F"/>
+    </linearGradient>
+    <radialGradient id="petalGlow" cx="50%" cy="46%" r="54%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.82"/>
+      <stop offset="60%" stop-color="#FBECEE" stop-opacity="0.38"/>
+      <stop offset="100%" stop-color="#E6BFC6" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="jaliLattice" width="36" height="36" patternUnits="userSpaceOnUse">
+      <path d="M18 0 L36 18 L18 36 L0 18 Z" fill="none" stroke="#C89B5B" stroke-width="0.6" stroke-opacity="0.28"/>
+      <circle cx="18" cy="18" r="4" fill="none" stroke="#C89B5B" stroke-width="0.5" stroke-opacity="0.24"/>
+    </pattern>
+  </defs>
+
+  <rect width="900" height="1200" fill="url(#roseSilk)"/>
+  <rect width="900" height="1200" fill="url(#petalGlow)"/>
+  <rect x="64" y="64" width="772" height="1072" fill="url(#jaliLattice)"/>
+
+  <!-- Double Embossed Fine-Paper Outer Frame & Pietra-Dura Border -->
+  <rect x="38" y="38" width="824" height="1124" rx="18" fill="none" stroke="url(#champagneGold)" stroke-width="2.6"/>
+  <rect x="56" y="56" width="788" height="1088" rx="14" fill="none" stroke="#C89B5B" stroke-width="1.1" stroke-opacity="0.65"/>
+  <rect x="70" y="70" width="760" height="1060" rx="10" fill="none" stroke="#C89B5B" stroke-width="0.8" stroke-dasharray="4 6" stroke-opacity="0.55"/>
+
+  <!-- Botanical Multi-Cusped Mughal Jharokha Arch in Delicate Gold Foil -->
+  <path d="M114 1086 L114 368 Q114 232 234 202 Q346 174 450 96 Q554 174 666 202 Q786 232 786 368 L786 1086 Z" fill="#FFFDFC" fill-opacity="0.56" stroke="url(#champagneGold)" stroke-width="2.5"/>
+  <path d="M138 1066 L138 376 Q138 254 248 224 Q354 196 450 124 Q546 196 652 224 Q762 254 762 376 L762 1066 Z" fill="none" stroke="#C89B5B" stroke-width="1.2" stroke-opacity="0.75"/>
+  <path d="M158 1048 L158 384 Q158 272 262 242 Q362 214 450 148 Q538 214 638 242 Q742 272 742 384 L742 1048 Z" fill="none" stroke="url(#champagneGold)" stroke-width="0.9" stroke-dasharray="3 5"/>
+
+  <!-- Hanging Pearl & Rose-Gold Jhumar Chandelier Inside Top Arch -->
+  <g transform="translate(450 148)" stroke="url(#champagneGold)" fill="none">
+    <line x1="0" y1="0" x2="0" y2="54" stroke-width="1.5"/>
+    <path d="M-32 68 Q0 42 32 68 Z" fill="#F9E5E8" stroke-width="1.4"/>
+    <circle cx="-22" cy="82" r="3" fill="#C89B5B"/>
+    <circle cx="0" cy="88" r="4" fill="#DC909E"/>
+    <circle cx="22" cy="82" r="3" fill="#C89B5B"/>
+  </g>
+
+  <!-- Hand-Painted Damask Rose, Peony & Lotus Corner Bouquets -->
+  <g opacity="0.92">
+    <!-- Top Left Bouquet -->
+    <g transform="translate(132 144)">
+      <path d="M-12 96 Q18 28 106 -6" stroke="#688065" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+      <ellipse cx="56" cy="22" rx="22" ry="8.5" transform="rotate(-26 56 22)" fill="#7F967B"/>
+      <ellipse cx="22" cy="60" rx="20" ry="8" transform="rotate(26 22 60)" fill="#6D8469"/>
+      <ellipse cx="86" cy="6" rx="18" ry="7" transform="rotate(-12 86 6)" fill="#8EA58A"/>
+      <!-- Layered Damask Rose -->
+      <circle cx="0" cy="0" r="28" fill="#D98B98" stroke="#C89B5B" stroke-width="1"/>
+      <circle cx="-3" cy="-3" r="19" fill="#EBAEB8"/>
+      <circle cx="2" cy="2" r="11" fill="#F8D5DC"/>
+      <circle cx="0" cy="0" r="4.5" fill="#FFF7F8"/>
+      <!-- Companion Peony & Buds -->
+      <circle cx="48" cy="-14" r="17" fill="#E39CA8" stroke="#C89B5B" stroke-width="0.8"/>
+      <circle cx="48" cy="-14" r="9" fill="#FADCE1"/>
+      <circle cx="-14" cy="46" r="15" fill="#E5A3AE" stroke="#C89B5B" stroke-width="0.8"/>
+      <circle cx="-14" cy="46" r="7" fill="#FBE3E7"/>
+    </g>
+    <!-- Top Right Bouquet -->
+    <g transform="translate(768 144) scale(-1 1)">
+      <path d="M-12 96 Q18 28 106 -6" stroke="#688065" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+      <ellipse cx="56" cy="22" rx="22" ry="8.5" transform="rotate(-26 56 22)" fill="#7F967B"/>
+      <ellipse cx="22" cy="60" rx="20" ry="8" transform="rotate(26 22 60)" fill="#6D8469"/>
+      <ellipse cx="86" cy="6" rx="18" ry="7" transform="rotate(-12 86 6)" fill="#8EA58A"/>
+      <circle cx="0" cy="0" r="28" fill="#D98B98" stroke="#C89B5B" stroke-width="1"/>
+      <circle cx="-3" cy="-3" r="19" fill="#EBAEB8"/>
+      <circle cx="2" cy="2" r="11" fill="#F8D5DC"/>
+      <circle cx="0" cy="0" r="4.5" fill="#FFF7F8"/>
+      <circle cx="48" cy="-14" r="17" fill="#E39CA8" stroke="#C89B5B" stroke-width="0.8"/>
+      <circle cx="48" cy="-14" r="9" fill="#FADCE1"/>
+      <circle cx="-14" cy="46" r="15" fill="#E5A3AE" stroke="#C89B5B" stroke-width="0.8"/>
+      <circle cx="-14" cy="46" r="7" fill="#FBE3E7"/>
+    </g>
+    <!-- Bottom Left & Right Blooming Pink Lotuses & Roses -->
+    <g transform="translate(144 1054) scale(1 -1)">
+      <path d="M-8 82 Q24 22 96 0" stroke="#688065" stroke-width="3" fill="none"/>
+      <ellipse cx="52" cy="18" rx="20" ry="7.5" transform="rotate(-22 52 18)" fill="#7F967B"/>
+      <ellipse cx="18" cy="52" rx="18" ry="7" transform="rotate(24 18 52)" fill="#6D8469"/>
+      <circle cx="0" cy="0" r="26" fill="#D98B98" stroke="#C89B5B" stroke-width="1"/>
+      <circle cx="0" cy="0" r="16" fill="#F0BBC4"/>
+      <circle cx="0" cy="0" r="7" fill="#FFF5F7"/>
+      <circle cx="44" cy="-10" r="15" fill="#E5A2AE"/>
+      <circle cx="44" cy="-10" r="7" fill="#FCE5E9"/>
+    </g>
+    <g transform="translate(756 1054) scale(-1 -1)">
+      <path d="M-8 82 Q24 22 96 0" stroke="#688065" stroke-width="3" fill="none"/>
+      <ellipse cx="52" cy="18" rx="20" ry="7.5" transform="rotate(-22 52 18)" fill="#7F967B"/>
+      <ellipse cx="18" cy="52" rx="18" ry="7" transform="rotate(24 18 52)" fill="#6D8469"/>
+      <circle cx="0" cy="0" r="26" fill="#D98B98" stroke="#C89B5B" stroke-width="1"/>
+      <circle cx="0" cy="0" r="16" fill="#F0BBC4"/>
+      <circle cx="0" cy="0" r="7" fill="#FFF5F7"/>
+      <circle cx="44" cy="-10" r="15" fill="#E5A2AE"/>
+      <circle cx="44" cy="-10" r="7" fill="#FCE5E9"/>
+    </g>
+  </g>
+
+  <!-- Pleated Blush Satin Silk Ribbon Band Across Folio Waist -->
+  <rect x="38" y="552" width="824" height="96" fill="#E4B1BA" fill-opacity="0.62"/>
+  <line x1="38" y1="552" x2="862" y2="552" stroke="url(#champagneGold)" stroke-width="1.8"/>
+  <line x1="38" y1="562" x2="862" y2="562" stroke="#FFF6F8" stroke-width="0.9" stroke-opacity="0.7"/>
+  <line x1="38" y1="638" x2="862" y2="638" stroke="#FFF6F8" stroke-width="0.9" stroke-opacity="0.7"/>
+  <line x1="38" y1="648" x2="862" y2="648" stroke="url(#champagneGold)" stroke-width="1.8"/>
+
+  <!-- Center Multi-Layered Gold-Foil Lotus Mandala Medallion -->
+  <g transform="translate(450 600)">
+    <!-- Outer 16-Petal Lotus Ring -->
+    <circle r="118" fill="none" stroke="url(#champagneGold)" stroke-width="1.2" stroke-dasharray="3 5"/>
+    <circle r="102" fill="#FFF9F8" stroke="url(#champagneGold)" stroke-width="3"/>
+    <circle r="88" fill="none" stroke="#C89B5B" stroke-width="1.1" stroke-dasharray="4 4"/>
+    <!-- Botanical Wreath Inside Medallion -->
+    <path d="M-56 38 C-74 6 -66 -38 -32 -60" fill="none" stroke="#768D73" stroke-width="2" stroke-linecap="round"/>
+    <path d="M56 38 C74 6 66 -38 32 -60" fill="none" stroke="#768D73" stroke-width="2" stroke-linecap="round"/>
+    <!-- Layered Royal Lotus Blossom -->
+    <path d="M0 -48 C20 -24 20 14 0 34 C-20 14 -20 -24 0 -48 Z" fill="#F9E0E4" stroke="url(#champagneGold)" stroke-width="2"/>
+    <path d="M-38 -14 C-10 -22 10 4 0 34 C-28 24 -42 4 -38 -14 Z" fill="#F5D0D6" stroke="url(#champagneGold)" stroke-width="1.8"/>
+    <path d="M38 -14 C10 -22 -10 4 0 34 C28 24 42 4 38 -14 Z" fill="#F5D0D6" stroke="url(#champagneGold)" stroke-width="1.8"/>
+    <path d="M-52 14 C-28 6 -10 18 0 34 C-26 38 -48 28 -52 14 Z" fill="#EAB8C1" stroke="url(#champagneGold)" stroke-width="1.5"/>
+    <path d="M52 14 C28 6 10 18 0 34 C26 38 48 28 52 14 Z" fill="#EAB8C1" stroke="url(#champagneGold)" stroke-width="1.5"/>
+    <circle cx="0" cy="38" r="5" fill="url(#champagneGold)"/>
+  </g>
+</svg>

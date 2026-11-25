@@ -1,4 +1,4 @@
-import type { LanguageCode } from '@webzy/core';
+import type { LocalizedText } from '@webzy/core';
 import type { ThemeDemoPayload, ThemeManifest } from '../schema';
 
 export interface UserDraftFieldsInput {
@@ -15,9 +15,15 @@ export interface UserDraftFieldsInput {
 function buildLocalizedHeadline(
   theme: ThemeManifest,
   receiverName: string,
-): Record<LanguageCode, string> {
+): LocalizedText {
   const safeName = receiverName.trim() || theme.demoData.receiverName;
   switch (theme.occasion) {
+    case 'wedding':
+      return {
+        hinglish: `Shubh Vivah Aamantran · ${safeName}`,
+        hi: `शुभ विवाह आमंत्रण · ${safeName}`,
+        en: `Wedding Invitation · ${safeName}`,
+      };
     case 'birthday':
       return {
         hinglish: `Janamdin Mubarak, ${safeName}!`,

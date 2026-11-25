@@ -65,11 +65,15 @@ export function MockPayClient({
       }
 
       if (data.redirectUrl) {
+        window.dispatchEvent(new Event('webzy_orders_updated'));
+        window.dispatchEvent(new Event('webzy_admin_mutated'));
         router.push(data.redirectUrl);
         return;
       }
 
       setNotice(data.message || 'Done.');
+      window.dispatchEvent(new Event('webzy_orders_updated'));
+      window.dispatchEvent(new Event('webzy_admin_mutated'));
       router.refresh();
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : 'Payment error. Please retry.');
@@ -126,8 +130,8 @@ export function MockPayClient({
         <div className="bg-webzy-ink px-6 py-5 text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-webzy-primary font-heading text-lg font-bold text-white">
-                W
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-webzy-primary font-heading text-lg font-bold text-white shadow-btn-primary">
+                w
               </div>
               <div>
                 <p className="text-sm font-bold">Webzy Digital</p>

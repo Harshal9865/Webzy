@@ -1,12 +1,42 @@
-import type { LanguageCode } from './types';
+import type { CoreLanguageCode, LanguageCode } from './types';
+import { toCoreLanguageCode } from './i18n';
 
 export type AiDraftTone = 'cute' | 'emotional' | 'funny' | 'formal';
-export type OccasionBucket = 'birthday' | 'love' | 'anniversary' | 'family' | 'festival' | 'business';
+export type OccasionBucket =
+  | 'wedding'
+  | 'birthday'
+  | 'love'
+  | 'anniversary'
+  | 'family'
+  | 'festival'
+  | 'business';
 
 const FALLBACK_MATRIX: Record<
   OccasionBucket,
-  Record<AiDraftTone, Record<LanguageCode, (name: string) => string>>
+  Record<AiDraftTone, Record<CoreLanguageCode, (name: string) => string>>
 > = {
+  wedding: {
+    cute: {
+      hinglish: (n) => `${n} ki shaadi mein dhol, dance aur dher saare ashirwad ke saath aapka intezaar rahega!`,
+      hi: (n) => `${n} के शुभ विवाह में ढोल, संगीत और स्नेह भरे आशीर्वाद के साथ आपकी प्रतीक्षा रहेगी!`,
+      en: (n) => `Come celebrate ${n} with joyful music, marigold blooms, and heartfelt blessings!`,
+    },
+    emotional: {
+      hinglish: (n) => `Ishwar aur badon ke ashirwad se ${n} ke shubh vivah utsav mein parivaar sahit saadar aamantran.`,
+      hi: (n) => `ईश्वर और बड़ों के आशीर्वाद से ${n} के पावन विवाह उत्सव में सपरिवार पधारने का सादर आमंत्रण।`,
+      en: (n) => `With the blessings of our elders, we warmly invite you and your family to grace the wedding of ${n}.`,
+    },
+    funny: {
+      hinglish: (n) => `${n} ke sangeet aur pheras mein dance floor aur mithai dono ready hain — time par zaroor aaiyega!`,
+      hi: (n) => `${n} के संगीत और फेरों में नृत्य और मिठाई दोनों तैयार हैं — समय पर अवश्य पधारिएगा!`,
+      en: (n) => `Bring your best dance steps and festive smiles as we celebrate ${n} in grand style!`,
+    },
+    formal: {
+      hinglish: (n) => `${n} ke mangalik parinay utsav par aapki garimamayi upasthiti ki hardik kamna hai.`,
+      hi: (n) => `${n} के मांगलिक परिणय उत्सव पर आपकी गरिमामयी उपस्थिति की सादर कामना है।`,
+      en: (n) => `We request the honour of your presence and blessings at the sacred wedding celebrations of ${n}.`,
+    },
+  },
   birthday: {
     cute: {
       hinglish: (n) => `${n}, aaj sirf cake aur smile ka din hai — hamesha aise hi chamakte raho!`,
@@ -151,7 +181,8 @@ export function getFallbackAiDraft(params: {
   const cleanName = (params.receiverName || '').trim().slice(0, 36) || 'Dost';
   const occasionSet = FALLBACK_MATRIX[params.occasion] ?? FALLBACK_MATRIX.birthday;
   const toneSet = occasionSet[params.tone] ?? occasionSet.cute;
-  const builder = toneSet[params.language] ?? toneSet.hinglish;
+  const coreLang = toCoreLanguageCode(params.language);
+  const builder = toneSet[coreLang] ?? toneSet.hinglish;
   const raw = builder(cleanName);
   const limit = params.maxLength && params.maxLength > 40 ? params.maxLength : 280;
   return raw.slice(0, limit);

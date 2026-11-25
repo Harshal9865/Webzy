@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Neela Rajwada Royal Jodhpur starlit indigo and silver-gold wedding mandap wide banner">
+  <defs>
+    <linearGradient id="mandapSky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#060E22"/>
+      <stop offset="55%" stop-color="#132754"/>
+      <stop offset="100%" stop-color="#0A1530"/>
+    </linearGradient>
+    <radialGradient id="havanGlow" cx="50%" cy="68%" r="42%">
+      <stop offset="0%" stop-color="#FFC66B" stop-opacity="0.72"/>
+      <stop offset="45%" stop-color="#E5A23C" stop-opacity="0.26"/>
+      <stop offset="100%" stop-color="#132754" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="pillarGold" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#8A631E"/>
+      <stop offset="50%" stop-color="#FAF0CA"/>
+      <stop offset="100%" stop-color="#8A631E"/>
+    </linearGradient>
+    <linearGradient id="velvetDrape" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1E3A75"/>
+      <stop offset="100%" stop-color="#0D1C3D"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#mandapSky)"/>
+  <rect width="1600" height="900" fill="url(#havanGlow)"/>
+
+  <!-- Starlit Marwar Night Sky & Crescent Moon -->
+  <g fill="#FFF7DC" opacity="0.82">
+    <circle cx="110" cy="84" r="2.2"/><circle cx="230" cy="130" r="1.6"/><circle cx="340" cy="68" r="2"/>
+    <circle cx="490" cy="108" r="1.5"/><circle cx="630" cy="58" r="2.2"/><circle cx="970" cy="62" r="2"/>
+    <circle cx="1120" cy="104" r="1.6"/><circle cx="1270" cy="72" r="2.4"/><circle cx="1390" cy="134" r="1.8"/>
+    <circle cx="1500" cy="88" r="2.2"/><circle cx="165" cy="215" r="1.5"/><circle cx="1435" cy="220" r="1.6"/>
+    <!-- Twinkling 4-Point Stars -->
+    <path d="M280 86 L283 96 L293 99 L283 102 L280 112 L277 102 L267 99 L277 96 Z"/>
+    <path d="M1320 86 L1323 96 L1333 99 L1323 102 L1320 112 L1317 102 L1307 99 L1317 96 Z"/>
+    <!-- Crescent Moon in Upper Left Sky -->
+    <path d="M196 126 A34 34 0 1 0 232 172 A26 26 0 1 1 196 126 Z" fill="#FCE7A2" opacity="0.88"/>
+  </g>
+
+  <!-- Distant Mehrangarh Palace Colonnade Silhouette -->
+  <g fill="#0E1D3F" stroke="#C7A75A" stroke-width="1" opacity="0.72">
+    <rect x="60" y="520" width="260" height="175"/>
+    <path d="M120 520 Q190 462 260 520 Z"/>
+    <rect x="1280" y="520" width="260" height="175"/>
+    <path d="M1340 520 Q1410 462 1480 520 Z"/>
+  </g>
+
+  <!-- Royal Marble Courtyard & Stepped Mandap Vedi Platform -->
+  <rect x="0" y="695" width="1600" height="205" fill="#0B162E"/>
+  <ellipse cx="800" cy="785" rx="520" ry="70" fill="none" stroke="#DFBE6B" stroke-width="1.5" stroke-dasharray="6 6" opacity="0.45"/>
+  <rect x="230" y="668" width="1140" height="32" rx="4" fill="#B89047" stroke="#FAF0CA" stroke-width="1.2"/>
+  <rect x="285" y="644" width="1030" height="26" rx="3" fill="#E3C376" stroke="#FAF0CA" stroke-width="1.2"/>
+
+  <!-- Fluted Rajput Chhatri Mandap Dome & Kalash Spire -->
+  <line x1="800" y1="62" x2="800" y2="118" stroke="#FAF0CA" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="800" cy="84" r="7" fill="#FAF0CA"/>
+  <circle cx="800" cy="102" r="11" fill="url(#pillarGold)"/>
+  <path d="M560 246 Q580 144 800 112 Q1020 144 1040 246 Z" fill="url(#velvetDrape)" stroke="#E8C773" stroke-width="3"/>
+  <path d="M640 246 Q660 158 800 116 M720 246 Q730 162 800 116 M880 246 Q870 162 800 116 M960 246 Q940 158 800 116" stroke="#DFBE6B" stroke-width="1.2" fill="none" opacity="0.55"/>
+
+  <!-- Side Mini Chhatri Domes on Mandap Roof -->
+  <path d="M350 264 Q360 202 440 186 Q520 202 530 264 Z" fill="url(#velvetDrape)" stroke="#E8C773" stroke-width="2"/>
+  <path d="M1070 264 Q1080 202 1160 186 Q1240 202 1250 264 Z" fill="url(#velvetDrape)" stroke="#E8C773" stroke-width="2"/>
+
+  <!-- Carved Overhanging Chhajja Cornice Beam -->
+  <path d="M265 266 L295 246 L1305 246 L1335 266 Z" fill="url(#pillarGold)" stroke="#8A631E" stroke-width="1.5"/>
+  <rect x="280" y="266" width="1040" height="22" rx="4" fill="url(#pillarGold)"/>
+
+  <!-- Draped Midnight-Blue & Zardozi Silk Canopy Swags -->
+  <path d="M340 288 Q460 364 580 288 Q800 378 1020 288 Q1140 364 1260 288" fill="#183166" fill-opacity="0.72" stroke="#FAF0CA" stroke-width="2"/>
+
+  <!-- Four Carved Silver-Gold Mandap Pillars with Mogra Jasmine Wraps -->
+  <g>
+    <rect x="332" y="288" width="36" height="356" fill="url(#pillarGold)"/>
+    <rect x="524" y="288" width="26" height="356" fill="url(#pillarGold)" opacity="0.86"/>
+    <rect x="1050" y="288" width="26" height="356" fill="url(#pillarGold)" opacity="0.86"/>
+    <rect x="1232" y="288" width="36" height="356" fill="url(#pillarGold)"/>
+    <!-- Diagonal Mogra Jasmine Garland Wraps on Pillars -->
+    <g stroke="#FFFDF5" stroke-width="6" stroke-dasharray="2 10" stroke-linecap="round">
+      <path d="M330 340 L370 375 M330 420 L370 455 M330 500 L370 535"/>
+      <path d="M1230 340 L1270 375 M1230 420 L1270 455 M1230 500 L1270 535"/>
+    </g>
+  </g>
+
+  <!-- Ivory Mogra Jasmine & Silver-Gold Swag Garlands -->
+  <g fill="none" stroke="#FFFDF6" stroke-width="8" stroke-dasharray="2 12" stroke-linecap="round">
+    <path d="M350 294 Q575 390 800 302 Q1025 390 1250 294"/>
+    <path d="M350 310 Q575 426 800 322 Q1025 426 1250 310" stroke="#F0D07A" stroke-width="3" stroke-dasharray="none"/>
+  </g>
+
+  <!-- Hanging Starry Moroccan/Marwar Brass Lanterns -->
+  <g stroke="#FAF0CA" stroke-width="1.5">
+    <line x1="455" y1="288" x2="455" y2="380"/>
+    <polygon points="455,380 471,402 455,428 439,402" fill="#FFF3C4"/>
+    <circle cx="455" cy="404" r="24" fill="#FFD978" fill-opacity="0.28" stroke="none"/>
+
+    <line x1="655" y1="288" x2="655" y2="365"/>
+    <polygon points="655,365 669,385 655,408 641,385" fill="#FFF3C4"/>
+    <circle cx="655" cy="386" r="22" fill="#FFD978" fill-opacity="0.28" stroke="none"/>
+
+    <line x1="945" y1="288" x2="945" y2="365"/>
+    <polygon points="945,365 959,385 945,408 931,385" fill="#FFF3C4"/>
+    <circle cx="945" cy="386" r="22" fill="#FFD978" fill-opacity="0.28" stroke="none"/>
+
+    <line x1="1145" y1="288" x2="1145" y2="380"/>
+    <polygon points="1145,380 1161,402 1145,428 1129,402" fill="#FFF3C4"/>
+    <circle cx="1145" cy="404" r="24" fill="#FFD978" fill-opacity="0.28" stroke="none"/>
+  </g>
+
+  <!-- Royal Bride & Groom Zardozi Low Bajot Seats Flanking the Sacred Fire -->
+  <g>
+    <rect x="575" y="592" width="118" height="28" rx="8" fill="#1C3770" stroke="#FAF0CA" stroke-width="2"/>
+    <rect x="565" y="620" width="138" height="24" rx="3" fill="url(#pillarGold)"/>
+    <rect x="907" y="592" width="118" height="28" rx="8" fill="#1C3770" stroke="#FAF0CA" stroke-width="2"/>
+    <rect x="897" y="620" width="138" height="24" rx="3" fill="url(#pillarGold)"/>
+  </g>
+
+  <!-- Sacred Havan Kund & Warm Glowing Agni Fire -->
+  <polygon points="725,644 875,644 852,600 748,600" fill="#A36E24" stroke="#FAF0CA" stroke-width="2.5"/>
+  <rect x="712" y="634" width="176" height="10" rx="2" fill="url(#pillarGold)"/>
+  <path d="M800 492 C838 538 846 576 800 600 C754 576 762 538 800 492 Z" fill="#FF9F2E"/>
+  <path d="M800 524 C822 552 826 576 800 596 C774 576 778 552 800 524 Z" fill="#FFF4B8"/>
+
+  <!-- Ceremonial Brass Urli Bowls with Floating Lotus Petals & Diyas -->
+  <g>
+    <ellipse cx="420" cy="765" rx="64" ry="20" fill="#9E6E23" stroke="#FAF0CA" stroke-width="2.2"/>
+    <ellipse cx="420" cy="762" rx="52" ry="14" fill="#183268"/>
+    <circle cx="402" cy="760" r="6" fill="#FFF2C2"/><circle cx="436" cy="764" r="6" fill="#FFF2C2"/><circle cx="420" cy="756" r="7" fill="#FFAE42"/>
+
+    <ellipse cx="1180" cy="765" rx="64" ry="20" fill="#9E6E23" stroke="#FAF0CA" stroke-width="2.2"/>
+    <ellipse cx="1180" cy="762" rx="52" ry="14" fill="#183268"/>
+    <circle cx="1162" cy="760" r="6" fill="#FFF2C2"/><circle cx="1196" cy="764" r="6" fill="#FFF2C2"/><circle cx="1180" cy="756" r="7" fill="#FFAE42"/>
+  </g>
+</svg>

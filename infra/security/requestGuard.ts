@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import { NextResponse, type NextRequest } from 'next/server';
 import { getWebzyPublicConfig, logEvent } from '@webzy/core';
 import { consumeRateLimit, hashIpForRateLimit } from '../supabase/rateLimit';
@@ -51,12 +52,92 @@ export function verifySameOriginRequest(request: Request): boolean {
   return allowedHosts.has(sourceHost);
 }
 
+function normalizeIpCandidate(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const firstHop = raw.split(',')[0]?.trim();
+  if (!firstHop) return null;
+  const cleaned = firstHop.replace(/[\r\n\t\s]/g, '').slice(0, 64);
+  return cleaned || null;
+}
+
 export function extractClientIp(request: Request | NextRequest): string {
   return (
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    request.headers.get('x-real-ip')?.trim() ||
+    normalizeIpCandidate(request.headers.get('cf-connecting-ip')) ||
+    normalizeIpCandidate(request.headers.get('x-vercel-forwarded-for')) ||
+    normalizeIpCandidate(request.headers.get('x-real-ip')) ||
+    normalizeIpCandidate(request.headers.get('x-forwarded-for')) ||
     '127.0.0.1'
   );
+}
+
+function resolvePinCookieSecret(expectedHash: string): string | null {
+  const serverSecret =
+    process.env.PIN_COOKIE_SECRET?.trim() ||
+    process.env.MOCK_WEBHOOK_SECRET?.trim() ||
+    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+  if (serverSecret) return serverSecret;
+  if (process.env.NEXT_PUBLIC_APP_ENV === 'production' || process.env.NODE_ENV === 'production') {
+    return null;
+  }
+  return expectedHash || null;
+}
+
+/**
+ * Signs an HttpOnly PIN-unlock cookie bound to the site slug, PIN hash prefix, and expiry timestamp.
+ */
+export function signPinUnlockCookie(params: {
+  slug: string;
+  expectedHash: string;
+  ttlSeconds?: number;
+  nowMs?: number;
+}): string | null {
+  const { slug, expectedHash, ttlSeconds = 60 * 60 * 24 * 7, nowMs = Date.now() } = params;
+  if (!slug || !expectedHash) return null;
+  const secret = resolvePinCookieSecret(expectedHash);
+  if (!secret) return null;
+
+  const expMs = nowMs + ttlSeconds * 1000;
+  const payload = `${expMs}:${slug}:${expectedHash.slice(0, 16)}`;
+  const hmacHex = crypto.createHmac('sha256', secret).update(payload).digest('hex');
+  return `${expMs}.${hmacHex}`;
+}
+
+/**
+ * Verifies an HMAC-SHA256 signed PIN-unlock cookie using constant-time signature comparison.
+ */
+export function verifyPinUnlockCookie(params: {
+  token: string | undefined | null;
+  slug: string;
+  expectedHash: string;
+  nowMs?: number;
+}): boolean {
+  const { token, slug, expectedHash, nowMs = Date.now() } = params;
+  if (!token || typeof token !== 'string' || !slug || !expectedHash) return false;
+
+  const dotIdx = token.indexOf('.');
+  if (dotIdx <= 0 || dotIdx !== token.lastIndexOf('.')) return false;
+
+  const expStr = token.slice(0, dotIdx);
+  const sigHex = token.slice(dotIdx + 1);
+  if (!/^\d{10,16}$/.test(expStr) || !/^[a-f0-9]{64}$/i.test(sigHex)) {
+    return false;
+  }
+
+  const expMs = Number(expStr);
+  if (!Number.isFinite(expMs) || expMs <= nowMs) {
+    return false;
+  }
+
+  const secret = resolvePinCookieSecret(expectedHash);
+  if (!secret) return false;
+
+  const payload = `${expStr}:${slug}:${expectedHash.slice(0, 16)}`;
+  const expectedHex = crypto.createHmac('sha256', secret).update(payload).digest('hex');
+
+  const providedBuf = Buffer.from(sigHex.toLowerCase(), 'hex');
+  const expectedBuf = Buffer.from(expectedHex, 'hex');
+  if (providedBuf.length !== expectedBuf.length) return false;
+  return crypto.timingSafeEqual(providedBuf, expectedBuf);
 }
 
 /**

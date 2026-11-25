@@ -3,6 +3,7 @@ export * from './types';
 export * from './config';
 export * from './logger';
 export * from './i18n';
+export * from './siteCopy';
 export * from './pricing';
 export * from './auth';
 export * from './scamFilter';

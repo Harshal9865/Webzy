@@ -3,8 +3,9 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
-import { sanitizeRedirectPath } from '@webzy/core';
+import { getSiteCopy, sanitizeRedirectPath } from '@webzy/core';
 import { getSupabaseBrowserClient } from '../../../../../infra/supabase/browser';
+import { useLanguage } from '../shell/LanguageProvider';
 
 interface LoginClientProps {
   supabaseConfigured: boolean;
@@ -20,7 +21,9 @@ export function LoginClient({
   initialError,
 }: LoginClientProps) {
   const router = useRouter();
-  const safeNext = sanitizeRedirectPath(nextPath, '/account');
+  const { language } = useLanguage();
+  const site = getSiteCopy(language);
+  const safeNext = sanitizeRedirectPath(nextPath, '/orders');
   const [email, setEmail] = useState('');
   const [otpCode, setOtpCode] = useState('');
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'verifying' | 'error'>(
@@ -79,6 +82,12 @@ export function LoginClient({
 
   async function handleVerifyOtp(e: React.FormEvent) {
     e.preventDefault();
+    if (!supabaseConfigured) {
+      setStatus('error');
+      setErrorMessage('Supabase keys are missing in .env.local.');
+      return;
+    }
+
     const cleanEmail = email.trim().toLowerCase();
     const cleanCode = otpCode.replace(/\s+/g, '');
     if (cleanCode.length < 6) {
@@ -111,6 +120,8 @@ export function LoginClient({
         }).catch(() => {});
       }
 
+      window.dispatchEvent(new Event('webzy_auth_updated'));
+      window.dispatchEvent(new Event('webzy_orders_updated'));
       router.push(safeNext);
       router.refresh();
     } catch (err) {
@@ -123,17 +134,12 @@ export function LoginClient({
 
   return (
     <div className="mx-auto max-w-md px-4 py-12 sm:px-6">
-      <div className="rounded-3xl border border-webzy-tint bg-webzy-surface/60 p-6 shadow-sm sm:p-8">
-        <span className="inline-flex rounded-full bg-webzy-tint px-3 py-1 text-xs font-bold text-webzy-primary">
-          No password needed · 6-digit code or link
-        </span>
-
-        <h1 className="mt-3 font-heading text-3xl font-bold text-webzy-ink">
-          Sign in with your email
+      <div className="rounded-2xl border border-webzy-ink/[0.09] bg-white p-6 shadow-sm sm:p-8">
+        <h1 className="font-heading text-3xl font-bold text-webzy-ink">
+          {site.account.signInTitle}
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-webzy-ink/75">
-          We will send a 6-digit verification code and sign-in link to your email. Stay right on
-          this tab and enter the code — no password required.
+          {site.account.signInSubtitle}
         </p>
 
         {!supabaseConfigured ? (
@@ -150,7 +156,9 @@ export function LoginClient({
             className="mt-6 space-y-4 rounded-2xl border border-emerald-200 bg-emerald-50/70 p-5"
           >
             <div>
-              <p className="text-sm font-bold text-emerald-950">Verification sent to {email}</p>
+              <p className="text-sm font-bold text-emerald-950">
+                Verification sent to {email.trim().toLowerCase()}
+              </p>
               <p className="mt-1 text-xs leading-relaxed text-emerald-900">
                 Enter the 6-digit code from your email below to continue right here (or tap the
                 sign-in link in the email).

@@ -77,6 +77,54 @@ export function AccountClient({
   const [isPurging, setIsPurging] = useState(false);
   const [purgeNotice, setPurgeNotice] = useState('');
 
+  // Quick Typo Fixer Modal State
+  const [editingContentSite, setEditingContentSite] = useState<AccountSiteItem | null>(null);
+  const [editReceiverName, setEditReceiverName] = useState('');
+  const [editMessage, setEditMessage] = useState('');
+  const [savingContent, setSavingContent] = useState(false);
+
+  function openEditContentModal(site: AccountSiteItem) {
+    setEditingContentSite(site);
+    setEditReceiverName(site.receiverName || '');
+    setEditMessage('');
+    setSiteActionError('');
+  }
+
+  async function handleSaveQuickContent(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editingContentSite) return;
+    setSavingContent(true);
+    setSiteActionError('');
+    try {
+      const res = await fetch('/api/sites/manage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          siteId: editingContentSite.id,
+          action: 'update_content',
+          receiverName: editReceiverName,
+          message: editMessage || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to update content.');
+
+      setSiteItems((prev) =>
+        prev.map((item) =>
+          item.id === editingContentSite.id
+            ? { ...item, receiverName: data.receiverName || item.receiverName }
+            : item,
+        ),
+      );
+      setEditingContentSite(null);
+      setPurgeNotice(`Updated details for /s/${editingContentSite.slug} successfully.`);
+    } catch (err) {
+      setSiteActionError(err instanceof Error ? err.message : 'Unable to update content right now.');
+    } finally {
+      setSavingContent(false);
+    }
+  }
+
   // Profile Form State
   const [fullName, setFullName] = useState(profile.full_name || '');
   const [phone, setPhone] = useState(profile.phone || '');
@@ -356,6 +404,22 @@ export function AccountClient({
                       /s/{site.slug} · {site.viewsCount} view{site.viewsCount === 1 ? '' : 's'}
                     </p>
 
+                    {/* Live Recipient Delivery Signal */}
+                    {site.firstOpenedAt ? (
+                      <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-[11px] font-semibold text-emerald-800">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        <span>Opened by recipient: {formatDateIst(site.firstOpenedAt)}</span>
+                      </div>
+                    ) : site.status === 'scheduled' ? (
+                      <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-blue-50 border border-blue-200 px-3 py-1 text-[11px] font-semibold text-blue-800">
+                        <span>Scheduled for reveal · Countdown active</span>
+                      </div>
+                    ) : (
+                      <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-[11px] font-semibold text-amber-900">
+                        <span>Delivered · Waiting for recipient to open</span>
+                      </div>
+                    )}
+
                     {site.replyText ? (
                       <div className="mt-3.5 rounded-2xl border border-emerald-200 bg-emerald-50/50 p-3 text-xs text-emerald-950">
                         <strong>Reply from {site.receiverName}:</strong> “{site.replyText}”
@@ -366,25 +430,27 @@ export function AccountClient({
                   <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-webzy-tint/60 pt-4">
                     <Link
                       href={`/s/${site.slug}`}
-                      className="inline-flex min-h-[38px] items-center rounded-full bg-webzy-primary px-4 text-xs font-bold text-white shadow-xs hover:opacity-95"
+                      target="_blank"
+                      className="btn-spring inline-flex min-h-[38px] items-center rounded-full bg-webzy-primary px-4 text-xs font-bold text-white shadow-xs hover:opacity-95"
                     >
-                      Open Link ↗
+                      Visit
                     </Link>
                     <button
                       suppressHydrationWarning
                       type="button"
                       onClick={() => void handleCopy(site)}
-                      className="inline-flex min-h-[38px] items-center rounded-full border border-webzy-tint bg-white px-4 text-xs font-bold text-webzy-ink hover:bg-webzy-surface"
+                      className="btn-spring inline-flex min-h-[38px] items-center rounded-full border border-webzy-tint bg-white px-4 text-xs font-bold text-webzy-ink shadow-2xs hover:bg-webzy-surface"
                     >
-                      {copiedId === site.id ? '✓ Copied' : 'Copy'}
+                      {copiedId === site.id ? 'Copied' : 'Copy Link'}
                     </button>
                     {site.canFreeEdit ? (
-                      <Link
-                        href={`/edit/${site.id}`}
-                        className="inline-flex min-h-[38px] items-center rounded-full border border-webzy-tint bg-white px-4 text-xs font-bold text-webzy-primary hover:bg-webzy-surface"
+                      <button
+                        type="button"
+                        onClick={() => openEditContentModal(site)}
+                        className="btn-spring inline-flex min-h-[38px] items-center rounded-full border border-webzy-primary/40 bg-webzy-surface px-4 text-xs font-bold text-webzy-primary shadow-2xs hover:bg-webzy-tint"
                       >
-                        Free Edit
-                      </Link>
+                        Fix Typo / Edit
+                      </button>
                     ) : null}
                     {site.status !== 'removed' && site.status !== 'expired' ? (
                       <button
@@ -392,7 +458,7 @@ export function AccountClient({
                         type="button"
                         disabled={togglingId === site.id}
                         onClick={() => void handleToggleVisibility(site)}
-                        className="inline-flex min-h-[38px] items-center rounded-full border border-webzy-tint bg-white px-4 text-xs font-bold text-webzy-ink/75 hover:bg-webzy-surface disabled:opacity-50"
+                        className="btn-spring inline-flex min-h-[38px] items-center rounded-full border border-webzy-tint bg-white px-4 text-xs font-bold text-webzy-ink/75 shadow-2xs hover:bg-webzy-surface disabled:opacity-50"
                       >
                         {togglingId === site.id
                           ? 'Updating...'
@@ -404,7 +470,7 @@ export function AccountClient({
                     <button
                       type="button"
                       onClick={() => setPurgingSite(site)}
-                      className="inline-flex min-h-[38px] items-center rounded-full border border-red-200 bg-red-50/50 px-3.5 text-xs font-semibold text-red-700 hover:bg-red-100 transition"
+                      className="btn-spring inline-flex min-h-[38px] items-center rounded-full border border-red-200 bg-red-50/50 px-3.5 text-xs font-semibold text-red-700 shadow-2xs hover:bg-red-100 transition"
                     >
                       Purge Photos
                     </button>
@@ -684,9 +750,12 @@ export function AccountClient({
               <button
                 type="button"
                 onClick={() => setSelectedReceiptOrder(null)}
-                className="rounded-full p-1 text-webzy-ink/60 hover:bg-webzy-surface hover:text-webzy-ink"
+                aria-label="Close invoice"
+                className="flex h-8 w-8 items-center justify-center rounded-full text-webzy-ink/60 hover:bg-webzy-surface hover:text-webzy-ink transition"
               >
-                ✕
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
 
@@ -751,18 +820,87 @@ export function AccountClient({
               <button
                 type="button"
                 onClick={() => window.print()}
-                className="rounded-full border border-webzy-tint bg-white px-5 py-2.5 text-xs font-bold text-webzy-ink hover:bg-webzy-surface"
+                className="btn-spring rounded-full border border-webzy-tint bg-white px-5 py-2.5 text-xs font-bold text-webzy-ink hover:bg-webzy-surface"
               >
                 Print / Save PDF
               </button>
               <button
                 type="button"
                 onClick={() => setSelectedReceiptOrder(null)}
-                className="rounded-full bg-webzy-primary px-5 py-2.5 text-xs font-bold text-white hover:opacity-95"
+                className="btn-spring rounded-full bg-webzy-primary px-5 py-2.5 text-xs font-bold text-white shadow-btn-primary hover:opacity-95"
               >
                 Done
               </button>
             </div>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Inline Content Typo Hot-Fixer Modal for Creators */}
+      {editingContentSite ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm transition-opacity duration-200">
+          <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl animate-scale-in">
+            <div className="flex items-center justify-between border-b border-webzy-tint pb-3">
+              <div>
+                <h3 className="font-heading text-lg font-bold text-webzy-ink">
+                  Edit Content: /s/{editingContentSite.slug}
+                </h3>
+                <p className="text-xs text-webzy-ink/60">
+                  Fix typos instantly without altering the link or breaking WhatsApp shares.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingContentSite(null)}
+                aria-label="Close modal"
+                className="flex h-8 w-8 items-center justify-center rounded-full text-webzy-ink/60 hover:bg-webzy-surface hover:text-webzy-ink transition"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveQuickContent} className="mt-4 space-y-4 text-xs">
+              <div>
+                <label className="block font-bold text-webzy-ink">Recipient Name (Receiver)</label>
+                <input
+                  type="text"
+                  required
+                  value={editReceiverName}
+                  onChange={(e) => setEditReceiverName(e.target.value)}
+                  className="mt-1 min-h-[40px] w-full rounded-xl border border-webzy-tint px-3 text-sm text-webzy-ink outline-none focus:border-webzy-primary"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-webzy-ink">Greeting Message (Optional update)</label>
+                <textarea
+                  rows={4}
+                  value={editMessage}
+                  onChange={(e) => setEditMessage(e.target.value)}
+                  placeholder="Leave blank to keep existing message unchanged..."
+                  className="mt-1 w-full rounded-xl border border-webzy-tint p-3 text-sm text-webzy-ink outline-none focus:border-webzy-primary"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2.5 pt-2 border-t border-webzy-tint/60">
+                <button
+                  type="button"
+                  onClick={() => setEditingContentSite(null)}
+                  className="btn-spring rounded-full border border-webzy-tint bg-white px-4 py-2 font-bold text-webzy-ink hover:bg-webzy-surface"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingContent}
+                  className="btn-spring rounded-full bg-webzy-primary px-5 py-2 font-bold text-white shadow-btn-primary hover:opacity-95 disabled:opacity-50"
+                >
+                  {savingContent ? 'Saving...' : 'Save Updates'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       ) : null}

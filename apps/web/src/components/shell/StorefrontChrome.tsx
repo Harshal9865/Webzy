@@ -14,9 +14,13 @@ interface StorefrontChromeProps {
 
 export function StorefrontChrome({ config, children }: StorefrontChromeProps) {
   const pathname = usePathname();
-  const isReceiverView = pathname?.startsWith('/s/');
+  const isImmersiveView =
+    pathname?.startsWith('/s/') ||
+    pathname?.startsWith('/i/') ||
+    pathname === '/admin' ||
+    pathname?.startsWith('/admin/');
 
-  if (isReceiverView) {
+  if (isImmersiveView) {
     return <main className="flex-1">{children}</main>;
   }
 

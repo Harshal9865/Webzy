@@ -1,0 +1,163 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1200" width="900" height="1200" role="img" aria-label="Grace Cathedral ivory marble and champagne gold Christian wedding cover">
+  <defs>
+    <linearGradient id="ivoryPaper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFFEFC"/>
+      <stop offset="48%" stop-color="#F7F2E8"/>
+      <stop offset="100%" stop-color="#E7DDD0"/>
+    </linearGradient>
+    <linearGradient id="champGold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#F7E5BC"/>
+      <stop offset="35%" stop-color="#D4AE6A"/>
+      <stop offset="70%" stop-color="#B88E4A"/>
+      <stop offset="100%" stop-color="#855E27"/>
+    </linearGradient>
+    <radialGradient id="chapelLight" cx="50%" cy="38%" r="56%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.92"/>
+      <stop offset="60%" stop-color="#FBF6EC" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#E7DDD0" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="roseGlass" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFFDF7"/>
+      <stop offset="45%" stop-color="#F1DEB4"/>
+      <stop offset="80%" stop-color="#C8D3C5"/>
+      <stop offset="100%" stop-color="#8B9E8E"/>
+    </radialGradient>
+    <linearGradient id="marblePillar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#E5DAC8"/>
+      <stop offset="40%" stop-color="#FFFDF9"/>
+      <stop offset="75%" stop-color="#F3ECE0"/>
+      <stop offset="100%" stop-color="#D7C9B4"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="900" height="1200" fill="url(#ivoryPaper)"/>
+  <rect width="900" height="1200" fill="url(#chapelLight)"/>
+
+  <!-- Double Embossed Letterpress Sanctuary Frame -->
+  <rect x="38" y="38" width="824" height="1124" rx="16" fill="none" stroke="url(#champGold)" stroke-width="2.5"/>
+  <rect x="54" y="54" width="792" height="1092" rx="12" fill="none" stroke="#C69D58" stroke-width="1" stroke-opacity="0.65"/>
+  <rect x="68" y="68" width="764" height="1064" rx="8" fill="none" stroke="#C69D58" stroke-width="0.8" stroke-dasharray="4 6" stroke-opacity="0.5"/>
+
+  <!-- Gothic Corner Trefoil Ornaments -->
+  <g stroke="url(#champGold)" stroke-width="1.5" fill="none" opacity="0.85">
+    <path d="M54 118 Q86 86 118 54 M54 96 Q75 75 96 54"/>
+    <path d="M846 118 Q814 86 782 54 M846 96 Q825 75 804 54"/>
+    <path d="M54 1082 Q86 1114 118 1146 M54 1104 Q75 1125 96 1146"/>
+    <path d="M846 1082 Q814 1114 782 1146 M846 1104 Q825 1125 804 1146"/>
+  </g>
+
+  <!-- Carved Marble Gothic Cathedral Portal & Pointed Arch Mouldings -->
+  <path d="M118 1086 L118 416 Q118 198 450 96 Q782 198 782 416 L782 1086 Z" fill="#FFFEFA" fill-opacity="0.68" stroke="url(#champGold)" stroke-width="2.8"/>
+  <path d="M142 1068 L142 424 Q142 222 450 124 Q758 222 758 424 L758 1068 Z" fill="none" stroke="#C69D58" stroke-width="1.4" stroke-opacity="0.78"/>
+  <path d="M166 1052 L166 432 Q166 246 450 152 Q734 246 734 432 L734 1052 Z" fill="none" stroke="url(#champGold)" stroke-width="1.2" stroke-dasharray="3 5"/>
+
+  <!-- Fluted Marble Side Pilasters -->
+  <rect x="118" y="420" width="24" height="648" fill="url(#marblePillar)" stroke="#C69D58" stroke-width="1"/>
+  <rect x="758" y="420" width="24" height="648" fill="url(#marblePillar)" stroke="#C69D58" stroke-width="1"/>
+  <line x1="450" y1="152" x2="450" y2="1052" stroke="url(#champGold)" stroke-width="1.6" stroke-opacity="0.55"/>
+
+  <!-- Recessed Gothic Lancet Paneling on Left & Right Sanctuary Doors -->
+  <g stroke="#C69D58" stroke-width="1.1" fill="#F9F4EA" fill-opacity="0.55" opacity="0.82">
+    <path d="M204 530 L204 446 Q244 402 284 446 L284 530 Z"/>
+    <path d="M312 530 L312 446 Q352 402 392 446 L392 530 Z"/>
+    <path d="M508 530 L508 446 Q548 402 588 446 L588 530 Z"/>
+    <path d="M616 530 L616 446 Q656 402 696 446 L696 530 Z"/>
+    <rect x="204" y="756" width="188" height="236" rx="4"/>
+    <rect x="508" y="756" width="188" height="236" rx="4"/>
+    <path d="M236 968 L236 812 Q298 772 360 812 L360 968 Z" fill="none"/>
+    <path d="M540 968 L540 812 Q602 772 664 812 L664 968 Z" fill="none"/>
+  </g>
+
+  <!-- Intricate 12-Petal Gothic Stained-Glass Rose Window inside Upper Arch -->
+  <g transform="translate(450 288)">
+    <circle r="92" fill="url(#roseGlass)" fill-opacity="0.38" stroke="url(#champGold)" stroke-width="2.4"/>
+    <circle r="76" fill="none" stroke="url(#champGold)" stroke-width="1.3"/>
+    <circle r="54" fill="none" stroke="#C69D58" stroke-width="1" stroke-dasharray="3 4"/>
+    <circle r="24" fill="#FFFDF8" stroke="url(#champGold)" stroke-width="1.6"/>
+    <!-- 12 Radial Tracery Spokes & Trefoil Arches -->
+    <g stroke="url(#champGold)" stroke-width="1.1">
+      <line x1="0" y1="-92" x2="0" y2="92"/>
+      <line x1="-92" y1="0" x2="92" y2="0"/>
+      <line x1="-65" y1="-65" x2="65" y2="65"/>
+      <line x1="65" y1="-65" x2="-65" y2="65"/>
+      <line x1="-46" y1="-80" x2="46" y2="80"/>
+      <line x1="46" y1="-80" x2="-46" y2="80"/>
+      <line x1="-80" y1="-46" x2="80" y2="46"/>
+      <line x1="-80" y1="46" x2="80" y2="-46"/>
+    </g>
+    <path d="M0 -14 L0 14 M-10 -3 L10 -3" stroke="url(#champGold)" stroke-width="2" stroke-linecap="round"/>
+  </g>
+
+  <!-- Twin Ascending White Peace Doves Flanking the Rose Window -->
+  <g fill="#FFFFFF" stroke="#C69D58" stroke-width="1" opacity="0.9">
+    <path d="M276 286 C258 272 242 276 234 290 C248 292 260 298 266 310 C274 298 286 294 298 294 C290 284 284 282 276 286 Z"/>
+    <path d="M624 286 C642 272 658 276 666 290 C652 292 640 298 634 310 C626 298 614 294 602 294 C610 284 616 282 624 286 Z"/>
+  </g>
+
+  <!-- Botanical Olive, Rosemary & White Madonna Lily Wreath Framing Center Seal -->
+  <g transform="translate(450 618)">
+    <circle r="158" fill="none" stroke="#C69D58" stroke-width="0.9" stroke-dasharray="2 6" opacity="0.65"/>
+    <!-- Left & Right Olive Boughs -->
+    <path d="M-28 126 C-136 98 -154 -14 -128 -96 C-108 -142 -58 -152 -24 -144" fill="none" stroke="#687D63" stroke-width="3.2" stroke-linecap="round"/>
+    <path d="M28 126 C136 98 154 -14 128 -96 C108 -142 58 -152 24 -144" fill="none" stroke="#687D63" stroke-width="3.2" stroke-linecap="round"/>
+    <g fill="#7F9479" opacity="0.9">
+      <ellipse cx="-116" cy="68" rx="20" ry="7.5" transform="rotate(-36 -116 68)"/>
+      <ellipse cx="-142" cy="24" rx="21" ry="7.5" transform="rotate(-18 -142 24)"/>
+      <ellipse cx="-146" cy="-24" rx="21" ry="7.5" transform="rotate(6 -146 -24)"/>
+      <ellipse cx="-132" cy="-72" rx="20" ry="7.5" transform="rotate(28 -132 -72)"/>
+      <ellipse cx="-98" cy="-116" rx="18" ry="6.8" transform="rotate(46 -98 -116)"/>
+      <ellipse cx="-54" cy="-140" rx="16" ry="6" transform="rotate(64 -54 -140)"/>
+
+      <ellipse cx="116" cy="68" rx="20" ry="7.5" transform="rotate(36 116 68)"/>
+      <ellipse cx="142" cy="24" rx="21" ry="7.5" transform="rotate(18 142 24)"/>
+      <ellipse cx="146" cy="-24" rx="21" ry="7.5" transform="rotate(-6 146 -24)"/>
+      <ellipse cx="132" cy="-72" rx="20" ry="7.5" transform="rotate(-28 132 -72)"/>
+      <ellipse cx="98" cy="-116" rx="18" ry="6.8" transform="rotate(-46 98 -116)"/>
+      <ellipse cx="54" cy="-140" rx="16" ry="6" transform="rotate(-64 54 -140)"/>
+    </g>
+    <!-- Blooming White Lilies & Pearl Berries Embedded in Wreath -->
+    <g fill="#FFFFFF" stroke="#C69D58" stroke-width="1.1">
+      <path d="M-126 6 C-144 -10 -158 2 -142 18 C-156 26 -142 42 -124 28 C-110 40 -98 22 -114 12 C-102 -2 -116 -10 -126 6 Z"/>
+      <path d="M126 6 C144 -10 158 2 142 18 C156 26 142 42 124 28 C110 40 98 22 114 12 C102 -2 116 -10 126 6 Z"/>
+      <circle cx="-126" cy="15" r="4" fill="#E3BC6B"/>
+      <circle cx="126" cy="15" r="4" fill="#E3BC6B"/>
+      <circle cx="-86" cy="96" r="5"/><circle cx="-136" cy="-48" r="4.5"/><circle cx="-74" cy="-130" r="4.5"/>
+      <circle cx="86" cy="96" r="5"/><circle cx="136" cy="-48" r="4.5"/><circle cx="74" cy="-130" r="4.5"/>
+    </g>
+
+    <!-- Scalloped Champagne-Gold Sanctuary Seal Base -->
+    <circle r="98" fill="#FAF4E8" stroke="url(#champGold)" stroke-width="3"/>
+    <circle r="86" fill="#FFFEFB" stroke="#C69D58" stroke-width="1.2"/>
+    <circle r="74" fill="none" stroke="#C69D58" stroke-width="1" stroke-dasharray="3 4"/>
+    <!-- Flared Cathedral Cross with Gold Rays -->
+    <g stroke="#E5C888" stroke-width="1" opacity="0.7">
+      <line x1="-34" y1="-44" x2="34" y2="24"/>
+      <line x1="34" y1="-44" x2="-34" y2="24"/>
+    </g>
+    <path d="M0 -48 L0 48 M-32 -12 L32 -12" stroke="url(#champGold)" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="0" cy="-48" r="3.5" fill="url(#champGold)"/>
+    <circle cx="0" cy="48" r="3.5" fill="url(#champGold)"/>
+    <circle cx="-32" cy="-12" r="3.5" fill="url(#champGold)"/>
+    <circle cx="32" cy="-12" r="3.5" fill="url(#champGold)"/>
+    <circle cx="0" cy="-12" r="10" fill="#FFFEFA" stroke="url(#champGold)" stroke-width="2.2"/>
+    <circle cx="0" cy="-12" r="3.5" fill="url(#champGold)"/>
+  </g>
+
+  <!-- Lush White Madonna Lily & Olive Corner Bouquets at Sanctuary Base -->
+  <g transform="translate(215 1018)">
+    <ellipse cx="-24" cy="14" rx="24" ry="8" transform="rotate(-22 -24 14)" fill="#758B70"/>
+    <ellipse cx="28" cy="12" rx="24" ry="8" transform="rotate(20 28 12)" fill="#899E83"/>
+    <path d="M0 -30 C16 -12 24 8 0 22 C-24 8 -16 -12 0 -30 Z" fill="#FFFFFF" stroke="#C69D58" stroke-width="1.2"/>
+    <path d="M-28 -8 C-8 -14 2 2 -2 22 C-20 16 -32 4 -28 -8 Z" fill="#FAF5EC" stroke="#C69D58" stroke-width="1.1"/>
+    <path d="M28 -8 C8 -14 -2 2 2 22 C20 16 32 4 28 -8 Z" fill="#FAF5EC" stroke="#C69D58" stroke-width="1.1"/>
+    <circle cx="0" cy="-2" r="3.5" fill="#D4AC63"/>
+  </g>
+  <g transform="translate(685 1018)">
+    <ellipse cx="-24" cy="14" rx="24" ry="8" transform="rotate(-22 -24 14)" fill="#758B70"/>
+    <ellipse cx="28" cy="12" rx="24" ry="8" transform="rotate(20 28 12)" fill="#899E83"/>
+    <path d="M0 -30 C16 -12 24 8 0 22 C-24 8 -16 -12 0 -30 Z" fill="#FFFFFF" stroke="#C69D58" stroke-width="1.2"/>
+    <path d="M-28 -8 C-8 -14 2 2 -2 22 C-20 16 -32 4 -28 -8 Z" fill="#FAF5EC" stroke="#C69D58" stroke-width="1.1"/>
+    <path d="M28 -8 C8 -14 -2 2 2 22 C20 16 32 4 28 -8 Z" fill="#FAF5EC" stroke="#C69D58" stroke-width="1.1"/>
+    <circle cx="0" cy="-2" r="3.5" fill="#D4AC63"/>
+  </g>
+</svg>

@@ -19,9 +19,7 @@ export default async function Image() {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#FFF5F8',
-          backgroundImage: 'radial-gradient(circle at 25px 25px, #FFE8EF 2%, transparent 0%), radial-gradient(circle at 75px 75px, #FFE8EF 2%, transparent 0%)',
-          backgroundSize: '100px 100px',
+          backgroundColor: '#FAF7F8',
           padding: '40px',
           fontFamily: 'sans-serif',
         }}
@@ -62,18 +60,12 @@ export default async function Image() {
 
           <div
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              borderRadius: '9999px',
-              backgroundColor: '#FFE8EF',
-              padding: '6px 20px',
               color: '#E11D63',
               fontSize: '20px',
               fontWeight: 'bold',
               textTransform: 'uppercase',
-              letterSpacing: '1px',
-              marginBottom: '20px',
+              letterSpacing: '2px',
+              marginBottom: '16px',
             }}
           >
             A special gift is waiting

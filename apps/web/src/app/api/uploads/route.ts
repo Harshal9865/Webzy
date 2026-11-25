@@ -3,8 +3,8 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { logEvent, WebzyError } from '@webzy/core';
 import { sanitizeUploadedImage } from '@webzy/core/server';
 import { guardMutationRequest } from '../../../../../../infra/security/requestGuard';
+import { getAuthSessionState } from '../../../../../../infra/supabase/auth';
 import { getSupabaseEnv } from '../../../../../../infra/supabase/env';
-import { consumeRateLimit, hashIpForRateLimit } from '../../../../../../infra/supabase/rateLimit';
 import { createSupabaseAdminClient } from '../../../../../../infra/supabase/server';
 
 const MAX_PHOTOS_PER_DRAFT = 3;
@@ -25,22 +25,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const ip =
-      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-      request.headers.get('x-real-ip') ||
-      'local';
-    const rl = await consumeRateLimit({
-      key: `upload:${hashIpForRateLimit(ip)}`,
-      maxHits: 30,
-      windowSeconds: 3600,
-    });
-    if (!rl.allowed) {
-      return NextResponse.json(
-        { error: 'Too many uploads right now. Wait a moment and retry.', retryable: true },
-        { status: 429 },
-      );
-    }
-
     const formData = await request.formData();
     const file = formData.get('file');
     const draftToken = String(formData.get('draftToken') || '').trim();
@@ -58,7 +42,7 @@ export async function POST(request: NextRequest) {
 
     const { data: draft } = await admin
       .from('drafts')
-      .select('id, user_id')
+      .select('id, user_id, theme_id')
       .eq('draft_token_hash', tokenHash)
       .is('deleted_at', null)
       .gt('expires_at', nowIso)
@@ -71,6 +55,21 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    if (draft.user_id) {
+      const session = await getAuthSessionState();
+      if (session.user?.id !== draft.user_id) {
+        throw new WebzyError('Please sign in with the account that created this draft.', {
+          code: 'DRAFT_FORBIDDEN',
+          statusCode: 403,
+        });
+      }
+    }
+
+    const maxPhotosForDraft =
+      typeof draft.theme_id === 'string' && draft.theme_id.startsWith('wedding-')
+        ? 6
+        : MAX_PHOTOS_PER_DRAFT;
+
     const { count: existingCount } = await admin
       .from('assets')
       .select('id', { count: 'exact', head: true })
@@ -78,8 +77,8 @@ export async function POST(request: NextRequest) {
       .eq('status', 'ready')
       .is('deleted_at', null);
 
-    if ((existingCount ?? 0) >= MAX_PHOTOS_PER_DRAFT) {
-      throw new WebzyError(`Maximum ${MAX_PHOTOS_PER_DRAFT} photos allowed per greeting.`, {
+    if ((existingCount ?? 0) >= maxPhotosForDraft) {
+      throw new WebzyError(`Maximum ${maxPhotosForDraft} photos allowed for this edition.`, {
         code: 'UPLOAD_MAX_EXCEEDED',
         statusCode: 422,
       });
@@ -195,13 +194,23 @@ export async function DELETE(request: NextRequest) {
 
     const { data: draft } = await admin
       .from('drafts')
-      .select('id')
+      .select('id, user_id')
       .eq('draft_token_hash', tokenHash)
       .is('deleted_at', null)
       .maybeSingle();
 
     if (!draft) {
       return NextResponse.json({ error: 'Draft not found.' }, { status: 404 });
+    }
+
+    if (draft.user_id) {
+      const session = await getAuthSessionState();
+      if (session.user?.id !== draft.user_id) {
+        return NextResponse.json(
+          { error: 'Please sign in with the account that created this draft.' },
+          { status: 403 },
+        );
+      }
     }
 
     const { data: asset } = await admin
@@ -216,11 +225,38 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Photo not found.' }, { status: 404 });
     }
 
-    await admin.storage.from('webzy-media').remove([asset.storage_key]).catch(() => {});
-    await admin
+    try {
+      const { error: storageErr } = await admin.storage
+        .from('webzy-media')
+        .remove([asset.storage_key]);
+      if (storageErr) {
+        logEvent('warn', 'web.uploads.storage_delete_failed', {
+          draftId: draft.id,
+          assetId: asset.id,
+          reason: storageErr.message.slice(0, 80),
+        });
+      }
+    } catch (storageEx) {
+      logEvent('warn', 'web.uploads.storage_delete_exception', {
+        draftId: draft.id,
+        assetId: asset.id,
+        message: storageEx instanceof Error ? storageEx.message.slice(0, 80) : 'unknown',
+      });
+    }
+
+    const { error: deleteErr } = await admin
       .from('assets')
       .update({ status: 'deleted', deleted_at: new Date().toISOString() })
       .eq('id', asset.id);
+
+    if (deleteErr) {
+      logEvent('error', 'web.uploads.delete_db_failed', {
+        draftId: draft.id,
+        assetId: asset.id,
+        dbCode: deleteErr.code || 'unknown',
+      });
+      return NextResponse.json({ error: 'Unable to delete photo. Retry.' }, { status: 500 });
+    }
 
     logEvent('info', 'web.uploads.photo_deleted', { draftId: draft.id, assetId: asset.id });
     return NextResponse.json({ ok: true });

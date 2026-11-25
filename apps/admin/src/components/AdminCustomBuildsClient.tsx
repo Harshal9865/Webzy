@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 export interface StudioBuildRow {
   id: string;
@@ -53,6 +53,7 @@ export interface UnifiedProject {
   city?: string;
   categoryLabel: string;
   requirements: string;
+  rawClientBrief: string;
   budgetLabel?: string;
   targetDate?: string | null;
   status: string;
@@ -67,8 +68,49 @@ export interface UnifiedProject {
   };
   previewUrl: string;
   liveUrl: string;
+  quotedAmountInr: string;
   adminNotes: string;
   createdAt: string;
+}
+
+const STUDIO_NOTES_DELIMITER = '\n---STUDIO_INTERNAL_NOTES---\n';
+
+function splitStudioNotes(rawNotes: string | null | undefined): {
+  clientBrief: string;
+  internalNotes: string;
+} {
+  if (!rawNotes) return { clientBrief: '', internalNotes: '' };
+  if (rawNotes.includes('---STUDIO_INTERNAL_NOTES---')) {
+    const parts = rawNotes.split(/\r?\n?---STUDIO_INTERNAL_NOTES---\r?\n?/);
+    return {
+      clientBrief: (parts[0] || '').trim(),
+      internalNotes: parts.slice(1).join('\n').trim(),
+    };
+  }
+  return {
+    clientBrief: rawNotes.trim(),
+    internalNotes: '',
+  };
+}
+
+function isSlaOver24hUnquoted(project: UnifiedProject): boolean {
+  const isUnquotedNew =
+    (project.status === 'new' || project.status === 'waitlisted') &&
+    !project.quotedAmountInr.trim();
+  if (!isUnquotedNew || !project.createdAt) return false;
+  const createdMs = Date.parse(project.createdAt);
+  if (Number.isNaN(createdMs)) return false;
+  return Date.now() - createdMs > 24 * 60 * 60 * 1000;
+}
+
+function getEventCountdownLabel(targetDate?: string | null): { label: string; urgent: boolean } | null {
+  if (!targetDate) return null;
+  const targetMs = Date.parse(targetDate);
+  if (Number.isNaN(targetMs)) return null;
+  const diffDays = Math.ceil((targetMs - Date.now()) / (24 * 60 * 60 * 1000));
+  if (diffDays < 0) return { label: `Event passed (${Math.abs(diffDays)}d ago)`, urgent: false };
+  if (diffDays === 0) return { label: 'Event Today', urgent: true };
+  return { label: `Event in ${diffDays}d`, urgent: diffDays <= 14 };
 }
 
 const CHECKLIST_STEPS = [
@@ -102,6 +144,7 @@ export function AdminCustomBuildsClient({
     // 1. Studio Leads (/studio waitlist)
     studioLeads.forEach((lead) => {
       const rawChecklist = lead.checklist || {};
+      const { clientBrief, internalNotes } = splitStudioNotes(lead.notes);
       list.push({
         id: lead.id,
         source: 'studio',
@@ -117,8 +160,11 @@ export function AdminCustomBuildsClient({
               ? 'Doctors & Clinics'
               : lead.category === 'ecommerce'
                 ? 'E-Commerce & Retail'
-                : 'Local Services & Brand',
-        requirements: lead.notes || 'No specific notes given during waitlist submission.',
+                : lead.category === 'wedding_bespoke'
+                  ? 'Destination Wedding Portal'
+                  : 'Local Services & Brand',
+        requirements: clientBrief || 'No specific notes given during waitlist submission.',
+        rawClientBrief: clientBrief,
         budgetLabel: lead.quote_amount_inr ? `Quote: ₹${lead.quote_amount_inr}` : 'Early Founder Rate',
         status: lead.status || 'waitlisted',
         checklist: {
@@ -132,7 +178,8 @@ export function AdminCustomBuildsClient({
         },
         previewUrl: lead.preview_url || '',
         liveUrl: lead.live_url || '',
-        adminNotes: lead.notes || '',
+        quotedAmountInr: lead.quote_amount_inr ? String(lead.quote_amount_inr) : '',
+        adminNotes: internalNotes,
         createdAt: lead.created_at,
       });
     });
@@ -149,6 +196,7 @@ export function AdminCustomBuildsClient({
         businessName: `${req.occasion.toUpperCase()} Celebration Website`,
         categoryLabel: `Custom ${req.occasion}`,
         requirements: req.brief || 'No detailed brief submitted.',
+        rawClientBrief: req.brief || '',
         budgetLabel: req.quoted_amount_inr ? `Quoted: ₹${req.quoted_amount_inr}` : `Budget: ₹${req.budget_tier}`,
         targetDate: req.target_date,
         status: req.status || 'new',
@@ -163,6 +211,7 @@ export function AdminCustomBuildsClient({
         },
         previewUrl: req.preview_url || '',
         liveUrl: req.live_url || '',
+        quotedAmountInr: req.quoted_amount_inr ? String(req.quoted_amount_inr) : '',
         adminNotes: req.admin_notes || '',
         createdAt: req.created_at,
       });
@@ -172,8 +221,15 @@ export function AdminCustomBuildsClient({
     return list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [studioLeads, customRequests]);
 
-  // State management for in-memory edits
+  // State management for in-memory edits (synced when server refreshes)
   const [projects, setProjects] = useState<UnifiedProject[]>(initialProjects);
+  const [dirtyIds, setDirtyIds] = useState<Record<string, boolean>>({});
+  useEffect(() => {
+    setProjects((prev) => {
+      const dirtyMap = new Map(prev.filter((p) => dirtyIds[p.id]).map((p) => [p.id, p]));
+      return initialProjects.map((fresh) => dirtyMap.get(fresh.id) ?? fresh);
+    });
+  }, [initialProjects, dirtyIds]);
   const [filterSource, setFilterSource] = useState<'all' | 'studio' | 'request'>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -205,6 +261,7 @@ export function AdminCustomBuildsClient({
 
   // Checklist toggle helper
   function toggleChecklistStep(projectId: string, stepKey: keyof UnifiedProject['checklist']) {
+    setDirtyIds((prev) => ({ ...prev, [projectId]: true }));
     setProjects((prev) =>
       prev.map((p) => {
         if (p.id !== projectId) return p;
@@ -224,30 +281,41 @@ export function AdminCustomBuildsClient({
   }
 
   // Field change helper
-  function updateProjectField(projectId: string, field: 'status' | 'previewUrl' | 'liveUrl' | 'adminNotes', val: string) {
+  function updateProjectField(
+    projectId: string,
+    field: 'status' | 'previewUrl' | 'liveUrl' | 'adminNotes' | 'quotedAmountInr',
+    val: string,
+  ) {
+    setDirtyIds((prev) => ({ ...prev, [projectId]: true }));
     setProjects((prev) =>
       prev.map((p) => (p.id === projectId ? { ...p, [field]: val } : p)),
     );
   }
 
   // Save changes to API
-  async function handleSaveProject(project: UnifiedProject) {
+  async function handleSaveProject(project: UnifiedProject, sendQuoteEmail = false) {
     setBusyId(project.id);
     setNotice('');
     setErrorMsg('');
 
+    const parsedQuote = project.quotedAmountInr.trim() ? Number(project.quotedAmountInr.trim()) : null;
+
     try {
       if (project.source === 'studio') {
+        const combinedNotes = project.adminNotes.trim()
+          ? `${project.rawClientBrief}${STUDIO_NOTES_DELIMITER}${project.adminNotes.trim()}`
+          : project.rawClientBrief;
         const res = await fetch('/api/waitlist', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             id: project.id,
             status: project.status,
-            notes: project.adminNotes,
+            notes: combinedNotes,
             checklist: project.checklist,
             preview_url: project.previewUrl,
             live_url: project.liveUrl,
+            quote_amount_inr: parsedQuote,
           }),
         });
         const data = (await res.json()) as { ok?: boolean; error?: string };
@@ -259,17 +327,28 @@ export function AdminCustomBuildsClient({
           body: JSON.stringify({
             requestId: project.id,
             status: project.status,
+            quotedAmountInr: parsedQuote,
             adminNotes: project.adminNotes,
+            sendQuoteEmail,
             checklist: project.checklist,
             previewUrl: project.previewUrl,
             liveUrl: project.liveUrl,
           }),
         });
-        const data = (await res.json()) as { ok?: boolean; error?: string };
+        const data = (await res.json()) as { ok?: boolean; message?: string; error?: string };
         if (!res.ok) throw new Error(data.error || 'Failed to update custom request.');
+        if (data.message) {
+          setDirtyIds((prev) => ({ ...prev, [project.id]: false }));
+          setNotice(data.message);
+          window.dispatchEvent(new Event('webzy_admin_mutated'));
+          router.refresh();
+          return;
+        }
       }
 
-      setNotice(`Saved checklist & updates for ${project.clientName}.`);
+      setDirtyIds((prev) => ({ ...prev, [project.id]: false }));
+      setNotice(`Saved updates & checklist for ${project.clientName}.`);
+      window.dispatchEvent(new Event('webzy_admin_mutated'));
       router.refresh();
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : 'Save failed.');
@@ -284,7 +363,7 @@ export function AdminCustomBuildsClient({
   const inProgressCount = totalCount - madeCount;
 
   return (
-    <section className="mt-8 rounded-3xl border border-webzy-tint bg-white p-6 shadow-sm sm:p-8">
+    <section className="rounded-3xl border border-webzy-tint bg-white p-6 shadow-sm sm:p-8">
       {/* Header and Live Overview */}
       <div className="flex flex-col justify-between gap-4 border-b border-webzy-tint pb-6 md:flex-row md:items-center">
         <div>
@@ -337,8 +416,8 @@ export function AdminCustomBuildsClient({
             onClick={() => setFilterSource('all')}
             className={`min-h-[36px] rounded-full px-3.5 text-xs font-bold transition ${
               filterSource === 'all'
-                ? 'bg-webzy-ink text-white'
-                : 'border border-webzy-tint bg-webzy-surface text-webzy-ink'
+                ? 'bg-webzy-primary text-white shadow-btn-primary'
+                : 'border border-webzy-tint bg-webzy-surface text-webzy-ink hover:border-webzy-primary/40'
             }`}
           >
             All Sources ({totalCount})
@@ -349,8 +428,8 @@ export function AdminCustomBuildsClient({
             onClick={() => setFilterSource('studio')}
             className={`min-h-[36px] rounded-full px-3.5 text-xs font-bold transition ${
               filterSource === 'studio'
-                ? 'bg-webzy-ink text-white'
-                : 'border border-webzy-tint bg-webzy-surface text-webzy-ink'
+                ? 'bg-webzy-primary text-white shadow-btn-primary'
+                : 'border border-webzy-tint bg-webzy-surface text-webzy-ink hover:border-webzy-primary/40'
             }`}
           >
             Studio Builds ({studioLeads.length})
@@ -361,8 +440,8 @@ export function AdminCustomBuildsClient({
             onClick={() => setFilterSource('request')}
             className={`min-h-[36px] rounded-full px-3.5 text-xs font-bold transition ${
               filterSource === 'request'
-                ? 'bg-webzy-ink text-white'
-                : 'border border-webzy-tint bg-webzy-surface text-webzy-ink'
+                ? 'bg-webzy-primary text-white shadow-btn-primary'
+                : 'border border-webzy-tint bg-webzy-surface text-webzy-ink hover:border-webzy-primary/40'
             }`}
           >
             Custom Celebration Briefs ({customRequests.length})
@@ -412,14 +491,19 @@ export function AdminCustomBuildsClient({
             const completedCount = Object.values(p.checklist).filter(Boolean).length;
             const completionPercent = Math.round((completedCount / CHECKLIST_STEPS.length) * 100);
             const isFullyMade = p.checklist.launched_live || p.status === 'made';
+            const isDirty = Boolean(dirtyIds[p.id]);
+            const slaOver24h = isSlaOver24hUnquoted(p);
+            const eventCountdown = getEventCountdownLabel(p.targetDate);
 
             return (
               <div
                 key={p.id}
                 className={`overflow-hidden rounded-3xl border transition-all ${
-                  isFullyMade
-                    ? 'border-emerald-200 bg-gradient-to-b from-emerald-50/20 via-white to-white shadow-xs'
-                    : 'border-webzy-tint bg-white shadow-xs hover:border-webzy-primary/40 hover:shadow-sm'
+                  isDirty
+                    ? 'border-amber-400 bg-white shadow-sm'
+                    : isFullyMade
+                      ? 'border-emerald-200 bg-gradient-to-b from-emerald-50/20 via-white to-white shadow-xs'
+                      : 'border-webzy-tint bg-white shadow-xs hover:border-webzy-primary/40 hover:shadow-sm'
                 }`}
               >
                 {/* Project Header Bar */}
@@ -438,6 +522,31 @@ export function AdminCustomBuildsClient({
                       {p.businessName || p.clientName}
                     </h3>
                     <span className="text-xs text-webzy-ink/60">· {p.categoryLabel}</span>
+                    {slaOver24h ? (
+                      <span
+                        suppressHydrationWarning
+                        className="rounded-full bg-red-100 px-2.5 py-0.5 text-[10px] font-bold uppercase text-red-900 border border-red-200"
+                      >
+                        SLA &gt; 24h Unquoted
+                      </span>
+                    ) : null}
+                    {eventCountdown ? (
+                      <span
+                        suppressHydrationWarning
+                        className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold font-tabular ${
+                          eventCountdown.urgent
+                            ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                            : 'bg-sky-100 text-sky-900'
+                        }`}
+                      >
+                        {eventCountdown.label}
+                      </span>
+                    ) : null}
+                    {isDirty ? (
+                      <span className="rounded-full bg-amber-500 px-2.5 py-0.5 text-[10px] font-bold uppercase text-white">
+                        Unsaved Changes
+                      </span>
+                    ) : null}
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -555,7 +664,7 @@ export function AdminCustomBuildsClient({
                       <div className="flex items-center gap-3">
                         <div className="w-28 rounded-full bg-webzy-surface h-2 overflow-hidden border border-webzy-tint">
                           <div
-                            className={`h-full transition-all duration-300 ${
+                            className={`animate-shimmer h-full transition-all duration-300 ${
                               isFullyMade ? 'bg-emerald-600' : 'bg-webzy-primary'
                             }`}
                             style={{ width: `${completionPercent}%` }}
@@ -603,7 +712,7 @@ export function AdminCustomBuildsClient({
                     </div>
                   </div>
 
-                  {/* Delivery Links, Status & Admin Notes */}
+                  {/* Delivery Links, Quote, Status & Admin Notes */}
                   <div className="mt-5 grid grid-cols-1 gap-4 border-t border-webzy-tint/60 pt-4 sm:grid-cols-12 sm:items-end">
                     <div className="sm:col-span-3">
                       <label className="block text-[11px] font-bold text-webzy-ink">
@@ -615,30 +724,61 @@ export function AdminCustomBuildsClient({
                         onChange={(e) => updateProjectField(p.id, 'status', e.target.value)}
                         className="mt-1 min-h-[38px] w-full rounded-xl border border-webzy-tint bg-white px-3 text-xs font-semibold text-webzy-ink outline-none"
                       >
-                        <option value="waitlisted">Waitlisted / New Brief</option>
-                        <option value="contacted">Contacted / Brief Confirmed</option>
-                        <option value="in_progress">In Progress (Building)</option>
-                        <option value="made">Made (Preview Link Ready)</option>
-                        <option value="completed">Completed &amp; Live</option>
-                        <option value="converted">Converted / Archived</option>
+                        {p.source === 'studio' ? (
+                          <>
+                            <option value="waitlisted">Waitlisted / New</option>
+                            <option value="contacted">Contacted</option>
+                            <option value="in_progress">In Progress (Building)</option>
+                            <option value="made">Made &amp; Live</option>
+                            <option value="converted">Converted / Completed</option>
+                            <option value="archived">Archived</option>
+                          </>
+                        ) : (
+                          <>
+                            <option value="new">New Brief</option>
+                            <option value="reviewing">Reviewing</option>
+                            <option value="quoted">Quoted</option>
+                            <option value="accepted">Accepted</option>
+                            <option value="in_progress">In Progress (Building)</option>
+                            <option value="made">Made (Preview Ready)</option>
+                            <option value="completed">Completed &amp; Live</option>
+                            <option value="declined">Declined</option>
+                          </>
+                        )}
                       </select>
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label className="block text-[11px] font-bold text-webzy-ink">
+                        Quote (₹ INR)
+                      </label>
+                      <input
+                        suppressHydrationWarning
+                        type="number"
+                        min={499}
+                        step={50}
+                        placeholder="e.g. 4999"
+                        value={p.quotedAmountInr}
+                        onChange={(e) => updateProjectField(p.id, 'quotedAmountInr', e.target.value)}
+                        className="mt-1 min-h-[38px] w-full rounded-xl border border-webzy-tint bg-white px-3 text-xs text-webzy-ink outline-none"
+                      />
                     </div>
 
                     <div className="sm:col-span-3">
                       <label className="block text-[11px] font-bold text-webzy-ink">
-                        Preview URL (Staging / Draft)
+                        Preview URL (Staging)
                       </label>
                       <input
                         suppressHydrationWarning
                         type="url"
-                        placeholder="https://webzy.in/s/sample..."
+                        placeholder="https://webzy.in/s/sample"
                         value={p.previewUrl}
                         onChange={(e) => updateProjectField(p.id, 'previewUrl', e.target.value)}
                         className="mt-1 min-h-[38px] w-full rounded-xl border border-webzy-tint bg-white px-3 text-xs text-webzy-ink outline-none"
                       />
                     </div>
 
-                    <div className="sm:col-span-3">
+                    <div className="sm:col-span-4">
                       <label className="block text-[11px] font-bold text-webzy-ink">
                         Live Site URL (Custom Domain)
                       </label>
@@ -652,19 +792,34 @@ export function AdminCustomBuildsClient({
                       />
                     </div>
 
-                    <div className="flex items-center gap-2 sm:col-span-3 sm:justify-end">
-                      {p.liveUrl ? (
+                    <div className="sm:col-span-7">
+                      <label className="block text-[11px] font-bold text-webzy-ink">
+                        Internal / Studio Notes
+                      </label>
+                      <input
+                        suppressHydrationWarning
+                        type="text"
+                        maxLength={800}
+                        placeholder="Add build notes, revision feedback, or payment schedule..."
+                        value={p.adminNotes}
+                        onChange={(e) => updateProjectField(p.id, 'adminNotes', e.target.value)}
+                        className="mt-1 min-h-[38px] w-full rounded-xl border border-webzy-tint bg-white px-3 text-xs text-webzy-ink outline-none"
+                      />
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 sm:col-span-5 sm:justify-end">
+                      {p.liveUrl && /^https?:\/\//i.test(p.liveUrl) ? (
                         <a
-                          href={p.liveUrl.startsWith('http') ? p.liveUrl : `https://${p.liveUrl}`}
+                          href={p.liveUrl}
                           target="_blank"
                           rel="noreferrer"
                           className="inline-flex min-h-[38px] items-center rounded-xl border border-emerald-300 bg-emerald-50 px-3 text-xs font-bold text-emerald-800 hover:bg-emerald-100"
                         >
-                          Visit Live ↗
+                          Live ↗
                         </a>
-                      ) : p.previewUrl ? (
+                      ) : p.previewUrl && /^https?:\/\//i.test(p.previewUrl) ? (
                         <a
-                          href={p.previewUrl.startsWith('http') ? p.previewUrl : `https://${p.previewUrl}`}
+                          href={p.previewUrl}
                           target="_blank"
                           rel="noreferrer"
                           className="inline-flex min-h-[38px] items-center rounded-xl border border-webzy-tint bg-webzy-surface px-3 text-xs font-bold text-webzy-primary hover:bg-webzy-tint"
@@ -673,14 +828,34 @@ export function AdminCustomBuildsClient({
                         </a>
                       ) : null}
 
+                      {p.source === 'request' && p.quotedAmountInr.trim() ? (
+                        <button
+                          suppressHydrationWarning
+                          type="button"
+                          disabled={busyId === p.id}
+                          onClick={() => void handleSaveProject(p, true)}
+                          className="inline-flex min-h-[38px] items-center rounded-full border border-emerald-300 bg-emerald-50 px-3.5 text-xs font-bold text-emerald-900 transition hover:bg-emerald-100 disabled:opacity-50"
+                        >
+                          Save &amp; Email Quote
+                        </button>
+                      ) : null}
+
                       <button
                         suppressHydrationWarning
                         type="button"
                         disabled={busyId === p.id}
-                        onClick={() => void handleSaveProject(p)}
-                        className="inline-flex min-h-[38px] items-center rounded-full bg-webzy-primary px-5 text-xs font-bold text-white shadow-xs transition hover:opacity-95 disabled:opacity-50"
+                        onClick={() => void handleSaveProject(p, false)}
+                        className={`inline-flex min-h-[38px] items-center rounded-full px-5 text-xs font-bold text-white shadow-xs transition hover:opacity-95 disabled:opacity-50 ${
+                          isDirty
+                            ? 'bg-amber-600 ring-2 ring-amber-300'
+                            : 'bg-webzy-primary'
+                        }`}
                       >
-                        {busyId === p.id ? 'Saving...' : 'Save Updates'}
+                        {busyId === p.id
+                          ? 'Saving...'
+                          : isDirty
+                            ? 'Save Unsaved Changes'
+                            : 'Save Updates'}
                       </button>
                     </div>
                   </div>

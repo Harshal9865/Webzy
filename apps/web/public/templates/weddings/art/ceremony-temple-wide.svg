@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-label="Kashi Swarna sacred temple mandapam with homam fire, banana trees, jasmine garlands and kolam">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3C0F0D"/>
+      <stop offset="45%" stop-color="#6B1B15"/>
+      <stop offset="100%" stop-color="#290807"/>
+    </linearGradient>
+    <radialGradient id="fireGlow" cx="50%" cy="66%" r="44%">
+      <stop offset="0%" stop-color="#FFF2B8" stop-opacity="0.9"/>
+      <stop offset="45%" stop-color="#E89A32" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#6B1B15" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="goldSilk" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FCE4A6"/>
+      <stop offset="50%" stop-color="#C98D32"/>
+      <stop offset="100%" stop-color="#764312"/>
+    </linearGradient>
+    <linearGradient id="pillar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#3A0E0A"/>
+      <stop offset="50%" stop-color="#7A3418"/>
+      <stop offset="100%" stop-color="#3A0E0A"/>
+    </linearGradient>
+    <radialGradient id="lampGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFE9A6" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#FFE9A6" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <ellipse cx="800" cy="600" rx="660" ry="330" fill="url(#fireGlow)"/>
+
+  <!-- Carved Granite Mandapam Pillars (4) -->
+  <g>
+    <rect x="170" y="200" width="70" height="680" fill="url(#pillar)" stroke="#DFB15B" stroke-width="2"/>
+    <rect x="360" y="240" width="56" height="600" fill="url(#pillar)" stroke="#DFB15B" stroke-width="1.5" opacity="0.9"/>
+    <rect x="1184" y="240" width="56" height="600" fill="url(#pillar)" stroke="#DFB15B" stroke-width="1.5" opacity="0.9"/>
+    <rect x="1360" y="200" width="70" height="680" fill="url(#pillar)" stroke="#DFB15B" stroke-width="2"/>
+    <g fill="none" stroke="#F0C772" stroke-width="1.4" opacity="0.7">
+      <rect x="180" y="300" width="50" height="60"/><rect x="180" y="520" width="50" height="60"/>
+      <rect x="1370" y="300" width="50" height="60"/><rect x="1370" y="520" width="50" height="60"/>
+      <circle cx="205" cy="440" r="18"/><circle cx="1395" cy="440" r="18"/>
+    </g>
+  </g>
+
+  <!-- Temple Arch & Kalasham Crown -->
+  <g stroke="url(#goldSilk)" fill="none">
+    <path d="M240 880 L240 280 Q800 60 1360 280 L1360 880" stroke-width="10"/>
+    <path d="M280 880 L280 305 Q800 108 1320 305 L1320 880" stroke-width="3" opacity="0.7"/>
+  </g>
+  <g fill="url(#goldSilk)">
+    <path d="M780 120 Q780 96 800 84 Q820 96 820 120 Z"/>
+    <path d="M740 134 Q740 116 754 108 Q768 116 768 134 Z"/>
+    <path d="M832 134 Q832 116 846 108 Q860 116 860 134 Z"/>
+  </g>
+
+  <!-- Mango-Leaf Thoranam -->
+  <path d="M300 300 Q800 210 1300 300" fill="none" stroke="#3F7038" stroke-width="5"/>
+  <g fill="#4E8445">
+    <path d="M380 288 L388 322 L396 288 Z"/><path d="M480 270 L488 304 L496 270 Z"/><path d="M580 256 L588 290 L596 256 Z"/>
+    <path d="M680 248 L688 282 L696 248 Z"/><path d="M792 244 L800 278 L808 244 Z"/><path d="M904 248 L912 282 L920 248 Z"/>
+    <path d="M1004 256 L1012 290 L1020 256 Z"/><path d="M1104 270 L1112 304 L1120 270 Z"/><path d="M1204 288 L1212 322 L1220 288 Z"/>
+  </g>
+
+  <!-- Hanging Jasmine & Marigold Strands -->
+  <g stroke-linecap="round">
+    <line x1="430" y1="230" x2="430" y2="520" stroke="#FFF8E0" stroke-width="6" stroke-dasharray="2 10"/>
+    <line x1="560" y1="200" x2="560" y2="440" stroke="#F3A62A" stroke-width="7" stroke-dasharray="2 12"/>
+    <line x1="680" y1="185" x2="680" y2="380" stroke="#FFF8E0" stroke-width="6" stroke-dasharray="2 10"/>
+    <line x1="920" y1="185" x2="920" y2="380" stroke="#FFF8E0" stroke-width="6" stroke-dasharray="2 10"/>
+    <line x1="1040" y1="200" x2="1040" y2="440" stroke="#F3A62A" stroke-width="7" stroke-dasharray="2 12"/>
+    <line x1="1170" y1="230" x2="1170" y2="520" stroke="#FFF8E0" stroke-width="6" stroke-dasharray="2 10"/>
+  </g>
+
+  <!-- Banana Trees Flanking -->
+  <g fill="#3F7038">
+    <rect x="292" y="560" width="14" height="300" fill="#6E8B3D"/>
+    <path d="M299 570 Q230 520 220 450 Q270 500 299 560 Z"/>
+    <path d="M299 570 Q370 520 380 450 Q330 500 299 560 Z"/>
+    <path d="M299 600 Q240 590 210 540 Q260 560 299 590 Z"/>
+    <rect x="1294" y="560" width="14" height="300" fill="#6E8B3D"/>
+    <path d="M1301 570 Q1232 520 1222 450 Q1272 500 1301 560 Z"/>
+    <path d="M1301 570 Q1372 520 1382 450 Q1332 500 1301 560 Z"/>
+    <path d="M1301 600 Q1360 590 1390 540 Q1340 560 1301 590 Z"/>
+  </g>
+
+  <!-- Brass Kuthuvilakku Lamps -->
+  <g>
+    <circle cx="470" cy="660" r="44" fill="url(#lampGlow)"/>
+    <circle cx="1130" cy="660" r="44" fill="url(#lampGlow)"/>
+    <g fill="url(#goldSilk)">
+      <ellipse cx="470" cy="830" rx="34" ry="9"/><rect x="465" y="690" width="10" height="140"/><ellipse cx="470" cy="688" rx="28" ry="8"/>
+      <ellipse cx="1130" cy="830" rx="34" ry="9"/><rect x="1125" y="690" width="10" height="140"/><ellipse cx="1130" cy="688" rx="28" ry="8"/>
+    </g>
+    <g fill="#FFF5C8">
+      <path d="M452 684 Q448 670 456 662 Q460 674 452 684 Z"/><path d="M470 682 Q476 664 470 652 Q464 664 470 682 Z"/><path d="M488 684 Q492 670 484 662 Q480 674 488 684 Z"/>
+      <path d="M1112 684 Q1108 670 1116 662 Q1120 674 1112 684 Z"/><path d="M1130 682 Q1136 664 1130 652 Q1124 664 1130 682 Z"/><path d="M1148 684 Q1152 670 1144 662 Q1140 674 1148 684 Z"/>
+    </g>
+  </g>
+
+  <!-- Central Homam Kund, Oonjal Swing Hint & Kalashas -->
+  <g transform="translate(800 680)">
+    <polygon points="-250,120 -190,40 190,40 250,120" fill="#511911" stroke="#E0B15A" stroke-width="2"/>
+    <polygon points="-140,40 -100,-12 100,-12 140,40" fill="#7D2915" stroke="#F0C772" stroke-width="2"/>
+    <polygon points="-70,-12 -50,-40 50,-40 70,-12" fill="#93361A" stroke="#F6D383" stroke-width="2"/>
+    <path d="M0 -170 Q52 -100 38 -42 Q20 -18 0 -18 Q-20 -18 -38 -42 Q-52 -100 0 -170 Z" fill="#F6A428"/>
+    <path d="M0 -136 Q28 -82 20 -42 Q10 -26 0 -26 Q-10 -26 -20 -42 Q-28 -82 0 -136 Z" fill="#FFF4BF"/>
+    <g transform="translate(-320 60)">
+      <ellipse cx="0" cy="0" rx="36" ry="40" fill="url(#goldSilk)"/>
+      <path d="M-24 -32 Q-40 -66 -8 -48 M24 -32 Q40 -66 8 -48 M0 -36 Q0 -74 0 -46" stroke="#3F7038" stroke-width="7" stroke-linecap="round"/>
+      <ellipse cx="0" cy="-44" rx="18" ry="14" fill="#8A4B26"/>
+    </g>
+    <g transform="translate(320 60)">
+      <ellipse cx="0" cy="0" rx="36" ry="40" fill="url(#goldSilk)"/>
+      <path d="M-24 -32 Q-40 -66 -8 -48 M24 -32 Q40 -66 8 -48 M0 -36 Q0 -74 0 -46" stroke="#3F7038" stroke-width="7" stroke-linecap="round"/>
+      <ellipse cx="0" cy="-44" rx="18" ry="14" fill="#8A4B26"/>
+    </g>
+  </g>
+
+  <!-- Floor Kolam -->
+  <g stroke="#FFF8E6" stroke-opacity="0.4" fill="none" transform="translate(800 860)">
+    <ellipse rx="440" ry="30" stroke-width="1.5" stroke-dasharray="6 8"/>
+    <ellipse rx="330" ry="20" stroke-width="1.2"/>
+    <ellipse rx="220" ry="12" stroke-width="1" stroke-dasharray="3 5"/>
+  </g>
+  <g fill="#FFF8E6" opacity="0.5">
+    <circle cx="560" cy="860" r="3"/><circle cx="640" cy="852" r="3"/><circle cx="960" cy="852" r="3"/><circle cx="1040" cy="860" r="3"/>
+  </g>
+</svg>

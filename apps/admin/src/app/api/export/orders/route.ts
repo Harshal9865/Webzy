@@ -1,12 +1,16 @@
-import { NextResponse } from 'next/server';
-import { logEvent } from '@webzy/core';
+import { NextResponse, type NextRequest } from 'next/server';
+import { getWebzyPublicConfig, logEvent } from '@webzy/core';
 import { requireVerifiedAdmin } from '../../../../lib/requireAdmin';
 
 export const dynamic = 'force-dynamic';
 
 function escapeCsvCell(val: string | number | null | undefined): string {
   if (val === null || val === undefined) return '""';
-  const str = String(val);
+  let str = String(val);
+  // Prevent Excel/Sheets CSV formula injection
+  if (/^[=+\-@\t\r]/.test(str)) {
+    str = `'${str}`;
+  }
   if (/[",\n\r]/.test(str)) {
     return `"${str.replace(/"/g, '""')}"`;
   }
@@ -17,8 +21,7 @@ function formatIstDate(isoStr: string | null | undefined): string {
   if (!isoStr) return '';
   try {
     const d = new Date(isoStr);
-    if (isNaN(d.getTime())) return isoStr;
-    // Format in Asia/Kolkata
+    if (Number.isNaN(d.getTime())) return isoStr;
     return new Intl.DateTimeFormat('en-IN', {
       timeZone: 'Asia/Kolkata',
       year: 'numeric',
@@ -34,19 +37,35 @@ function formatIstDate(isoStr: string | null | undefined): string {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const guard = await requireVerifiedAdmin();
   if (!guard.ok) return guard.response;
 
   try {
+    const { searchParams } = new URL(request.url);
+    const liveOnly = searchParams.get('liveOnly') === 'true';
+    const paidOnly = searchParams.get('paidOnly') === 'true';
+    const cfg = getWebzyPublicConfig();
+    const gstRegistered = Boolean(cfg.gstRegistered);
+
     const admin = guard.admin;
 
-    const { data: orders, error } = await admin
+    let query = admin
       .from('orders')
-      .select('id, invoice_no, status, amount_paise, currency, provider, provider_order_id, buyer_name, buyer_email, created_at, sites(slug)')
+      .select(
+        'id, invoice_no, status, amount_paise, fee_estimate_paise, currency, provider, provider_order_id, buyer_name, buyer_email, buyer_phone, addons_json, is_test, created_at, sites(slug)',
+      )
       .order('created_at', { ascending: false })
       .limit(5000);
 
+    if (liveOnly) {
+      query = query.eq('is_test', false);
+    }
+    if (paidOnly) {
+      query = query.in('status', ['paid', 'published']);
+    }
+
+    const { data: orders, error } = await query;
     if (error) {
       throw new Error(error.message);
     }
@@ -55,12 +74,15 @@ export async function GET() {
       'Invoice No',
       'Date (IST)',
       'Order ID',
+      'Order Mode',
       'Status',
       'Buyer Name',
       'Buyer Email',
+      'Buyer Phone',
+      'Add-ons',
       'Currency',
       'Base Amount (INR)',
-      'GST 18% (INR)',
+      gstRegistered ? 'GST 18% (INR)' : 'GST (Not Registered)',
       'Total Paid (INR)',
       'Payment Provider',
       'Gateway Order ID',
@@ -74,18 +96,53 @@ export async function GET() {
       const s = Array.isArray(siteRel) ? siteRel[0] : siteRel;
       const slug = s?.slug || '';
 
-      const totalInr = (o.amount_paise / 100);
-      // In India, 18% GST inclusive calculation: Base = Total / 1.18, GST = Total - Base
-      const baseInr = (totalInr / 1.18);
-      const gstInr = (totalInr - baseInr);
+      const rawAddons = o.addons_json;
+      const addonsList = Array.isArray(rawAddons)
+        ? rawAddons
+            .filter((x): x is string => typeof x === 'string')
+            .map((id) =>
+              id === 'pin'
+                ? 'Secret PIN'
+                : id === 'video'
+                  ? 'Video Export'
+                  : id === 'extend_14d'
+                    ? '14d Validity'
+                    : id === 'extend_21d'
+                      ? '21d Validity'
+                      : id === 'extend' || id === 'extend_90d'
+                        ? '3m (90d) Validity'
+                        : id,
+            )
+            .join('; ')
+        : (() => {
+            const addonsObj = (
+              rawAddons && typeof rawAddons === 'object' ? rawAddons : {}
+            ) as Record<string, boolean>;
+            return [
+              addonsObj.secretPin ? 'Secret PIN' : null,
+              addonsObj.videoCard ? 'Video Export' : null,
+              addonsObj.extend14d ? '14d Validity' : null,
+              addonsObj.extend21d ? '21d Validity' : null,
+              addonsObj.extendValidity90d ? '3m (90d) Validity' : null,
+            ]
+              .filter(Boolean)
+              .join('; ');
+          })();
+
+      const totalInr = (o.amount_paise || 0) / 100;
+      const baseInr = gstRegistered ? totalInr / 1.18 : totalInr;
+      const gstInr = gstRegistered ? totalInr - baseInr : 0;
 
       const row = [
         o.invoice_no || 'UNINVOICED',
         formatIstDate(o.created_at),
         o.id,
+        o.is_test ? 'TEST' : 'LIVE',
         o.status,
         o.buyer_name || 'Guest',
         o.buyer_email || '',
+        o.buyer_phone || '',
+        addonsList || 'None',
         o.currency || 'INR',
         baseInr.toFixed(2),
         gstInr.toFixed(2),
@@ -98,14 +155,20 @@ export async function GET() {
       rows.push(row.map(escapeCsvCell).join(','));
     }
 
-    // UTF-8 BOM (\uFEFF) ensures Microsoft Excel in Windows opens Indian names and rupee numbers cleanly
     const csvContent = '\uFEFF' + rows.join('\r\n');
-    const today = new Date().toISOString().slice(0, 10);
-    const filename = `webzy-orders-gst-reconciliation-${today}.csv`;
+    const today = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Kolkata',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(new Date());
+    const suffix = liveOnly ? 'live-only' : 'all';
+    const filename = `webzy-orders-${suffix}-${today}.csv`;
 
     logEvent('info', 'admin.orders.csv_exported', {
       exportedBy: guard.email,
       count: (orders || []).length,
+      liveOnly,
     });
 
     return new NextResponse(csvContent, {

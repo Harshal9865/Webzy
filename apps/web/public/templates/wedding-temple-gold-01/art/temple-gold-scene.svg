@@ -1,0 +1,170 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1600" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Kashi Swarna South Indian Golden Temple Gopuram and Pushkarini Tank portrait">
+  <defs>
+    <linearGradient id="sunriseSky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFDF7"/>
+      <stop offset="36%" stop-color="#FDF3DD"/>
+      <stop offset="62%" stop-color="#F6DCAB"/>
+      <stop offset="84%" stop-color="#C8873A"/>
+      <stop offset="100%" stop-color="#5A1812"/>
+    </linearGradient>
+    <radialGradient id="sunAura" cx="50%" cy="52%" r="44%">
+      <stop offset="0%" stop-color="#FFFCEB" stop-opacity="0.95"/>
+      <stop offset="55%" stop-color="#F6CE74" stop-opacity="0.42"/>
+      <stop offset="100%" stop-color="#E5A84B" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="templeGold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFF1BA"/>
+      <stop offset="45%" stop-color="#D79A34"/>
+      <stop offset="100%" stop-color="#6E3410"/>
+    </linearGradient>
+    <linearGradient id="waterTank" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6B2B17"/>
+      <stop offset="48%" stop-color="#3E150C"/>
+      <stop offset="100%" stop-color="#1E0805"/>
+    </linearGradient>
+    <linearGradient id="teakPillar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#3C110C"/>
+      <stop offset="48%" stop-color="#8A461F"/>
+      <stop offset="72%" stop-color="#D49E48"/>
+      <stop offset="100%" stop-color="#320C09"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Luminous Ivory-Gold Sunrise Sky (Upper 42% completely airy for couple typography) -->
+  <rect width="900" height="1600" fill="url(#sunriseSky)"/>
+  <circle cx="450" cy="790" r="390" fill="url(#sunAura)"/>
+
+  <!-- Subtle Sacred Mandala Halo Behind Gopuram -->
+  <g stroke="#D9A348" stroke-opacity="0.26" fill="none" transform="translate(450 820)">
+    <circle r="220" stroke-width="1.3"/>
+    <circle r="265" stroke-width="1" stroke-dasharray="4 8"/>
+  </g>
+
+  <!-- Distant Heritage Hills & Coconut Palms -->
+  <path d="M0 990 Q230 925 450 965 T900 950 L900 1160 L0 1160 Z" fill="#A45E27" opacity="0.32"/>
+  <g fill="#5C2411" opacity="0.62">
+    <path d="M126 1110 L136 935 L144 1110 Z"/>
+    <path d="M136 938 Q94 918 72 944 Q108 932 136 942 Q166 918 194 942 Q162 932 136 944 Z"/>
+    <path d="M774 1110 L764 935 L756 1110 Z"/>
+    <path d="M764 938 Q722 918 700 944 Q736 932 764 942 Q794 918 822 942 Q790 932 764 944 Z"/>
+  </g>
+
+  <!-- Dravidian Golden Temple Rajagopuram & Pillared Mandapam Wings -->
+  <g transform="translate(450 0)">
+    <!-- 7 Golden Kalasham Finials on Barrel-Vaulted Sala Crown -->
+    <g fill="url(#templeGold)" stroke="#753E10" stroke-width="0.9">
+      <path d="M-74 686 Q-74 666 -68 658 Q-62 666 -62 686 Z"/>
+      <path d="M-50 683 Q-50 662 -44 654 Q-38 662 -38 683 Z"/>
+      <path d="M-26 680 Q-26 658 -20 650 Q-14 658 -14 680 Z"/>
+      <path d="M-6 678 Q0 648 6 678 Z"/>
+      <path d="M14 680 Q14 658 20 650 Q26 658 26 680 Z"/>
+      <path d="M38 683 Q38 662 44 654 Q50 662 50 683 Z"/>
+      <path d="M62 686 Q62 666 68 658 Q74 666 74 686 Z"/>
+    </g>
+
+    <!-- Tiered Gopuram Pyramids with Carved Kudu Niches -->
+    <path d="M-92 706 Q0 672 92 706 L104 728 L-104 728 Z" fill="url(#templeGold)" stroke="#F7D88A" stroke-width="1.5"/>
+    <rect x="-124" y="728" width="248" height="54" fill="url(#templeGold)" stroke="#F2CD78" stroke-width="1.4"/>
+    <rect x="-156" y="782" width="312" height="62" fill="url(#templeGold)" stroke="#E5B962" stroke-width="1.4"/>
+    <rect x="-192" y="844" width="384" height="72" fill="url(#templeGold)" stroke="#D9A44B" stroke-width="1.4"/>
+    <rect x="-232" y="916" width="464" height="82" fill="#783015" stroke="#D9A34A" stroke-width="1.6"/>
+    <rect x="-276" y="998" width="552" height="96" fill="#561B0E" stroke="#C88B2E" stroke-width="1.6"/>
+
+    <!-- Carved Kudu Deities & Pilaster Arches Across Gopuram Tiers -->
+    <g fill="#FCE198" opacity="0.82">
+      <path d="M-84 782 V748 Q-72 738 -60 748 V782 Z"/><path d="M-32 782 V748 Q-20 738 -8 748 V782 Z"/>
+      <path d="M8 782 V748 Q20 738 32 748 V782 Z"/><path d="M60 782 V748 Q72 738 84 748 V782 Z"/>
+      <path d="M-114 844 V804 Q-100 792 -86 804 V844 Z"/><path d="M-48 844 V804 Q-34 792 -20 804 V844 Z"/>
+      <path d="M20 844 V804 Q34 792 48 804 V844 Z"/><path d="M86 844 V804 Q100 792 114 804 V844 Z"/>
+      <path d="M-148 916 V870 Q-132 858 -116 870 V916 Z"/><path d="M-68 916 V870 Q-52 858 -36 870 V916 Z"/>
+      <path d="M36 916 V870 Q52 858 68 870 V916 Z"/><path d="M116 916 V870 Q132 858 148 870 V916 Z"/>
+    </g>
+
+    <!-- Flanking Mandapam Colonnades -->
+    <rect x="-368" y="1094" width="736" height="146" fill="#682411" stroke="#D9A34A" stroke-width="1.5"/>
+    <rect x="-382" y="1082" width="764" height="14" rx="2" fill="url(#templeGold)"/>
+    <g fill="#361009" stroke="#C88B2E" stroke-width="1.2">
+      <rect x="-336" y="1120" width="44" height="120"/>
+      <rect x="-262" y="1120" width="44" height="120"/>
+      <rect x="-188" y="1120" width="44" height="120"/>
+      <rect x="144" y="1120" width="44" height="120"/>
+      <rect x="218" y="1120" width="44" height="120"/>
+      <rect x="292" y="1120" width="44" height="120"/>
+    </g>
+
+    <!-- Sanctum Gateway Arch & Glowing Oil Lamp Sanctum -->
+    <path d="M-76 1240 L-76 1054 Q0 1004 76 1054 L76 1240 Z" fill="#2A0B07" stroke="#F4CD78" stroke-width="2.4"/>
+    <ellipse cx="0" cy="1158" rx="42" ry="56" fill="#F8C864" opacity="0.52"/>
+    <path d="M0 1126 Q12 1146 0 1164 Q-12 1146 0 1126 Z" fill="#FFF8DC"/>
+
+    <!-- Stepped Granite Pushkarini Ghat Steps -->
+    <rect x="-390" y="1240" width="780" height="16" fill="#8E4A21" stroke="#E8B85B" stroke-width="1"/>
+    <rect x="-410" y="1256" width="820" height="16" fill="#723615" stroke="#E8B85B" stroke-width="1"/>
+    <rect x="-430" y="1272" width="860" height="16" fill="#58260E" stroke="#E8B85B" stroke-width="1"/>
+  </g>
+
+  <!-- Sacred Pushkarini Temple Tank & Shimmering Golden Reflections -->
+  <rect x="0" y="1288" width="900" height="312" fill="url(#waterTank)"/>
+  <line x1="0" y1="1288" x2="900" y2="1288" stroke="#E8B85B" stroke-width="2.4" opacity="0.78"/>
+
+  <!-- Shimmering Water Ripples -->
+  <g stroke="#F4CA70" stroke-linecap="round" opacity="0.38">
+    <line x1="320" y1="1324" x2="580" y2="1324" stroke-width="3"/>
+    <line x1="355" y1="1366" x2="545" y2="1366" stroke-width="2.4"/>
+    <line x1="385" y1="1410" x2="515" y2="1410" stroke-width="1.8"/>
+    <line x1="412" y1="1456" x2="488" y2="1456" stroke-width="1.4"/>
+  </g>
+
+  <!-- Blooming Pink Lotuses & Floating Diyas on the Pushkarini Tank -->
+  <g>
+    <ellipse cx="275" cy="1415" rx="42" ry="12" fill="#3B623B" opacity="0.82"/>
+    <path d="M275 1384 Q288 1402 275 1412 Q262 1402 275 1384 Z" fill="#FFE6EA"/>
+    <path d="M254 1396 Q268 1402 275 1412 Q258 1414 254 1396 Z" fill="#F29EB2"/>
+    <path d="M296 1396 Q282 1402 275 1412 Q292 1414 296 1396 Z" fill="#F29EB2"/>
+
+    <ellipse cx="625" cy="1430" rx="44" ry="12" fill="#3B623B" opacity="0.82"/>
+    <path d="M625 1398 Q638 1416 625 1426 Q612 1416 625 1398 Z" fill="#FFE6EA"/>
+    <path d="M604 1410 Q618 1416 625 1426 Q608 1428 604 1410 Z" fill="#F29EB2"/>
+    <path d="M646 1410 Q632 1416 625 1426 Q642 1428 646 1410 Z" fill="#F29EB2"/>
+
+    <circle cx="380" cy="1495" r="16" fill="#F8C864" opacity="0.45"/>
+    <path d="M380 1478 Q386 1488 380 1496 Q374 1488 380 1478 Z" fill="#FFF7D6"/>
+    <circle cx="520" cy="1505" r="16" fill="#F8C864" opacity="0.45"/>
+    <path d="M520 1488 Q526 1498 520 1506 Q514 1498 520 1488 Z" fill="#FFF7D6"/>
+  </g>
+
+  <!-- Left & Right Carved Chettinad/Granite Pillars + Banana Trees & Lit Kuthuvilakku Lamps -->
+  <rect x="0" y="0" width="66" height="1600" fill="url(#teakPillar)"/>
+  <rect x="834" y="0" width="66" height="1600" fill="url(#teakPillar)"/>
+  <line x1="66" y1="0" x2="66" y2="1600" stroke="#F0C66E" stroke-width="3"/>
+  <line x1="834" y1="0" x2="834" y2="1600" stroke="#F0C66E" stroke-width="3"/>
+
+  <!-- Twin Tall Brass Kuthuvilakku Oil Lamps & Banana Leaves in Foreground Corners -->
+  <g transform="translate(154 1545)">
+    <path d="M-74 0 C-88 -120 -52 -240 6 -300 C-18 -200 -20 -100 -28 0 Z" fill="#3B6E38" opacity="0.88"/>
+    <ellipse cx="0" cy="0" rx="42" ry="12" fill="url(#templeGold)"/>
+    <rect x="-8" y="-190" width="16" height="190" fill="url(#templeGold)"/>
+    <ellipse cx="0" cy="-98" rx="20" ry="7" fill="url(#templeGold)"/>
+    <ellipse cx="0" cy="-190" rx="36" ry="10" fill="url(#templeGold)"/>
+    <circle cx="0" cy="-212" r="28" fill="#FFD86B" fill-opacity="0.38"/>
+    <path d="M-24 -196 Q-28 -216 -16 -226 Q-12 -210 -24 -196 Z" fill="#FFF5C8"/>
+    <path d="M24 -196 Q28 -216 16 -226 Q12 -210 24 -196 Z" fill="#FFF5C8"/>
+    <path d="M0 -198 Q10 -224 0 -242 Q-10 -224 0 -198 Z" fill="#FFFDF0"/>
+  </g>
+  <g transform="translate(746 1545)">
+    <path d="M74 0 C88 -120 52 -240 -6 -300 C18 -200 20 -100 28 0 Z" fill="#3B6E38" opacity="0.88"/>
+    <ellipse cx="0" cy="0" rx="42" ry="12" fill="url(#templeGold)"/>
+    <rect x="-8" y="-190" width="16" height="190" fill="url(#templeGold)"/>
+    <ellipse cx="0" cy="-98" rx="20" ry="7" fill="url(#templeGold)"/>
+    <ellipse cx="0" cy="-190" rx="36" ry="10" fill="url(#templeGold)"/>
+    <circle cx="0" cy="-212" r="28" fill="#FFD86B" fill-opacity="0.38"/>
+    <path d="M-24 -196 Q-28 -216 -16 -226 Q-12 -210 -24 -196 Z" fill="#FFF5C8"/>
+    <path d="M24 -196 Q28 -216 16 -226 Q12 -210 24 -196 Z" fill="#FFF5C8"/>
+    <path d="M0 -198 Q10 -224 0 -242 Q-10 -224 0 -198 Z" fill="#FFFDF0"/>
+  </g>
+
+  <!-- Top Jasmine (Mallipoo) & Mango-Leaf Festive Toran Garland Framing Top Edges -->
+  <path d="M66 36 Q260 112 450 52 Q640 112 834 36" fill="none" stroke="#285E34" stroke-width="14" stroke-linecap="round"/>
+  <path d="M66 44 Q260 122 450 62 Q640 122 834 44" fill="none" stroke="#FFFDF5" stroke-width="7" stroke-dasharray="3 12" stroke-linecap="round"/>
+  <path d="M66 52 Q260 132 450 72 Q640 132 834 52" fill="none" stroke="#E88F1C" stroke-width="5" stroke-dasharray="4 14" stroke-linecap="round"/>
+</svg>

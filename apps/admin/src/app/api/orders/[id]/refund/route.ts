@@ -6,6 +6,7 @@ import {
 } from '@webzy/core';
 import { resolvePaymentProviderInstance } from '@webzy/core/server';
 import { sendTransactionalEmail } from '../../../../../../../../infra/email/resend';
+import { reportServerError } from '../../../../../../../../infra/sentry/monitor';
 import { writeAuditLog } from '../../../../../../../../infra/supabase/auth';
 import { createSupabaseMockStatusStore } from '../../../../../../../../infra/supabase/payments';
 import { requireVerifiedAdmin } from '../../../../../lib/requireAdmin';
@@ -99,12 +100,31 @@ export async function POST(
     const provider = resolvePaymentProviderInstance({
       statusStore: createSupabaseMockStatusStore(admin),
     });
-    const gwRefund = await provider.refund({
-      providerPaymentId,
-      amountPaise: order.amount_paise,
-      idempotencyKey,
-      reason,
-    });
+
+    let gwRefund: Awaited<ReturnType<typeof provider.refund>>;
+    try {
+      gwRefund = await provider.refund({
+        providerPaymentId,
+        amountPaise: order.amount_paise,
+        idempotencyKey,
+        reason,
+      });
+    } catch (gatewayErr) {
+      // Mark pending refund as failed so future retries are not permanently blocked
+      await admin
+        .from('refunds')
+        .update({
+          status: 'failed',
+          provider_status: 'gateway_error',
+        })
+        .eq('id', refundRow.id);
+      throw new WebzyError(
+        gatewayErr instanceof Error
+          ? `Payment gateway refund failed: ${gatewayErr.message.slice(0, 120)}`
+          : 'Payment gateway rejected the refund. You can safely retry.',
+        { code: 'REFUND_GATEWAY_ERROR', statusCode: 502 },
+      );
+    }
 
     await admin
       .from('refunds')
@@ -128,20 +148,24 @@ export async function POST(
       .eq('order_id', order.id);
 
     if (order.buyer_email) {
-      await sendTransactionalEmail({
-        to: order.buyer_email,
-        subject: `Refund processed for Order ${order.invoice_no || order.id.slice(0, 8)}`,
-        idempotencyKey: `refund_email_${order.id}`,
-        text: [
-          `Namaste ${order.buyer_name || 'Dost'},`,
-          '',
-          `Aapke order (${formatPaiseAsInr(order.amount_paise)}) ka refund initiate ho gaya hai.`,
-          `Refund ID: ${gwRefund.providerRefundId}`,
-          `Reason: ${reason}`,
-          '',
-          'Banks take 5 to 7 working days to reflect the refund in your account.',
-        ].join('\n'),
-      });
+      try {
+        await sendTransactionalEmail({
+          to: order.buyer_email,
+          subject: `Refund processed for Order ${order.invoice_no || order.id.slice(0, 8)}`,
+          idempotencyKey: `refund_email_${order.id}`,
+          text: [
+            `Namaste ${order.buyer_name || 'Dost'},`,
+            '',
+            `Aapke order (${formatPaiseAsInr(order.amount_paise)}) ka refund initiate ho gaya hai.`,
+            `Refund ID: ${gwRefund.providerRefundId}`,
+            `Reason: ${reason}`,
+            '',
+            'Banks take 5 to 7 working days to reflect the refund in your account.',
+          ].join('\n'),
+        });
+      } catch (mailErr) {
+        console.warn('[admin.refund] Non-fatal email transport error after refund:', mailErr);
+      }
     }
 
     await writeAuditLog({
@@ -170,6 +194,7 @@ export async function POST(
     if (err instanceof WebzyError) {
       return NextResponse.json({ error: err.message }, { status: err.statusCode });
     }
+    reportServerError(err, { route: '/api/orders/[id]/refund', app: 'admin' });
     logEvent('error', 'admin.refund.exception', {
       message: err instanceof Error ? err.message.slice(0, 120) : 'unknown',
     });

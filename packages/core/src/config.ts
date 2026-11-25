@@ -40,9 +40,14 @@ function toPositiveInt(val: string | undefined, fallback: number): number {
 }
 
 export function resolveAppEnvironment(env: NodeJS.ProcessEnv = process.env): AppEnvironment {
-  const raw = env.NEXT_PUBLIC_APP_ENV || env.NODE_ENV;
-  if (raw === 'production') return 'production';
-  if (raw === 'staging') return 'staging';
+  const explicit = env.NEXT_PUBLIC_APP_ENV?.trim().toLowerCase();
+  if (explicit === 'production') return 'production';
+  if (explicit === 'staging') return 'staging';
+  if (explicit === 'local') return 'local';
+
+  const nodeEnv = env.NODE_ENV?.trim().toLowerCase();
+  if (nodeEnv === 'production') return 'production';
+  if (nodeEnv === 'staging') return 'staging';
   return 'local';
 }
 
@@ -67,7 +72,7 @@ export function getWebzyPublicConfig(env: NodeJS.ProcessEnv = process.env): Webz
     appEnv,
     webUrl: env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3000',
     adminUrl: env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3001',
-    defaultValidityDays: toPositiveInt(env.DEFAULT_VALIDITY_DAYS, 30),
+    defaultValidityDays: toPositiveInt(env.DEFAULT_VALIDITY_DAYS, 7),
     gstRegistered: toBool(env.GST_REGISTERED, false),
     isMockPaymentMode,
     allowMockInProd,

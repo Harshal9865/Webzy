@@ -6,6 +6,30 @@ import { getAuthSessionState } from '../../../../../../../infra/supabase/auth';
 import { getSupabaseEnv } from '../../../../../../../infra/supabase/env';
 import { createSupabaseAdminClient } from '../../../../../../../infra/supabase/server';
 
+type SupabaseAdmin = ReturnType<typeof createSupabaseAdminClient>;
+
+async function removeStorageObjects(
+  admin: SupabaseAdmin,
+  keys: string[],
+  context: Record<string, string>,
+): Promise<void> {
+  if (keys.length === 0) return;
+  try {
+    const { error } = await admin.storage.from('webzy-media').remove(keys);
+    if (error) {
+      logEvent('warn', 'web.uploads.purge_storage_failed', {
+        ...context,
+        reason: error.message.slice(0, 100),
+      });
+    }
+  } catch (err) {
+    logEvent('warn', 'web.uploads.purge_storage_failed', {
+      ...context,
+      message: err instanceof Error ? err.message.slice(0, 100) : 'unknown',
+    });
+  }
+}
+
 export async function POST(request: NextRequest | Request) {
   try {
     const guard = await guardMutationRequest(request, {
@@ -19,7 +43,6 @@ export async function POST(request: NextRequest | Request) {
       return NextResponse.json({ error: 'Database not configured.' }, { status: 503 });
     }
 
-    const session = await getAuthSessionState();
     const body = (await request.json().catch(() => ({}))) as {
       siteId?: string;
       draftToken?: string;
@@ -37,6 +60,7 @@ export async function POST(request: NextRequest | Request) {
     const assetIdsToDelete: string[] = [];
 
     if (siteId) {
+      const session = await getAuthSessionState();
       if (!session.user) {
         return NextResponse.json({ error: 'Please sign in first.' }, { status: 401 });
       }
@@ -68,9 +92,7 @@ export async function POST(request: NextRequest | Request) {
       }
 
       // Execute storage file deletion
-      if (storageKeysToDelete.length > 0) {
-        await admin.storage.from('webzy-media').remove(storageKeysToDelete).catch(() => {});
-      }
+      await removeStorageObjects(admin, storageKeysToDelete, { siteId: site.id });
 
       // Mark assets as purged in DB
       const nowIso = new Date().toISOString();
@@ -91,7 +113,7 @@ export async function POST(request: NextRequest | Request) {
 
       // Log DPDP right to erasure in consent_log
       try {
-        await admin.from('consent_log').insert({
+        const { error: consentErr } = await admin.from('consent_log').insert({
           user_id: session.user.id,
           consent_type: 'dpdp_erasure_photos',
           version: '1.0',
@@ -101,8 +123,18 @@ export async function POST(request: NextRequest | Request) {
             timestamp: nowIso,
           },
         });
-      } catch {
-        // Non-blocking consent log recording
+        if (consentErr) {
+          logEvent('warn', 'web.uploads.purge_consent_log_failed', {
+            siteId: site.id,
+            dbCode: consentErr.code || 'unknown',
+            message: consentErr.message.slice(0, 100),
+          });
+        }
+      } catch (consentEx) {
+        logEvent('warn', 'web.uploads.purge_consent_log_failed', {
+          siteId: site.id,
+          message: consentEx instanceof Error ? consentEx.message.slice(0, 100) : 'unknown',
+        });
       }
 
       logEvent('info', 'web.uploads.purged_by_user', {
@@ -122,13 +154,23 @@ export async function POST(request: NextRequest | Request) {
       const tokenHash = crypto.createHash('sha256').update(draftToken).digest('hex');
       const { data: draft } = await admin
         .from('drafts')
-        .select('id')
+        .select('id, user_id')
         .eq('draft_token_hash', tokenHash)
         .is('deleted_at', null)
         .maybeSingle();
 
       if (!draft) {
         return NextResponse.json({ error: 'Draft not found.' }, { status: 404 });
+      }
+
+      if (draft.user_id) {
+        const session = await getAuthSessionState();
+        if (session.user?.id !== draft.user_id) {
+          return NextResponse.json(
+            { error: 'Please sign in with the account that created this draft.' },
+            { status: 403 },
+          );
+        }
       }
 
       const { data: assets } = await admin
@@ -144,9 +186,7 @@ export async function POST(request: NextRequest | Request) {
         }
       }
 
-      if (storageKeysToDelete.length > 0) {
-        await admin.storage.from('webzy-media').remove(storageKeysToDelete).catch(() => {});
-      }
+      await removeStorageObjects(admin, storageKeysToDelete, { draftId: draft.id });
 
       const nowIso = new Date().toISOString();
       if (assetIdsToDelete.length > 0) {
