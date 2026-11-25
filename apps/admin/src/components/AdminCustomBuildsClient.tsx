@@ -363,18 +363,18 @@ export function AdminCustomBuildsClient({
   const inProgressCount = totalCount - madeCount;
 
   return (
-    <section className="rounded-3xl border border-webzy-tint bg-white p-6 shadow-sm sm:p-8">
+    <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs sm:p-8">
       {/* Header and Live Overview */}
-      <div className="flex flex-col justify-between gap-4 border-b border-webzy-tint pb-6 md:flex-row md:items-center">
+      <div className="flex flex-col justify-between gap-4 border-b border-slate-200 pb-6 md:flex-row md:items-center">
         <div>
-          <div className="flex items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2.5">
             <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-webzy-primary text-xs font-bold text-white">
               CB
             </span>
             <h2 className="font-heading text-2xl font-bold text-webzy-ink">
               Custom Builds &amp; Studio Projects Pipeline
             </h2>
-            <span className="rounded-full bg-webzy-tint px-3 py-0.5 text-xs font-bold text-webzy-primary">
+            <span className="rounded-full bg-webzy-tint px-3 py-0.5 text-xs font-bold text-webzy-primary font-tabular">
               {totalCount} Total
             </span>
           </div>
@@ -384,7 +384,7 @@ export function AdminCustomBuildsClient({
         </div>
 
         {/* Quick Summary Badges */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 font-tabular">
           <div className="rounded-2xl border border-amber-200 bg-amber-50/70 px-3.5 py-1.5 text-xs font-semibold text-amber-900">
             <span className="font-bold">{inProgressCount}</span> Pending / In Build
           </div>
@@ -414,10 +414,10 @@ export function AdminCustomBuildsClient({
             suppressHydrationWarning
             type="button"
             onClick={() => setFilterSource('all')}
-            className={`min-h-[36px] rounded-full px-3.5 text-xs font-bold transition ${
+            className={`inline-flex min-h-[44px] items-center rounded-full px-4 text-xs font-bold transition ${
               filterSource === 'all'
                 ? 'bg-webzy-primary text-white shadow-btn-primary'
-                : 'border border-webzy-tint bg-webzy-surface text-webzy-ink hover:border-webzy-primary/40'
+                : 'border border-slate-200 bg-slate-50/70 text-webzy-ink hover:border-webzy-primary/40 hover:bg-slate-100'
             }`}
           >
             All Sources ({totalCount})
@@ -426,10 +426,10 @@ export function AdminCustomBuildsClient({
             suppressHydrationWarning
             type="button"
             onClick={() => setFilterSource('studio')}
-            className={`min-h-[36px] rounded-full px-3.5 text-xs font-bold transition ${
+            className={`inline-flex min-h-[44px] items-center rounded-full px-4 text-xs font-bold transition ${
               filterSource === 'studio'
                 ? 'bg-webzy-primary text-white shadow-btn-primary'
-                : 'border border-webzy-tint bg-webzy-surface text-webzy-ink hover:border-webzy-primary/40'
+                : 'border border-slate-200 bg-slate-50/70 text-webzy-ink hover:border-webzy-primary/40 hover:bg-slate-100'
             }`}
           >
             Studio Builds ({studioLeads.length})
@@ -438,22 +438,23 @@ export function AdminCustomBuildsClient({
             suppressHydrationWarning
             type="button"
             onClick={() => setFilterSource('request')}
-            className={`min-h-[36px] rounded-full px-3.5 text-xs font-bold transition ${
+            className={`inline-flex min-h-[44px] items-center rounded-full px-4 text-xs font-bold transition ${
               filterSource === 'request'
                 ? 'bg-webzy-primary text-white shadow-btn-primary'
-                : 'border border-webzy-tint bg-webzy-surface text-webzy-ink hover:border-webzy-primary/40'
+                : 'border border-slate-200 bg-slate-50/70 text-webzy-ink hover:border-webzy-primary/40 hover:bg-slate-100'
             }`}
           >
             Custom Celebration Briefs ({customRequests.length})
           </button>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <select
             suppressHydrationWarning
+            aria-label="Filter build status"
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="min-h-[36px] rounded-xl border border-webzy-tint bg-webzy-surface px-3 text-xs font-medium text-webzy-ink outline-none"
+            className="min-h-[44px] flex-1 sm:flex-none rounded-xl border border-slate-200 bg-slate-50/70 px-3 text-xs font-semibold text-webzy-ink outline-none focus:border-webzy-primary focus:bg-white"
           >
             <option value="all">All Statuses</option>
             <option value="pending">Pending / In Build</option>
@@ -468,14 +469,14 @@ export function AdminCustomBuildsClient({
             placeholder="Search client, business, city..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="min-h-[36px] rounded-xl border border-webzy-tint bg-webzy-surface px-3 text-xs text-webzy-ink outline-none"
+            className="min-h-[44px] w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 text-xs text-webzy-ink outline-none focus:border-webzy-primary focus:bg-white sm:w-60"
           />
         </div>
       </div>
 
       {/* Projects List */}
       {filteredProjects.length === 0 ? (
-        <div className="mt-8 rounded-2xl border border-dashed border-webzy-tint p-8 text-center">
+        <div className="mt-8 rounded-2xl border border-dashed border-slate-200 p-8 text-center">
           <p className="text-sm font-semibold text-webzy-ink/70">No custom build projects match your filters.</p>
           <p className="mt-1 text-xs text-webzy-ink/50">New requests submitted from /studio or /request will automatically appear here.</p>
         </div>
@@ -503,12 +504,12 @@ export function AdminCustomBuildsClient({
                     ? 'border-amber-400 bg-white shadow-sm'
                     : isFullyMade
                       ? 'border-emerald-200 bg-gradient-to-b from-emerald-50/20 via-white to-white shadow-xs'
-                      : 'border-webzy-tint bg-white shadow-xs hover:border-webzy-primary/40 hover:shadow-sm'
+                      : 'border-slate-200 bg-white shadow-xs hover:border-webzy-primary/40 hover:shadow-sm'
                 }`}
               >
                 {/* Project Header Bar */}
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-webzy-tint/60 bg-webzy-surface/40 p-4 sm:px-6">
-                  <div className="flex flex-wrap items-center gap-2.5">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-slate-50/70 p-4 sm:px-6">
+                  <div className="flex flex-wrap items-center gap-2.5 min-w-0">
                     <span
                       className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
                         p.source === 'studio'
@@ -549,7 +550,7 @@ export function AdminCustomBuildsClient({
                     ) : null}
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span
                       className={`rounded-full px-3 py-0.5 text-[11px] font-bold ${
                         isFullyMade
@@ -558,28 +559,28 @@ export function AdminCustomBuildsClient({
                             ? 'bg-indigo-100 text-indigo-800'
                             : p.status === 'contacted'
                               ? 'bg-amber-100 text-amber-900'
-                              : 'bg-webzy-surface text-webzy-ink/75 border border-webzy-tint'
+                              : 'bg-white text-webzy-ink/75 border border-slate-200'
                       }`}
                     >
                       {isFullyMade ? 'Website Made & Live' : p.status.toUpperCase()}
                     </span>
-                    <span suppressHydrationWarning className="text-[11px] text-webzy-ink/50">
+                    <span suppressHydrationWarning className="text-[11px] text-webzy-ink/50 font-tabular">
                       {p.createdAt ? p.createdAt.slice(0, 10) : '—'}
                     </span>
                   </div>
                 </div>
 
-                <div className="p-5 sm:p-6">
+                <div className="p-4 sm:p-6">
                   {/* Client Info and Contact Bar */}
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-12 sm:items-center">
-                    <div className="sm:col-span-7">
+                    <div className="min-w-0 sm:col-span-7">
                       <p className="text-sm font-bold text-webzy-ink">{p.clientName}</p>
-                      <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-webzy-ink/75">
-                        <span>{p.clientEmail}</span>
+                      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-webzy-ink/75">
+                        <span className="break-all">{p.clientEmail}</span>
                         {p.clientPhone ? (
                           <>
                             <span>·</span>
-                            <span>{p.clientPhone}</span>
+                            <span className="font-tabular">{p.clientPhone}</span>
                           </>
                         ) : null}
                         {p.city ? (
@@ -591,7 +592,7 @@ export function AdminCustomBuildsClient({
                         {p.budgetLabel ? (
                           <>
                             <span>·</span>
-                            <span className="font-bold text-emerald-700">{p.budgetLabel}</span>
+                            <span className="font-bold text-emerald-700 font-tabular">{p.budgetLabel}</span>
                           </>
                         ) : null}
                       </div>
@@ -604,7 +605,7 @@ export function AdminCustomBuildsClient({
                           href={`https://wa.me/${waNumber}?text=${waGreeting}`}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex min-h-[38px] items-center gap-1.5 rounded-full bg-emerald-600 px-4 text-xs font-bold text-white shadow-xs hover:bg-emerald-700"
+                          className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full bg-emerald-600 px-4 text-xs font-bold text-white shadow-xs hover:bg-emerald-700"
                         >
                           <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.303-.058.116-.087.188-.173.289l-.26.303c-.087.087-.177.181-.076.355.101.173.449.741.964 1.201.662.591 1.221.774 1.394.86.173.086.275.072.376-.043.101-.116.433-.506.549-.68.116-.173.231-.144.39-.086s1.011.477 1.184.564.289.13.332.202c.043.073.043.419-.101.824z" />
@@ -616,7 +617,7 @@ export function AdminCustomBuildsClient({
                       {p.clientPhone ? (
                         <a
                           href={`tel:${p.clientPhone}`}
-                          className="inline-flex min-h-[38px] items-center rounded-full border border-webzy-tint bg-white px-3 text-xs font-semibold text-webzy-ink hover:bg-webzy-surface"
+                          className="inline-flex min-h-[44px] items-center rounded-full border border-slate-200 bg-white px-4 text-xs font-semibold text-webzy-ink hover:bg-slate-50"
                         >
                           Call
                         </a>
@@ -624,7 +625,7 @@ export function AdminCustomBuildsClient({
 
                       <a
                         href={`mailto:${p.clientEmail}`}
-                        className="inline-flex min-h-[38px] items-center rounded-full border border-webzy-tint bg-white px-3 text-xs font-semibold text-webzy-ink hover:bg-webzy-surface"
+                        className="inline-flex min-h-[44px] items-center rounded-full border border-slate-200 bg-white px-4 text-xs font-semibold text-webzy-ink hover:bg-slate-50"
                       >
                         Email
                       </a>
@@ -632,13 +633,13 @@ export function AdminCustomBuildsClient({
                   </div>
 
                   {/* "How They Want The Website" Requirements Box */}
-                  <div className="mt-4 rounded-2xl border border-webzy-tint bg-webzy-surface/50 p-4">
-                    <div className="flex items-center justify-between">
+                  <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                       <span className="text-[11px] font-bold uppercase tracking-wider text-webzy-primary">
                         Website Requirements &amp; Brief (How They Want It)
                       </span>
                       {p.targetDate ? (
-                        <span className="text-[11px] text-webzy-ink/60">
+                        <span className="text-[11px] text-webzy-ink/60 font-tabular">
                           Target Date: <strong>{p.targetDate}</strong>
                         </span>
                       ) : null}
@@ -648,8 +649,8 @@ export function AdminCustomBuildsClient({
                     </p>
                   </div>
 
-                  {/* Build Checklist Section: "Check list if made or not basically updating" */}
-                  <div className="mt-5 rounded-2xl border border-webzy-tint bg-white p-4 sm:p-5 shadow-xs">
+                  {/* Build Checklist Section */}
+                  <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-xs">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
                         <h4 className="text-xs font-bold uppercase tracking-wider text-webzy-ink">
@@ -662,7 +663,7 @@ export function AdminCustomBuildsClient({
 
                       {/* Progress Bar & Meter */}
                       <div className="flex items-center gap-3">
-                        <div className="w-28 rounded-full bg-webzy-surface h-2 overflow-hidden border border-webzy-tint">
+                        <div className="w-28 rounded-full bg-slate-100 h-2 overflow-hidden border border-slate-200">
                           <div
                             className={`animate-shimmer h-full transition-all duration-300 ${
                               isFullyMade ? 'bg-emerald-600' : 'bg-webzy-primary'
@@ -671,7 +672,7 @@ export function AdminCustomBuildsClient({
                           />
                         </div>
                         <span
-                          className={`text-xs font-bold ${
+                          className={`text-xs font-bold font-tabular ${
                             isFullyMade ? 'text-emerald-700' : 'text-webzy-ink'
                           }`}
                         >
@@ -687,10 +688,10 @@ export function AdminCustomBuildsClient({
                         return (
                           <label
                             key={step.key}
-                            className={`flex cursor-pointer items-start gap-3 rounded-xl border p-2.5 text-xs transition ${
+                            className={`flex min-h-[44px] cursor-pointer items-start gap-3 rounded-xl border p-3 text-xs transition ${
                               isChecked
                                 ? 'border-emerald-300 bg-emerald-50/50 text-emerald-950 font-medium'
-                                : 'border-webzy-tint bg-webzy-surface/30 text-webzy-ink/80 hover:bg-webzy-surface'
+                                : 'border-slate-200 bg-slate-50/70 text-webzy-ink/80 hover:bg-slate-100'
                             }`}
                           >
                             <input
@@ -713,7 +714,7 @@ export function AdminCustomBuildsClient({
                   </div>
 
                   {/* Delivery Links, Quote, Status & Admin Notes */}
-                  <div className="mt-5 grid grid-cols-1 gap-4 border-t border-webzy-tint/60 pt-4 sm:grid-cols-12 sm:items-end">
+                  <div className="mt-5 grid grid-cols-1 gap-4 border-t border-slate-200 pt-4 sm:grid-cols-12 sm:items-end">
                     <div className="sm:col-span-3">
                       <label className="block text-[11px] font-bold text-webzy-ink">
                         Project Status
@@ -722,7 +723,7 @@ export function AdminCustomBuildsClient({
                         suppressHydrationWarning
                         value={p.status}
                         onChange={(e) => updateProjectField(p.id, 'status', e.target.value)}
-                        className="mt-1 min-h-[38px] w-full rounded-xl border border-webzy-tint bg-white px-3 text-xs font-semibold text-webzy-ink outline-none"
+                        className="mt-1 min-h-[44px] w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-webzy-ink outline-none focus:border-webzy-primary"
                       >
                         {p.source === 'studio' ? (
                           <>
@@ -760,7 +761,7 @@ export function AdminCustomBuildsClient({
                         placeholder="e.g. 4999"
                         value={p.quotedAmountInr}
                         onChange={(e) => updateProjectField(p.id, 'quotedAmountInr', e.target.value)}
-                        className="mt-1 min-h-[38px] w-full rounded-xl border border-webzy-tint bg-white px-3 text-xs text-webzy-ink outline-none"
+                        className="mt-1 min-h-[44px] w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-tabular text-webzy-ink outline-none focus:border-webzy-primary"
                       />
                     </div>
 
@@ -774,7 +775,7 @@ export function AdminCustomBuildsClient({
                         placeholder="https://webzy.in/s/sample"
                         value={p.previewUrl}
                         onChange={(e) => updateProjectField(p.id, 'previewUrl', e.target.value)}
-                        className="mt-1 min-h-[38px] w-full rounded-xl border border-webzy-tint bg-white px-3 text-xs text-webzy-ink outline-none"
+                        className="mt-1 min-h-[44px] w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-webzy-ink outline-none focus:border-webzy-primary"
                       />
                     </div>
 
@@ -788,7 +789,7 @@ export function AdminCustomBuildsClient({
                         placeholder="https://drrajeshclinic.in"
                         value={p.liveUrl}
                         onChange={(e) => updateProjectField(p.id, 'liveUrl', e.target.value)}
-                        className="mt-1 min-h-[38px] w-full rounded-xl border border-webzy-tint bg-white px-3 text-xs text-webzy-ink outline-none"
+                        className="mt-1 min-h-[44px] w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-webzy-ink outline-none focus:border-webzy-primary"
                       />
                     </div>
 
@@ -803,7 +804,7 @@ export function AdminCustomBuildsClient({
                         placeholder="Add build notes, revision feedback, or payment schedule..."
                         value={p.adminNotes}
                         onChange={(e) => updateProjectField(p.id, 'adminNotes', e.target.value)}
-                        className="mt-1 min-h-[38px] w-full rounded-xl border border-webzy-tint bg-white px-3 text-xs text-webzy-ink outline-none"
+                        className="mt-1 min-h-[44px] w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-webzy-ink outline-none focus:border-webzy-primary"
                       />
                     </div>
 
@@ -813,7 +814,7 @@ export function AdminCustomBuildsClient({
                           href={p.liveUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex min-h-[38px] items-center rounded-xl border border-emerald-300 bg-emerald-50 px-3 text-xs font-bold text-emerald-800 hover:bg-emerald-100"
+                          className="inline-flex min-h-[44px] items-center rounded-xl border border-emerald-300 bg-emerald-50 px-3.5 text-xs font-bold text-emerald-800 hover:bg-emerald-100"
                         >
                           Live ↗
                         </a>
@@ -822,7 +823,7 @@ export function AdminCustomBuildsClient({
                           href={p.previewUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex min-h-[38px] items-center rounded-xl border border-webzy-tint bg-webzy-surface px-3 text-xs font-bold text-webzy-primary hover:bg-webzy-tint"
+                          className="inline-flex min-h-[44px] items-center rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 text-xs font-bold text-webzy-primary hover:bg-slate-100"
                         >
                           Preview ↗
                         </a>
@@ -834,7 +835,7 @@ export function AdminCustomBuildsClient({
                           type="button"
                           disabled={busyId === p.id}
                           onClick={() => void handleSaveProject(p, true)}
-                          className="inline-flex min-h-[38px] items-center rounded-full border border-emerald-300 bg-emerald-50 px-3.5 text-xs font-bold text-emerald-900 transition hover:bg-emerald-100 disabled:opacity-50"
+                          className="inline-flex min-h-[44px] items-center rounded-full border border-emerald-300 bg-emerald-50 px-4 text-xs font-bold text-emerald-900 transition hover:bg-emerald-100 disabled:opacity-50"
                         >
                           Save &amp; Email Quote
                         </button>
@@ -845,7 +846,7 @@ export function AdminCustomBuildsClient({
                         type="button"
                         disabled={busyId === p.id}
                         onClick={() => void handleSaveProject(p, false)}
-                        className={`inline-flex min-h-[38px] items-center rounded-full px-5 text-xs font-bold text-white shadow-xs transition hover:opacity-95 disabled:opacity-50 ${
+                        className={`inline-flex min-h-[44px] items-center rounded-full px-5 text-xs font-bold text-white shadow-xs transition hover:opacity-95 disabled:opacity-50 ${
                           isDirty
                             ? 'bg-amber-600 ring-2 ring-amber-300'
                             : 'bg-webzy-primary'

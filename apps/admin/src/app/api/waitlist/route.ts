@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const guard = await requireVerifiedAdmin();
+  const guard = await requireVerifiedAdmin(request);
   if (!guard.ok) return guard.response;
 
   try {

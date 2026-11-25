@@ -127,6 +127,9 @@ type QuickPillFilter = 'all' | 'wedding' | 'occasion' | 'pin_locked' | 'expiring
 
 export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps) {
   const [sites, setSites] = useState<AdminSiteItem[]>(initialSites);
+  const [totalCount, setTotalCount] = useState<number | null>(null);
+  const [hasMore, setHasMore] = useState<boolean>(initialSites.length >= 50);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [query, setQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'wedding' | 'occasion'>('all');
@@ -148,7 +151,52 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
 
   useEffect(() => {
     setSites(initialSites);
+    setTotalCount(null);
+    setHasMore(initialSites.length >= 50);
   }, [initialSites]);
+
+  async function handleLoadMore() {
+    if (loadingMore) return;
+    setLoadingMore(true);
+    setErrorMsg('');
+    try {
+      const res = await fetch(`/api/sites?limit=50&offset=${sites.length}`);
+      const data = (await res.json()) as {
+        ok?: boolean;
+        sites?: AdminSiteItem[];
+        pagination?: { limit: number; offset: number; total: number };
+        error?: string;
+      };
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || 'Failed to load more sites.');
+      }
+      const incoming = data.sites || [];
+      const total = typeof data.pagination?.total === 'number' ? data.pagination.total : null;
+      if (total !== null) {
+        setTotalCount(total);
+      }
+
+      const existingIds = new Set(sites.map((s) => s.id));
+      const uniqueIncoming = incoming.filter((item) => !existingIds.has(item.id));
+      const nextCount = sites.length + uniqueIncoming.length;
+
+      setSites((prev) => {
+        const seen = new Set(prev.map((s) => s.id));
+        const deduped = incoming.filter((item) => !seen.has(item.id));
+        return [...prev, ...deduped];
+      });
+
+      if (total !== null) {
+        setHasMore(nextCount < total && incoming.length > 0);
+      } else {
+        setHasMore(incoming.length >= 50);
+      }
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'Error loading more sites.');
+    } finally {
+      setLoadingMore(false);
+    }
+  }
 
   useEffect(() => {
     if (!editingSite && !rsvpInspectSite) return;
@@ -319,14 +367,14 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
   const editingIsWedding = editingSite ? getThemeId(editingSite).startsWith('wedding-') : false;
 
   return (
-    <section className="rounded-3xl border border-webzy-tint bg-white p-6 shadow-xs">
+    <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <h2 className="font-heading text-xl font-bold text-webzy-ink">
               Live Sites &amp; Typo Hot-Fixer
             </h2>
-            <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-900">
+            <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-900 font-tabular">
               {sites.filter((s) => s.status === 'live' && !s.hidden).length} Active
             </span>
           </div>
@@ -335,12 +383,12 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <select
             aria-label="Filter site type"
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value as 'all' | 'wedding' | 'occasion')}
-            className="min-h-[38px] rounded-xl border border-webzy-tint bg-webzy-surface px-3 text-xs font-semibold text-webzy-ink outline-none"
+            className="min-h-[44px] flex-1 sm:flex-none rounded-xl border border-slate-200 bg-slate-50/70 px-3 text-xs font-semibold text-webzy-ink outline-none focus:border-webzy-primary focus:bg-white"
           >
             <option value="all">All types</option>
             <option value="wedding">Weddings only</option>
@@ -352,7 +400,7 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
             aria-label="Filter site status"
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="min-h-[38px] rounded-xl border border-webzy-tint bg-webzy-surface px-3 text-xs font-semibold text-webzy-ink outline-none"
+            className="min-h-[44px] flex-1 sm:flex-none rounded-xl border border-slate-200 bg-slate-50/70 px-3 text-xs font-semibold text-webzy-ink outline-none focus:border-webzy-primary focus:bg-white"
           >
             <option value="all">All statuses</option>
             <option value="live">Live only</option>
@@ -367,7 +415,7 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search slug, couple, or theme..."
-            className="min-h-[38px] w-48 rounded-xl border border-webzy-tint bg-webzy-surface px-3 text-xs text-webzy-ink outline-none focus:border-webzy-primary sm:w-56"
+            className="min-h-[44px] w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 text-xs text-webzy-ink outline-none focus:border-webzy-primary focus:bg-white sm:w-56"
           />
         </div>
       </div>
@@ -387,22 +435,22 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
         </div>
       ) : null}
 
-      <div className="mt-5 overflow-x-auto">
+      <div className="mt-5 overflow-x-auto rounded-2xl border border-slate-200">
         <table className="w-full text-left text-xs">
-          <thead>
-            <tr className="border-b border-webzy-tint font-bold text-webzy-ink/70">
-              <th className="pb-3 pr-4">Link / Theme</th>
-              <th className="pb-3 pr-4">Recipient &amp; Sender</th>
-              <th className="pb-3 pr-4">Status</th>
-              <th className="pb-3 pr-4">Views</th>
-              <th className="pb-3 pr-4">Expires</th>
-              <th className="pb-3 text-right">Actions</th>
+          <thead className="bg-slate-50/70">
+            <tr className="border-b border-slate-200 font-bold text-slate-600">
+              <th className="px-4 py-3">Link / Theme</th>
+              <th className="px-4 py-3">Recipient &amp; Sender</th>
+              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">Views</th>
+              <th className="px-4 py-3">Expires</th>
+              <th className="px-4 py-3 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-webzy-tint/60">
+          <tbody className="divide-y divide-slate-200">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={6} className="py-6 text-center text-webzy-ink/60">
+                <td colSpan={6} className="px-4 py-6 text-center text-webzy-ink/60">
                   No Webzy links match current filters.
                 </td>
               </tr>
@@ -413,13 +461,14 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
                 const isWedding = themeId.startsWith('wedding-');
                 const hasPin = typeof content.secretPinHash === 'string' && content.secretPinHash.length >= 32;
                 const rsvpList = isWedding ? extractRsvpResponses(site) : [];
-                const liveUrl = `${webUrl.replace(/\/$/, '')}/s/${site.slug}`;
+                const cleanBase = webUrl.trim().replace(/\/+$/, '');
+                const liveUrl = cleanBase ? `${cleanBase}/s/${site.slug}` : `/s/${site.slug}`;
                 const isHidden = site.hidden || site.status === 'hidden';
 
                 return (
-                  <tr key={site.id} className="transition-colors hover:bg-webzy-surface/50">
-                    <td className="py-3 pr-4">
-                      <div className="flex items-center gap-2">
+                  <tr key={site.id} className="transition-colors hover:bg-slate-50/70">
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap items-center gap-2">
                         <a
                           href={liveUrl}
                           target="_blank"
@@ -431,7 +480,7 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
                         <button
                           type="button"
                           onClick={() => handleCopy(liveUrl, site.id)}
-                          className="rounded-md border border-webzy-tint bg-white px-2 py-0.5 text-[10px] font-semibold text-webzy-ink hover:bg-webzy-surface"
+                          className="inline-flex min-h-[44px] items-center rounded-lg border border-slate-200 bg-white px-3 text-[11px] font-semibold text-webzy-ink hover:bg-slate-50"
                         >
                           {copiedId === site.id ? 'Copied' : 'Copy'}
                         </button>
@@ -440,7 +489,7 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
                         <span
                           className={`rounded px-1.5 py-0.5 text-[9.5px] font-bold uppercase ${isWedding
                             ? 'bg-amber-100 text-amber-900'
-                            : 'bg-webzy-surface text-webzy-ink/70'
+                            : 'border border-slate-200 bg-slate-50 text-webzy-ink/70'
                             }`}
                         >
                           {isWedding ? 'Wedding' : 'Occasion'}
@@ -450,12 +499,12 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
                             PIN Locked
                           </span>
                         ) : null}
-                        <span suppressHydrationWarning className="text-[10.5px] text-webzy-ink/50">
+                        <span suppressHydrationWarning className="text-[10.5px] text-webzy-ink/50 font-tabular">
                           {site.created_at ? site.created_at.slice(0, 10) : '—'}
                         </span>
                       </div>
                     </td>
-                    <td className="py-3 pr-4">
+                    <td className="px-4 py-3">
                       <p className="font-bold text-webzy-ink">
                         {String(content.receiverName || 'Recipient')}
                       </p>
@@ -463,30 +512,30 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
                         From {String(content.senderName || 'Host')}
                       </p>
                     </td>
-                    <td className="py-3 pr-4">
+                    <td className="px-4 py-3">
                       <span
-                        className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${isHidden
+                        className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase ${isHidden
                           ? 'bg-amber-100 text-amber-900'
                           : site.status === 'expired'
-                            ? 'bg-gray-200 text-gray-700'
+                            ? 'bg-slate-200 text-slate-700'
                             : 'bg-emerald-100 text-emerald-900'
                           }`}
                       >
                         {isHidden ? 'Paused' : site.status}
                       </span>
                     </td>
-                    <td className="py-3 pr-4 font-semibold text-webzy-ink font-tabular">
+                    <td className="px-4 py-3 font-semibold text-webzy-ink font-tabular">
                       {site.views_count}
                     </td>
-                    <td suppressHydrationWarning className="py-3 pr-4 text-webzy-ink/70 font-tabular">
+                    <td suppressHydrationWarning className="px-4 py-3 text-webzy-ink/70 font-tabular">
                       {site.expires_at ? site.expires_at.slice(0, 10) : '—'}
                     </td>
-                    <td className="py-3 text-right">
+                    <td className="px-4 py-3 text-right">
                       <div className="flex flex-wrap items-center justify-end gap-1.5">
                         <button
                           type="button"
                           onClick={() => openEditModal(site)}
-                          className="min-h-[30px] rounded-lg border border-webzy-tint bg-white px-2.5 text-[11px] font-semibold text-webzy-primary hover:bg-webzy-surface"
+                          className="inline-flex min-h-[44px] items-center rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-webzy-primary hover:bg-slate-50"
                         >
                           Hot-Fix
                         </button>
@@ -494,9 +543,9 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
                           <button
                             type="button"
                             onClick={() => setRsvpInspectSite(site)}
-                            className={`min-h-[30px] rounded-lg border px-2.5 text-[11px] font-semibold transition ${rsvpList.length > 0
+                            className={`inline-flex min-h-[44px] items-center rounded-xl border px-3 text-xs font-semibold transition ${rsvpList.length > 0
                               ? 'border-emerald-300 bg-emerald-50 text-emerald-900 hover:bg-emerald-100'
-                              : 'border-webzy-tint bg-white text-webzy-ink/70 hover:bg-webzy-surface'
+                              : 'border-slate-200 bg-white text-webzy-ink/70 hover:bg-slate-50'
                               }`}
                           >
                             RSVPs ({rsvpList.length})
@@ -507,7 +556,7 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
                             type="button"
                             disabled={busyId === site.id}
                             onClick={() => void handleSiteAction(site.id, 'clear_pin')}
-                            className="min-h-[30px] rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 text-[11px] font-semibold text-indigo-900 hover:bg-indigo-100 disabled:opacity-50"
+                            className="inline-flex min-h-[44px] items-center rounded-xl border border-indigo-200 bg-indigo-50 px-3 text-xs font-semibold text-indigo-900 hover:bg-indigo-100 disabled:opacity-50"
                           >
                             Unlock PIN
                           </button>
@@ -517,7 +566,7 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
                           type="button"
                           disabled={busyId === site.id}
                           onClick={() => handleSiteAction(site.id, isHidden ? 'unpause' : 'pause')}
-                          className={`min-h-[30px] rounded-lg px-2.5 text-[11px] font-semibold transition disabled:opacity-50 ${isHidden
+                          className={`inline-flex min-h-[44px] items-center rounded-xl px-3 text-xs font-semibold transition disabled:opacity-50 ${isHidden
                             ? 'bg-emerald-600 text-white hover:bg-emerald-700'
                             : 'border border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100'
                             }`}
@@ -529,7 +578,7 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
                           type="button"
                           disabled={busyId === site.id}
                           onClick={() => handleSiteAction(site.id, 'extend_30d')}
-                          className="min-h-[30px] rounded-lg border border-webzy-tint bg-white px-2.5 text-[11px] font-semibold text-webzy-ink hover:bg-webzy-surface disabled:opacity-50"
+                          className="inline-flex min-h-[44px] items-center rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-webzy-ink hover:bg-slate-50 disabled:opacity-50"
                         >
                           +30d
                         </button>
@@ -538,7 +587,7 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
                             type="button"
                             disabled={busyId === site.id}
                             onClick={() => void handleSiteAction(site.id, 'purge_photos')}
-                            className="min-h-[30px] rounded-lg bg-red-600 px-2.5 text-[11px] font-bold text-white hover:bg-red-700 disabled:opacity-50"
+                            className="inline-flex min-h-[44px] items-center rounded-xl bg-red-600 px-3 text-xs font-bold text-white hover:bg-red-700 disabled:opacity-50"
                           >
                             Confirm Purge
                           </button>
@@ -547,7 +596,7 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
                             type="button"
                             disabled={busyId === site.id}
                             onClick={() => setConfirmPurgeId(site.id)}
-                            className="min-h-[30px] rounded-lg border border-red-200 bg-red-50 px-2.5 text-[11px] font-semibold text-red-700 hover:bg-red-100 disabled:opacity-50"
+                            className="inline-flex min-h-[44px] items-center rounded-xl border border-red-200 bg-red-50 px-3 text-xs font-semibold text-red-700 hover:bg-red-100 disabled:opacity-50"
                           >
                             Purge Media
                           </button>
@@ -562,13 +611,40 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
         </table>
       </div>
 
+      {/* Pagination Footer */}
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <p className="text-xs font-medium text-slate-600 font-tabular">
+          Showing {sites.length}
+          {totalCount !== null ? ` of ${totalCount}` : ''} loaded sites
+        </p>
+        {hasMore && (totalCount === null || sites.length < totalCount) ? (
+          <button
+            type="button"
+            disabled={loadingMore}
+            onClick={() => void handleLoadMore()}
+            className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-slate-200 bg-white px-5 text-xs font-bold text-slate-800 shadow-xs transition hover:border-webzy-primary/50 hover:bg-slate-50 disabled:opacity-50"
+          >
+            {loadingMore ? 'Loading more...' : 'Load More'}
+          </button>
+        ) : null}
+      </div>
+
       {/* Inline Content Typo Hot-Fixer Modal */}
       {editingSite ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-webzy-tint pb-3">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="hotfix-modal-title"
+          onClick={() => setEditingSite(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="animate-scale-in w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl"
+          >
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
               <div>
-                <h3 className="font-heading text-lg font-bold text-webzy-ink">
+                <h3 id="hotfix-modal-title" className="font-heading text-lg font-bold text-webzy-ink">
                   Hot-Fix Live Content: /s/{editingSite.slug}
                 </h3>
                 <p className="text-xs text-webzy-ink/60">
@@ -581,7 +657,7 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
                 type="button"
                 onClick={() => setEditingSite(null)}
                 aria-label="Close modal"
-                className="flex h-8 w-8 items-center justify-center rounded-full text-webzy-ink/60 hover:bg-webzy-surface"
+                className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-webzy-ink/60 hover:bg-slate-100"
               >
                 ×
               </button>
@@ -597,7 +673,7 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
                   required
                   value={editReceiverName}
                   onChange={(e) => setEditReceiverName(e.target.value)}
-                  className="mt-1 min-h-[40px] w-full rounded-xl border border-webzy-tint px-3 text-sm text-webzy-ink outline-none focus:border-webzy-primary"
+                  className="mt-1 min-h-[44px] w-full rounded-xl border border-slate-200 px-3 text-sm text-webzy-ink outline-none focus:border-webzy-primary"
                 />
               </div>
 
@@ -609,7 +685,7 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
                   type="text"
                   value={editSenderName}
                   onChange={(e) => setEditSenderName(e.target.value)}
-                  className="mt-1 min-h-[40px] w-full rounded-xl border border-webzy-tint px-3 text-sm text-webzy-ink outline-none focus:border-webzy-primary"
+                  className="mt-1 min-h-[44px] w-full rounded-xl border border-slate-200 px-3 text-sm text-webzy-ink outline-none focus:border-webzy-primary"
                 />
               </div>
 
@@ -621,7 +697,7 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
                   rows={4}
                   value={editMessage}
                   onChange={(e) => setEditMessage(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-webzy-tint p-3 text-sm text-webzy-ink outline-none focus:border-webzy-primary"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-3 text-sm text-webzy-ink outline-none focus:border-webzy-primary"
                 />
               </div>
 
@@ -629,14 +705,14 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
                 <button
                   type="button"
                   onClick={() => setEditingSite(null)}
-                  className="rounded-full border border-webzy-tint px-4 py-2 font-bold text-webzy-ink hover:bg-webzy-surface"
+                  className="inline-flex min-h-[44px] items-center rounded-full border border-slate-200 px-5 font-bold text-webzy-ink hover:bg-slate-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={savingEdit}
-                  className="rounded-full bg-webzy-primary px-5 py-2 font-bold text-white hover:opacity-95 disabled:opacity-50"
+                  className="inline-flex min-h-[44px] items-center rounded-full bg-webzy-primary px-5 font-bold text-white hover:opacity-95 disabled:opacity-50"
                 >
                   {savingEdit ? 'Updating Live Site...' : 'Save & Hot-Fix Now'}
                 </button>
@@ -668,14 +744,14 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
           >
             <div
               onClick={(e) => e.stopPropagation()}
-              className="animate-scale-in flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl"
+              className="animate-scale-in flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl"
             >
-              <div className="flex items-center justify-between border-b border-webzy-tint px-6 py-4">
+              <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
                 <div>
                   <h3 id="rsvp-inspect-title" className="font-heading text-lg font-bold text-webzy-ink">
                     Live Wedding RSVPs: {participants.receiverDisplay}
                   </h3>
-                  <p className="text-xs text-webzy-ink/60">
+                  <p className="text-xs text-webzy-ink/60 font-tabular">
                     /s/{rsvpInspectSite.slug} · {inspectRsvps.length} response(s) · {confirmedGuests} confirmed guest(s)
                   </p>
                 </div>
@@ -683,30 +759,30 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
                   type="button"
                   aria-label="Close RSVP modal"
                   onClick={() => setRsvpInspectSite(null)}
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-webzy-ink/60 hover:bg-webzy-surface"
+                  className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-webzy-ink/60 hover:bg-slate-100"
                 >
                   ×
                 </button>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2 border-b border-webzy-tint/60 bg-webzy-surface/40 px-6 py-3 text-xs font-bold font-tabular">
+              <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 bg-slate-50/70 px-6 py-3 text-xs font-bold font-tabular">
                 <span className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-900">
                   Attending Guests: {confirmedGuests}
                 </span>
-                <span className="rounded-full bg-white border border-webzy-tint px-3 py-1 text-webzy-ink">
+                <span className="rounded-full bg-white border border-slate-200 px-3 py-1 text-webzy-ink">
                   Pure Veg: {vegCount}
                 </span>
-                <span className="rounded-full bg-white border border-webzy-tint px-3 py-1 text-webzy-ink">
+                <span className="rounded-full bg-white border border-slate-200 px-3 py-1 text-webzy-ink">
                   Jain / Special: {jainCount}
                 </span>
-                <span className="rounded-full bg-white border border-webzy-tint px-3 py-1 text-webzy-ink">
+                <span className="rounded-full bg-white border border-slate-200 px-3 py-1 text-webzy-ink">
                   Non-Veg: {nonVegCount}
                 </span>
               </div>
 
               <div className="flex-1 overflow-y-auto p-6">
                 {inspectRsvps.length === 0 ? (
-                  <div className="rounded-2xl border border-dashed border-webzy-tint p-8 text-center text-xs text-webzy-ink/65">
+                  <div className="rounded-2xl border border-dashed border-slate-200 p-8 text-center text-xs text-webzy-ink/65">
                     No guest RSVPs recorded yet on /s/{rsvpInspectSite.slug}. Responses appear here in real time when families confirm attendance.
                   </div>
                 ) : (
@@ -717,7 +793,7 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
                       return (
                         <div
                           key={`${entry.guestName}-${idx}`}
-                          className="rounded-2xl border border-webzy-tint bg-webzy-surface/35 p-4 text-xs"
+                          className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 text-xs"
                         >
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <div className="flex flex-wrap items-center gap-2">
@@ -752,7 +828,7 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
                                     href={`https://wa.me/${waPhone}`}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="font-bold text-emerald-700 hover:underline"
+                                    className="inline-flex min-h-[44px] items-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 font-bold text-emerald-700 hover:bg-emerald-100"
                                   >
                                     WhatsApp ↗
                                   </a>

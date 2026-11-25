@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { reportServerError } from '../../../../../../infra/sentry/monitor';
 import { loadAdminDashboardSnapshot } from '../../../../../../infra/supabase/adminSnapshot';
 import { requireVerifiedAdmin } from '../../../lib/requireAdmin';
 
@@ -14,7 +15,8 @@ export async function GET() {
       { ok: true, ...snapshot },
       { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } },
     );
-  } catch {
+  } catch (err) {
+    reportServerError(err, { route: '/api/realtime', app: 'admin' });
     return NextResponse.json({ error: 'Realtime sync failed.' }, { status: 500 });
   }
 }

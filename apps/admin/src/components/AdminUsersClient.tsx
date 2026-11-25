@@ -20,6 +20,9 @@ interface AdminUsersClientProps {
 
 export function AdminUsersClient({ initialUsers }: AdminUsersClientProps) {
   const [users, setUsers] = useState<AdminUserItem[]>(initialUsers);
+  const [totalCount, setTotalCount] = useState<number | null>(null);
+  const [hasMore, setHasMore] = useState<boolean>(initialUsers.length >= 50);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [query, setQuery] = useState('');
   const [segment, setSegment] = useState<'all' | 'paid' | 'banned' | 'admins'>('all');
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -32,7 +35,62 @@ export function AdminUsersClient({ initialUsers }: AdminUsersClientProps) {
 
   useEffect(() => {
     setUsers(initialUsers);
+    setTotalCount(null);
+    setHasMore(initialUsers.length >= 50);
   }, [initialUsers]);
+
+  useEffect(() => {
+    if (!banTarget) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        setBanTarget(null);
+      }
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [banTarget]);
+
+  async function handleLoadMore() {
+    if (loadingMore) return;
+    setLoadingMore(true);
+    setErrorMsg('');
+    try {
+      const res = await fetch(`/api/users?limit=50&offset=${users.length}`);
+      const data = (await res.json()) as {
+        ok?: boolean;
+        users?: AdminUserItem[];
+        pagination?: { limit: number; offset: number; total: number };
+        error?: string;
+      };
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || 'Failed to load more users.');
+      }
+      const incoming = data.users || [];
+      const total = typeof data.pagination?.total === 'number' ? data.pagination.total : null;
+      if (total !== null) {
+        setTotalCount(total);
+      }
+      const existingIds = new Set(users.map((u) => u.id));
+      const uniqueIncoming = incoming.filter((item) => !existingIds.has(item.id));
+      const nextCount = users.length + uniqueIncoming.length;
+
+      setUsers((prev) => {
+        const seen = new Set(prev.map((u) => u.id));
+        const deduped = incoming.filter((item) => !seen.has(item.id));
+        return [...prev, ...deduped];
+      });
+
+      if (total !== null) {
+        setHasMore(nextCount < total && incoming.length > 0);
+      } else {
+        setHasMore(incoming.length >= 50);
+      }
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'Error loading more users.');
+    } finally {
+      setLoadingMore(false);
+    }
+  }
 
   const filtered = users.filter((u) => {
     if (segment === 'paid' && u.ordersCount <= 0) return false;
@@ -87,13 +145,13 @@ export function AdminUsersClient({ initialUsers }: AdminUsersClientProps) {
   }
 
   return (
-    <section className="rounded-3xl border border-webzy-tint bg-white p-6 shadow-xs">
+    <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <h2 className="font-heading text-xl font-bold text-webzy-ink">Users Directory</h2>
-            <span className="rounded-full bg-webzy-tint px-2.5 py-0.5 text-xs font-bold text-webzy-primary">
-              {totalRegistered} Accounts
+            <span className="rounded-full bg-webzy-tint px-2.5 py-0.5 text-xs font-bold text-webzy-primary font-tabular">
+              {totalCount ?? totalRegistered} Accounts
             </span>
           </div>
           <p className="mt-1 text-xs text-webzy-ink/70">
@@ -107,7 +165,7 @@ export function AdminUsersClient({ initialUsers }: AdminUsersClientProps) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search by name, email or phone..."
-          className="min-h-[40px] w-full rounded-xl border border-webzy-tint bg-webzy-surface px-3.5 text-xs text-webzy-ink outline-none focus:border-webzy-primary sm:w-72"
+          className="min-h-[44px] w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 text-xs text-webzy-ink outline-none focus:border-webzy-primary focus:bg-white sm:w-72"
         />
       </div>
 
@@ -125,9 +183,9 @@ export function AdminUsersClient({ initialUsers }: AdminUsersClientProps) {
             key={tab.id}
             type="button"
             onClick={() => setSegment(tab.id)}
-            className={`min-h-[32px] rounded-full px-3 text-xs font-bold transition ${segment === tab.id
+            className={`inline-flex min-h-[44px] items-center rounded-full px-4 text-xs font-bold transition ${segment === tab.id
               ? 'bg-webzy-primary text-white shadow-btn-primary'
-              : 'border border-webzy-tint bg-webzy-surface text-webzy-ink hover:border-webzy-primary/40'
+              : 'border border-slate-200 bg-slate-50/70 text-webzy-ink hover:border-webzy-primary/40 hover:bg-slate-100'
               }`}
           >
             {tab.label}
@@ -150,45 +208,45 @@ export function AdminUsersClient({ initialUsers }: AdminUsersClientProps) {
         </div>
       ) : null}
 
-      <div className="mt-5 overflow-x-auto">
+      <div className="mt-5 overflow-x-auto rounded-2xl border border-slate-200">
         <table className="w-full text-left text-xs">
-          <thead>
-            <tr className="border-b border-webzy-tint font-bold text-webzy-ink/70">
-              <th className="pb-3 pr-4">User</th>
-              <th className="pb-3 pr-4">Role</th>
-              <th className="pb-3 pr-4">Paid Orders</th>
-              <th className="pb-3 pr-4">Sites</th>
-              <th className="pb-3 pr-4">Joined</th>
-              <th className="pb-3 pr-4">Status</th>
-              <th className="pb-3 text-right">Action</th>
+          <thead className="bg-slate-50/70">
+            <tr className="border-b border-slate-200 font-bold text-slate-600">
+              <th className="px-4 py-3">User</th>
+              <th className="px-4 py-3">Role</th>
+              <th className="px-4 py-3">Paid Orders</th>
+              <th className="px-4 py-3">Sites</th>
+              <th className="px-4 py-3">Joined</th>
+              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3 text-right">Action</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-webzy-tint/60">
+          <tbody className="divide-y divide-slate-200">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={7} className="py-6 text-center text-webzy-ink/60">
+                <td colSpan={7} className="px-4 py-6 text-center text-webzy-ink/60">
                   {query ? 'No matching users found.' : 'No users in this segment.'}
                 </td>
               </tr>
             ) : (
               filtered.map((user) => (
-                <tr key={user.id} className="transition-colors hover:bg-webzy-surface/50">
-                  <td className="py-3 pr-4">
+                <tr key={user.id} className="transition-colors hover:bg-slate-50/70">
+                  <td className="px-4 py-3">
                     <p className="font-bold text-webzy-ink">{user.full_name || 'Unnamed User'}</p>
                     <p className="font-mono text-[11px] text-webzy-ink/65">{user.email}</p>
-                    {user.phone ? <p className="text-[11px] text-webzy-ink/50">{user.phone}</p> : null}
+                    {user.phone ? <p className="text-[11px] text-webzy-ink/50 font-tabular">{user.phone}</p> : null}
                   </td>
-                  <td className="py-3 pr-4">
+                  <td className="px-4 py-3">
                     <span
-                      className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${user.role === 'admin'
+                      className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase ${user.role === 'admin'
                         ? 'bg-purple-100 text-purple-900'
-                        : 'bg-webzy-surface text-webzy-ink/70'
+                        : 'border border-slate-200 bg-slate-50 text-webzy-ink/70'
                         }`}
                     >
                       {user.role}
                     </span>
                   </td>
-                  <td className="py-3 pr-4 font-tabular">
+                  <td className="px-4 py-3 font-tabular">
                     <span
                       className={`font-semibold ${user.ordersCount > 0 ? 'text-emerald-700' : 'text-webzy-ink/50'
                         }`}
@@ -196,15 +254,15 @@ export function AdminUsersClient({ initialUsers }: AdminUsersClientProps) {
                       {user.ordersCount} paid
                     </span>
                   </td>
-                  <td className="py-3 pr-4 font-tabular">
+                  <td className="px-4 py-3 font-tabular">
                     <span className="font-semibold text-webzy-ink">{user.sitesCount} links</span>
                   </td>
-                  <td suppressHydrationWarning className="py-3 pr-4 text-webzy-ink/65 font-tabular">
+                  <td suppressHydrationWarning className="px-4 py-3 text-webzy-ink/65 font-tabular">
                     {user.created_at ? user.created_at.slice(0, 10) : '—'}
                   </td>
-                  <td className="py-3 pr-4">
+                  <td className="px-4 py-3">
                     <span
-                      className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${user.is_banned
+                      className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold ${user.is_banned
                         ? 'bg-red-100 text-red-900'
                         : 'bg-emerald-100 text-emerald-900'
                         }`}
@@ -212,7 +270,7 @@ export function AdminUsersClient({ initialUsers }: AdminUsersClientProps) {
                       {user.is_banned ? 'Restricted' : 'Active'}
                     </span>
                   </td>
-                  <td className="py-3 text-right">
+                  <td className="px-4 py-3 text-right">
                     {user.role !== 'admin' ? (
                       <button
                         suppressHydrationWarning
@@ -222,7 +280,7 @@ export function AdminUsersClient({ initialUsers }: AdminUsersClientProps) {
                           setBanTarget(user);
                           setBanReason('');
                         }}
-                        className={`min-h-[30px] rounded-lg px-2.5 text-[11px] font-bold transition disabled:opacity-50 ${user.is_banned
+                        className={`inline-flex min-h-[44px] items-center rounded-xl px-3.5 text-xs font-bold transition disabled:opacity-50 ${user.is_banned
                           ? 'bg-emerald-600 text-white hover:bg-emerald-700'
                           : 'border border-red-200 bg-red-50 text-red-800 hover:bg-red-100'
                           }`}
@@ -240,13 +298,50 @@ export function AdminUsersClient({ initialUsers }: AdminUsersClientProps) {
         </table>
       </div>
 
+      {/* Pagination Footer */}
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <p className="text-xs font-medium text-slate-600 font-tabular">
+          Showing {users.length}
+          {totalCount !== null ? ` of ${totalCount}` : ''} loaded users
+        </p>
+        {hasMore && (totalCount === null || users.length < totalCount) ? (
+          <button
+            type="button"
+            disabled={loadingMore}
+            onClick={() => void handleLoadMore()}
+            className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-slate-200 bg-white px-5 text-xs font-bold text-slate-800 shadow-xs transition hover:border-webzy-primary/50 hover:bg-slate-50 disabled:opacity-50"
+          >
+            {loadingMore ? 'Loading more...' : 'Load More'}
+          </button>
+        ) : null}
+      </div>
+
       {/* Inline Restrict / Unban Confirmation Modal */}
       {banTarget ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
-            <h3 className="font-heading text-lg font-bold text-webzy-ink">
-              {banTarget.is_banned ? 'Restore Account Access' : 'Restrict User Account'}
-            </h3>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="ban-modal-title"
+          onClick={() => setBanTarget(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="animate-scale-in w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <h3 id="ban-modal-title" className="font-heading text-lg font-bold text-webzy-ink">
+                {banTarget.is_banned ? 'Restore Account Access' : 'Restrict User Account'}
+              </h3>
+              <button
+                type="button"
+                aria-label="Close user restriction modal"
+                onClick={() => setBanTarget(null)}
+                className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-webzy-ink/60 hover:bg-slate-100"
+              >
+                ×
+              </button>
+            </div>
             <p className="mt-1 text-xs text-webzy-ink/70">
               {banTarget.is_banned
                 ? `Unban ${banTarget.email} so they can create and edit Webzy pages again.`
@@ -264,21 +359,21 @@ export function AdminUsersClient({ initialUsers }: AdminUsersClientProps) {
                   value={banReason}
                   onChange={(e) => setBanReason(e.target.value)}
                   placeholder="Reason for audit log..."
-                  className="mt-1 min-h-[40px] w-full rounded-xl border border-webzy-tint px-3 text-sm text-webzy-ink outline-none focus:border-webzy-primary"
+                  className="mt-1 min-h-[44px] w-full rounded-xl border border-slate-200 px-3 text-sm text-webzy-ink outline-none focus:border-webzy-primary"
                 />
               </div>
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setBanTarget(null)}
-                  className="min-h-[38px] rounded-full border border-webzy-tint px-4 font-bold text-webzy-ink"
+                  className="inline-flex min-h-[44px] items-center rounded-full border border-slate-200 px-4 font-bold text-webzy-ink hover:bg-slate-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={busyId === banTarget.id}
-                  className={`min-h-[38px] rounded-full px-5 font-bold text-white disabled:opacity-50 ${banTarget.is_banned ? 'bg-emerald-600' : 'bg-red-600'
+                  className={`inline-flex min-h-[44px] items-center rounded-full px-5 font-bold text-white disabled:opacity-50 ${banTarget.is_banned ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-600 hover:bg-red-700'
                     }`}
                 >
                   {banTarget.is_banned ? 'Confirm Unban' : 'Confirm Restrict'}

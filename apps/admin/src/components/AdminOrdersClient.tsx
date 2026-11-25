@@ -87,7 +87,12 @@ function parseOrderAddons(raw?: Record<string, boolean> | string[] | null) {
   };
 }
 
-export function AdminOrdersClient({ orders, webUrl = 'http://localhost:3000' }: AdminOrdersClientProps) {
+function buildSiteHref(webUrl: string, slug: string): string {
+  const cleanBase = webUrl.trim().replace(/\/+$/, '');
+  return cleanBase ? `${cleanBase}/s/${slug}` : `/s/${slug}`;
+}
+
+export function AdminOrdersClient({ orders, webUrl = '' }: AdminOrdersClientProps) {
   const router = useRouter();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [copyFeedbackId, setCopyFeedbackId] = useState<string | null>(null);
@@ -123,8 +128,7 @@ export function AdminOrdersClient({ orders, webUrl = 'http://localhost:3000' }: 
   }
 
   async function handleCopyLink(orderId: string, slug: string) {
-    const cleanBase = webUrl.replace(/\/+$/, '');
-    const fullUrl = `${cleanBase}/s/${slug}`;
+    const fullUrl = buildSiteHref(webUrl, slug);
     await handleCopyText(`link:${orderId}`, fullUrl);
   }
 
@@ -337,7 +341,7 @@ export function AdminOrdersClient({ orders, webUrl = 'http://localhost:3000' }: 
       </div>
 
       {/* Branded Orders & GST Ledger Container */}
-      <section className="rounded-3xl border border-webzy-tint bg-white p-5 shadow-xs sm:p-6">
+      <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <span className="text-[10.5px] font-bold uppercase tracking-wider text-webzy-primary">
@@ -355,14 +359,14 @@ export function AdminOrdersClient({ orders, webUrl = 'http://localhost:3000' }: 
             <a
               href="/api/export/orders?liveOnly=true"
               download
-              className="btn-spring inline-flex min-h-[38px] items-center rounded-xl border border-emerald-300 bg-emerald-50 px-4 text-xs font-bold text-emerald-900 hover:bg-emerald-100"
+              className="btn-spring inline-flex min-h-[44px] items-center rounded-xl border border-emerald-300 bg-emerald-50 px-4 text-xs font-bold text-emerald-900 hover:bg-emerald-100"
             >
               Export Live CSV (GST)
             </a>
             <a
               href="/api/export/orders"
               download
-              className="btn-spring inline-flex min-h-[38px] items-center rounded-xl border border-webzy-tint bg-webzy-surface px-4 text-xs font-bold text-webzy-ink hover:border-webzy-primary/40 hover:bg-webzy-tint/60"
+              className="btn-spring inline-flex min-h-[44px] items-center rounded-xl border border-slate-200 bg-slate-50/70 px-4 text-xs font-bold text-webzy-ink hover:border-webzy-primary/40 hover:bg-slate-100"
             >
               Export All CSV
             </a>
@@ -385,7 +389,7 @@ export function AdminOrdersClient({ orders, webUrl = 'http://localhost:3000' }: 
         ) : null}
 
         {/* Search, Mode & Filter Bar */}
-        <div className="mt-5 flex flex-col gap-3 border-y border-webzy-tint/75 py-3.5 xl:flex-row xl:items-center xl:justify-between">
+        <div className="mt-5 flex flex-col gap-3 border-y border-slate-200 py-3.5 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex flex-wrap items-center gap-2">
             {(
               [
@@ -400,17 +404,17 @@ export function AdminOrdersClient({ orders, webUrl = 'http://localhost:3000' }: 
                 suppressHydrationWarning
                 type="button"
                 onClick={() => setFilterStatus(tab.id)}
-                className={`min-h-[34px] rounded-full px-3.5 text-xs font-bold transition active:scale-95 ${
+                className={`inline-flex min-h-[44px] items-center rounded-full px-4 text-xs font-bold transition active:scale-95 ${
                   filterStatus === tab.id
                     ? 'bg-webzy-primary text-white shadow-btn-primary'
-                    : 'border border-webzy-tint bg-webzy-surface/80 text-webzy-ink hover:border-webzy-primary/45 hover:bg-webzy-tint/50'
+                    : 'border border-slate-200 bg-slate-50/70 text-webzy-ink hover:border-webzy-primary/45 hover:bg-slate-100'
                 }`}
               >
                 {tab.label}
               </button>
             ))}
 
-            <div className="inline-flex rounded-full border border-webzy-tint bg-webzy-surface/80 p-0.5 text-xs font-bold">
+            <div className="inline-flex flex-wrap rounded-full border border-slate-200 bg-slate-50/70 p-1 text-xs font-bold">
               {(
                 [
                   { id: 'all', label: `All (${orders.length})` },
@@ -422,7 +426,7 @@ export function AdminOrdersClient({ orders, webUrl = 'http://localhost:3000' }: 
                   key={m.id}
                   type="button"
                   onClick={() => setModeFilter(m.id)}
-                  className={`rounded-full px-3 py-1 transition ${
+                  className={`inline-flex min-h-[44px] items-center rounded-full px-3.5 transition ${
                     modeFilter === m.id
                       ? m.id === 'live'
                         ? 'bg-emerald-600 text-white shadow-xs'
@@ -443,7 +447,7 @@ export function AdminOrdersClient({ orders, webUrl = 'http://localhost:3000' }: 
               aria-label="Sort ledger"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as OrderSort)}
-              className="min-h-[38px] rounded-xl border border-webzy-tint bg-webzy-surface/75 px-3 text-xs font-bold text-webzy-ink outline-none focus:border-webzy-primary focus:bg-white"
+              className="min-h-[44px] rounded-xl border border-slate-200 bg-slate-50/70 px-3 text-xs font-bold text-webzy-ink outline-none focus:border-webzy-primary focus:bg-white"
             >
               <option value="newest">Recent First</option>
               <option value="amount_desc">Amount: High to Low</option>
@@ -457,14 +461,14 @@ export function AdminOrdersClient({ orders, webUrl = 'http://localhost:3000' }: 
               placeholder="Search buyer, email, invoice, slug..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="min-h-[38px] w-full rounded-xl border border-webzy-tint bg-webzy-surface/75 px-3.5 text-xs text-webzy-ink placeholder:text-webzy-ink/45 outline-none focus:border-webzy-primary focus:bg-white sm:w-64"
+              className="min-h-[44px] w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 text-xs text-webzy-ink placeholder:text-webzy-ink/45 outline-none focus:border-webzy-primary focus:bg-white sm:w-64"
             />
           </div>
         </div>
 
         {/* Branded Structured Ledger Cards */}
         {filteredOrders.length === 0 ? (
-          <div className="mt-8 rounded-2xl border border-webzy-tint bg-webzy-surface/50 p-8 text-center">
+          <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50/70 p-8 text-center">
             <p className="text-sm font-bold text-webzy-ink">
               {searchQuery ? 'No orders match your search query.' : 'No orders in this filter.'}
             </p>
@@ -475,7 +479,7 @@ export function AdminOrdersClient({ orders, webUrl = 'http://localhost:3000' }: 
                 setFilterStatus('all');
                 setModeFilter('all');
               }}
-              className="mt-3 rounded-xl border border-webzy-tint bg-white px-4 py-1.5 text-xs font-bold text-webzy-primary hover:border-webzy-primary"
+              className="mt-3 inline-flex min-h-[44px] items-center rounded-xl border border-slate-200 bg-white px-5 text-xs font-bold text-webzy-primary hover:border-webzy-primary"
             >
               Reset All Filters
             </button>
@@ -486,8 +490,7 @@ export function AdminOrdersClient({ orders, webUrl = 'http://localhost:3000' }: 
               const isLive = ord.status === 'paid' || ord.status === 'published';
               const isRefunded =
                 ord.status === 'refunded' || ord.status === 'partially_refunded';
-              const cleanBase = webUrl.replace(/\/+$/, '');
-              const liveUrl = ord.site_slug ? `${cleanBase}/s/${ord.site_slug}` : null;
+              const liveUrl = ord.site_slug ? buildSiteHref(webUrl, ord.site_slug) : null;
               const { hasPin, hasVideo, validityLabel } = parseOrderAddons(ord.addons_json);
               const addonList = [
                 hasPin ? 'PIN Lock' : null,
@@ -508,7 +511,7 @@ export function AdminOrdersClient({ orders, webUrl = 'http://localhost:3000' }: 
               return (
                 <article
                   key={ord.id}
-                  className="overflow-hidden rounded-2xl border border-webzy-tint bg-white shadow-xs transition hover:border-webzy-primary/45 hover:shadow-sm"
+                  className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs transition hover:border-webzy-primary/45 hover:shadow-sm"
                 >
                   {/* Top Semantic Brand Accent Line */}
                   <div
@@ -523,9 +526,9 @@ export function AdminOrdersClient({ orders, webUrl = 'http://localhost:3000' }: 
                     }`}
                   />
 
-                  {/* Top Order Metadata Strip in Soft Webzy Rose Tint */}
-                  <div className="flex flex-wrap items-center justify-between gap-4 border-b border-webzy-tint/80 bg-webzy-surface/65 px-4 py-2.5 text-xs">
-                    <div className="flex flex-wrap items-center gap-5 sm:gap-7">
+                  {/* Top Order Metadata Strip */}
+                  <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 bg-slate-50/70 px-4 py-2.5 text-xs">
+                    <div className="flex flex-wrap items-center gap-4 sm:gap-7">
                       <div>
                         <p className="text-[10.5px] font-semibold uppercase tracking-wide text-webzy-ink/55">
                           Order Date
@@ -546,7 +549,7 @@ export function AdminOrdersClient({ orders, webUrl = 'http://localhost:3000' }: 
                         <p className="text-[10.5px] font-semibold uppercase tracking-wide text-webzy-ink/55">
                           Mode &amp; Gateway
                         </p>
-                        <p className="flex items-center gap-1.5 font-semibold text-webzy-ink/85">
+                        <p className="flex flex-wrap items-center gap-1.5 font-semibold text-webzy-ink/85">
                           <span>{ord.provider.toUpperCase()}</span>
                           <span
                             className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
@@ -566,7 +569,7 @@ export function AdminOrdersClient({ orders, webUrl = 'http://localhost:3000' }: 
                         type="button"
                         title="Click to copy invoice / order ID"
                         onClick={() => void handleCopyText(`inv:${ord.id}`, ord.invoice_no || ord.id)}
-                        className="rounded-lg border border-webzy-tint bg-white px-2.5 py-1 font-mono text-xs font-bold text-webzy-ink hover:border-webzy-primary hover:text-webzy-primary transition"
+                        className="inline-flex min-h-[44px] items-center rounded-lg border border-slate-200 bg-white px-3 font-mono text-xs font-bold text-webzy-ink transition hover:border-webzy-primary hover:text-webzy-primary"
                       >
                         {copyFeedbackId === `inv:${ord.id}`
                           ? 'Copied ID!'
@@ -575,7 +578,7 @@ export function AdminOrdersClient({ orders, webUrl = 'http://localhost:3000' }: 
                     </div>
                   </div>
 
-                  {/* Card Body: Status + Buyer + Colorful Action Stack */}
+                  {/* Card Body: Status + Buyer + Action Stack */}
                   <div className="flex flex-col justify-between gap-4 p-4 sm:flex-row sm:items-center">
                     <div className="min-w-0 space-y-1.5">
                       <div className="flex flex-wrap items-center gap-2">
@@ -603,16 +606,16 @@ export function AdminOrdersClient({ orders, webUrl = 'http://localhost:3000' }: 
                         ) : null}
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-2 text-sm text-webzy-ink">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-webzy-ink">
                         <strong className="font-bold text-webzy-ink">{ord.buyer_name || 'Guest'}</strong>
                         {ord.buyer_email ? (
                           <>
-                            <span className="text-webzy-tint">·</span>
+                            <span className="text-slate-300">·</span>
                             <button
                               type="button"
                               title="Copy customer email"
                               onClick={() => void handleCopyText(`email:${ord.id}`, ord.buyer_email)}
-                              className="text-xs font-semibold text-webzy-ink/75 underline decoration-dotted hover:text-webzy-primary"
+                              className="inline-flex min-h-[44px] items-center break-all rounded-lg px-1.5 text-xs font-semibold text-webzy-ink/75 underline decoration-dotted hover:bg-slate-50 hover:text-webzy-primary"
                             >
                               {copyFeedbackId === `email:${ord.id}` ? 'Copied Email' : ord.buyer_email}
                             </button>
@@ -620,12 +623,12 @@ export function AdminOrdersClient({ orders, webUrl = 'http://localhost:3000' }: 
                         ) : null}
                         {ord.buyer_phone ? (
                           <>
-                            <span className="text-webzy-tint">·</span>
+                            <span className="text-slate-300">·</span>
                             <button
                               type="button"
                               title="Copy customer phone"
                               onClick={() => void handleCopyText(`phone:${ord.id}`, ord.buyer_phone!)}
-                              className="font-mono text-xs font-semibold text-webzy-ink/75 underline decoration-dotted hover:text-webzy-primary"
+                              className="inline-flex min-h-[44px] items-center rounded-lg px-1.5 font-mono text-xs font-semibold text-webzy-ink/75 underline decoration-dotted hover:bg-slate-50 hover:text-webzy-primary"
                             >
                               {copyFeedbackId === `phone:${ord.id}` ? 'Copied Phone' : ord.buyer_phone}
                             </button>
@@ -634,7 +637,7 @@ export function AdminOrdersClient({ orders, webUrl = 'http://localhost:3000' }: 
                       </div>
 
                       {ord.site_slug ? (
-                        <p className="font-mono text-xs font-bold text-webzy-primary">
+                        <p className="break-all font-mono text-xs font-bold text-webzy-primary">
                           Live URL: /s/{ord.site_slug}
                         </p>
                       ) : null}
@@ -644,10 +647,10 @@ export function AdminOrdersClient({ orders, webUrl = 'http://localhost:3000' }: 
                       <button
                         type="button"
                         onClick={() => setExpandedOrderId(isExpanded ? null : ord.id)}
-                        className={`btn-spring inline-flex min-h-[36px] items-center rounded-xl border px-3 text-xs font-bold transition ${
+                        className={`btn-spring inline-flex min-h-[44px] items-center rounded-xl border px-3.5 text-xs font-bold transition ${
                           isExpanded
                             ? 'border-webzy-primary bg-webzy-tint text-webzy-primary'
-                            : 'border-webzy-tint bg-webzy-surface/80 text-webzy-ink hover:border-webzy-primary/50 hover:text-webzy-primary'
+                            : 'border-slate-200 bg-slate-50/70 text-webzy-ink hover:border-webzy-primary/50 hover:text-webzy-primary'
                         }`}
                       >
                         {isExpanded ? 'Hide GST' : 'GST Breakdown'}
@@ -658,7 +661,7 @@ export function AdminOrdersClient({ orders, webUrl = 'http://localhost:3000' }: 
                           href={`https://wa.me/${waPhone}?text=${waText}`}
                           target="_blank"
                           rel="noreferrer"
-                          className="btn-spring inline-flex min-h-[36px] items-center rounded-xl border border-emerald-300 bg-emerald-50 px-3 text-xs font-bold text-emerald-900 hover:bg-emerald-100"
+                          className="btn-spring inline-flex min-h-[44px] items-center rounded-xl border border-emerald-300 bg-emerald-50 px-3.5 text-xs font-bold text-emerald-900 hover:bg-emerald-100"
                         >
                           WhatsApp
                         </a>
@@ -670,7 +673,7 @@ export function AdminOrdersClient({ orders, webUrl = 'http://localhost:3000' }: 
                             suppressHydrationWarning
                             type="button"
                             onClick={() => void handleCopyLink(ord.id, ord.site_slug!)}
-                            className="btn-spring inline-flex min-h-[36px] items-center rounded-xl border border-webzy-tint bg-white px-3 text-xs font-bold text-webzy-ink hover:border-webzy-primary hover:text-webzy-primary"
+                            className="btn-spring inline-flex min-h-[44px] items-center rounded-xl border border-slate-200 bg-white px-3.5 text-xs font-bold text-webzy-ink hover:border-webzy-primary hover:text-webzy-primary"
                           >
                             {copyFeedbackId === `link:${ord.id}` ? 'Copied!' : 'Copy Link'}
                           </button>
@@ -678,7 +681,7 @@ export function AdminOrdersClient({ orders, webUrl = 'http://localhost:3000' }: 
                             href={liveUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="btn-spring inline-flex min-h-[36px] items-center rounded-xl border border-webzy-primary/30 bg-webzy-tint/60 px-3 text-xs font-bold text-webzy-primary hover:bg-webzy-tint"
+                            className="btn-spring inline-flex min-h-[44px] items-center rounded-xl border border-webzy-primary/30 bg-webzy-tint/60 px-3.5 text-xs font-bold text-webzy-primary hover:bg-webzy-tint"
                           >
                             Visit ↗
                           </a>
@@ -696,7 +699,7 @@ export function AdminOrdersClient({ orders, webUrl = 'http://localhost:3000' }: 
                             setRefundTarget(ord);
                             setRefundReason('');
                           }}
-                          className="btn-spring inline-flex min-h-[36px] items-center rounded-xl bg-red-600 px-3.5 text-xs font-bold text-white shadow-xs hover:bg-red-700 disabled:opacity-50"
+                          className="btn-spring inline-flex min-h-[44px] items-center rounded-xl bg-red-600 px-4 text-xs font-bold text-white shadow-xs hover:bg-red-700 disabled:opacity-50"
                         >
                           {busyId === ord.id ? 'Refunding...' : 'Issue Refund'}
                         </button>
@@ -711,7 +714,7 @@ export function AdminOrdersClient({ orders, webUrl = 'http://localhost:3000' }: 
                     }`}
                   >
                     <div className="overflow-hidden">
-                      <div className="grid grid-cols-2 gap-3 border-t border-webzy-tint/70 bg-webzy-surface/55 px-4 py-3 text-xs sm:grid-cols-4 font-tabular">
+                      <div className="grid grid-cols-2 gap-3 border-t border-slate-200 bg-slate-50/70 px-4 py-3 text-xs sm:grid-cols-4 font-tabular">
                         <div>
                           <p className="text-webzy-ink/60">Taxable Base</p>
                           <p className="font-bold text-webzy-ink">{formatPaiseAsInr(taxablePaise)}</p>
@@ -727,7 +730,7 @@ export function AdminOrdersClient({ orders, webUrl = 'http://localhost:3000' }: 
                           <button
                             type="button"
                             onClick={() => void handleCopyText(`uuid:${ord.id}`, ord.id)}
-                            className="font-mono font-bold text-webzy-primary hover:underline"
+                            className="inline-flex min-h-[44px] items-center font-mono font-bold text-webzy-primary hover:underline"
                           >
                             {copyFeedbackId === `uuid:${ord.id}` ? 'Copied UUID' : ord.id.slice(0, 14)}
                           </button>
@@ -762,10 +765,10 @@ export function AdminOrdersClient({ orders, webUrl = 'http://localhost:3000' }: 
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="animate-scale-in w-full max-w-md rounded-2xl border border-webzy-tint bg-white p-6 shadow-2xl"
+            className="animate-scale-in w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl"
           >
             <div className="flex items-start justify-between gap-2">
-              <h3 id="refund-modal-title" className="text-lg font-bold text-red-900">
+              <h3 id="refund-modal-title" className="text-lg font-bold text-red-900 font-tabular">
                 Confirm Full Refund ({formatPaiseAsInr(refundTarget.amount_paise)})
               </h3>
               <button
@@ -775,7 +778,7 @@ export function AdminOrdersClient({ orders, webUrl = 'http://localhost:3000' }: 
                   setRefundTarget(null);
                   setModalError('');
                 }}
-                className="flex h-7 w-7 items-center justify-center rounded-full text-webzy-ink/60 hover:bg-webzy-surface"
+                className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-webzy-ink/60 hover:bg-slate-100"
               >
                 ×
               </button>
@@ -806,7 +809,7 @@ export function AdminOrdersClient({ orders, webUrl = 'http://localhost:3000' }: 
                       setRefundReason(preset);
                       setModalError('');
                     }}
-                    className="rounded-full border border-webzy-tint bg-webzy-surface px-2.5 py-1 text-[11px] font-semibold text-webzy-ink hover:border-webzy-primary"
+                    className="inline-flex min-h-[44px] items-center rounded-full border border-slate-200 bg-slate-50/70 px-3.5 text-left text-[11px] font-semibold text-webzy-ink hover:border-webzy-primary hover:bg-slate-100"
                   >
                     {preset}
                   </button>
@@ -828,7 +831,7 @@ export function AdminOrdersClient({ orders, webUrl = 'http://localhost:3000' }: 
                     if (modalError) setModalError('');
                   }}
                   placeholder="Enter exact reason for refund..."
-                  className="mt-1 w-full rounded-xl border border-webzy-tint p-3 text-sm text-webzy-ink outline-none focus:border-red-500"
+                  className="mt-1 w-full rounded-xl border border-slate-200 p-3 text-sm text-webzy-ink outline-none focus:border-red-500"
                 />
               </div>
 
@@ -839,14 +842,14 @@ export function AdminOrdersClient({ orders, webUrl = 'http://localhost:3000' }: 
                     setRefundTarget(null);
                     setModalError('');
                   }}
-                  className="min-h-[40px] rounded-xl border border-webzy-tint px-4 font-bold text-webzy-ink hover:bg-webzy-surface"
+                  className="inline-flex min-h-[44px] items-center rounded-xl border border-slate-200 px-4 font-bold text-webzy-ink hover:bg-slate-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={busyId === refundTarget.id || refundReason.trim().length < 5}
-                  className="min-h-[40px] rounded-xl bg-red-600 px-5 font-bold text-white hover:bg-red-700 disabled:opacity-50"
+                  className="inline-flex min-h-[44px] items-center rounded-xl bg-red-600 px-5 font-bold text-white hover:bg-red-700 disabled:opacity-50"
                 >
                   {busyId === refundTarget.id ? 'Processing...' : 'Confirm Full Refund'}
                 </button>

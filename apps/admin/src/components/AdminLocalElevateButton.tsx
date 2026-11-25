@@ -31,11 +31,11 @@ export function AdminLocalElevateButton() {
         type="button"
         disabled={busy}
         onClick={() => void handleElevate()}
-        className="inline-flex min-h-[42px] items-center justify-center rounded-full bg-webzy-primary px-5 text-xs font-bold text-white shadow-sm transition hover:opacity-95 disabled:opacity-50"
+        className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-slate-900 px-5 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 disabled:opacity-50"
       >
         {busy ? 'Enabling Admin Access...' : 'Grant Admin Role (Local Dev)'}
       </button>
-      {errorMsg ? <p className="text-xs font-semibold text-red-700">{errorMsg}</p> : null}
+      {errorMsg ? <p className="text-xs font-medium text-red-700">{errorMsg}</p> : null}
     </div>
   );
 }

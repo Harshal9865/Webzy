@@ -166,7 +166,7 @@ export function AdminModerationClient({
   }
 
   return (
-    <section className="rounded-3xl border border-webzy-tint bg-white p-6 shadow-sm">
+    <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xs sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="font-heading text-xl font-bold text-webzy-ink">
@@ -178,11 +178,11 @@ export function AdminModerationClient({
           </p>
         </div>
 
-        <div className="flex items-center gap-1.5 rounded-full border border-webzy-tint bg-webzy-surface p-1">
+        <div className="flex flex-wrap items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50/70 p-1">
           <button
             type="button"
             onClick={() => setQueueFilter('pending')}
-            className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition ${
+            className={`inline-flex min-h-[44px] items-center rounded-full px-4 text-xs font-bold transition ${
               queueFilter === 'pending'
                 ? 'bg-webzy-primary text-white shadow-btn-primary'
                 : 'text-webzy-ink/75 hover:text-webzy-primary'
@@ -193,7 +193,7 @@ export function AdminModerationClient({
           <button
             type="button"
             onClick={() => setQueueFilter('all')}
-            className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition ${
+            className={`inline-flex min-h-[44px] items-center rounded-full px-4 text-xs font-bold transition ${
               queueFilter === 'all'
                 ? 'bg-webzy-primary text-white shadow-btn-primary'
                 : 'text-webzy-ink/75 hover:text-webzy-primary'
@@ -205,7 +205,7 @@ export function AdminModerationClient({
       </div>
 
       {/* Direct Slug Lookup */}
-      <div className="mt-5 rounded-2xl border border-webzy-tint bg-webzy-surface/50 p-4">
+      <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
         <p className="text-xs font-bold text-webzy-ink">Inspect or Moderate Any Page by Link / Slug</p>
         <div className="mt-2.5 flex flex-col gap-2 sm:flex-row">
           <input
@@ -214,7 +214,7 @@ export function AdminModerationClient({
             value={slugInput}
             onChange={(e) => setSlugInput(e.target.value)}
             placeholder="Paste /s/xxxxxxxxxxxx or full link"
-            className="min-h-[42px] flex-1 rounded-xl border border-webzy-tint bg-white px-3.5 text-xs text-webzy-ink"
+            className="min-h-[44px] flex-1 rounded-xl border border-slate-200 bg-white px-3.5 text-xs text-webzy-ink outline-none focus:border-webzy-primary"
           />
           <input
             suppressHydrationWarning
@@ -222,28 +222,28 @@ export function AdminModerationClient({
             value={reasonInput}
             onChange={(e) => setReasonInput(e.target.value)}
             placeholder="Optional audit reason..."
-            className="min-h-[42px] flex-1 rounded-xl border border-webzy-tint bg-white px-3.5 text-xs text-webzy-ink"
+            className="min-h-[44px] flex-1 rounded-xl border border-slate-200 bg-white px-3.5 text-xs text-webzy-ink outline-none focus:border-webzy-primary"
           />
           <button
             suppressHydrationWarning
             type="button"
             disabled={busyKey !== null}
             onClick={() => void handleSiteLookupOrAction('lookup')}
-            className="min-h-[42px] rounded-xl bg-webzy-primary px-5 text-xs font-bold text-white shadow-btn-primary transition hover:opacity-95 disabled:opacity-50"
+            className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-webzy-primary px-5 text-xs font-bold text-white shadow-btn-primary transition hover:opacity-95 disabled:opacity-50"
           >
             Lookup
           </button>
         </div>
 
         {lookupResult ? (
-          <div className="mt-4 rounded-xl border border-webzy-tint bg-white p-4 text-xs">
+          <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4 text-xs">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <p className="font-mono font-bold text-webzy-primary">
+              <div className="min-w-0">
+                <p className="break-all font-mono font-bold text-webzy-primary">
                   /s/{lookupResult.site.slug} · status={lookupResult.site.status} (hidden=
                   {String(lookupResult.site.hidden)})
                 </p>
-                <p className="mt-1 text-webzy-ink/75">
+                <p className="mt-1 break-all text-webzy-ink/75">
                   Owner: {lookupResult.owner?.email || 'Unknown'}{' '}
                   {lookupResult.owner?.is_banned ? (
                     <span className="ml-1 rounded bg-red-100 px-1.5 py-0.5 font-bold text-red-800">
@@ -255,10 +255,10 @@ export function AdminModerationClient({
                 </p>
               </div>
               <a
-                href={`${webUrl}/s/${lookupResult.site.slug}`}
+                href={`${webUrl.trim().replace(/\/+$/, '')}/s/${lookupResult.site.slug}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-bold text-webzy-primary underline"
+                className="inline-flex min-h-[44px] items-center rounded-xl border border-slate-200 bg-slate-50/70 px-3 font-bold text-webzy-primary hover:bg-slate-100"
               >
                 Open Page ↗
               </a>
@@ -269,7 +269,7 @@ export function AdminModerationClient({
                 type="button"
                 disabled={busyKey !== null}
                 onClick={() => void handleSiteLookupOrAction('pause')}
-                className="min-h-[36px] rounded-lg border border-amber-300 bg-amber-50 px-3 font-bold text-amber-900"
+                className="inline-flex min-h-[44px] items-center rounded-xl border border-amber-300 bg-amber-50 px-3.5 font-bold text-amber-900 hover:bg-amber-100 disabled:opacity-50"
               >
                 Pause Page
               </button>
@@ -278,7 +278,7 @@ export function AdminModerationClient({
                 type="button"
                 disabled={busyKey !== null}
                 onClick={() => void handleSiteLookupOrAction('restore')}
-                className="min-h-[36px] rounded-lg border border-emerald-300 bg-emerald-50 px-3 font-bold text-emerald-900"
+                className="inline-flex min-h-[44px] items-center rounded-xl border border-emerald-300 bg-emerald-50 px-3.5 font-bold text-emerald-900 hover:bg-emerald-100 disabled:opacity-50"
               >
                 Restore Live
               </button>
@@ -288,7 +288,7 @@ export function AdminModerationClient({
                     type="button"
                     disabled={busyKey !== null}
                     onClick={() => void handleSiteLookupOrAction('remove')}
-                    className="min-h-[36px] rounded-lg bg-red-600 px-3 font-bold text-white"
+                    className="inline-flex min-h-[44px] items-center rounded-xl bg-red-600 px-3.5 font-bold text-white hover:bg-red-700 disabled:opacity-50"
                   >
                     Confirm Remove
                   </button>
@@ -296,7 +296,7 @@ export function AdminModerationClient({
                     type="button"
                     disabled={busyKey !== null}
                     onClick={() => setConfirmActionKey(null)}
-                    className="min-h-[36px] rounded-lg border border-webzy-tint bg-white px-2.5 font-bold text-webzy-ink"
+                    className="inline-flex min-h-[44px] items-center rounded-xl border border-slate-200 bg-white px-3.5 font-bold text-webzy-ink hover:bg-slate-50"
                   >
                     Cancel
                   </button>
@@ -307,7 +307,7 @@ export function AdminModerationClient({
                   type="button"
                   disabled={busyKey !== null}
                   onClick={() => setConfirmActionKey('lookup:remove')}
-                  className="min-h-[36px] rounded-lg bg-red-600 px-3 font-bold text-white"
+                  className="inline-flex min-h-[44px] items-center rounded-xl bg-red-600 px-3.5 font-bold text-white hover:bg-red-700 disabled:opacity-50"
                 >
                   Remove Page
                 </button>
@@ -318,7 +318,7 @@ export function AdminModerationClient({
                     type="button"
                     disabled={busyKey !== null}
                     onClick={() => void handleSiteLookupOrAction('ban_owner')}
-                    className="min-h-[36px] rounded-lg bg-red-950 px-3 font-bold text-white"
+                    className="inline-flex min-h-[44px] items-center rounded-xl bg-red-950 px-3.5 font-bold text-white hover:bg-red-900 disabled:opacity-50"
                   >
                     Confirm Ban &amp; Remove All
                   </button>
@@ -326,7 +326,7 @@ export function AdminModerationClient({
                     type="button"
                     disabled={busyKey !== null}
                     onClick={() => setConfirmActionKey(null)}
-                    className="min-h-[36px] rounded-lg border border-webzy-tint bg-white px-2.5 font-bold text-webzy-ink"
+                    className="inline-flex min-h-[44px] items-center rounded-xl border border-slate-200 bg-white px-3.5 font-bold text-webzy-ink hover:bg-slate-50"
                   >
                     Cancel
                   </button>
@@ -337,7 +337,7 @@ export function AdminModerationClient({
                   type="button"
                   disabled={busyKey !== null}
                   onClick={() => setConfirmActionKey('lookup:ban_owner')}
-                  className="min-h-[36px] rounded-lg bg-red-950 px-3 font-bold text-white"
+                  className="inline-flex min-h-[44px] items-center rounded-xl bg-red-950 px-3.5 font-bold text-white hover:bg-red-900 disabled:opacity-50"
                 >
                   Ban Owner &amp; Remove All
                 </button>
@@ -376,18 +376,18 @@ export function AdminModerationClient({
               return (
                 <div
                   key={rep.id}
-                  className="flex flex-col justify-between gap-3 rounded-2xl border border-webzy-tint bg-webzy-surface/30 p-4 sm:flex-row sm:items-center"
+                  className="flex flex-col justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 sm:flex-row sm:items-center"
                 >
-                  <div className="text-xs">
+                  <div className="min-w-0 text-xs">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-mono font-bold text-webzy-primary">
+                      <span className="break-all font-mono font-bold text-webzy-primary">
                         /s/{rep.site_slug}
                       </span>
                       <span
                         className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
                           rep.status === 'pending'
                             ? 'bg-red-100 text-red-900'
-                            : 'bg-gray-100 text-gray-800'
+                            : 'bg-slate-200 text-slate-800'
                         }`}
                       >
                         report: {rep.status}
@@ -398,7 +398,7 @@ export function AdminModerationClient({
                         className={`rounded-full px-2 py-0.5 text-[10px] font-bold font-tabular ${
                           rep.status === 'pending' && sla.urgent
                             ? 'bg-amber-100 text-amber-900'
-                            : 'bg-webzy-surface text-webzy-ink/65'
+                            : 'border border-slate-200 bg-white text-webzy-ink/65'
                         }`}
                       >
                         {sla.label}
@@ -413,13 +413,13 @@ export function AdminModerationClient({
                     <p className="mt-1 font-semibold text-webzy-ink">Reason: {rep.reason}</p>
                   </div>
 
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 shrink-0">
                     <button
                       suppressHydrationWarning
                       type="button"
                       disabled={busyKey === `report:${rep.id}`}
                       onClick={() => void handleQueueAction('report', rep.id, 'restore')}
-                      className="min-h-[36px] rounded-full border border-emerald-300 bg-white px-3.5 text-xs font-bold text-emerald-800 disabled:opacity-50"
+                      className="inline-flex min-h-[44px] items-center rounded-full border border-emerald-300 bg-white px-4 text-xs font-bold text-emerald-800 hover:bg-emerald-50 disabled:opacity-50"
                     >
                       Restore Live
                     </button>
@@ -430,14 +430,14 @@ export function AdminModerationClient({
                           type="button"
                           disabled={busyKey === `report:${rep.id}`}
                           onClick={() => void handleQueueAction('report', rep.id, 'remove')}
-                          className="min-h-[36px] rounded-full bg-red-600 px-3.5 text-xs font-bold text-white disabled:opacity-50"
+                          className="inline-flex min-h-[44px] items-center rounded-full bg-red-600 px-4 text-xs font-bold text-white hover:bg-red-700 disabled:opacity-50"
                         >
                           Confirm Remove
                         </button>
                         <button
                           type="button"
                           onClick={() => setConfirmActionKey(null)}
-                          className="min-h-[36px] rounded-full border border-webzy-tint bg-white px-3 text-xs font-bold text-webzy-ink"
+                          className="inline-flex min-h-[44px] items-center rounded-full border border-slate-200 bg-white px-4 text-xs font-bold text-webzy-ink hover:bg-slate-50"
                         >
                           Cancel
                         </button>
@@ -448,7 +448,7 @@ export function AdminModerationClient({
                         type="button"
                         disabled={busyKey === `report:${rep.id}`}
                         onClick={() => setConfirmActionKey(`report:${rep.id}:remove`)}
-                        className="min-h-[36px] rounded-full bg-red-600 px-3.5 text-xs font-bold text-white disabled:opacity-50"
+                        className="inline-flex min-h-[44px] items-center rounded-full bg-red-600 px-4 text-xs font-bold text-white hover:bg-red-700 disabled:opacity-50"
                       >
                         Remove Site
                       </button>
@@ -460,14 +460,14 @@ export function AdminModerationClient({
                           type="button"
                           disabled={busyKey === `report:${rep.id}`}
                           onClick={() => void handleQueueAction('report', rep.id, 'ban_user')}
-                          className="min-h-[36px] rounded-full bg-red-950 px-3.5 text-xs font-bold text-white disabled:opacity-50"
+                          className="inline-flex min-h-[44px] items-center rounded-full bg-red-950 px-4 text-xs font-bold text-white hover:bg-red-900 disabled:opacity-50"
                         >
                           Confirm Ban
                         </button>
                         <button
                           type="button"
                           onClick={() => setConfirmActionKey(null)}
-                          className="min-h-[36px] rounded-full border border-webzy-tint bg-white px-3 text-xs font-bold text-webzy-ink"
+                          className="inline-flex min-h-[44px] items-center rounded-full border border-slate-200 bg-white px-4 text-xs font-bold text-webzy-ink hover:bg-slate-50"
                         >
                           Cancel
                         </button>
@@ -478,7 +478,7 @@ export function AdminModerationClient({
                         type="button"
                         disabled={busyKey === `report:${rep.id}`}
                         onClick={() => setConfirmActionKey(`report:${rep.id}:ban_user`)}
-                        className="min-h-[36px] rounded-full bg-red-950 px-3.5 text-xs font-bold text-white disabled:opacity-50"
+                        className="inline-flex min-h-[44px] items-center rounded-full bg-red-950 px-4 text-xs font-bold text-white hover:bg-red-900 disabled:opacity-50"
                       >
                         Ban Sender
                       </button>
@@ -507,14 +507,14 @@ export function AdminModerationClient({
               return (
                 <div
                   key={td.id}
-                  className="flex flex-col justify-between gap-3 rounded-2xl border border-webzy-tint bg-webzy-surface/30 p-4 sm:flex-row sm:items-center"
+                  className="flex flex-col justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 sm:flex-row sm:items-center"
                 >
-                  <div className="max-w-xl text-xs">
+                  <div className="min-w-0 max-w-xl text-xs">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-900">
                         {td.category}
                       </span>
-                      <span className="font-mono font-bold text-webzy-primary">
+                      <span className="break-all font-mono font-bold text-webzy-primary">
                         {td.site_slug ? `/s/${td.site_slug}` : 'No slug provided'}
                       </span>
                       <span className="text-webzy-ink/60">status: {td.status}</span>
@@ -523,7 +523,7 @@ export function AdminModerationClient({
                         className={`rounded-full px-2 py-0.5 text-[10px] font-bold font-tabular ${
                           (td.status === 'pending' || td.status === 'hidden_site') && sla.urgent
                             ? 'bg-amber-100 text-amber-900'
-                            : 'bg-webzy-surface text-webzy-ink/65'
+                            : 'border border-slate-200 bg-white text-webzy-ink/65'
                         }`}
                       >
                         {sla.label}
@@ -535,13 +535,13 @@ export function AdminModerationClient({
                         {formatIstTimestamp(td.created_at)}
                       </span>
                     </div>
-                    <p className="mt-1 font-semibold text-webzy-ink">
+                    <p className="mt-1 break-all font-semibold text-webzy-ink">
                       {td.reporter_name} ({td.reporter_email})
                     </p>
                     <p className="mt-0.5 text-webzy-ink/75">{td.details}</p>
                   </div>
 
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 shrink-0">
                     {td.site_id ? (
                       <>
                         <button
@@ -549,7 +549,7 @@ export function AdminModerationClient({
                           type="button"
                           disabled={busyKey === `takedown:${td.id}`}
                           onClick={() => void handleQueueAction('takedown', td.id, 'restore')}
-                          className="min-h-[36px] rounded-full border border-emerald-300 bg-white px-3.5 text-xs font-bold text-emerald-800 disabled:opacity-50"
+                          className="inline-flex min-h-[44px] items-center rounded-full border border-emerald-300 bg-white px-4 text-xs font-bold text-emerald-800 hover:bg-emerald-50 disabled:opacity-50"
                         >
                           Dismiss &amp; Restore Live
                         </button>
@@ -558,7 +558,7 @@ export function AdminModerationClient({
                           type="button"
                           disabled={busyKey === `takedown:${td.id}`}
                           onClick={() => void handleQueueAction('takedown', td.id, 'hide_site')}
-                          className="min-h-[36px] rounded-full border border-amber-300 bg-white px-3.5 text-xs font-bold text-amber-900 disabled:opacity-50"
+                          className="inline-flex min-h-[44px] items-center rounded-full border border-amber-300 bg-white px-4 text-xs font-bold text-amber-900 hover:bg-amber-50 disabled:opacity-50"
                         >
                           Keep Hidden
                         </button>
@@ -568,14 +568,14 @@ export function AdminModerationClient({
                               type="button"
                               disabled={busyKey === `takedown:${td.id}`}
                               onClick={() => void handleQueueAction('takedown', td.id, 'remove')}
-                              className="min-h-[36px] rounded-full bg-red-600 px-3.5 text-xs font-bold text-white disabled:opacity-50"
+                              className="inline-flex min-h-[44px] items-center rounded-full bg-red-600 px-4 text-xs font-bold text-white hover:bg-red-700 disabled:opacity-50"
                             >
                               Confirm Remove
                             </button>
                             <button
                               type="button"
                               onClick={() => setConfirmActionKey(null)}
-                              className="min-h-[36px] rounded-full border border-webzy-tint bg-white px-3 text-xs font-bold text-webzy-ink"
+                              className="inline-flex min-h-[44px] items-center rounded-full border border-slate-200 bg-white px-4 text-xs font-bold text-webzy-ink hover:bg-slate-50"
                             >
                               Cancel
                             </button>
@@ -586,7 +586,7 @@ export function AdminModerationClient({
                             type="button"
                             disabled={busyKey === `takedown:${td.id}`}
                             onClick={() => setConfirmActionKey(`takedown:${td.id}:remove`)}
-                            className="min-h-[36px] rounded-full bg-red-600 px-3.5 text-xs font-bold text-white disabled:opacity-50"
+                            className="inline-flex min-h-[44px] items-center rounded-full bg-red-600 px-4 text-xs font-bold text-white hover:bg-red-700 disabled:opacity-50"
                           >
                             Remove Site
                           </button>
@@ -598,7 +598,7 @@ export function AdminModerationClient({
                       type="button"
                       disabled={busyKey === `takedown:${td.id}`}
                       onClick={() => void handleQueueAction('takedown', td.id, 'dismiss')}
-                      className="min-h-[36px] rounded-full border border-webzy-tint bg-white px-3.5 text-xs font-bold text-webzy-ink disabled:opacity-50"
+                      className="inline-flex min-h-[44px] items-center rounded-full border border-slate-200 bg-white px-4 text-xs font-bold text-webzy-ink hover:bg-slate-50 disabled:opacity-50"
                     >
                       Dismiss
                     </button>

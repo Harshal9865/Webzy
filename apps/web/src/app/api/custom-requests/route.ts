@@ -31,7 +31,7 @@ function sanitizeHttpUrl(raw?: string): string {
 }
 
 export async function PATCH(request: Request) {
-  const guard = await requireVerifiedAdmin();
+  const guard = await requireVerifiedAdmin(request);
   if (!guard.ok) return guard.response;
 
   try {

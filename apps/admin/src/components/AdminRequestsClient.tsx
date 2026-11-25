@@ -73,7 +73,7 @@ export function AdminRequestsClient({ requests }: AdminRequestsClientProps) {
   }
 
   return (
-    <section className="mt-8 rounded-3xl border border-webzy-tint bg-white p-6 shadow-sm">
+    <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-5 shadow-xs sm:p-6">
       <div>
         <h2 className="font-heading text-xl font-bold text-webzy-ink">
           Custom Website Requests &amp; Quotes ({requests.length})
@@ -111,32 +111,33 @@ export function AdminRequestsClient({ requests }: AdminRequestsClientProps) {
             return (
               <div
                 key={req.id}
-                className="rounded-2xl border border-webzy-tint bg-webzy-surface/40 p-4 text-xs"
+                className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 text-xs"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2 min-w-0">
                     <span className="rounded-full bg-webzy-tint px-2.5 py-0.5 font-bold uppercase text-webzy-primary">
                       {req.occasion}
                     </span>
-                    <span className="font-bold text-webzy-ink">
+                    <span className="break-all font-bold text-webzy-ink">
                       {req.requester_name} ({req.requester_email})
                     </span>
                     {req.requester_phone ? (
-                      <span className="text-webzy-ink/70">· {req.requester_phone}</span>
+                      <span className="text-webzy-ink/70 font-tabular">· {req.requester_phone}</span>
                     ) : null}
                   </div>
-                  <span className="font-semibold text-webzy-ink/70">
+                  <span className="font-semibold text-webzy-ink/70 font-tabular">
                     Budget: ₹{req.budget_tier} · Target: {req.target_date || 'Flexible'}
                   </span>
                 </div>
 
-                <p className="mt-2 rounded-xl bg-white p-3 leading-relaxed text-webzy-ink">
+                <p className="mt-2 rounded-xl border border-slate-200 bg-white p-3 leading-relaxed text-webzy-ink">
                   {req.brief}
                 </p>
 
                 <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-12">
                   <select
                     suppressHydrationWarning
+                    aria-label={`Status for ${req.requester_name}`}
                     value={state.status}
                     onChange={(e) =>
                       setDrafts((prev) => ({
@@ -144,7 +145,7 @@ export function AdminRequestsClient({ requests }: AdminRequestsClientProps) {
                         [req.id]: { ...state, status: e.target.value },
                       }))
                     }
-                    className="min-h-[38px] rounded-xl border border-webzy-tint bg-white px-2.5 font-semibold sm:col-span-3"
+                    className="min-h-[44px] rounded-xl border border-slate-200 bg-white px-3 font-semibold text-webzy-ink outline-none focus:border-webzy-primary sm:col-span-3"
                   >
                     <option value="new">New</option>
                     <option value="reviewing">Reviewing</option>
@@ -166,7 +167,7 @@ export function AdminRequestsClient({ requests }: AdminRequestsClientProps) {
                         [req.id]: { ...state, quote: e.target.value },
                       }))
                     }
-                    className="min-h-[38px] rounded-xl border border-webzy-tint bg-white px-3 sm:col-span-3"
+                    className="min-h-[44px] rounded-xl border border-slate-200 bg-white px-3 font-tabular text-webzy-ink outline-none focus:border-webzy-primary sm:col-span-3"
                   />
 
                   <input
@@ -180,7 +181,7 @@ export function AdminRequestsClient({ requests }: AdminRequestsClientProps) {
                         [req.id]: { ...state, notes: e.target.value },
                       }))
                     }
-                    className="min-h-[38px] rounded-xl border border-webzy-tint bg-white px-3 sm:col-span-6"
+                    className="min-h-[44px] rounded-xl border border-slate-200 bg-white px-3 text-webzy-ink outline-none focus:border-webzy-primary sm:col-span-6"
                   />
                 </div>
 
@@ -190,7 +191,7 @@ export function AdminRequestsClient({ requests }: AdminRequestsClientProps) {
                     type="button"
                     disabled={busyId === req.id}
                     onClick={() => void saveRequest(req.id, false)}
-                    className="min-h-[36px] rounded-full border border-webzy-tint bg-white px-4 font-bold text-webzy-ink disabled:opacity-50"
+                    className="inline-flex min-h-[44px] items-center rounded-full border border-slate-200 bg-white px-4 font-bold text-webzy-ink hover:bg-slate-50 disabled:opacity-50"
                   >
                     Save Status
                   </button>
@@ -199,7 +200,7 @@ export function AdminRequestsClient({ requests }: AdminRequestsClientProps) {
                     type="button"
                     disabled={busyId === req.id || !state.quote.trim()}
                     onClick={() => void saveRequest(req.id, true)}
-                    className="min-h-[36px] rounded-full bg-webzy-primary px-4 font-bold text-white disabled:opacity-50"
+                    className="inline-flex min-h-[44px] items-center rounded-full bg-webzy-primary px-4 font-bold text-white hover:opacity-95 disabled:opacity-50"
                   >
                     Save &amp; Email Quote
                   </button>

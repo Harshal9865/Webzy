@@ -1,11 +1,12 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { getWebzyPublicConfig, logEvent } from '@webzy/core';
+import { getWebzyPublicConfig } from '@webzy/core';
+import { reportServerError } from '../../../../../../infra/sentry/monitor';
 import { runPaymentWatchdog } from '../../../../../../infra/supabase/payments';
 import { requireVerifiedAdmin } from '../../../lib/requireAdmin';
 
 export async function POST(request: NextRequest) {
   try {
-    const guard = await requireVerifiedAdmin();
+    const guard = await requireVerifiedAdmin(request);
     if (!guard.ok) return guard.response;
 
     const cfg = getWebzyPublicConfig();
@@ -16,9 +17,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ ok: true, ...summary });
   } catch (err) {
-    logEvent('error', 'admin.watchdog.exception', {
-      message: err instanceof Error ? err.message.slice(0, 120) : 'unknown',
-    });
+    reportServerError(err, { route: '/api/watchdog', app: 'admin' });
     return NextResponse.json({ error: 'Watchdog execution failed.' }, { status: 500 });
   }
 }

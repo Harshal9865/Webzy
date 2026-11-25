@@ -16,7 +16,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const guard = await requireVerifiedAdmin();
+    const guard = await requireVerifiedAdmin(request);
     if (!guard.ok) return guard.response;
     const session = { user: { id: guard.userId, email: guard.email } };
 
@@ -118,10 +118,14 @@ export async function POST(
           provider_status: 'gateway_error',
         })
         .eq('id', refundRow.id);
+      reportServerError(gatewayErr, {
+        route: '/api/orders/[id]/refund',
+        app: 'admin',
+        action: 'gateway_refund',
+        orderId: order.id,
+      });
       throw new WebzyError(
-        gatewayErr instanceof Error
-          ? `Payment gateway refund failed: ${gatewayErr.message.slice(0, 120)}`
-          : 'Payment gateway rejected the refund. You can safely retry.',
+        'Payment gateway rejected the refund. You can safely retry.',
         { code: 'REFUND_GATEWAY_ERROR', statusCode: 502 },
       );
     }

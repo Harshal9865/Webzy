@@ -56,14 +56,14 @@ export function AdminWaitlistClient({ initialWaitlist }: AdminWaitlistClientProp
   }
 
   return (
-    <section className="mt-8 rounded-3xl border border-webzy-tint bg-white p-6 shadow-sm">
+    <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-5 shadow-xs sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <h2 className="font-heading text-xl font-bold text-webzy-ink">
               Studio Waitlist (15-Day Pipeline)
             </h2>
-            <span className="rounded-full bg-webzy-tint px-2.5 py-0.5 text-xs font-bold text-webzy-primary">
+            <span className="rounded-full bg-webzy-tint px-2.5 py-0.5 text-xs font-bold text-webzy-primary font-tabular">
               {items.length} Leads
             </span>
           </div>
@@ -72,12 +72,13 @@ export function AdminWaitlistClient({ initialWaitlist }: AdminWaitlistClientProp
           </p>
         </div>
 
-        <div>
+        <div className="w-full sm:w-auto">
           <select
             suppressHydrationWarning
+            aria-label="Filter waitlist category"
             value={filterCat}
             onChange={(e) => setFilterCat(e.target.value)}
-            className="min-h-[40px] rounded-xl border border-webzy-tint bg-webzy-surface px-3 text-xs text-webzy-ink outline-none"
+            className="min-h-[44px] w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 text-xs font-semibold text-webzy-ink outline-none focus:border-webzy-primary focus:bg-white sm:w-auto"
           >
             <option value="all">All Categories</option>
             <option value="coaching">Coaching &amp; Institutes</option>
@@ -103,32 +104,32 @@ export function AdminWaitlistClient({ initialWaitlist }: AdminWaitlistClientProp
         </div>
       ) : null}
 
-      <div className="mt-5 overflow-x-auto">
+      <div className="mt-5 overflow-x-auto rounded-2xl border border-slate-200">
         <table className="w-full text-left text-xs">
-          <thead>
-            <tr className="border-b border-webzy-tint font-bold text-webzy-ink/70">
-              <th className="pb-3 pr-4">Lead / Business</th>
-              <th className="pb-3 pr-4">Category</th>
-              <th className="pb-3 pr-4">Contact</th>
-              <th className="pb-3 pr-4">Requirements</th>
-              <th className="pb-3 pr-4">Status</th>
-              <th className="pb-3 text-right">Action</th>
+          <thead className="bg-slate-50/70">
+            <tr className="border-b border-slate-200 font-bold text-slate-600">
+              <th className="px-4 py-3">Lead / Business</th>
+              <th className="px-4 py-3">Category</th>
+              <th className="px-4 py-3">Contact</th>
+              <th className="px-4 py-3">Requirements</th>
+              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3 text-right">Action</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-webzy-tint/60">
+          <tbody className="divide-y divide-slate-200">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={6} className="py-6 text-center text-webzy-ink/60">
+                <td colSpan={6} className="px-4 py-6 text-center text-webzy-ink/60">
                   No waitlist leads yet in this category.
                 </td>
               </tr>
             ) : (
               filtered.map((item) => {
-                const cleanPhone = item.phone.replace(/[^0-9]/g, '');
+                const cleanPhone = (item.phone || '').replace(/[^0-9]/g, '');
                 const waLink = cleanPhone ? `https://wa.me/${cleanPhone}` : '';
                 return (
-                  <tr key={item.id} className="hover:bg-webzy-surface/30">
-                    <td className="py-3 pr-4">
+                  <tr key={item.id} className="hover:bg-slate-50/70">
+                    <td className="px-4 py-3">
                       <p className="font-bold text-webzy-ink">{item.name}</p>
                       <p className="text-[11px] text-webzy-ink/70">
                         {item.business_name || 'Personal/New brand'}
@@ -137,22 +138,22 @@ export function AdminWaitlistClient({ initialWaitlist }: AdminWaitlistClientProp
                         <p className="text-[11px] text-webzy-ink/50">City: {item.city}</p>
                       ) : null}
                     </td>
-                    <td className="py-3 pr-4">
-                      <span className="rounded-full bg-webzy-surface px-2.5 py-0.5 text-[10px] font-bold uppercase text-webzy-ink/80">
+                    <td className="px-4 py-3">
+                      <span className="inline-block rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-[10px] font-bold uppercase text-webzy-ink/80">
                         {item.category}
                       </span>
                     </td>
-                    <td className="py-3 pr-4">
+                    <td className="px-4 py-3">
                       <p className="font-mono text-[11px] text-webzy-ink">{item.email}</p>
                       {item.phone ? (
-                        <div className="mt-1 flex items-center gap-1.5">
-                          <span className="text-[11px] text-webzy-ink/70">{item.phone}</span>
+                        <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                          <span className="text-[11px] text-webzy-ink/70 font-tabular">{item.phone}</span>
                           {waLink ? (
                             <a
                               href={waLink}
                               target="_blank"
                               rel="noreferrer"
-                              className="rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800 hover:bg-emerald-200"
+                              className="inline-flex min-h-[44px] items-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 text-[11px] font-bold text-emerald-800 hover:bg-emerald-100"
                             >
                               WhatsApp ↗
                             </a>
@@ -160,12 +161,12 @@ export function AdminWaitlistClient({ initialWaitlist }: AdminWaitlistClientProp
                         </div>
                       ) : null}
                     </td>
-                    <td className="py-3 pr-4 max-w-xs text-[11px] text-webzy-ink/80">
+                    <td className="px-4 py-3 max-w-xs text-[11px] text-webzy-ink/80">
                       {item.notes || 'No specific notes'}
                     </td>
-                    <td className="py-3 pr-4">
+                    <td className="px-4 py-3">
                       <span
-                        className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                        className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase ${
                           item.status === 'converted'
                             ? 'bg-emerald-100 text-emerald-900'
                             : item.status === 'contacted'
@@ -176,9 +177,10 @@ export function AdminWaitlistClient({ initialWaitlist }: AdminWaitlistClientProp
                         {item.status}
                       </span>
                     </td>
-                    <td className="py-3 text-right">
+                    <td className="px-4 py-3 text-right">
                       <select
                         suppressHydrationWarning
+                        aria-label={`Change status for ${item.name}`}
                         disabled={busyId === item.id}
                         value={item.status}
                         onChange={(e) =>
@@ -187,7 +189,7 @@ export function AdminWaitlistClient({ initialWaitlist }: AdminWaitlistClientProp
                             e.target.value as 'waitlisted' | 'contacted' | 'converted',
                           )
                         }
-                        className="rounded-lg border border-webzy-tint bg-white px-2 py-1 text-[11px] font-medium text-webzy-ink outline-none"
+                        className="min-h-[44px] rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-webzy-ink outline-none focus:border-webzy-primary"
                       >
                         <option value="waitlisted">Waitlisted</option>
                         <option value="contacted">Contacted</option>

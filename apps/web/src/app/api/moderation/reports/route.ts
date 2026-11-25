@@ -5,7 +5,7 @@ import { writeAuditLog } from '../../../../../../../infra/supabase/auth';
 import { requireVerifiedAdmin } from '../../../../lib/requireAdmin';
 
 export async function POST(request: Request) {
-  const guard = await requireVerifiedAdmin();
+  const guard = await requireVerifiedAdmin(request);
   if (!guard.ok) return guard.response;
 
   try {

@@ -15,27 +15,32 @@ export default async function AdminHomePage() {
 
   if (!session.configured) {
     return (
-      <main className="mx-auto flex min-h-screen max-w-2xl flex-col justify-center px-5 py-12">
-        <div className="rounded-3xl border border-webzy-tint bg-webzy-surface p-7 shadow-sm">
-          <span className="inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-900">
-            Webzy Admin · Setup Required
-          </span>
-          <h1 className="mt-4 font-heading text-3xl font-bold text-webzy-ink">
-            Connect Supabase &amp; Seed Admin First
-          </h1>
-          <p className="mt-2 text-sm leading-relaxed text-webzy-ink/80">
-            Add Supabase keys in <code>.env.local</code> and run <code>npm run seed:admin</code>.
-          </p>
-          <div className="mt-5 flex flex-wrap gap-3">
-            <Link
-              href="/api/health"
-              className="inline-flex min-h-[44px] items-center rounded-full bg-webzy-primary px-5 text-xs font-bold text-white"
-            >
-              Check /api/health
-            </Link>
+      <div className="min-h-screen overflow-x-clip bg-slate-50 text-slate-900">
+        <main className="mx-auto flex min-h-screen max-w-2xl flex-col justify-center px-4 py-12 sm:px-6">
+          <div className="rounded-2xl border border-slate-200 bg-white p-7 shadow-sm sm:p-8">
+            <span className="inline-flex rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-900">
+              Webzy Admin · Setup Required
+            </span>
+            <h1 className="mt-4 font-heading text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+              Connect Supabase &amp; Seed Admin First
+            </h1>
+            <p className="mt-2 text-sm leading-relaxed text-slate-600">
+              Add Supabase keys in <code className="rounded bg-slate-100 px-1.5 py-0.5 text-slate-800">.env.local</code> and run{' '}
+              <code className="rounded bg-slate-100 px-1.5 py-0.5 text-slate-800">npm run seed:admin</code>.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-3">
+              {config.appEnv !== 'production' ? (
+                <Link
+                  href="/api/health"
+                  className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-slate-900 px-5 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800"
+                >
+                  Check /api/health
+                </Link>
+              ) : null}
+            </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
     );
   }
 
@@ -56,18 +61,26 @@ export default async function AdminHomePage() {
   }
   if (gate === 'forbidden') {
     return (
-      <main className="mx-auto flex min-h-screen max-w-lg flex-col justify-center px-5 py-12">
-        <div className="rounded-3xl border border-red-200 bg-red-50 p-7 text-red-950">
-          <h1 className="font-heading text-2xl font-bold">Access denied</h1>
-          <p className="mt-2 text-sm">
-            Your signed-in account ({session.user?.email}) does not currently have the <code>admin</code> role.
-          </p>
-          <div className="mt-5 space-y-4">
-            {config.appEnv === 'local' ? <AdminLocalElevateButton /> : null}
-            <AdminSignOutButton />
+      <div className="min-h-screen overflow-x-clip bg-slate-50 text-slate-900">
+        <main className="mx-auto flex min-h-screen max-w-lg flex-col justify-center px-4 py-12 sm:px-6">
+          <div className="rounded-2xl border border-red-200 bg-white p-7 shadow-sm sm:p-8">
+            <span className="inline-flex rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-800">
+              Access Restricted
+            </span>
+            <h1 className="mt-4 font-heading text-2xl font-bold tracking-tight text-slate-900">
+              Access denied
+            </h1>
+            <p className="mt-2 text-sm leading-relaxed text-slate-600">
+              Your signed-in account ({session.user?.email}) does not currently have the{' '}
+              <code className="rounded bg-slate-100 px-1.5 py-0.5 text-slate-800">admin</code> role.
+            </p>
+            <div className="mt-5 space-y-4">
+              {config.appEnv === 'local' ? <AdminLocalElevateButton /> : null}
+              <AdminSignOutButton />
+            </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
     );
   }
 

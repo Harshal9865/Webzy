@@ -1,9 +1,20 @@
 import { NextResponse } from 'next/server';
 import { evaluateAdminAccess, isAdminMfaRequired } from '@webzy/core';
+import { verifySameOriginRequest } from '../../../../infra/security/requestGuard';
 import { getAuthSessionState } from '../../../../infra/supabase/auth';
 import { createSupabaseAdminClient } from '../../../../infra/supabase/server';
 
-export async function requireVerifiedAdmin() {
+export async function requireVerifiedAdmin(request?: Request) {
+  if (request && !verifySameOriginRequest(request)) {
+    return {
+      ok: false as const,
+      response: NextResponse.json(
+        { error: 'Cross-origin request rejected.' },
+        { status: 403 },
+      ),
+    };
+  }
+
   const session = await getAuthSessionState();
   const requireMfa = isAdminMfaRequired();
   const gate = evaluateAdminAccess({
