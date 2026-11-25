@@ -120,16 +120,24 @@ export interface SnapshotCustomRequestRow {
   created_at: string;
 }
 
+export type WaitlistLeadStatus =
+  | 'waitlisted'
+  | 'contacted'
+  | 'in_progress'
+  | 'made'
+  | 'converted'
+  | 'archived';
+
 export interface SnapshotWaitlistItem {
   id: string;
   name: string;
   email: string;
-  phone?: string | null;
+  phone: string;
   category: string;
-  business_name?: string | null;
-  city?: string | null;
-  notes?: string | null;
-  status: string;
+  business_name: string;
+  city: string;
+  notes: string;
+  status: WaitlistLeadStatus;
   created_at: string;
   checklist?: Record<string, boolean> | null;
   preview_url?: string | null;
@@ -542,7 +550,39 @@ export async function loadAdminDashboardSnapshot(): Promise<AdminDashboardSnapsh
     }));
 
     siteItems = (sitesListRes.data as SnapshotSiteItem[] | null) ?? [];
-    waitlistItems = (waitlistRes.data as SnapshotWaitlistItem[] | null) ?? [];
+    const allowedWaitlistStatuses = new Set<WaitlistLeadStatus>([
+      'waitlisted',
+      'contacted',
+      'in_progress',
+      'made',
+      'converted',
+      'archived',
+    ]);
+    waitlistItems = ((waitlistRes.data as Array<Record<string, unknown>> | null) ?? []).map((w) => {
+      const rawStatus = typeof w.status === 'string' ? w.status : 'waitlisted';
+      const status: WaitlistLeadStatus = allowedWaitlistStatuses.has(rawStatus as WaitlistLeadStatus)
+        ? (rawStatus as WaitlistLeadStatus)
+        : 'waitlisted';
+      return {
+        id: String(w.id || ''),
+        name: String(w.name || ''),
+        email: String(w.email || ''),
+        phone: typeof w.phone === 'string' ? w.phone : '',
+        category: String(w.category || ''),
+        business_name: typeof w.business_name === 'string' ? w.business_name : '',
+        city: typeof w.city === 'string' ? w.city : '',
+        notes: typeof w.notes === 'string' ? w.notes : '',
+        status,
+        created_at: String(w.created_at || ''),
+        checklist:
+          w.checklist && typeof w.checklist === 'object'
+            ? (w.checklist as Record<string, boolean>)
+            : null,
+        preview_url: typeof w.preview_url === 'string' ? w.preview_url : null,
+        live_url: typeof w.live_url === 'string' ? w.live_url : null,
+        quote_amount_inr: typeof w.quote_amount_inr === 'number' ? w.quote_amount_inr : null,
+      };
+    });
     recentAudits = (recentRes.data as AdminAuditEntry[] | null) ?? [];
     recentModLogs = (modRes.data as typeof recentModLogs | null) ?? [];
 

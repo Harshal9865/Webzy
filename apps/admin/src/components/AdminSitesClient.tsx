@@ -156,7 +156,7 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
       if (e.key === 'Escape') {
         setEditingSite(null);
         setRsvpInspectSite(null);
-        setModalError('');
+        setErrorMsg('');
       }
     }
     window.addEventListener('keydown', onKeyDown);
@@ -494,11 +494,10 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
                           <button
                             type="button"
                             onClick={() => setRsvpInspectSite(site)}
-                            className={`min-h-[30px] rounded-lg border px-2.5 text-[11px] font-semibold transition ${
-                              rsvpList.length > 0
-                                ? 'border-emerald-300 bg-emerald-50 text-emerald-900 hover:bg-emerald-100'
-                                : 'border-webzy-tint bg-white text-webzy-ink/70 hover:bg-webzy-surface'
-                            }`}
+                            className={`min-h-[30px] rounded-lg border px-2.5 text-[11px] font-semibold transition ${rsvpList.length > 0
+                              ? 'border-emerald-300 bg-emerald-50 text-emerald-900 hover:bg-emerald-100'
+                              : 'border-webzy-tint bg-white text-webzy-ink/70 hover:bg-webzy-surface'
+                              }`}
                           >
                             RSVPs ({rsvpList.length})
                           </button>
@@ -724,11 +723,10 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
                             <div className="flex flex-wrap items-center gap-2">
                               <span className="text-sm font-bold text-webzy-ink">{entry.guestName}</span>
                               <span
-                                className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
-                                  entry.attending
-                                    ? 'bg-emerald-100 text-emerald-900'
-                                    : 'bg-zinc-200 text-zinc-700'
-                                }`}
+                                className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${entry.attending
+                                  ? 'bg-emerald-100 text-emerald-900'
+                                  : 'bg-zinc-200 text-zinc-700'
+                                  }`}
                               >
                                 {entry.attending ? `Attending (${entry.guestCount || 1})` : 'Declined'}
                               </span>

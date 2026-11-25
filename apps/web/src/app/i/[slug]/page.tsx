@@ -88,7 +88,7 @@ async function resolveLiveOrDemoWeddingBySlug(slug: string): Promise<WeddingInvi
             | Array<{ theme_id?: string }>
             | null;
           const themeId = Array.isArray(themeRel) ? themeRel[0]?.theme_id : themeRel?.theme_id;
-          const fallback = getWeddingMockByTemplateId(themeId || savedWedding.templateId);
+          const fallback = getWeddingMockByTemplateId(themeId || savedWedding.templateId || '');
           return {
             ...fallback,
             ...savedWedding,

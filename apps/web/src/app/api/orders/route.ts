@@ -115,20 +115,6 @@ export async function POST(request: NextRequest) {
       phone: body.phone ?? session.profile?.phone ?? '',
     });
 
-    const { count: photoCount } = await admin
-      .from('assets')
-      .select('id', { count: 'exact', head: true })
-      .eq('draft_id', draft.id)
-      .eq('status', 'ready')
-      .is('deleted_at', null);
-
-    const consentRecords = validateCheckoutConsent({
-      ageOrParentConfirmed: Boolean(body.consent?.ageOrParentConfirmed),
-      termsAndRefundAccepted: Boolean(body.consent?.termsAndRefundAccepted),
-      photoPermissionConfirmed: Boolean(body.consent?.photoPermissionConfirmed),
-      hasPhotos: (photoCount ?? 0) > 0,
-    });
-
     // Server-computed pricing ONLY (ignores any price passed by browser - Section 10)
     const baseValidityDays = cfg.defaultValidityDays;
     const pricing = computeOrderPricingPaise({
@@ -173,12 +159,20 @@ export async function POST(request: NextRequest) {
             .digest('hex')
             .slice(0, 12)}`;
 
-    // Return existing pending/settled order on double-click Pay retry
-    const { data: existingOrder } = await admin
-      .from('orders')
-      .select('id, status, provider_order_id, amount_paise')
-      .eq('idempotency_key', idempotencyKey)
-      .maybeSingle();
+    // Run independent pre-order lookups in parallel
+    const [{ count: photoCount }, { data: existingOrder }] = await Promise.all([
+      admin
+        .from('assets')
+        .select('id', { count: 'exact', head: true })
+        .eq('draft_id', draft.id)
+        .eq('status', 'ready')
+        .is('deleted_at', null),
+      admin
+        .from('orders')
+        .select('id, status, provider_order_id, amount_paise')
+        .eq('idempotency_key', idempotencyKey)
+        .maybeSingle(),
+    ]);
 
     if (existingOrder) {
       const nextUrl =
@@ -194,41 +188,51 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Bind anonymous draft to logged-in user + update profile snapshot
-    if (!draft.user_id) {
-      const { data: claimedDraft, error: claimErr } = await admin
-        .from('drafts')
-        .update({ user_id: session.user.id, claimed_at: new Date().toISOString() })
-        .eq('id', draft.id)
-        .is('user_id', null)
-        .select('id')
-        .maybeSingle();
-
-      if (claimErr || !claimedDraft) {
-        return NextResponse.json(
-          { error: 'This draft belongs to another account.', code: 'DRAFT_OWNERSHIP_CONFLICT' },
-          { status: 403 },
-        );
-      }
-    }
-
-    await admin
-      .from('profiles')
-      .update({
-        full_name: cleanedProfile.fullName,
-        phone: cleanedProfile.phone,
-      })
-      .eq('id', session.user.id);
+    const consentRecords = validateCheckoutConsent({
+      ageOrParentConfirmed: Boolean(body.consent?.ageOrParentConfirmed),
+      termsAndRefundAccepted: Boolean(body.consent?.termsAndRefundAccepted),
+      photoPermissionConfirmed: Boolean(body.consent?.photoPermissionConfirmed),
+      hasPhotos: (photoCount ?? 0) > 0,
+    });
 
     const statusStore = createSupabaseMockStatusStore(admin);
     const provider = resolvePaymentProviderInstance({ statusStore });
     const internalOrderId = crypto.randomUUID();
-    const gwOrder = await provider.createOrder({
-      internalOrderId,
-      amountPaise: pricing.totalPaise,
-      currency: 'INR',
-      receipt: `rcpt_${internalOrderId.slice(0, 12)}`,
-    });
+
+    // Claim anonymous draft, update buyer profile snapshot, and create gateway order in parallel
+    const draftClaimPromise = !draft.user_id
+      ? admin
+          .from('drafts')
+          .update({ user_id: session.user.id, claimed_at: new Date().toISOString() })
+          .eq('id', draft.id)
+          .is('user_id', null)
+          .select('id')
+          .maybeSingle()
+      : Promise.resolve({ data: { id: draft.id }, error: null });
+
+    const [claimedRes, , gwOrder] = await Promise.all([
+      draftClaimPromise,
+      admin
+        .from('profiles')
+        .update({
+          full_name: cleanedProfile.fullName,
+          phone: cleanedProfile.phone,
+        })
+        .eq('id', session.user.id),
+      provider.createOrder({
+        internalOrderId,
+        amountPaise: pricing.totalPaise,
+        currency: 'INR',
+        receipt: `rcpt_${internalOrderId.slice(0, 12)}`,
+      }),
+    ]);
+
+    if (!draft.user_id && (claimedRes.error || !claimedRes.data)) {
+      return NextResponse.json(
+        { error: 'This draft belongs to another account.', code: 'DRAFT_OWNERSHIP_CONFLICT' },
+        { status: 403 },
+      );
+    }
 
     const { error: orderErr } = await admin.from('orders').insert({
       id: internalOrderId,

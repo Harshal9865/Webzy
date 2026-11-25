@@ -16,8 +16,7 @@ export default async function MockPayPage({
     notFound();
   }
 
-  const session = await getAuthSessionState();
-  const { orderId } = await params;
+  const [session, { orderId }] = await Promise.all([getAuthSessionState(), params]);
 
   if (!session.user) {
     redirect(`/login?next=${encodeURIComponent(`/mock-pay/${orderId}`)}`);
@@ -26,7 +25,7 @@ export default async function MockPayPage({
   const admin = createSupabaseAdminClient();
   const { data: order } = await admin
     .from('orders')
-    .select('id, user_id, provider_order_id, amount_paise, status')
+    .select('id, user_id, provider_order_id, amount_paise, status, pricing_breakdown')
     .eq('id', orderId)
     .eq('user_id', session.user.id)
     .maybeSingle();
@@ -39,12 +38,20 @@ export default async function MockPayPage({
     redirect(`/success/${order.id}`);
   }
 
+  const breakdown = order.pricing_breakdown as { validityDays?: number } | null | undefined;
+  const validityDays =
+    breakdown && typeof breakdown.validityDays === 'number' && breakdown.validityDays > 0
+      ? breakdown.validityDays
+      : cfg.defaultValidityDays;
+
   return (
     <MockPayClient
       orderId={order.id}
       providerOrderId={order.provider_order_id}
       amountPaise={order.amount_paise}
       status={order.status}
+      validityDays={validityDays}
+      showQaControls={process.env.NODE_ENV === 'development'}
     />
   );
 }

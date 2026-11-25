@@ -342,10 +342,14 @@ const HI_COPY: StorefrontCopy = {
   testModeBadge: 'टेस्ट मोड',
 };
 
-function createRegionalCopy(overrides: Partial<StorefrontCopy> & {
-  nav: Partial<StorefrontCopy['nav']>;
-  hero: Partial<StorefrontCopy['hero']>;
-}): StorefrontCopy {
+function createRegionalCopy(
+  overrides: Omit<Partial<StorefrontCopy>, 'nav' | 'hero' | 'customBanner' | 'footer'> & {
+    nav: Partial<StorefrontCopy['nav']>;
+    hero: Partial<StorefrontCopy['hero']>;
+    customBanner?: Partial<StorefrontCopy['customBanner']>;
+    footer?: Partial<StorefrontCopy['footer']>;
+  },
+): StorefrontCopy {
   return {
     ...EN_COPY,
     ...overrides,

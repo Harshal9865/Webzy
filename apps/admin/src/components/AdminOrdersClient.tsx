@@ -216,8 +216,8 @@ export function AdminOrdersClient({ orders, webUrl = 'http://localhost:3000' }: 
       } else {
         liveGrossPaise += amt;
       }
-      const { hasPin, hasVideo, hasExtend } = parseOrderAddons(o.addons_json);
-      if (hasPin || hasVideo || hasExtend) addonAttached += 1;
+      const { hasPin, hasVideo, validityLabel } = parseOrderAddons(o.addons_json);
+      if (hasPin || hasVideo || Boolean(validityLabel)) addonAttached += 1;
     }
 
     const refundedPaise = refundedOrders.reduce((s, o) => s + (o.amount_paise || 0), 0);

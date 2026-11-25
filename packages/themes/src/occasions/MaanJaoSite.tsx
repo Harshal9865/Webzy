@@ -1,999 +1,806 @@
 'use client';
 
-import React, { useEffect, useId, useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import { type CoreLanguageCode, pickLocalizedText, toCoreLanguageCode } from '@webzy/core';
+import {
+  AmbientRainCanvas,
+  type CurvedTrackItem,
+  CurvedTrackSanctuary,
+  WordByWordFadeLine,
+} from './shared/OccasionCinematicFX';
 import {
   getReplayLabel,
   getWebzyFooterLabel,
+  OccasionAdaptiveGallery,
   OccasionArtworkBackdrop,
-  OccasionCassettePlayer,
-  OccasionChapterNav,
-  OccasionPhotoGallery,
   type OccasionSiteProps,
 } from './shared/OccasionPrimitives';
 
-const PALETTE = {
-  surface: '#FFF8F3',
-  card: '#FFFDFB',
-  terracotta: '#C95B42',
-  crimson: '#A92638',
-  espresso: '#2C1914',
-  gold: '#C88A2E',
-  goldSoft: '#FEF7E6',
-  blushBorder: '#EAD7CC',
-  blushTint: '#FCEEE7',
-} as const;
+type GestureId = 'kulhad-chai' | 'fav-dessert' | 'just-listen';
+type FinaleState = 'open' | 'forgiven' | 'needs-time';
 
-type ArenaChapterId = 'brief' | 'meter' | 'vouchers';
-type TreatId = 'chai-samosa' | 'ice-cream' | 'long-drive';
-type PleaId = 'listened-late' | 'coffee-walk' | 'no-excuses' | 'mean-everything';
-
-interface PleaClauseSpec {
-  id: PleaId;
-  code: string;
-  title: Record<CoreLanguageCode, string>;
-  detail: Record<CoreLanguageCode, string>;
-}
-
-const PLEA_CLAUSES: readonly PleaClauseSpec[] = [
-  {
-    id: 'listened-late',
-    code: 'CLAUSE 01',
-    title: {
-      en: 'I listened late',
-      hinglish: 'Der se suna, galti meri',
-      hi: 'बात देर से सुनी, गलती मेरी',
-    },
-    detail: {
-      en: 'You deserved my full attention the very first time.',
-      hinglish: 'Pehli hi baar mein poora dhyan dena chahiye tha.',
-      hi: 'पहली ही बार में मुझे आपकी बात ध्यान से सुननी चाहिए थी।',
-    },
-  },
-  {
-    id: 'coffee-walk',
-    code: 'CLAUSE 02',
-    title: {
-      en: 'Coffee + walk on me',
-      hinglish: 'Coffee + walk meri taraf se',
-      hi: 'कॉफ़ी और वॉक मेरी तरफ़ से',
-    },
-    detail: {
-      en: 'Phones on silent, unhurried pace, your favorite corner spot.',
-      hinglish: 'Phone silent par, aaram se chalenge, tumhari fav jagah.',
-      hi: 'फ़ोन साइलेंट पर, सुकून भरी सैर और आपकी पसंदीदा जगह।',
-    },
-  },
-  {
-    id: 'no-excuses',
-    code: 'CLAUSE 03',
-    title: {
-      en: 'No excuses, just sorry',
-      hinglish: 'Koi bahana nahi, bas sorry',
-      hi: 'कोई बहाना नहीं, दिल से सॉरी',
-    },
-    detail: {
-      en: 'Zero defending, zero ego — owning my slip-up cleanly.',
-      hinglish: 'Na koi safai, na koi ego — seedha dil se maafi.',
-      hi: 'न कोई सफ़ाई, न कोई ज़िद — बस सच्चे दिल से माफ़ी।',
-    },
-  },
-  {
-    id: 'mean-everything',
-    code: 'CLAUSE 04',
-    title: {
-      en: 'You mean everything',
-      hinglish: 'Tum mere liye sab kuch ho',
-      hi: 'तुम मेरे लिए सबसे ख़ास हो',
-    },
-    detail: {
-      en: 'Protecting your smile matters more than winning any point.',
-      hinglish: 'Kisi bhi behes se zyada zaroori sirf tumhari smile hai.',
-      hi: 'किसी भी बहस से ज़्यादा ज़रूरी सिर्फ़ आपकी मुस्कान है।',
-    },
-  },
-];
-
-interface TreatVoucherSpec {
-  id: TreatId;
-  serial: string;
+interface CalmGestureSpec {
+  id: GestureId;
   label: Record<CoreLanguageCode, string>;
   detail: Record<CoreLanguageCode, string>;
 }
 
-const TREAT_VOUCHERS: readonly TreatVoucherSpec[] = [
+const CALM_GESTURES: readonly CalmGestureSpec[] = [
   {
-    id: 'chai-samosa',
-    serial: 'TRUCE-01',
+    id: 'kulhad-chai',
     label: {
-      en: 'Kulhad Chai & Samosa',
-      hinglish: 'Kulhad Chai & Samosa',
-      hi: 'कुल्हड़ चाय और समोसा',
+      en: 'Hot Kulhad Chai',
+      hinglish: 'Hot Kulhad Chai',
+      hi: 'गरमा-गरम कुल्हड़ चाय',
     },
     detail: {
-      en: 'Steaming masala kulhad chai and crisp samosas, zero nagging.',
-      hinglish: 'Garma-garam kulhad chai aur crispy samose, bina kisi rona-dhona.',
-      hi: 'गरमा-गरम कुल्हड़ चाय और कुरकुरे समोसे, बिना किसी बहस के।',
+      en: 'Slow sips together, warm clay cups, zero rush.',
+      hinglish: 'Aaram se saath baithkar garam chai, koi jaldi nahi.',
+      hi: 'सुकून से साथ बैठकर चाय, बिना किसी जल्दी के।',
     },
   },
   {
-    id: 'ice-cream',
-    serial: 'TRUCE-02',
+    id: 'fav-dessert',
     label: {
-      en: 'Double Scoop Ice Cream',
-      hinglish: 'Double Scoop Ice Cream',
-      hi: 'डबल स्कूप आइसक्रीम',
+      en: 'Favorite Dessert',
+      hinglish: 'Favorite Dessert',
+      hi: 'आपकी पसंदीदा मिठाई',
     },
     detail: {
-      en: 'Waffle cone or tub with extra toppings — your flavour rules.',
-      hinglish: 'Waffle cone ya tub extra toppings ke saath — flavour bilkul tumhara.',
-      hi: 'वॉफ़ल कोन या टब और एक्स्ट्रा टॉपिंग्स — पसंद बिल्कुल आपकी।',
+      en: 'Whichever sweet thing brings a quiet smile back.',
+      hinglish: 'Jo bhi meetha tumhara mood halka kar de, meri taraf se.',
+      hi: 'जो भी मीठा आपका मन हल्का कर दे, मेरी तरफ़ से।',
     },
   },
   {
-    id: 'long-drive',
-    serial: 'TRUCE-03',
+    id: 'just-listen',
     label: {
-      en: 'Midnight Long Drive',
-      hinglish: 'Midnight Long Drive',
-      hi: 'मिडनाइट लॉन्ग ड्राइव',
+      en: 'Just Listen Without Interrupting',
+      hinglish: 'Just Listen Without Interrupting',
+      hi: 'बिना टोके बस ध्यान से सुनना',
     },
     detail: {
-      en: 'Your playlist on aux, open windows, quiet roads, no rush.',
-      hinglish: 'Tumhari playlist, khuli windows, shaant sadkein, zero jaldi.',
-      hi: 'आपकी प्लेलिस्ट, खुली हवा, शांत सड़कें और कोई जल्दी नहीं।',
+      en: 'Phone face down. Full presence. Every word heard.',
+      hinglish: 'Phone side par rakh kar sirf tumhari baat poori tarah sunna.',
+      hi: 'फ़ोन अलग रखकर बस आपकी हर बात पूरे मन से सुनना।',
     },
   },
 ];
 
-interface MaanJaoCopy {
-  dispatchClassification: string;
-  dispatchHeader: string;
-  dispatchSubtitle: string;
-  toLabel: string;
-  fromLabel: string;
-  openBriefCta: string;
-  tapHint: string;
-  accordBadge: string;
-  tabs: Record<ArenaChapterId, string>;
-  meterTitle: string;
-  meterSubtitle: (sealedCount: number) => string;
-  meterReadyTag: string;
-  noteHeaderTag: string;
-  noteSignedPrefix: string;
-  memoriesLabel: string;
-  cassetteTapLabel: string;
-  cassettePlayingLabel: string;
-  pleasHeading: string;
-  pleasHelper: string;
-  sealedStamp: string;
-  tapToSeal: string;
-  vouchersHeading: string;
-  vouchersHelper: string;
-  selectedStamp: string;
-  nextToPleas: string;
-  nextToVouchers: string;
-  grumpyIdleLabel: string;
-  grumpyNudges: string[];
-  grumpyPromptIdle: string;
-  grumpyPromptReactions: string[];
-  forgiveSignCta: string;
-  certTopTag: string;
-  certTitle: string;
-  certSubtitle: string;
-  certPartyOne: string;
-  certPartyTwo: string;
-  certTreatLabel: string;
-  certSerialLabel: string;
-  certTimestampLabel: string;
-  certScoreLabel: string;
-  certClauseLine: string;
-  certSealedBadge: string;
-  revisitArenaCta: string;
+interface PromiseFallback {
+  title: Record<CoreLanguageCode, string>;
+  detail: Record<CoreLanguageCode, string>;
 }
 
-const MAAN_JAO_COPY: Record<CoreLanguageCode, MaanJaoCopy> = {
-  en: {
-    dispatchClassification: 'TOP SECRET TRUCE DISPATCH',
-    dispatchHeader: 'PEACE ACCORD CASE FILE',
-    dispatchSubtitle: 'Warm Apology & Official Ceasefire Request',
-    toLabel: 'To',
-    fromLabel: 'From',
-    openBriefCta: 'Open Peace Brief',
-    tapHint: 'Tap the wax seal or button to unseal dispatch',
-    accordBadge: 'ACCORD DOSSIER',
-    tabs: {
-      brief: 'Peace Brief',
-      meter: '4 Pleas',
-      vouchers: 'Treat Pass',
+const PROMISE_FALLBACKS: readonly PromiseFallback[] = [
+  {
+    title: {
+      en: 'Owning it cleanly',
+      hinglish: 'Bina bahane ke maafi',
+      hi: 'बिना किसी बहाने के',
     },
-    meterTitle: 'Forgiveness Meter',
-    meterSubtitle: (sealedCount) =>
-      sealedCount === 4
-        ? 'All 4 peace clauses sealed — 100% truce readiness!'
-        : `${sealedCount}/4 plea cards sealed · +20% per stamp`,
-    meterReadyTag: 'READY TO RATIFY',
-    noteHeaderTag: 'OFFICIAL APOLOGY NOTE',
-    noteSignedPrefix: 'Sincerely yours,',
-    memoriesLabel: 'Pinned Keepsakes',
-    cassetteTapLabel: 'Play Warm Truce Chime',
-    cassettePlayingLabel: 'Playing Acoustic Chime...',
-    pleasHeading: 'Tap each plea card to stamp (+20%)',
-    pleasHelper: 'Seal every honest promise to raise the Forgiveness Meter from 20% to 100%.',
-    sealedStamp: 'SEALED +20%',
-    tapToSeal: 'TAP TO SEAL',
-    vouchersHeading: 'Select your redeemable Peace Treat',
-    vouchersHelper: 'Locked directly onto your signed treaty certificate.',
-    selectedStamp: 'SELECTED',
-    nextToPleas: 'Review 4 Peace Pleas',
-    nextToVouchers: 'Pick Peace Treat',
-    grumpyIdleLabel: 'Still Grumpy',
-    grumpyNudges: [
-      'Still Grumpy?',
-      'Wait, really?',
-      'Even for chai?',
-      'Extra samosas?',
-      'Okay, truce soon!',
+    detail: {
+      en: 'No defending my tone or shifting blame. I was wrong, and I see why it hurt.',
+      hinglish: 'Na koi safai, na koi ego. Galti meri thi aur mujhe iska poora ehsaas hai.',
+      hi: 'न कोई सफ़ाई, न कोई ज़िद। गलती मेरी थी और मुझे आपकी तकलीफ़ का पूरा एहसास है।',
+    },
+  },
+  {
+    title: {
+      en: 'Listening before reacting',
+      hinglish: 'React karne se pehle sunna',
+      hi: 'बोलने से पहले सुनना',
+    },
+    detail: {
+      en: 'Slowing down in tense moments so you always feel heard, never talked over.',
+      hinglish: 'Jab baat bhaari ho tab ruk kar pehle tumhe samajhna, bolna baad mein.',
+      hi: 'कठिन पलों में पहले ठहरकर आपकी बात समझना, अपनी बात बाद में रखना।',
+    },
+  },
+  {
+    title: {
+      en: 'Protecting your peace',
+      hinglish: 'Tumhara sukoon sabse upar',
+      hi: 'आपका सुकून सबसे पहले',
+    },
+    detail: {
+      en: 'Being right never matters more than keeping things gentle between us.',
+      hinglish: 'Kisi bhi baat ko jeetne se zyada zaroori hamara sukoon aur bharosa hai.',
+      hi: 'किसी भी बात को जीतने से ज़्यादा ज़रूरी हमारा सुकून और भरोसा है।',
+    },
+  },
+];
+
+interface LocalizedMaanJaoCopy {
+  ariaLabel: string;
+  previewBanner: string;
+  coverEyebrow: string;
+  coverGreeting: (receiver: string) => string;
+  coverSubtitle: string;
+  coverFromPrefix: string;
+  coverCta: string;
+  storyHint: string;
+  slideTags: [string, string, string];
+  slideOneZeroExcuse: string;
+  slideTwoCallBadge: string;
+  slideTwoSigned: string;
+  slideThreeIntro: string;
+  prevSlide: string;
+  nextSlide: string;
+  scrollSanctuaryHint: string;
+  sanctuaryEyebrow: string;
+  calmGaugeTitle: string;
+  calmGaugeTension: string;
+  calmGaugePeace: string;
+  calmGaugeSubIdle: string;
+  calmGaugeSubWarm: (count: number, total: number) => string;
+  calmGaugeSubFull: string;
+  gesturesPrompt: string;
+  soundtrackHeading: string;
+  tracks: readonly CurvedTrackItem[];
+  memoriesEyebrow: string;
+  photoPrefix: string;
+  finaleEyebrow: string;
+  finalePromptIdle: string;
+  stillUpsetLabel: string;
+  stillUpsetNudges: readonly string[];
+  stillUpsetReactions: readonly string[];
+  forgiveCta: string;
+  needTimeCta: string;
+  forgivenEyebrow: string;
+  forgivenTitle: (receiver: string) => string;
+  forgivenBody: (sender: string) => string;
+  forgivenGesturesLabel: string;
+  forgivenNoGestures: string;
+  needsTimeEyebrow: string;
+  needsTimeTitle: (receiver: string) => string;
+  needsTimeBody: string;
+  revisitNoteCta: string;
+}
+
+const MAAN_JAO_COPY: Record<CoreLanguageCode, LocalizedMaanJaoCopy> = {
+  en: {
+    ariaLabel: 'An honest midnight apology note',
+    previewBanner: 'WEBZY FREE PREVIEW',
+    coverEyebrow: 'MIDNIGHT RAIN · QUIET NOTE',
+    coverGreeting: (receiver) => `Something honest for ${receiver}`,
+    coverSubtitle: 'Take your time. No pressure.',
+    coverFromPrefix: 'Quietly from',
+    coverCta: 'Read when ready',
+    storyHint: 'Swipe or tap next to read at your own pace',
+    slideTags: ['01 · NO EXCUSES', '02 · LATE NIGHT CALL', '03 · WHAT CHANGES'],
+    slideOneZeroExcuse:
+      'No excuses today. No trying to talk my way out of it. Just wanting to own what happened and soften the silence between us.',
+    slideTwoCallBadge: 'ACROSS TOWN · LATE NIGHT',
+    slideTwoSigned: 'Always yours,',
+    slideThreeIntro: 'Small, concrete things I want to hold myself to:',
+    prevSlide: 'Prev',
+    nextSlide: 'Next',
+    scrollSanctuaryHint: 'Scroll gently below when ready',
+    sanctuaryEyebrow: 'LOWER SANCTUARY',
+    calmGaugeTitle: 'Clearing the Air',
+    calmGaugeTension: 'Tension',
+    calmGaugePeace: 'Peace',
+    calmGaugeSubIdle: 'Tap any quiet gesture below whenever you feel like softening the night.',
+    calmGaugeSubWarm: (count, total) => `${count} of ${total} calm gestures chosen — air feels lighter.`,
+    calmGaugeSubFull: 'Peace restored. Warmth waiting on the other side.',
+    gesturesPrompt: 'Simple ways I want to make tonight lighter:',
+    soundtrackHeading: 'RAIN ACOUSTIC SANCTUARY',
+    tracks: [
+      {
+        id: 'midnight-rain',
+        title: 'Midnight Window',
+        moodLabel: 'Soft Rain',
+        duration: '02:40',
+        note: 'For the quiet minutes when words feel heavy and only rain sounds honest.',
+      },
+      {
+        id: 'warm-kulhad',
+        title: 'After the Storm',
+        moodLabel: 'Gentle Acoustic',
+        duration: '03:12',
+        note: 'Slow strings and a warm lamp left on across town until we talk again.',
+      },
+      {
+        id: 'dawn-light',
+        title: 'Morning Calm',
+        moodLabel: 'Warm Chime',
+        duration: '02:55',
+        note: 'A reminder that tomorrow can feel softer than tonight.',
+      },
     ],
-    grumpyPromptIdle: 'Ready to clear the air and claim your peace treat?',
-    grumpyPromptReactions: [
-      'Fair enough — let me earn that smile back properly.',
-      'Noted! Adding extra warmth and zero excuses.',
-      'What if the kulhad chai is piping hot and on me right now?',
-      'Okay, doubling down on patience and sweet treats.',
-      'This grumpy button is running out of steam — sign the truce!',
+    memoriesEyebrow: 'QUIET MOMENTS KEPT',
+    photoPrefix: 'Memory',
+    finaleEyebrow: 'WHENEVER YOU ARE READY',
+    finalePromptIdle: 'There is no rush here. Answer however you truly feel right now.',
+    stillUpsetLabel: 'Still upset',
+    stillUpsetNudges: ['Still upset', 'Still a little mad', 'Not yet', 'Still cooling down'],
+    stillUpsetReactions: [
+      'Totally fair. You have every right to feel that way.',
+      'No defending from me. Take a slow breath — I am listening.',
+      'What if hot kulhad chai and quiet company wait without a single excuse?',
+      'Thank you for being honest. No pressure at all.',
     ],
-    forgiveSignCta: 'Forgiven — Sign Treaty',
-    certTopTag: 'OFFICIAL PEACE ACCORD',
-    certTitle: 'Ratified Peace Treaty Certificate',
-    certSubtitle: 'All grudges, side-eyes, and silent treatments are hereby dissolved.',
-    certPartyOne: 'Forgiving Party',
-    certPartyTwo: 'Apologizing Party',
-    certTreatLabel: 'Redeemable Treat',
-    certSerialLabel: 'Accord Serial',
-    certTimestampLabel: 'Ratified On',
-    certScoreLabel: 'Forgiveness Index',
-    certClauseLine: 'Signed in good faith, warm chai, and mutual smiles.',
-    certSealedBadge: 'SEALED & RATIFIED',
-    revisitArenaCta: 'Revisit Peace Brief',
+    forgiveCta: "It's okay, I forgive you",
+    needTimeCta: 'Give me a little time',
+    forgivenEyebrow: 'WARMTH RESTORED',
+    forgivenTitle: (receiver) => `Thank you for the grace, ${receiver}.`,
+    forgivenBody: (sender) =>
+      `${sender} is genuinely grateful. Let the rain pass slowly — I will protect your peace better from here.`,
+    forgivenGesturesLabel: 'On me next time we meet',
+    forgivenNoGestures: 'Just quiet presence, warm tea, and a gentler tomorrow.',
+    needsTimeEyebrow: 'SPACE RESPECTED',
+    needsTimeTitle: (receiver) => `Take all the time you need, ${receiver}.`,
+    needsTimeBody:
+      'No countdown, no guilt, and no pushing. Whenever you feel ready to talk, I will be right here — calm and listening.',
+    revisitNoteCta: 'Read the note again',
   },
   hinglish: {
-    dispatchClassification: 'TOP SECRET TRUCE DISPATCH',
-    dispatchHeader: 'PEACE ACCORD CASE FILE',
-    dispatchSubtitle: 'Dil Se Maafi & Official Sulah Dastawez',
-    toLabel: 'Priya',
-    fromLabel: 'Taraf se',
-    openBriefCta: 'Open Peace Brief',
-    tapHint: 'Kholne ke liye wax seal ya button par tap karein',
-    accordBadge: 'SULAH FILE',
-    tabs: {
-      brief: 'Peace Note',
-      meter: '4 Vaade',
-      vouchers: 'Treat Pass',
-    },
-    meterTitle: 'Forgiveness Meter',
-    meterSubtitle: (sealedCount) =>
-      sealedCount === 4
-        ? 'Saare 4 vaade seal ho gaye — 100% sulah tayyar!'
-        : `${sealedCount}/4 plea cards sealed · har stamp par +20%`,
-    meterReadyTag: 'SULAH READY',
-    noteHeaderTag: 'SACHCHI MAAFI PATRA',
-    noteSignedPrefix: 'Tumhara apna,',
-    memoriesLabel: 'Hamari Yaadein',
-    cassetteTapLabel: 'Warm Truce Dhun Bajao',
-    cassettePlayingLabel: 'Pyari Dhun Baj Rahi Hai...',
-    pleasHeading: 'Har plea card tap karke stamp lagao (+20%)',
-    pleasHelper: 'Har vaada seal karte hi Forgiveness Meter 20% se 100% tak badhega.',
-    sealedStamp: 'SEALED +20%',
-    tapToSeal: 'TAP KARO',
-    vouchersHeading: 'Apna Peace Treat Voucher chuno',
-    vouchersHelper: 'Yeh voucher seedha tumhare signed treaty par lock hoga.',
-    selectedStamp: 'CHUNA GAYA',
-    nextToPleas: '4 Vaade Dekho',
-    nextToVouchers: 'Treat Voucher Chuno',
-    grumpyIdleLabel: 'Still Grumpy',
-    grumpyNudges: [
-      'Abhi bhi gussa?',
-      'Sach mein?',
-      'Kulhad chai pe bhi?',
-      'Double scoop bhi?',
-      'Bas maan jao na!',
+    ariaLabel: 'Ek sachchi maafi ka sandesh',
+    previewBanner: 'WEBZY FREE PREVIEW',
+    coverEyebrow: 'MIDNIGHT RAIN · SACHCHI BAAT',
+    coverGreeting: (receiver) => `Something honest for ${receiver}`,
+    coverSubtitle: 'Take your time. No pressure.',
+    coverFromPrefix: 'Dil se,',
+    coverCta: 'Read when ready',
+    storyHint: 'Aaram se padhne ke liye swipe ya next tap karein',
+    slideTags: ['01 · KOI BAHANA NAHI', '02 · LATE NIGHT CALL', '03 · SACHCHE VAADE'],
+    slideOneZeroExcuse:
+      'Aaj koi safai nahi deni hai. Bas apni galti maanni hai aur hamare beech ki khamoshi ko thoda halka karna hai.',
+    slideTwoCallBadge: 'DO KHIDKIYAN · EK RAAT',
+    slideTwoSigned: 'Sirf tumhara,',
+    slideThreeIntro: 'Chhoti par sachchi baatein jo main nibhana chahta hoon:',
+    prevSlide: 'Peeche',
+    nextSlide: 'Aage',
+    scrollSanctuaryHint: 'Jab mann kare, neeche scroll karein',
+    sanctuaryEyebrow: 'SUKOON KA KONAA',
+    calmGaugeTitle: 'Mann Halka Karna',
+    calmGaugeTension: 'Tension',
+    calmGaugePeace: 'Peace',
+    calmGaugeSubIdle: 'Neeche diye chhote gestures par tap karo jab thoda sukoon chahiye ho.',
+    calmGaugeSubWarm: (count, total) => `${count}/${total} gestures chune — hawa thodi narm lag rahi hai.`,
+    calmGaugeSubFull: 'Dil thoda shaant hua. Sukoon yahin intezaar kar raha hai.',
+    gesturesPrompt: 'Aaj ki shaam halka karne ke chhote tareeke:',
+    soundtrackHeading: 'BAARISH KE SAATH DHUN',
+    tracks: [
+      {
+        id: 'midnight-rain',
+        title: 'Midnight Window',
+        moodLabel: 'Soft Rain',
+        duration: '02:40',
+        note: 'Un khamosh palon ke liye jab shabd bhaari lagte hain aur sirf baarish sach bolti hai.',
+      },
+      {
+        id: 'warm-kulhad',
+        title: 'Kulhad Chai & Rain',
+        moodLabel: 'Gentle Acoustic',
+        duration: '03:12',
+        note: 'Do alag khidkiyon ke beech jalti ek madham roshni aur sukoon ka intezaar.',
+      },
+      {
+        id: 'dawn-light',
+        title: 'Subah Ki Narmi',
+        moodLabel: 'Warm Chime',
+        duration: '02:55',
+        note: 'Is ummeed ke saath ki kal ki subah aaj ki raat se zyada haseen hogi.',
+      },
     ],
-    grumpyPromptIdle: 'Ab gussa chhodo aur apna peace treat lock karo?',
-    grumpyPromptReactions: [
-      'Chalo theek hai, poori koshish se tumhari smile wapas launga.',
-      'Bilkul fair — bina kisi bahane ke dil se sorry.',
-      'Garma-garam kulhad chai + samosa pe toh maan jao?',
-      'Achha baba, extra patience aur double treat pakka!',
-      'Bechara grumpy button bhi thak gaya — ab treaty sign kar do!',
+    memoriesEyebrow: 'SANJOI HUI YAADEIN',
+    photoPrefix: 'Yaad',
+    finaleEyebrow: 'JAB TUM TAYYAR HO',
+    finalePromptIdle: 'Koi jaldi nahi hai. Abhi dil jo sach kahe, wahi chunna.',
+    stillUpsetLabel: 'Still upset',
+    stillUpsetNudges: ['Abhi bhi gussa', 'Thoda aur waqt', 'Abhi nahi', 'Thoda shaant ho rahi'],
+    stillUpsetReactions: [
+      'Bilkul samajhta hoon. Tumhara gussa hona poori tarah jayaz hai.',
+      'Koi bahana nahi. Bas aaram se saans lo — main yahin sun raha hoon.',
+      'Kya garma-garam kulhad chai aur bina shart ki khamosh saath chalega?',
+      'Sach bolne ke liye shukriya. Bilkul koi pressure nahi hai.',
     ],
-    forgiveSignCta: 'Forgiven — Sign Treaty',
-    certTopTag: 'OFFICIAL PEACE ACCORD',
-    certTitle: 'Ratified Peace Treaty Certificate',
-    certSubtitle: 'Is pal se saari narazgi aur chuppi officially khatam maani jayegi.',
-    certPartyOne: 'Maaf Karne Wale',
-    certPartyTwo: 'Maafi Mangne Wale',
-    certTreatLabel: 'Treat Voucher',
-    certSerialLabel: 'Accord Serial',
-    certTimestampLabel: 'Sign Samay',
-    certScoreLabel: 'Forgiveness Score',
-    certClauseLine: 'Sacche dil, garma-garam chai aur pyaari muskaan ke saath pakka.',
-    certSealedBadge: 'SEALED & RATIFIED',
-    revisitArenaCta: 'Treaty Dobara Dekho',
+    forgiveCta: "It's okay, I forgive you",
+    needTimeCta: 'Give me a little time',
+    forgivenEyebrow: 'BAARISH KE BAAD ROSHNI',
+    forgivenTitle: (receiver) => `Maaf karne ke liye dil se shukriya, ${receiver}.`,
+    forgivenBody: (sender) =>
+      `${sender} sach mein aabhari hai. Ab se tumhare sukoon aur bharose ka khayal aur behtar rakhunga.`,
+    forgivenGesturesLabel: 'Agli mulaqat par pakka',
+    forgivenNoGestures: 'Bas poora dhyan, garma-garam chai aur ek narm kal.',
+    needsTimeEyebrow: 'WAQT KA SAMMAAN',
+    needsTimeTitle: (receiver) => `Jitna waqt chahiye lo, ${receiver}.`,
+    needsTimeBody:
+      'Koi ginti nahi, koi pressure nahi. Jab bhi baat karne ka mann kare, main yahin shaanti se sunne ke liye hoon.',
+    revisitNoteCta: 'Note dobara padho',
   },
   hi: {
-    dispatchClassification: 'गोपनीय शांति संदेश',
-    dispatchHeader: 'PEACE ACCORD CASE FILE',
-    dispatchSubtitle: 'सच्चे दिल से माफ़ी और सुलह का आधिकारिक प्रस्ताव',
-    toLabel: 'प्रिय',
-    fromLabel: 'प्रेषक',
-    openBriefCta: 'शांति पत्र खोलें',
-    tapHint: 'खोलने के लिए मुहर या बटन पर टैप करें',
-    accordBadge: 'शांति फ़ाइल',
-    tabs: {
-      brief: 'माफ़ी पत्र',
-      meter: '4 वादे',
-      vouchers: 'ट्रीट पास',
-    },
-    meterTitle: 'माफ़ी मीटर',
-    meterSubtitle: (sealedCount) =>
-      sealedCount === 4
-        ? 'सभी 4 वादे मुहरबंद — 100% सुलह तैयार!'
-        : `${sealedCount}/4 वादे मुहरबंद · हर कार्ड पर +20%`,
-    meterReadyTag: 'संधि तैयार',
-    noteHeaderTag: 'दिल से माफ़ी संदेश',
-    noteSignedPrefix: 'स्नेह सहित,',
-    memoriesLabel: 'संजोई यादें',
-    cassetteTapLabel: 'मधुर धुन बजाएं',
-    cassettePlayingLabel: 'मधुर धुन बज रही है...',
-    pleasHeading: 'हर वादे पर टैप कर मुहर लगाएं (+20%)',
-    pleasHelper: 'हर कार्ड पर टैप करने से माफ़ी मीटर 20% से 100% तक बढ़ेगा।',
-    sealedStamp: 'मुहर +20%',
-    tapToSeal: 'टैप करें',
-    vouchersHeading: 'अपना शांति ट्रीट वाउचर चुनें',
-    vouchersHelper: 'चुना गया वाउचर आपके शांति प्रमाणपत्र पर दर्ज होगा।',
-    selectedStamp: 'चयनित',
-    nextToPleas: '4 वादे देखें',
-    nextToVouchers: 'ट्रीट वाउचर चुनें',
-    grumpyIdleLabel: 'अभी भी नाराज़',
-    grumpyNudges: [
-      'सच में नाराज़?',
-      'ज़रा सोचो तो!',
-      'कुल्हड़ चाय पर भी?',
-      'आइसक्रीम भी?',
-      'अब मान भी जाओ!',
+    ariaLabel: 'एक सच्चा माफ़ी संदेश',
+    previewBanner: 'WEBZY FREE PREVIEW',
+    coverEyebrow: 'आधी रात की बारिश · सच्ची बात',
+    coverGreeting: (receiver) => `${receiver} के लिए एक सच्ची बात`,
+    coverSubtitle: 'अपना पूरा समय लें। कोई दबाव नहीं है।',
+    coverFromPrefix: 'दिल से,',
+    coverCta: 'तैयार हों तो पढ़ें',
+    storyHint: 'आगे पढ़ने के लिए स्वाइप करें या अगला बटन दबाएं',
+    slideTags: ['01 · कोई बहाना नहीं', '02 · देर रात की बात', '03 · सच्चे वादे'],
+    slideOneZeroExcuse:
+      'आज मुझे कोई सफ़ाई नहीं देनी है। बस अपनी गलती माननी है और हमारे बीच की इस खामोशी को थोड़ा हल्का करना है।',
+    slideTwoCallBadge: 'दो खिड़कियाँ · एक शांत रात',
+    slideTwoSigned: 'सदैव आपका,',
+    slideThreeIntro: 'कुछ सच्चे वादे जिन्हें मैं दिल से निभाना चाहता हूँ:',
+    prevSlide: 'पिछला',
+    nextSlide: 'अगला',
+    scrollSanctuaryHint: 'जब मन करे, नीचे स्क्रॉल करें',
+    sanctuaryEyebrow: 'सुकून का कोना',
+    calmGaugeTitle: 'मन हल्का करें',
+    calmGaugeTension: 'तनाव',
+    calmGaugePeace: 'शांति',
+    calmGaugeSubIdle: 'माहौल थोड़ा हल्का महसूस करने के लिए नीचे किसी भी विकल्प पर टैप करें।',
+    calmGaugeSubWarm: (count, total) => `${count}/${total} विकल्प चुने गए — थोड़ा सुकून लौट रहा है।`,
+    calmGaugeSubFull: 'मन थोड़ा शांत हुआ। गर्माहट यहीं आपका इंतज़ार कर रही है।',
+    gesturesPrompt: 'इस शाम को थोड़ा हल्का बनाने के आसान तरीके:',
+    soundtrackHeading: 'बारिश और सुकून की धुन',
+    tracks: [
+      {
+        id: 'midnight-rain',
+        title: 'आधी रात की खिड़की',
+        moodLabel: 'धीमी बारिश',
+        duration: '02:40',
+        note: 'उन शांत पलों के लिए जब शब्द भारी लगें और सिर्फ़ बारिश की बूंदें बोलें।',
+      },
+      {
+        id: 'warm-kulhad',
+        title: 'तूफ़ान के बाद',
+        moodLabel: 'कोमल धुन',
+        duration: '03:12',
+        note: 'शहर के दो सिरों पर जलती दो रोशनियाँ और बात होने का शांत इंतज़ार।',
+      },
+      {
+        id: 'dawn-light',
+        title: 'सुबह की नर्मी',
+        moodLabel: 'मधुर झंकार',
+        duration: '02:55',
+        note: 'एक भरोसा कि आने वाली सुबह आज की रात से कहीं ज़्यादा शांत होगी।',
+      },
     ],
-    grumpyPromptIdle: 'क्या अब नाराज़गी छोड़कर ट्रीट वाउचर पक्का करें?',
-    grumpyPromptReactions: [
-      'सही बात है — आपकी मुस्कान लौटाने की पूरी कोशिश रहेगी।',
-      'बिना किसी बहाने के, सच्चे दिल से माफ़ी।',
-      'गरमा-गरम कुल्हड़ चाय और समोसे पर तो मान जाइए!',
-      'ठीक है, दोगुने प्यार और मीठी ट्रीट का वादा पक्का।',
-      'नाराज़गी वाला बटन भी हार मान गया — अब संधि पर मुहर लगा दें!',
+    memoriesEyebrow: 'संजोई हुई यादें',
+    photoPrefix: 'याद',
+    finaleEyebrow: 'जब आप तैयार हों',
+    finalePromptIdle: 'कोई जल्दबाज़ी नहीं है। इस समय आपका दिल जो कहे, वही चुनें।',
+    stillUpsetLabel: 'अभी भी नाराज़',
+    stillUpsetNudges: ['अभी भी नाराज़', 'मन थोड़ा भारी है', 'अभी नहीं', 'थोड़ा समय चाहिए'],
+    stillUpsetReactions: [
+      'बिल्कुल जायज़ है। आपको नाराज़ होने का पूरा हक़ है।',
+      'मेरी तरफ़ से कोई बहस नहीं। बस गहरी सांस लें — मैं सुन रहा हूँ।',
+      'अगर बिना किसी बहाने के सिर्फ़ गरम कुल्हड़ चाय और शांत साथ हो तो?',
+      'अपनी सच्ची भावना बताने के लिए धन्यवाद। कोई दबाव नहीं है।',
     ],
-    forgiveSignCta: 'माफ़ किया — संधि पक्की करें',
-    certTopTag: 'आधिकारिक शांति संधि',
-    certTitle: 'प्रमाणित शांति संधि प्रमाणपत्र',
-    certSubtitle: 'इस क्षण से सभी शिकायतें और नाराज़गी आधिकारिक रूप से समाप्त हैं।',
-    certPartyOne: 'माफ़ करने वाले',
-    certPartyTwo: 'माफ़ी मांगने वाले',
-    certTreatLabel: 'चयनित ट्रीट',
-    certSerialLabel: 'संधि क्रमांक',
-    certTimestampLabel: 'हस्ताक्षर समय',
-    certScoreLabel: 'माफ़ी सूचकांक',
-    certClauseLine: 'सच्चे मन, गर्मागर्म चाय और मुस्कान के साथ हस्ताक्षरित।',
-    certSealedBadge: 'मुहरबंद एवं प्रमाणित',
-    revisitArenaCta: 'संधि विवरण देखें',
+    forgiveCta: 'ठीक है, मैंने माफ़ किया',
+    needTimeCta: 'मुझे थोड़ा समय चाहिए',
+    forgivenEyebrow: 'फिर से सुकून',
+    forgivenTitle: (receiver) => `माफ़ करने के लिए दिल से शुक्रिया, ${receiver}।`,
+    forgivenBody: (sender) =>
+      `${sender} सच में आभारी है। अब से आपके सुकून और भरोसे का पहले से कहीं ज़्यादा ध्यान रखूँगा।`,
+    forgivenGesturesLabel: 'अगली मुलाक़ात पर वादा',
+    forgivenNoGestures: 'बस पूरा ध्यान, गरम चाय और एक शांत कल।',
+    needsTimeEyebrow: 'आपके समय का सम्मान',
+    needsTimeTitle: (receiver) => `अपना पूरा समय लीजिए, ${receiver}।`,
+    needsTimeBody:
+      'कोई गिनती नहीं, कोई जल्दबाज़ी नहीं। जब भी आपका मन बात करने का हो, मैं यहीं शांत मन से सुनने के लिए रहूँगा।',
+    revisitNoteCta: 'संदेश फिर से पढ़ें',
   },
 };
 
-function WatermarkBanner({ visible }: { visible: boolean }) {
+function WatermarkBanner({ visible, label }: { visible: boolean; label: string }) {
   if (!visible) return null;
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none relative z-30 flex justify-center border-b border-[#A92638]/15 bg-[#FCEEE7]/95 py-1 text-[10px] font-bold tracking-[0.2em] text-[#A92638]"
+      className="pointer-events-none relative z-30 flex justify-center border-b border-white/10 bg-[#050814]/90 py-1 text-[10px] font-semibold tracking-[0.2em] text-blue-200/75"
     >
-      WEBZY FREE PREVIEW
+      {label}
     </div>
   );
 }
 
-function WaxHeartSealSvg({ initials }: { initials: string }) {
-  const gradId = useId();
+function RaindropMoonEmblem() {
   return (
-    <div className="relative flex h-16 w-16 items-center justify-center" aria-hidden="true">
-      <svg viewBox="0 0 64 64" className="h-16 w-16 drop-shadow-md">
-        <defs>
-          <radialGradient id={gradId} cx="35%" cy="30%" r="70%">
-            <stop offset="0%" stopColor="#D64054" />
-            <stop offset="60%" stopColor="#A92638" />
-            <stop offset="100%" stopColor="#6E1420" />
-          </radialGradient>
-        </defs>
-        <path
-          d="M32 4c3.1 0 5.4 2.1 8.2 1.8 2.9-.3 5.2-2 7.8-.7 2.6 1.3 2.5 4.4 4.5 6.4 2 2 5.1 1.9 6.4 4.5 1.3 2.6-.4 4.9-.7 7.8-.3 2.8 1.8 5.1 1.8 8.2s-2.1 5.4-1.8 8.2c.3 2.9 2 5.2.7 7.8-1.3 2.6-4.4 2.5-6.4 4.5-2 2-1.9 5.1-4.5 6.4-2.6 1.3-4.9-.4-7.8-.7-2.8-.3-5.1 1.8-8.2 1.8s-5.4-2.1-8.2-1.8c-2.9.3-5.2 2-7.8.7-2.6-1.3-2.5-4.4-4.5-6.4-2-2-5.1-1.9-6.4-4.5-1.3-2.6.4-4.9.7-7.8.3-2.8-1.8-5.1-1.8-8.2s2.1-5.4 1.8-8.2c-.3-2.9-2-5.2-.7-7.8 1.3-2.6 4.4-2.5 6.4-4.5 2-2 1.9-5.1 4.5-6.4 2.6-1.3 4.9.4 7.8.7 2.8.3 5.1-1.8 8.2-1.8Z"
-          fill={`url(#${gradId})`}
-        />
-        <circle cx="32" cy="32" r="20" fill="none" stroke="#F8D8C8" strokeOpacity="0.45" strokeWidth="1.2" strokeDasharray="3 2" />
-        <path
-          d="M32 44.5c-.6 0-1.2-.2-1.6-.6-5.2-4.6-9.4-8.5-9.4-13.2 0-3.3 2.6-5.9 5.9-5.9 2 0 3.9 1 5.1 2.6 1.2-1.6 3.1-2.6 5.1-2.6 3.3 0 5.9 2.6 5.9 5.9 0 4.7-4.2 8.6-9.4 13.2-.4.4-1 .6-1.6.6Z"
-          fill="#6E1420"
-          fillOpacity="0.45"
-        />
-      </svg>
-      <span className="absolute font-mono text-[11px] font-extrabold tracking-wider text-[#FFF8F3]">
-        {initials}
-      </span>
-    </div>
-  );
-}
-
-function TreatVectorIcon({ treatId, active }: { treatId: TreatId; active: boolean }) {
-  const strokeColor = active ? PALETTE.crimson : PALETTE.espresso;
-  if (treatId === 'chai-samosa') {
-    return (
-      <svg className="h-6 w-6 shrink-0" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-        <path d="M9 4.5c0 1.3 1.2 1.7 1.2 2.9M13.5 4c0 1.3 1.2 1.7 1.2 2.9" stroke={PALETTE.terracotta} strokeWidth="1.6" strokeLinecap="round" />
-        <path d="M5.5 10.5h11l-1.3 9.2a2 2 0 0 1-2 1.8H8.8a2 2 0 0 1-2-1.8l-1.3-9.2Z" fill={PALETTE.terracotta} fillOpacity="0.16" stroke={strokeColor} strokeWidth="1.7" strokeLinejoin="round" />
-        <path d="M18.2 21.5l3.8-6.6 3.4 6.6h-7.2Z" fill={PALETTE.gold} fillOpacity="0.28" stroke={PALETTE.gold} strokeWidth="1.7" strokeLinejoin="round" />
-      </svg>
-    );
-  }
-  if (treatId === 'ice-cream') {
-    return (
-      <svg className="h-6 w-6 shrink-0" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-        <path d="M9 12a4.5 4.5 0 0 1 8.8-1.4A3.8 3.8 0 0 1 19 14H9a3.5 3.5 0 0 1 0-2Z" fill={PALETTE.crimson} fillOpacity="0.18" stroke={strokeColor} strokeWidth="1.7" strokeLinejoin="round" />
-        <path d="M11 8.5a3.5 3.5 0 0 1 6 0" stroke={PALETTE.terracotta} strokeWidth="1.6" strokeLinecap="round" />
-        <path d="M9.2 14h9.6L14 24.5 9.2 14Z" fill={PALETTE.gold} fillOpacity="0.24" stroke={PALETTE.gold} strokeWidth="1.7" strokeLinejoin="round" />
-      </svg>
-    );
-  }
-  return (
-    <svg className="h-6 w-6 shrink-0" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-      <circle cx="14" cy="14" r="9" stroke={strokeColor} strokeWidth="1.7" />
-      <circle cx="14" cy="14" r="2.2" fill={PALETTE.terracotta} stroke={strokeColor} strokeWidth="1.4" />
-      <path d="M5.5 12.5h6.2M16.3 12.5h6.2M14 16.3V23" stroke={strokeColor} strokeWidth="1.7" strokeLinecap="round" />
-      <path d="M19.5 5.5l1.2-1.8M22 8l1.8-1" stroke={PALETTE.gold} strokeWidth="1.5" strokeLinecap="round" />
+    <svg
+      viewBox="0 0 64 64"
+      className="h-14 w-14 drop-shadow-[0_0_20px_rgba(147,197,253,0.28)]"
+      fill="none"
+      aria-hidden="true"
+    >
+      <circle cx="32" cy="32" r="28" stroke="#93C5FD" strokeOpacity="0.22" strokeWidth="1" />
+      <path
+        d="M35.5 17.5a13.5 13.5 0 1 0 11 21.2A11 11 0 1 1 35.5 17.5Z"
+        fill="#FDE68A"
+        fillOpacity="0.9"
+      />
+      <path
+        d="M21 43c0-2.4 2.2-5 2.2-5s2.2 2.6 2.2 5a2.2 2.2 0 1 1-4.4 0Z"
+        fill="#93C5FD"
+        fillOpacity="0.75"
+      />
+      <path
+        d="M39 46c0-1.9 1.7-4 1.7-4s1.7 2.1 1.7 4a1.7 1.7 0 1 1-3.4 0Z"
+        fill="#93C5FD"
+        fillOpacity="0.55"
+      />
     </svg>
   );
 }
 
-function CircularForgivenessGauge({
-  score,
-  label,
-  compact = false,
-}: {
-  score: number;
-  label: string;
-  compact?: boolean;
-}) {
-  const gaugeGradId = useId();
-  const clamped = Math.max(20, Math.min(100, score));
-  const radius = 42;
-  const circumference = 2 * Math.PI * radius;
-  const dashOffset = circumference * (1 - clamped / 100);
-
-  // Smoothly interpolate mouth curve from hesitant flat-frown (20%) to beaming smile (100%)
-  const ratio = (clamped - 20) / 80;
-  const mouthControlY = 63 - ratio * 18;
-  const mouthCornerY = 56 - ratio * 3;
-  const browTilt = clamped <= 40 ? 2.8 : clamped < 80 ? 0.5 : -2;
-  const blushOpacity = clamped >= 60 ? Math.min(0.55, (clamped - 50) / 80) : 0;
-
+function GestureLineIcon({ id, active }: { id: GestureId; active: boolean }) {
+  const stroke = active ? '#FDE68A' : '#93C5FD';
+  if (id === 'kulhad-chai') {
+    return (
+      <svg viewBox="0 0 28 28" className="h-6 w-6 shrink-0" fill="none" aria-hidden="true">
+        <path
+          d="M9.5 5c0 1.4 1.3 1.8 1.3 3.2M14.5 4.2c0 1.4 1.3 1.8 1.3 3.2"
+          stroke={stroke}
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+        <path
+          d="M7 10.5h12l-1.5 10.5a2 2 0 0 1-2 1.7h-5a2 2 0 0 1-2-1.7L7 10.5Z"
+          fill={active ? 'rgba(251, 191, 36, 0.16)' : 'rgba(147, 197, 253, 0.08)'}
+          stroke={stroke}
+          strokeWidth="1.6"
+          strokeLinejoin="round"
+        />
+        <path d="M8.5 14.5h9" stroke={stroke} strokeOpacity="0.55" strokeWidth="1.2" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  if (id === 'fav-dessert') {
+    return (
+      <svg viewBox="0 0 28 28" className="h-6 w-6 shrink-0" fill="none" aria-hidden="true">
+        <path
+          d="M8.5 14a5.5 5.5 0 0 1 11 0"
+          fill={active ? 'rgba(251, 191, 36, 0.16)' : 'rgba(147, 197, 253, 0.08)'}
+          stroke={stroke}
+          strokeWidth="1.6"
+        />
+        <circle cx="14" cy="7.5" r="1.5" fill={stroke} />
+        <path
+          d="M6.5 14.5h15l-1.8 5.2a2.2 2.2 0 0 1-2.1 1.5h-7.2a2.2 2.2 0 0 1-2.1-1.5l-1.8-5.2Z"
+          stroke={stroke}
+          strokeWidth="1.6"
+          strokeLinejoin="round"
+        />
+        <path d="M11 23.5h6" stroke={stroke} strokeWidth="1.6" strokeLinecap="round" />
+      </svg>
+    );
+  }
   return (
-    <div className="flex flex-col items-center">
-      <div
-        className={`relative flex items-center justify-center ${compact ? 'h-24 w-24' : 'h-28 w-28'}`}
-        role="img"
-        aria-label={`${label}: ${clamped}%`}
-      >
-        <svg viewBox="0 0 104 104" className="h-full w-full overflow-visible">
-          <defs>
-            <linearGradient id={gaugeGradId} x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor={PALETTE.terracotta} />
-              <stop offset="100%" stopColor={PALETTE.crimson} />
-            </linearGradient>
-          </defs>
-          <circle
-            cx="52"
-            cy="52"
-            r={radius}
-            fill={PALETTE.surface}
-            stroke={PALETTE.blushBorder}
-            strokeWidth="8"
-          />
-          <circle
-            cx="52"
-            cy="52"
-            r={radius}
-            fill="none"
-            stroke={`url(#${gaugeGradId})`}
-            strokeWidth="8"
-            strokeLinecap="round"
-            strokeDasharray={circumference}
-            strokeDashoffset={dashOffset}
-            transform="rotate(-90 52 52)"
-            style={{ transition: 'stroke-dashoffset 500ms cubic-bezier(0.22, 1, 0.36, 1)' }}
-          />
-
-          {/* Soft blush cheeks */}
-          <circle cx="36" cy="56" r="4.5" fill={PALETTE.terracotta} fillOpacity={blushOpacity} />
-          <circle cx="68" cy="56" r="4.5" fill={PALETTE.terracotta} fillOpacity={blushOpacity} />
-
-          {/* Expressive brows */}
-          <path
-            d={`M35 ${40 - browTilt * 0.4} L44 ${40 + browTilt}`}
-            stroke={PALETTE.espresso}
-            strokeWidth="2.3"
-            strokeLinecap="round"
-          />
-          <path
-            d={`M60 ${40 + browTilt} L69 ${40 - browTilt * 0.4}`}
-            stroke={PALETTE.espresso}
-            strokeWidth="2.3"
-            strokeLinecap="round"
-          />
-
-          {/* Eyes */}
-          {clamped >= 90 ? (
-            <>
-              <path d="M37 48.5 Q40 44.5 43 48.5" stroke={PALETTE.espresso} strokeWidth="2.4" strokeLinecap="round" fill="none" />
-              <path d="M61 48.5 Q64 44.5 67 48.5" stroke={PALETTE.espresso} strokeWidth="2.4" strokeLinecap="round" fill="none" />
-            </>
-          ) : (
-            <>
-              <circle cx="40" cy="48" r="2.5" fill={PALETTE.espresso} />
-              <circle cx="64" cy="48" r="2.5" fill={PALETTE.espresso} />
-            </>
-          )}
-
-          {/* Mouth */}
-          <path
-            d={`M41 ${mouthCornerY} Q52 ${mouthControlY} 63 ${mouthCornerY}`}
-            stroke={clamped >= 80 ? PALETTE.crimson : PALETTE.espresso}
-            strokeWidth="2.6"
-            strokeLinecap="round"
-            fill="none"
-          />
-        </svg>
-
-        <span
-          className="absolute -bottom-1.5 rounded-full border bg-white px-2.5 py-0.5 font-mono text-[11px] font-extrabold shadow-xs"
-          style={{
-            borderColor: clamped >= 80 ? PALETTE.crimson : PALETTE.blushBorder,
-            color: clamped >= 80 ? PALETTE.crimson : PALETTE.espresso,
-          }}
-        >
-          {clamped}%
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function GoldenCheckStamp({ sealed, label }: { sealed: boolean; label: string }) {
-  return (
-    <span
-      className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2.5 py-1 font-mono text-[9.5px] font-extrabold tracking-wider transition-all duration-300 ${
-        sealed ? 'scale-100 shadow-xs' : 'opacity-70'
-      }`}
-      style={{
-        borderColor: sealed ? PALETTE.gold : PALETTE.blushBorder,
-        backgroundColor: sealed ? PALETTE.goldSoft : PALETTE.surface,
-        color: sealed ? '#92400E' : `${PALETTE.espresso}8C`,
-      }}
-    >
-      {sealed ? (
-        <svg className="h-3.5 w-3.5 text-[#C88A2E]" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-          <path
-            fillRule="evenodd"
-            d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.7-9.3a.75.75 0 0 0-1.1-1.06l-3.4 3.5-1.5-1.48a.75.75 0 0 0-1.06 1.06l2.04 2.02a.75.75 0 0 0 1.07-.01l3.95-4.03Z"
-            clipRule="evenodd"
-          />
-        </svg>
-      ) : (
-        <span className="h-2 w-2 rounded-full border border-current" aria-hidden="true" />
-      )}
-      <span>{label}</span>
-    </span>
-  );
-}
-
-function DiplomaticCoverStage({
-  data,
-  copy,
-  initials,
-  showTapHint,
-  onOpen,
-}: {
-  data: OccasionSiteProps['data'];
-  copy: MaanJaoCopy;
-  initials: string;
-  showTapHint: boolean;
-  onOpen: () => void;
-}) {
-  return (
-    <div
-      onClick={onOpen}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onOpen();
-        }
-      }}
-      className="relative flex flex-1 cursor-pointer flex-col items-center justify-center px-4 py-6 text-center sm:px-6"
-    >
-      <OccasionArtworkBackdrop
-        src="/templates/occasions/maan-jao/cover.jpg"
-        fallbackGradient="linear-gradient(155deg, #FFF8F3 0%, #FDE8E2 55%, #F7DCD4 100%)"
-        className="object-cover object-center opacity-50"
+    <svg viewBox="0 0 28 28" className="h-6 w-6 shrink-0" fill="none" aria-hidden="true">
+      <circle
+        cx="14"
+        cy="14"
+        r="8.5"
+        fill={active ? 'rgba(251, 191, 36, 0.14)' : 'rgba(147, 197, 253, 0.08)'}
+        stroke={stroke}
+        strokeWidth="1.5"
       />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#2C1914]/25 via-[#FFF8F3]/45 to-[#2C1914]/35"
-      />
-
-      {/* Diplomatic Dispatch Case File Card */}
-      <div
-        className="relative z-10 w-full max-w-sm overflow-hidden rounded-[26px] border-2 bg-[#FFF8F3]/95 shadow-[0_24px_48px_-16px_rgba(44,25,20,0.45)] backdrop-blur-xs transition-transform duration-300 hover:-translate-y-0.5 active:scale-[0.99]"
-        style={{ borderColor: PALETTE.terracotta }}
-      >
-        {/* Burgundy & Terracotta Diplomatic Dispatch Banner */}
-        <div
-          className="border-b px-4 py-3 text-center"
-          style={{
-            background: `linear-gradient(135deg, ${PALETTE.crimson} 0%, ${PALETTE.terracotta} 100%)`,
-            borderColor: '#7F1D1D',
-          }}
-        >
-          <p className="font-mono text-[9.5px] font-extrabold tracking-[0.22em] text-[#FEF7E6]/90">
-            {copy.dispatchClassification}
-          </p>
-          <h1 className="mt-0.5 font-heading text-sm font-extrabold tracking-[0.14em] text-[#FFF8F3]">
-            {copy.dispatchHeader}
-          </h1>
-        </div>
-
-        {/* Inner Folio Body */}
-        <div className="relative px-5 pb-6 pt-5">
-          {/* Corner editorial brackets */}
-          <span aria-hidden="true" className="pointer-events-none absolute left-3 top-3 h-3 w-3 border-l-2 border-t-2 border-[#C88A2E]/60" />
-          <span aria-hidden="true" className="pointer-events-none absolute right-3 top-3 h-3 w-3 border-r-2 border-t-2 border-[#C88A2E]/60" />
-          <span aria-hidden="true" className="pointer-events-none absolute bottom-3 left-3 h-3 w-3 border-b-2 border-l-2 border-[#C88A2E]/60" />
-          <span aria-hidden="true" className="pointer-events-none absolute bottom-3 right-3 h-3 w-3 border-b-2 border-r-2 border-[#C88A2E]/60" />
-
-          <div className="mx-auto mb-3 flex justify-center">
-            <WaxHeartSealSvg initials={initials} />
-          </div>
-
-          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.16em]" style={{ color: PALETTE.terracotta }}>
-            {copy.dispatchSubtitle}
-          </p>
-
-          {/* From / To Diplomatic Badge */}
-          <div
-            className="mt-3.5 rounded-2xl border px-3.5 py-3 text-left"
-            style={{ borderColor: PALETTE.blushBorder, backgroundColor: PALETTE.card }}
-          >
-            <div className="flex items-center justify-between gap-2 border-b border-dashed border-[#EAD7CC] pb-2">
-              <span className="font-mono text-[10px] font-bold uppercase tracking-wider" style={{ color: `${PALETTE.espresso}8C` }}>
-                {copy.toLabel}
-              </span>
-              <span className="min-w-0 break-words text-right font-heading text-base font-bold" style={{ color: PALETTE.espresso }}>
-                {data.receiverName}
-              </span>
-            </div>
-            <div className="mt-2 flex items-center justify-between gap-2">
-              <span className="font-mono text-[10px] font-bold uppercase tracking-wider" style={{ color: `${PALETTE.espresso}8C` }}>
-                {copy.fromLabel}
-              </span>
-              <span className="min-w-0 break-words text-right text-sm font-bold" style={{ color: PALETTE.crimson }}>
-                {data.senderName}
-              </span>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onOpen();
-            }}
-            className="mt-5 inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold text-[#FFF8F3] shadow-md transition hover:brightness-105 active:scale-[0.98] motion-reduce:transition-none"
-            style={{ backgroundColor: PALETTE.crimson }}
-          >
-            <span>{copy.openBriefCta}</span>
-            <svg className="h-4 w-4" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 10h12m0 0l-4-4m4 4l-4 4" />
-            </svg>
-          </button>
-
-          {showTapHint ? (
-            <p className="mt-3 text-[11px] font-semibold animate-pulse motion-reduce:animate-none" style={{ color: PALETTE.crimson }}>
-              {copy.tapHint}
-            </p>
-          ) : null}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function TreatVoucherCard({
-  voucher,
-  label,
-  detail,
-  selectedStamp,
-  selected,
-  onSelect,
-}: {
-  voucher: TreatVoucherSpec;
-  label: string;
-  detail: string;
-  selectedStamp: string;
-  selected: boolean;
-  onSelect: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onSelect}
-      aria-pressed={selected}
-      className="group relative flex min-h-[64px] w-full items-center gap-3 overflow-hidden rounded-2xl border px-4 py-2.5 text-left transition-all duration-200 active:scale-[0.98]"
-      style={{
-        borderColor: selected ? PALETTE.crimson : PALETTE.blushBorder,
-        backgroundColor: selected ? PALETTE.card : `${PALETTE.card}CC`,
-        boxShadow: selected ? `0 0 0 1px ${PALETTE.crimson}33, 0 10px 22px -12px ${PALETTE.crimson}55` : undefined,
-      }}
-    >
-      {/* Ticket perforation notches */}
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute -left-2.5 top-1/2 h-5 w-5 -translate-y-1/2 rounded-full border"
-        style={{
-          backgroundColor: PALETTE.surface,
-          borderColor: selected ? PALETTE.crimson : PALETTE.blushBorder,
-        }}
-      />
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute -right-2.5 top-1/2 h-5 w-5 -translate-y-1/2 rounded-full border"
-        style={{
-          backgroundColor: PALETTE.surface,
-          borderColor: selected ? PALETTE.crimson : PALETTE.blushBorder,
-        }}
-      />
-
-      <div
-        className="ml-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors"
-        style={{ backgroundColor: selected ? PALETTE.blushTint : PALETTE.surface }}
-      >
-        <TreatVectorIcon treatId={voucher.id} active={selected} />
-      </div>
-
-      <div className="min-w-0 flex-1 border-r border-dashed border-[#EAD7CC] pr-2.5">
-        <span
-          className="block break-words font-heading text-sm font-bold"
-          style={{ color: selected ? PALETTE.crimson : PALETTE.espresso }}
-        >
-          {label}
-        </span>
-        <p className="mt-0.5 line-clamp-2 text-[11.5px] leading-snug" style={{ color: `${PALETTE.espresso}A6` }}>
-          {detail}
-        </p>
-      </div>
-
-      <div className="flex shrink-0 flex-col items-end justify-center gap-1 pr-1">
-        <span className="font-mono text-[9.5px] font-bold tracking-wider" style={{ color: `${PALETTE.espresso}80` }}>
-          {voucher.serial}
-        </span>
-        {selected ? (
-          <span
-            className="-rotate-3 rounded border px-1.5 py-0.5 font-mono text-[9px] font-extrabold tracking-widest"
-            style={{
-              borderColor: PALETTE.crimson,
-              color: PALETTE.crimson,
-              backgroundColor: PALETTE.blushTint,
-            }}
-          >
-            {selectedStamp}
-          </span>
-        ) : (
-          <span className="h-4 w-4 rounded-full border border-[#EAD7CC]" aria-hidden="true" />
-        )}
-      </div>
-    </button>
-  );
-}
-
-function RatifiedCertificateStage({
-  copy,
-  data,
-  treatLabel,
-  treatSerial,
-  accordSerial,
-  ratifiedAtLabel,
-  forgivenessScore,
-  language,
-  onRevisitArena,
-  onReplayCover,
-}: {
-  copy: MaanJaoCopy;
-  data: OccasionSiteProps['data'];
-  treatLabel: string;
-  treatSerial: string;
-  accordSerial: string;
-  ratifiedAtLabel: string;
-  forgivenessScore: number;
-  language: OccasionSiteProps['language'];
-  onRevisitArena: () => void;
-  onReplayCover: () => void;
-}) {
-  const senderInitial = (data.senderName || 'S').trim().charAt(0).toUpperCase() || 'S';
-  const receiverInitial = (data.receiverName || 'R').trim().charAt(0).toUpperCase() || 'R';
-
-  return (
-    <div className="relative z-10 flex flex-1 flex-col justify-between gap-3 px-4 pb-4 pt-3.5 animate-fade-in motion-reduce:animate-none sm:px-5">
-      <div className="flex items-center justify-between gap-2">
-        <span
-          className="rounded-full border px-3 py-1 font-mono text-[10px] font-bold tracking-[0.16em]"
-          style={{
-            borderColor: `${PALETTE.gold}66`,
-            backgroundColor: PALETTE.goldSoft,
-            color: '#92400E',
-          }}
-        >
-          {accordSerial}
-        </span>
-        <button
-          type="button"
-          onClick={onReplayCover}
-          className="inline-flex min-h-[44px] items-center rounded-full border bg-white px-4 text-xs font-semibold shadow-2xs transition hover:bg-[#FFFDFB] active:scale-95"
-          style={{ borderColor: PALETTE.blushBorder, color: PALETTE.espresso }}
-        >
-          {getReplayLabel(language)}
-        </button>
-      </div>
-
-      {/* Formal Embossed Peace Treaty Certificate */}
-      <div
-        className="relative my-auto rounded-[26px] border-2 p-1.5 shadow-[0_20px_42px_-16px_rgba(44,25,20,0.28)] animate-pop-bounce motion-reduce:animate-none"
-        style={{
-          borderColor: PALETTE.gold,
-          backgroundColor: PALETTE.card,
-        }}
-      >
-        <div
-          className="relative overflow-hidden rounded-[20px] border px-4 py-5 text-center sm:px-5"
-          style={{
-            borderColor: `${PALETTE.terracotta}55`,
-            backgroundColor: PALETTE.surface,
-          }}
-        >
-          {/* Decorative embossed corner rules */}
-          <span aria-hidden="true" className="pointer-events-none absolute left-2.5 top-2.5 h-3.5 w-3.5 border-l-2 border-t-2 border-[#C88A2E]/70" />
-          <span aria-hidden="true" className="pointer-events-none absolute right-2.5 top-2.5 h-3.5 w-3.5 border-r-2 border-t-2 border-[#C88A2E]/70" />
-          <span aria-hidden="true" className="pointer-events-none absolute bottom-2.5 left-2.5 h-3.5 w-3.5 border-b-2 border-l-2 border-[#C88A2E]/70" />
-          <span aria-hidden="true" className="pointer-events-none absolute bottom-2.5 right-2.5 h-3.5 w-3.5 border-b-2 border-r-2 border-[#C88A2E]/70" />
-
-          {/* Header Banner & Angled Ratified Stamp */}
-          <div className="flex flex-col items-center">
-            <span className="font-mono text-[9.5px] font-extrabold uppercase tracking-[0.22em]" style={{ color: PALETTE.terracotta }}>
-              {copy.certTopTag}
-            </span>
-
-            <div className="my-2.5 flex items-center justify-center gap-3">
-              <WaxHeartSealSvg initials={`${senderInitial}&${receiverInitial}`} />
-              <div
-                className="-rotate-3 rounded-xl border-2 border-dashed px-3 py-1.5"
-                style={{ borderColor: PALETTE.crimson, backgroundColor: PALETTE.card }}
-              >
-                <span className="block font-mono text-[10px] font-extrabold tracking-[0.16em]" style={{ color: PALETTE.crimson }}>
-                  {copy.certSealedBadge}
-                </span>
-              </div>
-            </div>
-
-            <h2 className="break-words font-heading text-xl font-bold leading-snug sm:text-2xl" style={{ color: PALETTE.espresso }}>
-              {copy.certTitle}
-            </h2>
-            <p className="mt-1 max-w-xs break-words text-xs leading-relaxed" style={{ color: `${PALETTE.espresso}B3` }}>
-              {copy.certSubtitle}
-            </p>
-          </div>
-
-          {/* Official Treaty Ledger */}
-          <div
-            className="mt-4 space-y-2 rounded-2xl border p-3.5 text-left text-xs"
-            style={{ borderColor: PALETTE.blushBorder, backgroundColor: PALETTE.card }}
-          >
-            <div className="flex items-center justify-between gap-2 border-b border-dashed border-[#EAD7CC] pb-1.5">
-              <span className="font-mono text-[10px] font-bold uppercase tracking-wider" style={{ color: `${PALETTE.espresso}80` }}>
-                {copy.certPartyOne}
-              </span>
-              <span className="min-w-0 break-words text-right font-bold" style={{ color: PALETTE.espresso }}>
-                {data.receiverName}
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between gap-2 border-b border-dashed border-[#EAD7CC] pb-1.5">
-              <span className="font-mono text-[10px] font-bold uppercase tracking-wider" style={{ color: `${PALETTE.espresso}80` }}>
-                {copy.certPartyTwo}
-              </span>
-              <span className="min-w-0 break-words text-right font-bold" style={{ color: PALETTE.terracotta }}>
-                {data.senderName}
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between gap-2 border-b border-dashed border-[#EAD7CC] pb-1.5">
-              <span className="font-mono text-[10px] font-bold uppercase tracking-wider" style={{ color: `${PALETTE.espresso}80` }}>
-                {copy.certTreatLabel}
-              </span>
-              <span className="min-w-0 break-words text-right font-bold" style={{ color: PALETTE.crimson }}>
-                {treatLabel} ({treatSerial})
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between gap-2 border-b border-dashed border-[#EAD7CC] pb-1.5">
-              <span className="font-mono text-[10px] font-bold uppercase tracking-wider" style={{ color: `${PALETTE.espresso}80` }}>
-                {copy.certScoreLabel}
-              </span>
-              <span className="font-mono font-extrabold" style={{ color: '#92400E' }}>
-                {forgivenessScore}%
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between gap-2 border-b border-dashed border-[#EAD7CC] pb-1.5">
-              <span className="font-mono text-[10px] font-bold uppercase tracking-wider" style={{ color: `${PALETTE.espresso}80` }}>
-                {copy.certSerialLabel}
-              </span>
-              <span className="font-mono font-bold tracking-wider" style={{ color: PALETTE.espresso }}>
-                {accordSerial}
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between gap-2">
-              <span className="font-mono text-[10px] font-bold uppercase tracking-wider" style={{ color: `${PALETTE.espresso}80` }}>
-                {copy.certTimestampLabel}
-              </span>
-              <span className="min-w-0 break-words text-right font-mono text-[11px] font-semibold" style={{ color: `${PALETTE.espresso}CC` }}>
-                {ratifiedAtLabel}
-              </span>
-            </div>
-          </div>
-
-          <p className="mt-3 font-royal-serif text-xs italic" style={{ color: `${PALETTE.espresso}B3` }}>
-            {copy.certClauseLine}
-          </p>
-
-          <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-center">
-            <button
-              type="button"
-              onClick={onRevisitArena}
-              className="inline-flex min-h-[44px] items-center justify-center rounded-full border bg-white px-5 py-2 text-xs font-bold transition hover:bg-[#FFFDFB] active:scale-95"
-              style={{ borderColor: PALETTE.terracotta, color: PALETTE.terracotta }}
-            >
-              {copy.revisitArenaCta}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <footer className="border-t border-[#EAD7CC] pt-2.5 text-center text-[11px] font-medium" style={{ color: `${PALETTE.espresso}99` }}>
-        {getWebzyFooterLabel(language)}
-      </footer>
-    </div>
+      <path d="M10.5 14v.01M14 11.5v5M17.5 13v2" stroke={stroke} strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
   );
 }
 
 /**
- * 3-Stage "Official Peace Accord" Maan Jao keepsake microsite:
- * Stage 1: Top Secret Truce Dispatch Cover Gate
- * Stage 2: Interactive Forgiveness Arena (Note + Cassette + Gallery, Circular Gauge + 4 Plea Cards, Treat Vouchers, Decision Bar)
- * Stage 3: Official Ratified Peace Treaty Certificate
+ * Split-Screen Late Night Call / Two Windows Scene:
+ * Custom diagonal neon-amber divider separating two warm lit bedroom windows
+ * under a crescent moon on opposite sides of town.
+ */
+function TwoWindowsCallScene({
+  senderName,
+  receiverName,
+  badgeLabel,
+}: {
+  senderName: string;
+  receiverName: string;
+  badgeLabel: string;
+}) {
+  const uid = useId().replace(/:/g, '');
+  const leftName = senderName.trim() || 'Me';
+  const rightName = receiverName.trim() || 'You';
+
+  return (
+    <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#050814]">
+      <svg
+        viewBox="0 0 360 176"
+        className="block w-full"
+        role="img"
+        aria-label={`Two lit windows across town between ${leftName} and ${rightName}`}
+      >
+        <defs>
+          <linearGradient id={`sky-left-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#070D1F" />
+            <stop offset="100%" stopColor="#0D1833" />
+          </linearGradient>
+          <linearGradient id={`sky-right-${uid}`} x1="100%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#090F22" />
+            <stop offset="100%" stopColor="#131B38" />
+          </linearGradient>
+          <radialGradient id={`win-glow-left-${uid}`} cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#FBBF24" stopOpacity="0.48" />
+            <stop offset="65%" stopColor="#F59E0B" stopOpacity="0.14" />
+            <stop offset="100%" stopColor="#0D1833" stopOpacity="0" />
+          </radialGradient>
+          <radialGradient id={`win-glow-right-${uid}`} cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#FDE68A" stopOpacity="0.44" />
+            <stop offset="65%" stopColor="#93C5FD" stopOpacity="0.14" />
+            <stop offset="100%" stopColor="#131B38" stopOpacity="0" />
+          </radialGradient>
+          <linearGradient id={`diag-beam-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#60A5FA" stopOpacity="0.15" />
+            <stop offset="48%" stopColor="#93C5FD" stopOpacity="0.95" />
+            <stop offset="62%" stopColor="#FDE68A" stopOpacity="0.95" />
+            <stop offset="100%" stopColor="#FBBF24" stopOpacity="0.2" />
+          </linearGradient>
+          <clipPath id={`clip-left-${uid}`}>
+            <polygon points="0,0 202,0 158,176 0,176" />
+          </clipPath>
+          <clipPath id={`clip-right-${uid}`}>
+            <polygon points="202,0 360,0 360,176 158,176" />
+          </clipPath>
+        </defs>
+
+        {/* Left side of town */}
+        <g clipPath={`url(#clip-left-${uid})`}>
+          <rect x="0" y="0" width="360" height="176" fill={`url(#sky-left-${uid})`} />
+          {/* Rain streaks left */}
+          {[
+            [24, 18, 34],
+            [62, 12, 28],
+            [114, 24, 38],
+            [148, 10, 26],
+            [40, 122, 140],
+          ].map(([x, y1, y2], idx) => (
+            <line
+              key={`rl-${idx}`}
+              x1={x}
+              y1={y1}
+              x2={x - 5}
+              y2={y2}
+              stroke="#93C5FD"
+              strokeOpacity="0.28"
+              strokeWidth="1"
+              strokeLinecap="round"
+            />
+          ))}
+          {/* Distant skyline left */}
+          <path
+            d="M0 176 L0 128 L22 128 L22 104 L52 104 L52 120 L74 120 L74 72 L134 72 L134 114 L166 114 L166 176 Z"
+            fill="#060A17"
+          />
+          {/* Left apartment window aura */}
+          <circle cx="104" cy="112" r="46" fill={`url(#win-glow-left-${uid})`} />
+          {/* Lit bedroom window (Left) */}
+          <rect
+            x="84"
+            y="88"
+            width="40"
+            height="48"
+            rx="3"
+            fill="#FEF3C7"
+            fillOpacity="0.92"
+            stroke="#F59E0B"
+            strokeWidth="1.6"
+          />
+          {/* Window sill & crossbars */}
+          <line x1="104" y1="88" x2="104" y2="136" stroke="#78350F" strokeOpacity="0.55" strokeWidth="1.4" />
+          <line x1="84" y1="112" x2="124" y2="112" stroke="#78350F" strokeOpacity="0.55" strokeWidth="1.4" />
+          <rect x="81" y="136" width="46" height="3.5" rx="1.5" fill="#1E293B" />
+          {/* Subtle silhouette looking out / holding phone */}
+          <circle cx="96" cy="118" r="3.6" fill="#78350F" fillOpacity="0.7" />
+          <path d="M90 135c0-6 3-10 6-10s6 4 6 10" fill="#78350F" fillOpacity="0.7" />
+        </g>
+
+        {/* Right side of town */}
+        <g clipPath={`url(#clip-right-${uid})`}>
+          <rect x="0" y="0" width="360" height="176" fill={`url(#sky-right-${uid})`} />
+          {/* Rain streaks right */}
+          {[
+            [224, 16, 32],
+            [274, 22, 40],
+            [328, 14, 30],
+            [302, 128, 146],
+          ].map(([x, y1, y2], idx) => (
+            <line
+              key={`rr-${idx}`}
+              x1={x}
+              y1={y1}
+              x2={x - 5}
+              y2={y2}
+              stroke="#93C5FD"
+              strokeOpacity="0.28"
+              strokeWidth="1"
+              strokeLinecap="round"
+            />
+          ))}
+          {/* Distant skyline right */}
+          <path
+            d="M168 176 L168 118 L216 118 L216 74 L284 74 L284 108 L314 108 L314 96 L360 96 L360 176 Z"
+            fill="#070B1A"
+          />
+          {/* Right apartment window aura */}
+          <circle cx="250" cy="112" r="46" fill={`url(#win-glow-right-${uid})`} />
+          {/* Lit bedroom window (Right) */}
+          <rect
+            x="230"
+            y="88"
+            width="40"
+            height="48"
+            rx="3"
+            fill="#FFFBEB"
+            fillOpacity="0.92"
+            stroke="#FDE68A"
+            strokeWidth="1.6"
+          />
+          <line x1="250" y1="88" x2="250" y2="136" stroke="#92400E" strokeOpacity="0.45" strokeWidth="1.4" />
+          <line x1="230" y1="112" x2="270" y2="112" stroke="#92400E" strokeOpacity="0.45" strokeWidth="1.4" />
+          <rect x="227" y="136" width="46" height="3.5" rx="1.5" fill="#1E293B" />
+          {/* Warm bedside lamp glow inside right window */}
+          <path d="M256 122l4 8h-8l4-8Z" fill="#D97706" fillOpacity="0.65" />
+          <line x1="256" y1="130" x2="256" y2="135" stroke="#92400E" strokeOpacity="0.65" strokeWidth="1.3" />
+        </g>
+
+        {/* Shared Crescent Moon centered over the divide */}
+        <circle cx="184" cy="30" r="24" fill="#FDE68A" fillOpacity="0.12" />
+        <path d="M187 18a11.5 11.5 0 1 0 9.5 18 9.2 9.2 0 1 1-9.5-18Z" fill="#FEF3C7" />
+
+        {/* Quiet call signal arc connecting the two windows */}
+        <path
+          d="M128 106 Q178 78 226 106"
+          fill="none"
+          stroke="#93C5FD"
+          strokeOpacity="0.4"
+          strokeWidth="1.1"
+          strokeDasharray="3 4"
+        />
+
+        {/* Diagonal Luminous Neon Divider */}
+        <line
+          x1="202"
+          y1="0"
+          x2="158"
+          y2="176"
+          stroke={`url(#diag-beam-${uid})`}
+          strokeWidth="6"
+          strokeOpacity="0.22"
+        />
+        <line
+          x1="202"
+          y1="0"
+          x2="158"
+          y2="176"
+          stroke={`url(#diag-beam-${uid})`}
+          strokeWidth="1.6"
+        />
+      </svg>
+
+      {/* Window owner captions */}
+      <div className="flex items-center justify-between gap-2 border-t border-white/10 bg-black/35 px-3 py-2 text-[10px] font-mono uppercase tracking-[0.14em]">
+        <span className="min-w-0 truncate text-amber-200/85">{leftName}</span>
+        <span className="shrink-0 text-blue-200/60">{badgeLabel}</span>
+        <span className="min-w-0 truncate text-right text-amber-100/90">{rightName}</span>
+      </div>
+    </div>
+  );
+}
+
+function CircularCalmGauge({
+  score,
+  tensionLabel,
+  peaceLabel,
+}: {
+  score: number;
+  tensionLabel: string;
+  peaceLabel: string;
+}) {
+  const gradId = useId().replace(/:/g, '');
+  const clamped = Math.max(10, Math.min(100, score));
+  const radius = 44;
+  const circumference = 2 * Math.PI * radius;
+  const dashOffset = circumference * (1 - clamped / 100);
+  const ratio = (clamped - 10) / 90;
+
+  return (
+    <div className="flex flex-col items-center">
+      <div
+        className="relative flex h-28 w-28 items-center justify-center"
+        role="img"
+        aria-label={`${tensionLabel} to ${peaceLabel}: ${clamped}%`}
+      >
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-2 rounded-full transition-opacity duration-500 blur-md"
+          style={{
+            background:
+              clamped >= 70
+                ? 'radial-gradient(circle, rgba(251,191,36,0.34), transparent 70%)'
+                : 'radial-gradient(circle, rgba(96,165,250,0.24), transparent 70%)',
+          }}
+        />
+        <svg viewBox="0 0 108 108" className="relative h-full w-full overflow-visible">
+          <defs>
+            <linearGradient id={`calm-grad-${gradId}`} x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#60A5FA" />
+              <stop offset="100%" stopColor={clamped >= 70 ? '#FBBF24' : '#93C5FD'} />
+            </linearGradient>
+          </defs>
+          <circle
+            cx="54"
+            cy="54"
+            r={radius}
+            fill="rgba(255,255,255,0.02)"
+            stroke="rgba(148,163,184,0.18)"
+            strokeWidth="6.5"
+          />
+          <circle
+            cx="54"
+            cy="54"
+            r={radius}
+            fill="none"
+            stroke={`url(#calm-grad-${gradId})`}
+            strokeWidth="6.5"
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            strokeDashoffset={dashOffset}
+            transform="rotate(-90 54 54)"
+            style={{ transition: 'stroke-dashoffset 550ms cubic-bezier(0.22, 1, 0.36, 1)' }}
+          />
+          {/* Subtle inner horizon curve easing from wavy tension to flat calm smile */}
+          <path
+            d={`M35 55 Q44.5 ${55 - (1 - ratio) * 4} 54 55 Q63.5 ${55 + (1 - ratio) * 4} 73 55`}
+            fill="none"
+            stroke={clamped >= 70 ? '#FDE68A' : '#93C5FD'}
+            strokeOpacity="0.65"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+          />
+        </svg>
+
+        <div className="absolute inset-0 flex flex-col items-center justify-center pt-5 text-center">
+          <span className="font-mono text-sm font-bold tracking-wider text-slate-100">
+            {clamped}%
+          </span>
+        </div>
+      </div>
+
+      <div className="mt-1.5 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em]">
+        <span className={clamped < 50 ? 'text-blue-200/90' : 'text-slate-400'}>{tensionLabel}</span>
+        <span className="text-slate-500" aria-hidden="true">→</span>
+        <span className={clamped >= 70 ? 'text-amber-200' : 'text-slate-400'}>{peaceLabel}</span>
+      </div>
+    </div>
+  );
+}
+
+function DawnHorizonIllustration() {
+  const uid = useId().replace(/:/g, '');
+  return (
+    <svg viewBox="0 0 220 72" className="mx-auto h-16 w-48" fill="none" aria-hidden="true">
+      <defs>
+        <radialGradient id={`dawn-glow-${uid}`} cx="50%" cy="75%" r="55%">
+          <stop offset="0%" stopColor="#FBBF24" stopOpacity="0.45" />
+          <stop offset="100%" stopColor="#FBBF24" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <circle cx="110" cy="54" r="46" fill={`url(#dawn-glow-${uid})`} />
+      <path d="M84 54a26 26 0 0 1 52 0" fill="#FDE68A" fillOpacity="0.22" stroke="#FBBF24" strokeWidth="1.4" />
+      <line x1="20" y1="54" x2="200" y2="54" stroke="#93C5FD" strokeOpacity="0.35" strokeWidth="1.2" strokeLinecap="round" />
+      <rect x="52" y="42" width="12" height="12" rx="1.5" fill="#FDE68A" fillOpacity="0.8" />
+      <rect x="156" y="42" width="12" height="12" rx="1.5" fill="#FDE68A" fillOpacity="0.8" />
+    </svg>
+  );
+}
+
+/**
+ * Minimalist, emotionally honest Midnight Rain Apology ("Sorry") microsite:
+ * Act 1: Quiet Midnight Rain Cover
+ * Act 2: Swipeable Editorial Rain Story Slides (Zero Excuses, Two Windows Late Night Call, Concrete Accountability)
+ * Act 3: Continuous Lower Sanctuary (Calm Un-Tension Gauge + Rain Acoustic Sanctuary + Adaptive Photos + Respectful Closure)
  */
 export function MaanJaoSite({
   manifest,
@@ -1003,31 +810,57 @@ export function MaanJaoSite({
   onOpened,
 }: OccasionSiteProps) {
   const [opened, setOpened] = useState(false);
-  const [showTapHint, setShowTapHint] = useState(false);
-  const [activeChapter, setActiveChapter] = useState<ArenaChapterId>('brief');
-  const [sealedPleas, setSealedPleas] = useState<PleaId[]>([]);
-  const [selectedTreat, setSelectedTreat] = useState<TreatId>('chai-samosa');
+  const [activeSlide, setActiveSlide] = useState(0);
+  const [slideRevealed, setSlideRevealed] = useState(false);
+  const [selectedGestures, setSelectedGestures] = useState<GestureId[]>([]);
   const [nudgeCount, setNudgeCount] = useState(0);
-  const [ratifiedAtLabel, setRatifiedAtLabel] = useState<string | null>(null);
+  const [finaleState, setFinaleState] = useState<FinaleState>('open');
+
+  const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
 
   const coreLang = toCoreLanguageCode(language);
   const copy = MAAN_JAO_COPY[coreLang] ?? MAAN_JAO_COPY.en;
 
-  const senderInitial = (data.senderName || 'S').trim().charAt(0).toUpperCase() || 'S';
-  const receiverInitial = (data.receiverName || 'R').trim().charAt(0).toUpperCase() || 'R';
-  const activeVoucher = TREAT_VOUCHERS.find((v) => v.id === selectedTreat) ?? TREAT_VOUCHERS[0];
-  const activeTreatLabel = activeVoucher.label[coreLang] ?? activeVoucher.label.en;
-  const accordSerial = `PA-2026-${senderInitial}${receiverInitial}-${activeVoucher.serial.slice(-2)}`;
-  const trackTitle = manifest.music?.[0]?.label || 'Warm Truce Chime';
+  const receiver = data.receiverName?.trim() || 'you';
+  const sender = data.senderName?.trim() || 'Me';
+  const headlineText = pickLocalizedText(data.headline, language).trim() || copy.coverGreeting(receiver);
+  const messageText = pickLocalizedText(data.message, language).trim() || copy.slideOneZeroExcuse;
 
-  // Starts at 20%, each sealed plea card adds +20% up to 100%
-  const forgivenessScore = Math.min(100, 20 + sealedPleas.length * 20);
+  const promiseNotes = Array.from({ length: 3 }, (_, idx) => {
+    const item = data.highlights?.[idx];
+    const fallback = PROMISE_FALLBACKS[idx];
+    const title = item ? pickLocalizedText(item.title, language).trim() : '';
+    const detail = item ? pickLocalizedText(item.detail, language).trim() : '';
+    return {
+      title: title || fallback.title[coreLang],
+      detail: detail || fallback.detail[coreLang],
+    };
+  });
+
+  const sanctuaryTracks: CurvedTrackItem[] = copy.tracks.map((track, idx) =>
+    idx === 0 && manifest.music?.[0]?.label
+      ? { ...track, title: manifest.music[0].label }
+      : track,
+  );
+
+  // Starts gently at 10%, each simple gesture adds +30% up to 100%
+  const calmScore = Math.min(100, 10 + selectedGestures.length * 30);
 
   useEffect(() => {
-    if (opened) return;
-    const hintTimer = setTimeout(() => setShowTapHint(true), 7000);
-    return () => clearTimeout(hintTimer);
-  }, [opened]);
+    if (!opened) {
+      setSlideRevealed(false);
+      return;
+    }
+    setSlideRevealed(false);
+    const frameId = requestAnimationFrame(() => {
+      setSlideRevealed(true);
+    });
+    const fallbackTimer = setTimeout(() => setSlideRevealed(true), 50);
+    return () => {
+      cancelAnimationFrame(frameId);
+      clearTimeout(fallbackTimer);
+    };
+  }, [opened, activeSlide]);
 
   function handleOpen() {
     setOpened(true);
@@ -1035,415 +868,508 @@ export function MaanJaoSite({
   }
 
   function handleReplayCover() {
-    setShowTapHint(false);
-    setRatifiedAtLabel(null);
+    setFinaleState('open');
+    setActiveSlide(0);
     setNudgeCount(0);
-    setActiveChapter('brief');
     setOpened(false);
   }
 
-  function togglePleaCard(id: PleaId) {
-    setSealedPleas((prev) =>
+  function toggleGesture(id: GestureId) {
+    setSelectedGestures((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
     );
   }
 
-  function handleDodgingGrumpy() {
+  function goToSlide(index: number) {
+    setActiveSlide(Math.max(0, Math.min(2, index)));
+  }
+
+  function handleSwipeStart(e: React.PointerEvent<HTMLDivElement>) {
+    pointerStartRef.current = { x: e.clientX, y: e.clientY };
+  }
+
+  function handleSwipeEnd(e: React.PointerEvent<HTMLDivElement>) {
+    if (!pointerStartRef.current) return;
+    const dx = e.clientX - pointerStartRef.current.x;
+    const dy = e.clientY - pointerStartRef.current.y;
+    pointerStartRef.current = null;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+      if (dx < 0 && activeSlide < 2) {
+        goToSlide(activeSlide + 1);
+      } else if (dx > 0 && activeSlide > 0) {
+        goToSlide(activeSlide - 1);
+      }
+    }
+  }
+
+  function handleStillUpset() {
     setNudgeCount((prev) => prev + 1);
   }
 
-  function handleRatifyTreaty() {
-    const locale = coreLang === 'hi' ? 'hi-IN' : 'en-IN';
-    const stamp = new Intl.DateTimeFormat(locale, {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(new Date());
-    setRatifiedAtLabel(stamp);
-  }
-
-  const dodgeOffsets = [
+  const boundedNudgeOffsets = [
     { x: 0, y: 0 },
-    { x: 10, y: -3 },
-    { x: -10, y: 3 },
-    { x: 8, y: 3 },
-    { x: -8, y: -2 },
+    { x: 7, y: -2 },
+    { x: -7, y: 2 },
+    { x: 5, y: 2 },
+    { x: -5, y: -2 },
   ];
-  const currentDodge = dodgeOffsets[nudgeCount % dodgeOffsets.length];
-  const grumpyLabel =
+  const currentNudge = boundedNudgeOffsets[nudgeCount % boundedNudgeOffsets.length];
+  const upsetLabel =
     nudgeCount > 0
-      ? copy.grumpyNudges[(nudgeCount - 1) % copy.grumpyNudges.length]
-      : copy.grumpyIdleLabel;
-  const grumpyReaction =
+      ? copy.stillUpsetNudges[(nudgeCount - 1) % copy.stillUpsetNudges.length]
+      : copy.stillUpsetLabel;
+  const upsetReaction =
     nudgeCount > 0
-      ? copy.grumpyPromptReactions[(nudgeCount - 1) % copy.grumpyPromptReactions.length]
-      : copy.grumpyPromptIdle;
-  const ratifyScale = Math.min(1.06, 1 + nudgeCount * 0.015);
+      ? copy.stillUpsetReactions[(nudgeCount - 1) % copy.stillUpsetReactions.length]
+      : copy.finalePromptIdle;
 
-  const chapterTabs = [
-    { id: 'brief', label: copy.tabs.brief },
-    { id: 'meter', label: copy.tabs.meter },
-    { id: 'vouchers', label: copy.tabs.vouchers },
-  ];
+  const hasPhotos = Boolean(data.photos?.some((src) => typeof src === 'string' && src.trim().length > 0));
 
   return (
     <article
-      aria-label={copy.dispatchHeader}
-      className="relative flex h-full min-h-full w-full flex-col justify-between overflow-hidden rounded-[28px]"
-      style={{ backgroundColor: PALETTE.surface, color: PALETTE.espresso }}
+      aria-label={copy.ariaLabel}
+      className="relative flex h-full min-h-full w-full flex-col justify-between overflow-hidden rounded-[28px] bg-[#060913] text-slate-100"
     >
-      <WatermarkBanner visible={watermarked} />
+      <WatermarkBanner visible={watermarked} label={copy.previewBanner} />
 
       {!opened ? (
-        <DiplomaticCoverStage
-          data={data}
-          copy={copy}
-          initials={`${senderInitial}&${receiverInitial}`}
-          showTapHint={showTapHint}
-          onOpen={handleOpen}
-        />
-      ) : ratifiedAtLabel ? (
-        <RatifiedCertificateStage
-          copy={copy}
-          data={data}
-          treatLabel={activeTreatLabel}
-          treatSerial={activeVoucher.serial}
-          accordSerial={accordSerial}
-          ratifiedAtLabel={ratifiedAtLabel}
-          forgivenessScore={forgivenessScore}
-          language={language}
-          onRevisitArena={() => setRatifiedAtLabel(null)}
-          onReplayCover={handleReplayCover}
-        />
-      ) : (
-        <div className="relative z-10 flex flex-1 flex-col justify-between gap-3 px-3.5 pb-4 pt-3 animate-fade-in motion-reduce:animate-none sm:px-5">
-          {/* Top Diplomatic Bar + Chapter Tabs + Compact Live Meter Pill */}
-          <div className="space-y-2.5">
-            <div className="flex items-center justify-between gap-2">
-              <span
-                className="inline-flex min-h-[32px] items-center gap-1.5 rounded-full border px-3 py-1 font-mono text-[10px] font-bold tracking-[0.14em]"
-                style={{
-                  borderColor: `${PALETTE.terracotta}44`,
-                  backgroundColor: PALETTE.card,
-                  color: PALETTE.crimson,
-                }}
-              >
-                <span>{copy.accordBadge}</span>
-                <span aria-hidden="true">·</span>
-                <span>{forgivenessScore}%</span>
-              </span>
+        /* ACT 1 — Quiet Midnight Rain Cover */
+        <section
+          aria-label={copy.coverEyebrow}
+          className="relative flex flex-1 flex-col items-center justify-between px-5 py-8 text-center sm:px-8"
+        >
+          <OccasionArtworkBackdrop
+            src="/templates/occasions/maan-jao/cover.jpg"
+            fallbackGradient="radial-gradient(circle at 50% 28%, rgba(30, 58, 138, 0.36) 0%, #070B16 62%, #04060D 100%)"
+            className="object-cover object-center opacity-25"
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#050814]/80 via-[#070B18]/65 to-[#050814]/95"
+          />
+          <AmbientRainCanvas density="medium" tint="#93C5FD" />
 
+          <div className="relative z-10 mt-2">
+            <span className="inline-block font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-blue-200/65">
+              {copy.coverEyebrow}
+            </span>
+          </div>
+
+          <div className="relative z-10 my-auto flex max-w-sm flex-col items-center py-6">
+            <RaindropMoonEmblem />
+
+            <h1 className="mt-5 break-words font-heading text-2xl font-semibold leading-snug tracking-tight text-slate-50 sm:text-3xl">
+              {copy.coverGreeting(receiver)}
+            </h1>
+
+            <p className="mt-2.5 max-w-xs break-words text-sm leading-relaxed text-slate-300/85">
+              {copy.coverSubtitle}
+            </p>
+
+            <button
+              type="button"
+              onClick={handleOpen}
+              className="mt-8 inline-flex min-h-[48px] items-center justify-center gap-2.5 rounded-full border border-blue-200/25 bg-white/[0.08] px-7 py-3 text-sm font-semibold text-slate-50 shadow-[0_0_28px_-8px_rgba(147,197,253,0.45)] backdrop-blur-md transition-all duration-300 hover:border-blue-200/45 hover:bg-white/[0.14] active:scale-[0.98] motion-reduce:transition-none"
+            >
+              <span>{copy.coverCta}</span>
+              <span aria-hidden="true" className="text-blue-200">→</span>
+            </button>
+          </div>
+
+          <div className="relative z-10 flex flex-col items-center gap-1">
+            <p className="text-xs text-slate-400/85">
+              {copy.coverFromPrefix} <span className="font-medium text-amber-100/90">{sender}</span>
+            </p>
+          </div>
+        </section>
+      ) : (
+        /* ACT 2 & ACT 3 — Continuous Midnight Rain Story + Lower Sanctuary */
+        <div className="relative flex flex-1 flex-col">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#060913] via-[#091022] to-[#060913]"
+          />
+          <AmbientRainCanvas density="light" tint="#93C5FD" />
+
+          <div className="relative z-10 mx-auto flex w-full max-w-md flex-1 flex-col gap-7 px-4 pb-6 pt-4 sm:px-5">
+            {/* Minimalist Top Bar */}
+            <header className="flex items-center justify-between gap-2">
+              <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-blue-200/70">
+                0{activeSlide + 1} / 03
+              </span>
               <button
                 type="button"
                 onClick={handleReplayCover}
-                className="inline-flex min-h-[44px] items-center rounded-full border bg-white px-3.5 text-xs font-semibold shadow-2xs transition hover:bg-[#FFFDFB] active:scale-95"
-                style={{ borderColor: PALETTE.blushBorder, color: PALETTE.espresso }}
+                className="inline-flex min-h-[44px] items-center rounded-full border border-white/10 bg-white/[0.04] px-3.5 text-xs font-medium text-slate-200 transition hover:border-white/25 hover:bg-white/[0.08] active:scale-95"
               >
                 {getReplayLabel(language)}
               </button>
-            </div>
+            </header>
 
-            <OccasionChapterNav
-              tabs={chapterTabs}
-              activeId={activeChapter}
-              onSelect={(id) => setActiveChapter(id as ArenaChapterId)}
-              accentColor={PALETTE.crimson}
-            />
-          </div>
+            {/* ACT 2 — Swipeable Editorial Rain Story Slides */}
+            <section aria-label={copy.storyHint} className="space-y-3.5">
+              <div
+                onPointerDown={handleSwipeStart}
+                onPointerUp={handleSwipeEnd}
+                className="relative min-h-[310px] touch-pan-y rounded-3xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-sm sm:p-6"
+              >
+                <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-blue-300/80">
+                  {copy.slideTags[activeSlide]}
+                </p>
 
-          {/* CHAPTER 01: Stitched Apology Note, Warm Cassette & Optional Photo Gallery */}
-          {activeChapter === 'brief' ? (
-            <section
-              aria-label={copy.tabs.brief}
-              className="flex flex-1 flex-col justify-between gap-3 animate-fade-in motion-reduce:animate-none"
-            >
-              <div className="space-y-3">
-                {/* Stitched Apology Note Card */}
-                <div
-                  className="relative rounded-[22px] border p-1.5 shadow-[0_12px_28px_-14px_rgba(44,25,20,0.2)]"
-                  style={{ borderColor: PALETTE.terracotta, backgroundColor: PALETTE.card }}
-                >
-                  <div
-                    className="relative rounded-[16px] border-2 border-dashed px-4 py-4 text-center"
-                    style={{ borderColor: `${PALETTE.terracotta}66`, backgroundColor: PALETTE.surface }}
-                  >
-                    <span
-                      className="inline-flex items-center rounded-full border px-3 py-0.5 font-mono text-[9.5px] font-bold uppercase tracking-[0.16em]"
-                      style={{
-                        borderColor: `${PALETTE.crimson}33`,
-                        backgroundColor: PALETTE.card,
-                        color: PALETTE.crimson,
-                      }}
-                    >
-                      {copy.noteHeaderTag}
-                    </span>
-
-                    <h2
-                      className="mt-2.5 break-words font-heading text-xl font-bold leading-snug sm:text-2xl"
-                      style={{ color: PALETTE.crimson }}
-                    >
-                      {pickLocalizedText(data.headline, language)}
-                    </h2>
-
-                    <p
-                      className="mt-2 break-words text-sm leading-relaxed"
-                      style={{ color: `${PALETTE.espresso}E0` }}
-                    >
-                      {pickLocalizedText(data.message, language)}
+                {activeSlide === 0 ? (
+                  <div className="mt-5 flex min-h-[220px] flex-col justify-between gap-5">
+                    <div className="space-y-4">
+                      <WordByWordFadeLine
+                        key={`headline-${coreLang}`}
+                        text={headlineText}
+                        active={slideRevealed && activeSlide === 0}
+                        delayStepMs={65}
+                        className="break-words font-heading text-2xl font-semibold leading-snug tracking-tight text-slate-50 sm:text-[26px]"
+                      />
+                      <WordByWordFadeLine
+                        key={`zero-${coreLang}`}
+                        text={copy.slideOneZeroExcuse}
+                        active={slideRevealed && activeSlide === 0}
+                        delayStepMs={35}
+                        className="break-words text-sm leading-relaxed text-slate-300/85"
+                      />
+                    </div>
+                    <p className="text-xs italic text-amber-200/75">
+                      — {sender}
                     </p>
-
-                    <p className="mt-3 font-royal-serif text-xs italic font-semibold" style={{ color: PALETTE.terracotta }}>
-                      {copy.noteSignedPrefix} {data.senderName}
-                    </p>
-
-                    {data.photos && data.photos.length > 0 ? (
-                      <div className="mt-3 border-t border-dashed border-[#EAD7CC] pt-2.5">
-                        <p className="font-mono text-[9.5px] font-bold uppercase tracking-[0.16em]" style={{ color: `${PALETTE.espresso}8C` }}>
-                          {copy.memoriesLabel}
-                        </p>
-                        <OccasionPhotoGallery
-                          photos={data.photos}
-                          accentColor={PALETTE.crimson}
-                          surfaceTint={PALETTE.surface}
-                          captionPrefix="Memory"
-                          variant="polaroid"
-                        />
-                      </div>
-                    ) : null}
                   </div>
-                </div>
+                ) : null}
 
-                {/* Warm Cassette Soundtrack */}
-                <OccasionCassettePlayer
-                  trackTitle={trackTitle}
-                  mood="warm"
-                  tapLabel={copy.cassetteTapLabel}
-                  playingLabel={copy.cassettePlayingLabel}
-                  accentColor={PALETTE.terracotta}
-                />
+                {activeSlide === 1 ? (
+                  <div className="mt-4 flex flex-col gap-4">
+                    <TwoWindowsCallScene
+                      senderName={sender}
+                      receiverName={receiver}
+                      badgeLabel={copy.slideTwoCallBadge}
+                    />
+                    <div className="space-y-2.5 pt-1">
+                      <WordByWordFadeLine
+                        key={`msg-${coreLang}`}
+                        text={messageText}
+                        active={slideRevealed && activeSlide === 1}
+                        delayStepMs={45}
+                        className="break-words text-sm leading-relaxed text-slate-100/95 sm:text-[15px]"
+                      />
+                      <p className="text-right text-xs font-medium text-amber-200/80">
+                        {copy.slideTwoSigned} {sender}
+                      </p>
+                    </div>
+                  </div>
+                ) : null}
+
+                {activeSlide === 2 ? (
+                  <div className="mt-4 space-y-3">
+                    <WordByWordFadeLine
+                      key={`intro3-${coreLang}`}
+                      text={copy.slideThreeIntro}
+                      active={slideRevealed && activeSlide === 2}
+                      delayStepMs={45}
+                      className="break-words text-xs leading-relaxed text-slate-300/80"
+                    />
+                    <div className="space-y-2.5 pt-1">
+                      {promiseNotes.map((note, idx) => (
+                        <div
+                          key={`promise-${idx}`}
+                          className="rounded-2xl border border-white/[0.07] bg-white/[0.025] px-4 py-3"
+                        >
+                          <div className="flex items-baseline gap-2.5">
+                            <span className="font-mono text-[10px] font-semibold text-blue-300/75">
+                              0{idx + 1}
+                            </span>
+                            <h2 className="min-w-0 break-words font-heading text-sm font-semibold text-slate-100">
+                              {note.title}
+                            </h2>
+                          </div>
+                          <p className="mt-1 pl-6 break-words text-xs leading-relaxed text-slate-300/80">
+                            {note.detail}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
               </div>
 
-              <button
-                type="button"
-                onClick={() => setActiveChapter('meter')}
-                className="inline-flex min-h-[44px] items-center justify-center self-center rounded-full border px-5 text-xs font-bold transition hover:bg-white active:scale-95"
-                style={{
-                  borderColor: `${PALETTE.terracotta}55`,
-                  backgroundColor: PALETTE.card,
-                  color: PALETTE.terracotta,
-                }}
-              >
-                {copy.nextToPleas} →
-              </button>
-            </section>
-          ) : null}
-
-          {/* CHAPTER 02: Circular Forgiveness Meter Gauge SVG + 4 Interactive Reason Plea Cards */}
-          {activeChapter === 'meter' ? (
-            <section
-              aria-label={copy.tabs.meter}
-              className="flex flex-1 flex-col justify-between gap-3 animate-fade-in motion-reduce:animate-none"
-            >
-              <div className="space-y-3">
-                {/* Circular Forgiveness Gauge Card */}
-                <div
-                  className="flex items-center gap-3.5 rounded-2xl border p-3.5 shadow-2xs"
-                  style={{ borderColor: PALETTE.blushBorder, backgroundColor: PALETTE.card }}
+              {/* Story Pager Controls (Prev / Dots / Next) */}
+              <div className="flex items-center justify-between gap-2">
+                <button
+                  type="button"
+                  disabled={activeSlide === 0}
+                  onClick={() => goToSlide(activeSlide - 1)}
+                  className="inline-flex min-h-[44px] min-w-[72px] items-center justify-center rounded-full border border-white/10 bg-white/[0.03] px-3.5 text-xs font-medium text-slate-200 transition hover:bg-white/[0.08] disabled:pointer-events-none disabled:opacity-30 active:scale-95"
                 >
-                  <CircularForgivenessGauge
-                    score={forgivenessScore}
-                    label={copy.meterTitle}
-                    compact
-                  />
-                  <div className="min-w-0 flex-1 text-left">
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <h2 className="font-heading text-base font-bold" style={{ color: PALETTE.espresso }}>
-                        {copy.meterTitle}
-                      </h2>
-                      {forgivenessScore === 100 ? (
+                  ← {copy.prevSlide}
+                </button>
+
+                <div className="flex items-center justify-center" role="tablist" aria-label="Story slides">
+                  {[0, 1, 2].map((idx) => {
+                    const isCurrent = activeSlide === idx;
+                    return (
+                      <button
+                        key={`dot-${idx}`}
+                        type="button"
+                        role="tab"
+                        aria-selected={isCurrent}
+                        aria-label={`Slide ${idx + 1} of 3`}
+                        onClick={() => goToSlide(idx)}
+                        className="flex min-h-[44px] min-w-[44px] items-center justify-center"
+                      >
                         <span
-                          className="rounded-full px-2 py-0.5 font-mono text-[9px] font-extrabold tracking-wider"
-                          style={{ backgroundColor: PALETTE.goldSoft, color: '#92400E' }}
-                        >
-                          {copy.meterReadyTag}
-                        </span>
-                      ) : null}
-                    </div>
-                    <p className="mt-1 text-xs leading-snug" style={{ color: `${PALETTE.espresso}B3` }}>
-                      {copy.meterSubtitle(sealedPleas.length)}
-                    </p>
-                  </div>
+                          className={`block h-1.5 rounded-full transition-all duration-300 ${
+                            isCurrent ? 'w-6 bg-blue-300' : 'w-1.5 bg-white/25 hover:bg-white/45'
+                          }`}
+                        />
+                      </button>
+                    );
+                  })}
                 </div>
 
-                {/* 4 Interactive Reason Plea Cards */}
-                <div>
-                  <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: PALETTE.terracotta }}>
-                    {copy.pleasHeading}
-                  </p>
-                  <p className="mt-0.5 text-[11px]" style={{ color: `${PALETTE.espresso}99` }}>
-                    {copy.pleasHelper}
-                  </p>
+                <button
+                  type="button"
+                  disabled={activeSlide === 2}
+                  onClick={() => goToSlide(activeSlide + 1)}
+                  className="inline-flex min-h-[44px] min-w-[72px] items-center justify-center rounded-full border border-white/10 bg-white/[0.03] px-3.5 text-xs font-medium text-slate-200 transition hover:bg-white/[0.08] disabled:pointer-events-none disabled:opacity-30 active:scale-95"
+                >
+                  {copy.nextSlide} →
+                </button>
+              </div>
 
-                  <div className="mt-2 grid grid-cols-1 gap-2">
-                    {PLEA_CLAUSES.map((plea) => {
-                      const isSealed = sealedPleas.includes(plea.id);
+              <p className="text-center text-[11px] text-slate-400/75">
+                {activeSlide === 2 ? copy.scrollSanctuaryHint : copy.storyHint}
+              </p>
+            </section>
+
+            {/* Hairline Sanctuary Divider */}
+            <div className="h-px w-full bg-gradient-to-r from-transparent via-white/15 to-transparent" aria-hidden="true" />
+
+            {/* ACT 3 — Continuous Lower Sanctuary */}
+            <div className="space-y-7">
+              {/* 1. Calm Un-Tension Stage (Tension -> Peace) */}
+              <section
+                aria-label={copy.calmGaugeTitle}
+                className="rounded-3xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-sm"
+              >
+                <p className="text-center font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-blue-200/70">
+                  {copy.sanctuaryEyebrow}
+                </p>
+                <h2 className="mt-1.5 text-center font-heading text-lg font-semibold text-slate-50">
+                  {copy.calmGaugeTitle}
+                </h2>
+
+                <div className="mt-4 flex flex-col items-center">
+                  <CircularCalmGauge
+                    score={calmScore}
+                    tensionLabel={copy.calmGaugeTension}
+                    peaceLabel={copy.calmGaugePeace}
+                  />
+                  <p className="mt-2.5 max-w-xs text-center text-xs leading-relaxed text-slate-300/80">
+                    {selectedGestures.length === 0
+                      ? copy.calmGaugeSubIdle
+                      : selectedGestures.length === CALM_GESTURES.length
+                        ? copy.calmGaugeSubFull
+                        : copy.calmGaugeSubWarm(selectedGestures.length, CALM_GESTURES.length)}
+                  </p>
+                </div>
+
+                <div className="mt-5 space-y-2">
+                  <p className="text-xs font-medium text-slate-300/85">
+                    {copy.gesturesPrompt}
+                  </p>
+                  <div className="flex flex-col gap-2">
+                    {CALM_GESTURES.map((gesture) => {
+                      const active = selectedGestures.includes(gesture.id);
                       return (
                         <button
-                          key={plea.id}
+                          key={gesture.id}
                           type="button"
-                          aria-pressed={isSealed}
-                          onClick={() => togglePleaCard(plea.id)}
-                          className="flex min-h-[56px] w-full items-center justify-between gap-2.5 rounded-2xl border px-3.5 py-2.5 text-left transition-all duration-200 active:scale-[0.98]"
-                          style={{
-                            borderColor: isSealed ? PALETTE.gold : PALETTE.blushBorder,
-                            backgroundColor: isSealed ? '#FFFDF7' : PALETTE.card,
-                            boxShadow: isSealed ? `0 8px 18px -12px ${PALETTE.gold}` : undefined,
-                          }}
+                          aria-pressed={active}
+                          onClick={() => toggleGesture(gesture.id)}
+                          className={`flex min-h-[52px] w-full items-center gap-3 rounded-2xl border px-3.5 py-2.5 text-left transition-all duration-200 active:scale-[0.985] ${
+                            active
+                              ? 'border-amber-200/40 bg-amber-300/[0.08] shadow-[0_0_24px_-12px_rgba(251,191,36,0.5)]'
+                              : 'border-white/10 bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.05]'
+                          }`}
                         >
+                          <GestureLineIcon id={gesture.id} active={active} />
                           <div className="min-w-0 flex-1">
-                            <span className="block font-mono text-[9px] font-bold tracking-[0.16em]" style={{ color: PALETTE.terracotta }}>
-                              {plea.code}
+                            <span
+                              className={`block break-words text-xs font-semibold sm:text-[13px] ${
+                                active ? 'text-amber-100' : 'text-slate-100'
+                              }`}
+                            >
+                              {gesture.label[coreLang]}
                             </span>
-                            <span className="block break-words font-heading text-sm font-bold" style={{ color: PALETTE.espresso }}>
-                              {plea.title[coreLang]}
-                            </span>
-                            <span className="mt-0.5 block break-words text-[11px] leading-snug" style={{ color: `${PALETTE.espresso}A6` }}>
-                              {plea.detail[coreLang]}
+                            <span className="mt-0.5 block break-words text-[11px] leading-snug text-slate-400">
+                              {gesture.detail[coreLang]}
                             </span>
                           </div>
-                          <GoldenCheckStamp
-                            sealed={isSealed}
-                            label={isSealed ? copy.sealedStamp : copy.tapToSeal}
+                          <span
+                            aria-hidden="true"
+                            className={`h-4 w-4 shrink-0 rounded-full border transition-all ${
+                              active
+                                ? 'border-amber-200 bg-amber-300/85 shadow-[0_0_10px_rgba(253,230,138,0.7)]'
+                                : 'border-white/25 bg-transparent'
+                            }`}
                           />
                         </button>
                       );
                     })}
                   </div>
                 </div>
-              </div>
+              </section>
 
-              <button
-                type="button"
-                onClick={() => setActiveChapter('vouchers')}
-                className="inline-flex min-h-[44px] items-center justify-center self-center rounded-full border px-5 text-xs font-bold transition hover:bg-white active:scale-95"
-                style={{
-                  borderColor: `${PALETTE.terracotta}55`,
-                  backgroundColor: PALETTE.card,
-                  color: PALETTE.terracotta,
-                }}
-              >
-                {copy.nextToVouchers} →
-              </button>
-            </section>
-          ) : null}
+              {/* 2. Cozy Rain Acoustic Sanctuary */}
+              <CurvedTrackSanctuary
+                tracks={sanctuaryTracks}
+                mood="rainy"
+                accentColor="#60A5FA"
+                dark
+                heading={copy.soundtrackHeading}
+              />
 
-          {/* CHAPTER 03: Redeemable Peace Treat Vouchers */}
-          {activeChapter === 'vouchers' ? (
-            <section
-              aria-label={copy.tabs.vouchers}
-              className="flex flex-1 flex-col justify-between gap-3 animate-fade-in motion-reduce:animate-none"
-            >
-              <div>
-                <p className="font-mono text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: PALETTE.terracotta }}>
-                  {copy.vouchersHeading}
-                </p>
-                <p className="mt-0.5 text-[11px]" style={{ color: `${PALETTE.espresso}99` }}>
-                  {copy.vouchersHelper}
-                </p>
-
-                <div className="mt-2.5 flex flex-col gap-2.5">
-                  {TREAT_VOUCHERS.map((voucher) => (
-                    <TreatVoucherCard
-                      key={voucher.id}
-                      voucher={voucher}
-                      label={voucher.label[coreLang] ?? voucher.label.en}
-                      detail={voucher.detail[coreLang] ?? voucher.detail.en}
-                      selectedStamp={copy.selectedStamp}
-                      selected={selectedTreat === voucher.id}
-                      onSelect={() => setSelectedTreat(voucher.id)}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* Quick Gauge Summary Banner */}
-              <div
-                className="flex items-center justify-between gap-3 rounded-2xl border px-3.5 py-2.5"
-                style={{ borderColor: PALETTE.blushBorder, backgroundColor: PALETTE.card }}
-              >
-                <div className="min-w-0">
-                  <p className="font-mono text-[9.5px] font-bold uppercase tracking-[0.14em]" style={{ color: PALETTE.terracotta }}>
-                    {copy.meterTitle}
+              {/* 3. Adaptive Photos (omitted automatically when 0 photos) */}
+              {hasPhotos ? (
+                <section aria-label={copy.memoriesEyebrow} className="space-y-2">
+                  <p className="text-center font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-blue-200/70">
+                    {copy.memoriesEyebrow}
                   </p>
-                  <p className="truncate text-xs font-semibold" style={{ color: PALETTE.espresso }}>
-                    {activeTreatLabel} · {forgivenessScore}%
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setActiveChapter('meter')}
-                  className="inline-flex min-h-[44px] shrink-0 items-center rounded-full border px-3.5 text-[11px] font-bold transition hover:bg-[#FFF8F3]"
-                  style={{ borderColor: PALETTE.blushBorder, color: PALETTE.crimson }}
-                >
-                  {copy.tabs.meter}
-                </button>
-              </div>
-            </section>
-          ) : null}
+                  <OccasionAdaptiveGallery
+                    photos={data.photos}
+                    accentColor="#60A5FA"
+                    dark
+                    captionPrefix={copy.photoPrefix}
+                  />
+                </section>
+              ) : null}
 
-          {/* Persistent Interactive Decision Bar */}
-          <div
-            className="overflow-hidden rounded-2xl border p-3 shadow-xs"
-            style={{ borderColor: PALETTE.blushBorder, backgroundColor: PALETTE.card }}
-          >
-            <p
-              key={nudgeCount}
-              className="mb-2.5 text-center text-[11.5px] font-semibold leading-snug animate-fade-in motion-reduce:animate-none"
-              style={{ color: nudgeCount > 0 ? PALETTE.crimson : `${PALETTE.espresso}BF` }}
-            >
-              {grumpyReaction}
-            </p>
-
-            <div className="flex flex-wrap items-center justify-center gap-2.5">
-              <button
-                type="button"
-                onClick={handleDodgingGrumpy}
-                onMouseEnter={() => {
-                  if (nudgeCount < 4) handleDodgingGrumpy();
-                }}
-                style={{
-                  transform: `translate(${currentDodge.x}px, ${currentDodge.y}px)`,
-                  borderColor: PALETTE.blushBorder,
-                  color: `${PALETTE.espresso}CC`,
-                  backgroundColor: PALETTE.surface,
-                }}
-                className="inline-flex min-h-[44px] items-center justify-center rounded-full border px-4 py-2 text-xs font-semibold transition-transform duration-200 hover:bg-[#FCEEE7]"
+              {/* 4. Respectful Human Finale */}
+              <section
+                aria-label={copy.finaleEyebrow}
+                className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-sm"
               >
-                {grumpyLabel}
-              </button>
+                {finaleState === 'open' ? (
+                  <div className="space-y-4 text-center">
+                    <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-blue-200/70">
+                      {copy.finaleEyebrow}
+                    </p>
 
-              <button
-                type="button"
-                onClick={handleRatifyTreaty}
-                style={{
-                  backgroundColor: PALETTE.crimson,
-                  transform: `scale(${ratifyScale})`,
-                }}
-                className="inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-full px-5 py-2.5 text-xs font-bold text-[#FFF8F3] shadow-md transition-all duration-200 hover:brightness-105 active:scale-[0.98] sm:text-sm"
-              >
-                <svg className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path d="M10 17.5c-.4 0-.8-.15-1.1-.43C4.8 13.3 2.5 11.1 2.5 7.9 2.5 5.4 4.4 3.5 6.9 3.5c1.3 0 2.5.6 3.1 1.6.6-1 1.8-1.6 3.1-1.6 2.5 0 4.4 1.9 4.4 4.4 0 3.2-2.3 5.4-6.4 9.17-.3.28-.7.43-1.1.43Z" />
-                </svg>
-                <span>{copy.forgiveSignCta}</span>
-              </button>
+                    <p
+                      key={`reaction-${nudgeCount}`}
+                      className="min-h-[36px] break-words text-xs leading-relaxed text-slate-200/90 animate-fade-in motion-reduce:animate-none sm:text-[13px]"
+                    >
+                      {upsetReaction}
+                    </p>
+
+                    <div className="flex flex-col gap-2.5 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => setFinaleState('forgiven')}
+                        className="inline-flex min-h-[48px] w-full items-center justify-center rounded-full bg-gradient-to-r from-amber-300 via-amber-200 to-yellow-200 px-5 py-3 text-sm font-semibold text-[#0B1120] shadow-[0_0_30px_-6px_rgba(251,191,36,0.65)] transition-all duration-200 hover:brightness-105 active:scale-[0.98]"
+                      >
+                        {copy.forgiveCta}
+                      </button>
+
+                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        <button
+                          type="button"
+                          onClick={() => setFinaleState('needs-time')}
+                          className="inline-flex min-h-[44px] w-full items-center justify-center rounded-full border border-blue-200/25 bg-blue-300/[0.06] px-4 py-2 text-xs font-medium text-blue-100 transition hover:border-blue-200/45 hover:bg-blue-300/[0.12] active:scale-[0.98]"
+                        >
+                          {copy.needTimeCta}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={handleStillUpset}
+                          style={{
+                            transform: `translate(${currentNudge.x}px, ${currentNudge.y}px)`,
+                          }}
+                          className="inline-flex min-h-[44px] w-full items-center justify-center rounded-full border border-white/15 bg-white/[0.03] px-4 py-2 text-xs font-medium text-slate-300 transition-transform duration-200 hover:bg-white/[0.07]"
+                        >
+                          {upsetLabel}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
+                {finaleState === 'forgiven' ? (
+                  <div className="space-y-4 text-center animate-fade-in motion-reduce:animate-none">
+                    <DawnHorizonIllustration />
+                    <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-200/85">
+                      {copy.forgivenEyebrow}
+                    </p>
+                    <h2 className="break-words font-heading text-xl font-semibold leading-snug text-amber-50">
+                      {copy.forgivenTitle(receiver)}
+                    </h2>
+                    <p className="break-words text-xs leading-relaxed text-slate-300/90 sm:text-[13px]">
+                      {copy.forgivenBody(sender)}
+                    </p>
+
+                    <div className="rounded-2xl border border-amber-200/20 bg-amber-200/[0.05] px-4 py-3 text-left">
+                      <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-200/80">
+                        {copy.forgivenGesturesLabel}
+                      </p>
+                      {selectedGestures.length > 0 ? (
+                        <ul className="mt-1.5 space-y-1 text-xs text-slate-200">
+                          {CALM_GESTURES.filter((g) => selectedGestures.includes(g.id)).map((g) => (
+                            <li key={g.id} className="flex items-center gap-2">
+                              <span className="h-1.5 w-1.5 rounded-full bg-amber-300" aria-hidden="true" />
+                              <span>{g.label[coreLang]}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="mt-1 text-xs text-slate-300/85">{copy.forgivenNoGestures}</p>
+                      )}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setFinaleState('open')}
+                      className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-white/15 bg-white/[0.04] px-5 text-xs font-medium text-slate-200 transition hover:bg-white/[0.09] active:scale-95"
+                    >
+                      {copy.revisitNoteCta}
+                    </button>
+                  </div>
+                ) : null}
+
+                {finaleState === 'needs-time' ? (
+                  <div className="space-y-4 text-center animate-fade-in motion-reduce:animate-none">
+                    <div className="mx-auto flex justify-center">
+                      <RaindropMoonEmblem />
+                    </div>
+                    <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-blue-200/80">
+                      {copy.needsTimeEyebrow}
+                    </p>
+                    <h2 className="break-words font-heading text-xl font-semibold leading-snug text-slate-50">
+                      {copy.needsTimeTitle(receiver)}
+                    </h2>
+                    <p className="break-words text-xs leading-relaxed text-slate-300/85 sm:text-[13px]">
+                      {copy.needsTimeBody}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setFinaleState('open')}
+                      className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-white/15 bg-white/[0.04] px-5 text-xs font-medium text-slate-200 transition hover:bg-white/[0.09] active:scale-95"
+                    >
+                      {copy.revisitNoteCta}
+                    </button>
+                  </div>
+                ) : null}
+              </section>
             </div>
-          </div>
 
-          <footer className="border-t border-[#EAD7CC] pt-2 text-center text-[11px] font-medium" style={{ color: `${PALETTE.espresso}99` }}>
-            {getWebzyFooterLabel(language)}
-          </footer>
+            <footer className="border-t border-white/10 pt-3 text-center text-[11px] font-medium text-slate-400/85">
+              {getWebzyFooterLabel(language)}
+            </footer>
+          </div>
         </div>
       )}
     </article>

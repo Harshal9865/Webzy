@@ -127,7 +127,7 @@ export async function POST(request: NextRequest | Request) {
       logEvent('info', 'web.site.sender_updated_content', {
         siteId: site.id,
         userId: session.user.id,
-        receiverName: nextContent.receiverName,
+        receiverName: typeof nextContent.receiverName === 'string' ? nextContent.receiverName : undefined,
       });
 
       return NextResponse.json({

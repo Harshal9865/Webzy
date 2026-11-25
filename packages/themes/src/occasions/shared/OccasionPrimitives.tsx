@@ -516,3 +516,314 @@ export function OccasionCassettePlayer({
     </button>
   );
 }
+
+export interface OccasionAdaptiveGalleryProps {
+  photos?: string[];
+  accentColor: string;
+  dark?: boolean;
+  captionPrefix?: string;
+  emptyFallback?: React.ReactNode;
+}
+
+/**
+ * Count-aware adaptive photo gallery that tailors its editorial layout to 1, 2, 3, or 4+ valid photos.
+ * Tracks individual load errors and omits broken slots cleanly without rendering dashed placeholders.
+ */
+export function OccasionAdaptiveGallery({
+  photos,
+  accentColor,
+  dark = false,
+  captionPrefix = 'Memory',
+  emptyFallback,
+}: OccasionAdaptiveGalleryProps) {
+  const [failedUrls, setFailedUrls] = useState<Record<string, boolean>>({});
+  const [zoomIdx, setZoomIdx] = useState<number | null>(null);
+
+  const validPhotos = (photos ?? [])
+    .map((src) => (typeof src === 'string' ? src.trim() : ''))
+    .filter((src) => src.length > 0 && !failedUrls[src]);
+
+  const count = validPhotos.length;
+
+  useEffect(() => {
+    if (zoomIdx === null) return;
+    if (count === 0) {
+      setZoomIdx(null);
+      return;
+    }
+    if (zoomIdx >= count) {
+      setZoomIdx(count - 1);
+    }
+  }, [count, zoomIdx]);
+
+  useEffect(() => {
+    if (zoomIdx === null || count === 0) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setZoomIdx(null);
+      } else if (event.key === 'ArrowRight' && count > 1) {
+        setZoomIdx((prev) => (prev === null ? 0 : (prev + 1) % count));
+      } else if (event.key === 'ArrowLeft' && count > 1) {
+        setZoomIdx((prev) => (prev === null ? 0 : (prev - 1 + count) % count));
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [zoomIdx, count]);
+
+  if (count === 0) {
+    return <>{emptyFallback ?? null}</>;
+  }
+
+  const markFailed = (src: string) => {
+    setFailedUrls((prev) => (prev[src] ? prev : { ...prev, [src]: true }));
+  };
+
+  const frameChrome = dark
+    ? 'border border-white/15 bg-white/10 text-white backdrop-blur-md shadow-[0_14px_32px_-16px_rgba(0,0,0,0.7)]'
+    : 'border border-black/10 bg-white text-[#2B1B2E] shadow-[0_12px_28px_-14px_rgba(28,19,30,0.28)]';
+
+  return (
+    <>
+      {count === 1 ? (
+        <div className="relative mx-auto mt-3 max-w-[300px]">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -inset-3 rounded-[28px] opacity-30 blur-xl"
+            style={{ backgroundColor: accentColor }}
+          />
+          <button
+            type="button"
+            onClick={() => setZoomIdx(0)}
+            aria-label={`View ${captionPrefix} 1`}
+            className={`group relative flex min-h-[44px] w-full flex-col overflow-hidden rounded-2xl p-2 pb-3 text-left transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] ${frameChrome}`}
+          >
+            <div className="relative aspect-[4/5] w-full overflow-hidden rounded-xl bg-black/5">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={validPhotos[0]}
+                alt={`${captionPrefix} 1`}
+                loading="lazy"
+                decoding="async"
+                onError={() => markFailed(validPhotos[0])}
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <span
+                className="absolute bottom-2.5 left-2.5 inline-flex items-center rounded-full px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-white shadow-sm backdrop-blur-xs"
+                style={{ backgroundColor: `${accentColor}D9` }}
+              >
+                {captionPrefix} 01
+              </span>
+            </div>
+          </button>
+        </div>
+      ) : count === 2 ? (
+        <div className="mt-3 grid grid-cols-2 gap-3 px-1">
+          {validPhotos.map((src, idx) => (
+            <button
+              key={`${src.slice(0, 24)}-${idx}`}
+              type="button"
+              onClick={() => setZoomIdx(idx)}
+              aria-label={`View ${captionPrefix} ${idx + 1}`}
+              className={`group relative flex min-h-[44px] flex-col overflow-hidden rounded-xl p-1.5 pb-3.5 text-left transition-all duration-300 hover:z-10 hover:rotate-0 hover:scale-[1.03] active:scale-95 ${
+                idx === 0 ? '-rotate-2' : 'rotate-2'
+              } ${frameChrome}`}
+            >
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute -top-1.5 left-1/2 h-3 w-10 -translate-x-1/2 rotate-[-3deg] rounded-[2px] opacity-70"
+                style={{ backgroundColor: `${accentColor}40` }}
+              />
+              <div className="aspect-square w-full overflow-hidden rounded-lg bg-black/5">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={src}
+                  alt={`${captionPrefix} ${idx + 1}`}
+                  loading="lazy"
+                  decoding="async"
+                  onError={() => markFailed(src)}
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              </div>
+              <span
+                className={`mt-2 block truncate text-center font-mono text-[9.5px] font-bold uppercase tracking-[0.14em] ${
+                  dark ? 'text-white/75' : 'text-stone-500'
+                }`}
+              >
+                {captionPrefix} 0{idx + 1}
+              </span>
+            </button>
+          ))}
+        </div>
+      ) : count === 3 ? (
+        <div className="mt-3 grid grid-cols-12 items-stretch gap-2.5">
+          <button
+            type="button"
+            onClick={() => setZoomIdx(0)}
+            aria-label={`View ${captionPrefix} 1`}
+            className={`group relative col-span-7 flex min-h-[44px] flex-col overflow-hidden rounded-2xl p-1.5 text-left transition-all duration-300 hover:scale-[1.015] active:scale-[0.98] ${frameChrome}`}
+          >
+            <div className="relative h-full min-h-[190px] w-full flex-1 overflow-hidden rounded-xl bg-black/5">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={validPhotos[0]}
+                alt={`${captionPrefix} 1`}
+                loading="lazy"
+                decoding="async"
+                onError={() => markFailed(validPhotos[0])}
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <span
+                className="absolute bottom-2 left-2 rounded-full px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-[0.12em] text-white backdrop-blur-xs"
+                style={{ backgroundColor: `${accentColor}CC` }}
+              >
+                01
+              </span>
+            </div>
+          </button>
+
+          <div className="col-span-5 flex flex-col gap-2.5">
+            {validPhotos.slice(1, 3).map((src, offset) => {
+              const idx = offset + 1;
+              return (
+                <button
+                  key={`${src.slice(0, 24)}-${idx}`}
+                  type="button"
+                  onClick={() => setZoomIdx(idx)}
+                  aria-label={`View ${captionPrefix} ${idx + 1}`}
+                  className={`group relative flex min-h-[44px] flex-col overflow-hidden rounded-2xl p-1.5 text-left transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] ${frameChrome}`}
+                >
+                  <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-black/5">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={src}
+                      alt={`${captionPrefix} ${idx + 1}`}
+                      loading="lazy"
+                      decoding="async"
+                      onError={() => markFailed(src)}
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    <span
+                      className="absolute bottom-1.5 left-1.5 rounded-full px-1.5 py-0.5 font-mono text-[8.5px] font-bold uppercase tracking-[0.12em] text-white backdrop-blur-xs"
+                      style={{ backgroundColor: `${accentColor}CC` }}
+                    >
+                      0{idx + 1}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
+        <div className="mt-3 grid grid-cols-2 gap-2.5">
+          {validPhotos.slice(0, 4).map((src, idx) => {
+            const extraCount = idx === 3 && count > 4 ? count - 4 : 0;
+            return (
+              <button
+                key={`${src.slice(0, 24)}-${idx}`}
+                type="button"
+                onClick={() => setZoomIdx(idx)}
+                aria-label={`View ${captionPrefix} ${idx + 1}`}
+                className={`group relative flex min-h-[44px] flex-col overflow-hidden rounded-2xl p-1.5 text-left transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] ${frameChrome}`}
+              >
+                <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-black/5">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={src}
+                    alt={`${captionPrefix} ${idx + 1}`}
+                    loading="lazy"
+                    decoding="async"
+                    onError={() => markFailed(src)}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  {extraCount > 0 ? (
+                    <span className="absolute inset-0 flex items-center justify-center bg-black/55 font-mono text-sm font-bold text-white backdrop-blur-[1px]">
+                      +{extraCount}
+                    </span>
+                  ) : (
+                    <span
+                      className="absolute bottom-1.5 left-1.5 rounded-full px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-[0.12em] text-white backdrop-blur-xs"
+                      style={{ backgroundColor: `${accentColor}CC` }}
+                    >
+                      0{idx + 1}
+                    </span>
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {zoomIdx !== null && validPhotos[zoomIdx] ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${captionPrefix} lightbox`}
+          onClick={() => setZoomIdx(null)}
+          className="fixed inset-0 z-[120] flex items-center justify-center bg-black/85 p-4 backdrop-blur-xs animate-fade-in"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className={`relative max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-2xl p-2.5 shadow-2xl animate-pop-bounce ${
+              dark
+                ? 'border border-white/15 bg-[#12101B] text-white'
+                : 'bg-white text-[#2B1B2E]'
+            }`}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={validPhotos[zoomIdx]}
+              alt={`Expanded ${captionPrefix.toLowerCase()} ${zoomIdx + 1}`}
+              className={`max-h-[68dvh] w-full rounded-xl object-contain ${
+                dark ? 'bg-black/40' : 'bg-stone-50'
+              }`}
+            />
+            <div className="mt-2.5 flex items-center justify-between gap-2 px-1.5 pb-1 text-xs font-bold">
+              <span>
+                {captionPrefix} {zoomIdx + 1} / {count}
+              </span>
+              <div className="flex items-center gap-1.5">
+                {count > 1 ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setZoomIdx((prev) => (prev === null ? 0 : (prev - 1 + count) % count))}
+                      className={`min-h-[44px] rounded-xl border px-3.5 transition ${
+                        dark
+                          ? 'border-white/15 hover:bg-white/10'
+                          : 'border-black/10 hover:bg-stone-50'
+                      }`}
+                    >
+                      Prev
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setZoomIdx((prev) => (prev === null ? 0 : (prev + 1) % count))}
+                      className={`min-h-[44px] rounded-xl border px-3.5 transition ${
+                        dark
+                          ? 'border-white/15 hover:bg-white/10'
+                          : 'border-black/10 hover:bg-stone-50'
+                      }`}
+                    >
+                      Next
+                    </button>
+                  </>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => setZoomIdx(null)}
+                  className="min-h-[44px] rounded-xl px-4 text-white shadow-xs transition active:scale-95"
+                  style={{ backgroundColor: accentColor }}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </>
+  );
+}

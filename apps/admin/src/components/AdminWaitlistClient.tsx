@@ -11,7 +11,7 @@ export interface AdminWaitlistItem {
   business_name: string;
   city: string;
   notes: string;
-  status: 'waitlisted' | 'contacted' | 'converted';
+  status: 'waitlisted' | 'contacted' | 'in_progress' | 'made' | 'converted' | 'archived';
   created_at: string;
 }
 

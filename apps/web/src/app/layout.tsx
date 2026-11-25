@@ -66,7 +66,9 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  ensureWeddingArtSynced();
+  if (process.env.NODE_ENV !== 'production') {
+    ensureWeddingArtSynced();
+  }
   const config = getWebzyPublicConfig();
 
   return (

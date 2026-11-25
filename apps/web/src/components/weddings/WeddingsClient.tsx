@@ -425,10 +425,10 @@ export function WeddingsClient() {
                 />
 
                 <div className="relative mb-4 hidden items-center justify-between border-b border-[#C9A243]/20 pb-3 lg:flex">
-                  <span className="text-[9px] font-semibold uppercase tracking-[0.28em] text-[#E4C77B]/80">
-                    Click-Through Wedding Stage · {activeEdition.editorialName}
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.26em] text-[#E4C77B]/85">
+                    Royal Wedding Edition · {activeEdition.editorialName}
                   </span>
-                  <span className="text-[9px] font-medium uppercase tracking-[0.22em] text-[#FAF6EE]/55">
+                  <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#FAF6EE]/65">
                     {activeEdition.specimenCity} · {activeEdition.specimenDate}
                   </span>
                 </div>
@@ -483,8 +483,8 @@ export function WeddingsClient() {
                     />
                   </AdaptivePreviewStage>
 
-                  <p className="mt-3 text-center text-[11px] font-semibold uppercase tracking-[0.14em] text-[#6B574C] lg:text-[#E4C77B]/80">
-                    Tap Seal · Click 6 Chapter Tabs · Zero Scrolling Needed
+                  <p className="mt-3 text-center text-[11px] font-semibold uppercase tracking-[0.14em] text-[#6B574C] lg:text-[#E4C77B]/85">
+                    Tap the Royal Seal to Open & Explore Chapters
                   </p>
                 </div>
               </div>

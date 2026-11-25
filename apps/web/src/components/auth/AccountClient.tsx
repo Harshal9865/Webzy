@@ -592,7 +592,7 @@ export function AccountClient({
               <div className="rounded-2xl border border-webzy-tint bg-webzy-surface/40 p-4">
                 <h4 className="font-bold text-xs text-webzy-ink">4. 30-Day Auto Purge & Right to Erasure</h4>
                 <p className="mt-1 text-xs text-webzy-ink/70">
-                  Under DPDP Section 8(7), celebration media is automatically deleted after 30 days. You can also self-service purge photos from any of your Webzys anytime using the "Purge Photos" button.
+                  Under DPDP Section 8(7), celebration media is automatically deleted after 30 days. You can also self-service purge photos from any of your Webzys anytime using the &ldquo;Purge Photos&rdquo; button.
                 </p>
               </div>
             </div>

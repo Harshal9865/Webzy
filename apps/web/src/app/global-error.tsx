@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import React, { useEffect, useRef } from 'react';
 
 export default function WebGlobalError({
@@ -98,7 +99,7 @@ export default function WebGlobalError({
             >
               Try again
             </button>
-            <a
+            <Link
               href="/"
               style={{
                 display: 'inline-flex',
@@ -116,7 +117,7 @@ export default function WebGlobalError({
               }}
             >
               Back to home
-            </a>
+            </Link>
           </div>
         </main>
       </body>

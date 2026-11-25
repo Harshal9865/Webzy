@@ -7,6 +7,7 @@ import {
   getWebzyPublicConfig,
   logEvent,
   parseLanguageCode,
+  toCoreLanguageCode,
 } from '@webzy/core';
 import { getThemeById } from '@webzy/themes';
 import { guardMutationRequest } from '../../../../../../../infra/security/requestGuard';
@@ -146,10 +147,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const coreLanguage = toCoreLanguageCode(language);
     const geminiText = await generateWithGemini({
       occasion,
       tone,
-      language,
+      language: coreLanguage,
       receiverName: safeReceiver || 'Dost',
       maxLength: maxLen,
     });
@@ -159,7 +161,7 @@ export async function POST(request: NextRequest) {
       getFallbackAiDraft({
         occasion,
         tone,
-        language,
+        language: coreLanguage,
         receiverName: safeReceiver || 'Dost',
         maxLength: maxLen,
       });

@@ -9,6 +9,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useAuth } from '../auth/AuthProvider';
 
 interface OrdersCountContextValue {
   ordersCount: number;
@@ -38,10 +39,19 @@ function readLocalDraftCartCount(): number {
 }
 
 export function OrdersCountProvider({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const [ordersCount, setOrdersCount] = useState<number>(0);
   const mountedRef = useRef<boolean>(true);
 
   const refreshOrdersCount = useCallback(async () => {
+    // Guests do not have saved paid orders; skip remote network call for instant storefront load
+    if (!isAuthenticated) {
+      if (mountedRef.current) {
+        setOrdersCount(readLocalDraftCartCount());
+      }
+      return;
+    }
+
     try {
       const res = await fetch('/api/orders/count', {
         method: 'GET',
@@ -72,11 +82,13 @@ export function OrdersCountProvider({ children }: { children: React.ReactNode })
     if (localCount > 0) {
       setOrdersCount(localCount);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     mountedRef.current = true;
-    void refreshOrdersCount();
+    if (!authLoading) {
+      void refreshOrdersCount();
+    }
 
     const handleUpdate = () => {
       void refreshOrdersCount();
@@ -89,7 +101,7 @@ export function OrdersCountProvider({ children }: { children: React.ReactNode })
       window.removeEventListener('webzy_orders_updated', handleUpdate);
       window.removeEventListener('focus', handleUpdate);
     };
-  }, [refreshOrdersCount]);
+  }, [authLoading, refreshOrdersCount]);
 
   const value = useMemo<OrdersCountContextValue>(
     () => ({ ordersCount, refreshOrdersCount, setOrdersCount }),

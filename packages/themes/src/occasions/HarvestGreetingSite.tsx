@@ -1,24 +1,27 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useId, useState } from 'react';
 import {
   type CoreLanguageCode,
   pickLocalizedText,
   toCoreLanguageCode,
 } from '@webzy/core';
 import {
+  AmbientRainCanvas,
+  type CurvedTrackItem,
+  CurvedTrackSanctuary,
+  HoldToChargeRing,
+  WordByWordFadeLine,
+} from './shared/OccasionCinematicFX';
+import {
   getReplayLabel,
   getWebzyFooterLabel,
+  OccasionAdaptiveGallery,
   OccasionArtworkBackdrop,
-  OccasionCassettePlayer,
-  OccasionChapterNav,
-  OccasionFilmstripGallery,
-  OccasionPhotoGallery,
   type OccasionSiteProps,
 } from './shared/OccasionPrimitives';
 
 type FestivalKey = 'sankranti' | 'lohri' | 'pongal';
-type HarvestChapterId = 'stage' | 'blessings' | 'album' | 'return';
 type SweetKey = 'tilgul' | 'gajak' | 'pongalSweet';
 
 interface FestivalMeta {
@@ -49,7 +52,9 @@ interface HarvestCopy {
   forLabel: string;
   fromLabel: string;
   openCta: string;
-  tabs: Record<HarvestChapterId, string>;
+  heroSubline: string;
+  stageEyebrow: string;
+  stageTitle: string;
   festivalSwitcherLabel: string;
   flyKiteCta: (count: number) => string;
   cutDoriCta: string;
@@ -75,22 +80,20 @@ interface HarvestCopy {
   albumEyebrow: string;
   albumTitle: string;
   albumHint: string;
-  filmstripCaption: string;
-  filmstripFrames: string[];
+  albumEmptyTitle: string;
+  albumEmptyBody: string;
   photoCaptionPrefix: string;
-  cassetteEyebrow: string;
-  cassetteTrackTitle: string;
-  cassetteTapLabel: string;
-  cassettePlayingLabel: string;
+  sanctuaryHeading: string;
   returnEyebrow: string;
   returnTitle: string;
   returnPrompt: string;
   returnAddressedTo: (sender: string, receiver: string) => string;
-  returnSealCta: string;
+  sealHoldLabel: string;
+  sealChargingLabel: string;
+  sealCompleteLabel: string;
   returnResealCta: string;
   returnToastTitle: (sender: string) => string;
   returnToastBody: string;
-  nextChapterPrefix: string;
 }
 
 const FESTIVAL_META: Record<FestivalKey, FestivalMeta> = {
@@ -151,7 +154,6 @@ const FESTIVAL_META: Record<FestivalKey, FestivalMeta> = {
 };
 
 const FESTIVAL_ORDER: readonly FestivalKey[] = ['sankranti', 'lohri', 'pongal'];
-const CHAPTER_ORDER: readonly HarvestChapterId[] = ['stage', 'blessings', 'album', 'return'];
 const SWEET_ORDER: readonly SweetKey[] = ['tilgul', 'gajak', 'pongalSweet'];
 
 const SWEET_KEEPSAKES: Record<SweetKey, SweetKeepsake> = {
@@ -271,6 +273,78 @@ const RETURN_BLESSINGS: readonly ReturnBlessingOption[] = [
   },
 ];
 
+const FESTIVE_TRACKS: Record<CoreLanguageCode, readonly CurvedTrackItem[]> = {
+  en: [
+    {
+      id: 'dholki-breeze',
+      title: 'Dholki & Kite Breeze',
+      moodLabel: 'Rooftop Folk',
+      duration: '02:18',
+      note: 'Sunlit morning chimes inspired by Uttarayan rooftops, wooden firkis, and cheerful dholki rhythms.',
+    },
+    {
+      id: 'lohri-courtyard',
+      title: 'Lohri Courtyard Fire',
+      moodLabel: 'Bonfire Warmth',
+      duration: '02:42',
+      note: 'Warm acoustic folk tones echoing courtyard songs around crackling sesame and jaggery embers.',
+    },
+    {
+      id: 'pongal-dawn',
+      title: 'Pongal Dawn Bell',
+      moodLabel: 'Temple Morning',
+      duration: '02:30',
+      note: 'Bright festive notes celebrating freshly drawn kolam thresholds and brimming brass harvest pots.',
+    },
+  ],
+  hinglish: [
+    {
+      id: 'dholki-breeze',
+      title: 'Dholki & Patang Dhun',
+      moodLabel: 'Chhat Folk',
+      duration: '02:18',
+      note: 'Uttarayan ki dhoop, wooden firki aur subah ki meethi dholki taalon se bhari dhun.',
+    },
+    {
+      id: 'lohri-courtyard',
+      title: 'Lohri Aangan Geet',
+      moodLabel: 'Agni Warmth',
+      duration: '02:42',
+      note: 'Lohri ki pavitra aag aur parivaar ke sang gungunaye jaane wale lok geeton ki garmahat.',
+    },
+    {
+      id: 'pongal-dawn',
+      title: 'Pongal Prabhat Dhun',
+      moodLabel: 'Mangal Dawn',
+      duration: '02:30',
+      note: 'Shubh kolam aur chhalakte peetal ke paanai ke saath subah ki mangal dhun.',
+    },
+  ],
+  hi: [
+    {
+      id: 'dholki-breeze',
+      title: 'ढोलकी व पतंग धुन',
+      moodLabel: 'लोक संगीत',
+      duration: '02:18',
+      note: 'उत्तरायण की सुनहरी धूप और छतों पर गूँजती मधुर ढोलकी की मंगल ध्वनि।',
+    },
+    {
+      id: 'lohri-courtyard',
+      title: 'लोहड़ी आँगन गीत',
+      moodLabel: 'पावन ऊष्मा',
+      duration: '02:42',
+      note: 'लोहड़ी की पावन अग्नि के चारों ओर गाए जाने वाले पारंपरिक लोक स्वर।',
+    },
+    {
+      id: 'pongal-dawn',
+      title: 'पोंगल प्रभात स्वर',
+      moodLabel: 'मंगल प्रभात',
+      duration: '02:30',
+      note: 'शुभ कोलम और छलकता पीतल पात्र मनाने वाली पावन प्रभात धुन।',
+    },
+  ],
+};
+
 const KITE_LAYOUT = [
   { x: 18, y: 30, size: 32, fill: '#C83E2B', trim: '#FFF7E6', rot: -14 },
   { x: 50, y: 20, size: 38, fill: '#E69F00', trim: '#FFF7E6', rot: 10 },
@@ -287,21 +361,18 @@ const HARVEST_COPY: Record<CoreLanguageCode, HarvestCopy> = {
     forLabel: 'For',
     fromLabel: 'From',
     openCta: 'Step Into Celebration',
-    tabs: {
-      stage: 'Festival Stage',
-      blessings: 'Blessing & Sweets',
-      album: 'Album & Chimes',
-      return: 'Return Blessing',
-    },
+    heroSubline: 'Makar Sankranti, Lohri & Pongal Celebration',
+    stageEyebrow: 'Interactive Harvest Rituals',
+    stageTitle: 'Celebrate Every Harvest Tradition',
     festivalSwitcherLabel: 'Choose harvest tradition',
-    flyKiteCta: (count) => `Fly Kite (${count}/6)`,
+    flyKiteCta: (count) => `Fly Kite Higher (${count}/6)`,
     cutDoriCta: 'Cut Dori',
-    sankrantiPrompt: 'Tap kites or launch higher into the golden Uttarayan sky',
+    sankrantiPrompt: 'Tap kites or fly higher into the golden Uttarayan sky',
     sankrantiSoarWish: (count) =>
       `${count} kites soaring high — wishing your family bright horizons.`,
     sankrantiKaiPoChe: 'Kai Po Che! Cheerful harvest wishes echo across the rooftops.',
-    lohriOfferCta: 'Offer Til, Gud & Rewari',
-    lohriPrompt: 'Toss sesame & jaggery into the bonfire to raise harvest warmth',
+    lohriOfferCta: 'Toss Til, Gud & Rewari',
+    lohriPrompt: 'Toss sesame & jaggery embers into the bonfire to raise warmth',
     lohriWarmthLabel: (warmth, offerings) =>
       `Bonfire Warmth ${warmth}% · ${offerings} Offerings`,
     lohriBlessings: [
@@ -312,10 +383,10 @@ const HARVEST_COPY: Record<CoreLanguageCode, HarvestCopy> = {
     pongalBoilCta: 'Boil Over Abundance',
     pongalPrompt: 'Tap below to simmer sweet milk until the brass paanai overflows',
     pongalChantBanner: 'Pongalo Pongal! Abundance overflows across your home.',
-    pongalOverflowCount: (count) => `Sacred Overflow Celebrated (${count})`,
+    pongalOverflowCount: (count) => `Pongalo Pongal! Celebrated (${count})`,
     letterEyebrow: 'Family Harvest Letter',
     letterTitle: 'Warm Wishes From Home',
-    highlightsHeading: 'Festive Moments',
+    highlightsHeading: 'Festive Blessings',
     sweetsEyebrow: 'Sweet & Tradition Keepsake',
     sweetsTitle: 'Tap & Flip Traditional Treats',
     flipToMeaningLabel: 'Reveal Cultural Meaning',
@@ -324,22 +395,21 @@ const HARVEST_COPY: Record<CoreLanguageCode, HarvestCopy> = {
     albumEyebrow: 'Harvest Keepsake Reel',
     albumTitle: 'Festive Memories',
     albumHint: 'Tap any portrait to inspect full screen',
-    filmstripCaption: 'HARVEST HEIRLOOM REEL · ARCHIVE',
-    filmstripFrames: ['Sunlit Kite Sky', 'Lohri Courtyard', 'Pongal Abundance'],
+    albumEmptyTitle: 'Sunlit Courtyard Keepsake',
+    albumEmptyBody:
+      'Marigold garlands, sweet tilgul trays, and bright winter sunlight held warmly in memory.',
     photoCaptionPrefix: 'Harvest',
-    cassetteEyebrow: 'Festive Folk Chimes',
-    cassetteTrackTitle: 'Dholki & Harvest Chime',
-    cassetteTapLabel: 'Tap to Play · Festive Chime',
-    cassettePlayingLabel: 'Playing · Harvest Melody',
+    sanctuaryHeading: 'Folk Acoustic Sanctuary',
     returnEyebrow: 'Send Warmth Back',
-    returnTitle: 'Return Harvest Blessing',
-    returnPrompt: 'Choose a blessing to seal and send back:',
+    returnTitle: 'Return Harvest Blessing Seal',
+    returnPrompt: 'Choose a blessing to press and seal back:',
     returnAddressedTo: (sender, receiver) => `To ${sender} · From ${receiver}`,
-    returnSealCta: 'Seal & Send Return Blessing',
+    sealHoldLabel: 'Press & Hold to Seal Blessing',
+    sealChargingLabel: 'Pressing Marigold Wax Seal...',
+    sealCompleteLabel: 'Harvest Blessing Sealed',
     returnResealCta: 'Send Another Blessing',
     returnToastTitle: (sender) => `Blessing Sealed for ${sender}`,
     returnToastBody: 'Pressed with golden marigold and harvest gratitude.',
-    nextChapterPrefix: 'Next Chapter',
   },
   hinglish: {
     previewBanner: 'WEBZY FREE PREVIEW',
@@ -347,21 +417,18 @@ const HARVEST_COPY: Record<CoreLanguageCode, HarvestCopy> = {
     forLabel: 'Kiske liye',
     fromLabel: 'Bheja hai',
     openCta: 'Step Into Celebration',
-    tabs: {
-      stage: 'Festival Stage',
-      blessings: 'Blessing & Sweets',
-      album: 'Album & Chimes',
-      return: 'Return Blessing',
-    },
+    heroSubline: 'Makar Sankranti, Lohri & Pongal Utsav',
+    stageEyebrow: 'Interactive Festival Rituals',
+    stageTitle: 'Har Parampara Ke Saath Tyohar Manayein',
     festivalSwitcherLabel: 'Festival tradition chuno',
-    flyKiteCta: (count) => `Fly Kite (${count}/6)`,
+    flyKiteCta: (count) => `Fly Kite Higher (${count}/6)`,
     cutDoriCta: 'Cut Dori',
     sankrantiPrompt: 'Aasman mein patang udao ya dori kaat kar Kai Po Che bolo',
     sankrantiSoarWish: (count) =>
       `${count} patangein oonchi ud rahi hain — khushiyon ki udaan!`,
     sankrantiKaiPoChe: 'Kai Po Che! Chhat se chhat tak tyohar ki khushi goonj uthi.',
-    lohriOfferCta: 'Offer Til, Gud & Rewari',
-    lohriPrompt: 'Agni mein til, gud aur rewari arpit karne ke liye tap karein',
+    lohriOfferCta: 'Til, Gud & Rewari Arpit Karein',
+    lohriPrompt: 'Agni mein til, gud aur rewari daalkar garmahat badhayein',
     lohriWarmthLabel: (warmth, offerings) =>
       `Agni Warmth ${warmth}% · ${offerings} Arpan`,
     lohriBlessings: [
@@ -372,10 +439,10 @@ const HARVEST_COPY: Record<CoreLanguageCode, HarvestCopy> = {
     pongalBoilCta: 'Boil Over Abundance',
     pongalPrompt: 'Peetal ke paanai mein meetha doodh ubalne ke liye tap karein',
     pongalChantBanner: 'Pongalo Pongal! Ghar mein sukh-samriddhi chhalak uthi.',
-    pongalOverflowCount: (count) => `Shubh Utsav Celebrated (${count})`,
+    pongalOverflowCount: (count) => `Pongalo Pongal! Celebrated (${count})`,
     letterEyebrow: 'Parivaar ka Sandesh',
     letterTitle: 'Tyohar ki Mithaas',
-    highlightsHeading: 'Khaas Baatein',
+    highlightsHeading: 'Mangal Aashirwad',
     sweetsEyebrow: 'Mithai & Parampara Flipper',
     sweetsTitle: 'Tap Karke Parampara Dekhein',
     flipToMeaningLabel: 'Arth aur Aashirwad Dekhein',
@@ -384,22 +451,21 @@ const HARVEST_COPY: Record<CoreLanguageCode, HarvestCopy> = {
     albumEyebrow: 'Utsav Album',
     albumTitle: 'Tyohar ki Yaadein',
     albumHint: 'Badi photo dekhne ke liye tap karein',
-    filmstripCaption: 'HARVEST UTSAV REEL · ARCHIVE',
-    filmstripFrames: ['Patang Aasman', 'Lohri Agni', 'Pongal Paanai'],
+    albumEmptyTitle: 'Sunehri Dhoop Aur Tyohar',
+    albumEmptyBody:
+      'Gende ke phool, meetha tilgul aur parivaar ke saath bitayi dhoop bhari subah ki yaadein.',
     photoCaptionPrefix: 'Utsav',
-    cassetteEyebrow: 'Mangal Folk Dhun',
-    cassetteTrackTitle: 'Dholki & Harvest Chime',
-    cassetteTapLabel: 'Tap Karein · Festive Chime',
-    cassettePlayingLabel: 'Baj Rahi Hai · Harvest Dhun',
+    sanctuaryHeading: 'Folk Acoustic Sanctuary',
     returnEyebrow: 'Wapas Shubhkamnayein',
-    returnTitle: 'Return Harvest Blessing',
-    returnPrompt: 'Ek shubhkamna chuno aur seal karke wapas bhejo:',
+    returnTitle: 'Return Harvest Blessing Seal',
+    returnPrompt: 'Ek shubhkamna chuno aur hold karke seal karo:',
     returnAddressedTo: (sender, receiver) => `${sender} ke liye · ${receiver} ki taraf se`,
-    returnSealCta: 'Seal & Send Return Blessing',
+    sealHoldLabel: 'Hold Karke Seal Lagayein',
+    sealChargingLabel: 'Marigold Seal Lag Rahi Hai...',
+    sealCompleteLabel: 'Blessing Seal Ho Gayi',
     returnResealCta: 'Ek Aur Aashirwad Bhejein',
     returnToastTitle: (sender) => `${sender} ke liye Blessing Seal Hui`,
     returnToastBody: 'Gende ke phool aur til-gud ki mithaas ke saath surakshit.',
-    nextChapterPrefix: 'Agla Adhyay',
   },
   hi: {
     previewBanner: 'WEBZY निःशुल्क पूर्वावलोकन',
@@ -407,14 +473,11 @@ const HARVEST_COPY: Record<CoreLanguageCode, HarvestCopy> = {
     forLabel: 'प्रेषित',
     fromLabel: 'प्रेषक',
     openCta: 'उत्सव में प्रवेश करें',
-    tabs: {
-      stage: 'उत्सव मंच',
-      blessings: 'संदेश व मिठाई',
-      album: 'यादें व धुन',
-      return: 'शुभकामना भेजें',
-    },
+    heroSubline: 'मकर संक्रांति, लोहड़ी एवं पोंगल उत्सव',
+    stageEyebrow: 'पावन उत्सव अनुष्ठान',
+    stageTitle: 'हर परंपरा के साथ पर्व मनाएँ',
     festivalSwitcherLabel: 'पर्व परंपरा चुनें',
-    flyKiteCta: (count) => `पतंग उड़ाएँ (${count}/6)`,
+    flyKiteCta: (count) => `पतंग ऊपर उड़ाएँ (${count}/6)`,
     cutDoriCta: 'डोरी काटें',
     sankrantiPrompt: 'उत्तरायण के आकाश में पतंग उड़ाएँ या काई पो चे मनाएँ',
     sankrantiSoarWish: (count) =>
@@ -432,10 +495,10 @@ const HARVEST_COPY: Record<CoreLanguageCode, HarvestCopy> = {
     pongalBoilCta: 'मंगल उबाल मनाएँ',
     pongalPrompt: 'पीतल के पात्र में मीठा पोंगल छलकने के लिए नीचे टैप करें',
     pongalChantBanner: 'पोंगलो पोंगल! घर-आँगन में सुख और समृद्धि छलक उठी।',
-    pongalOverflowCount: (count) => `मंगल उत्सव मनाया गया (${count})`,
+    pongalOverflowCount: (count) => `पोंगलो पोंगल! मनाया गया (${count})`,
     letterEyebrow: 'परिवार की ओर से संदेश',
     letterTitle: 'स्नेह और शुभकामना पत्र',
-    highlightsHeading: 'पर्व की विशेष झलकियाँ',
+    highlightsHeading: 'मंगल आशीर्वाद',
     sweetsEyebrow: 'मिठाई व परंपरा पुस्तिका',
     sweetsTitle: 'कार्ड पलटकर परंपरा जानें',
     flipToMeaningLabel: 'सांस्कृतिक अर्थ देखें',
@@ -444,22 +507,21 @@ const HARVEST_COPY: Record<CoreLanguageCode, HarvestCopy> = {
     albumEyebrow: 'उत्सव एल्बम',
     albumTitle: 'त्योहार की मधुर यादें',
     albumHint: 'बड़ी फ़ोटो देखने के लिए टैप करें',
-    filmstripCaption: 'फसल उत्सव स्मृति रील · धरोहर',
-    filmstripFrames: ['पतंग आकाश', 'लोहड़ी अग्नि', 'पोंगल पात्र'],
+    albumEmptyTitle: 'सुनहरी धूप और मंगल आँगन',
+    albumEmptyBody:
+      'गेंदे के तोरण, मीठे तिल-गुड़ और अपनों के स्नेह से सजी त्योहार की मधुर स्मृति।',
     photoCaptionPrefix: 'उत्सव',
-    cassetteEyebrow: 'मंगल लोक धुन',
-    cassetteTrackTitle: 'ढोलकी व उत्सव धुन',
-    cassetteTapLabel: 'सुनने के लिए टैप करें · उत्सव धुन',
-    cassettePlayingLabel: 'बज रही है · मंगल धुन',
+    sanctuaryHeading: 'लोक संगीत प्रांगण',
     returnEyebrow: 'शुभकामना उत्तर',
-    returnTitle: 'आशीर्वाद व शुभकामना भेजें',
-    returnPrompt: 'अपनों को भेजने के लिए एक शुभकामना चुनें:',
+    returnTitle: 'मंगल आशीर्वाद मुहर',
+    returnPrompt: 'अपनों को भेजने के लिए एक शुभकामना चुनें और दबाकर मुहर लगाएँ:',
     returnAddressedTo: (sender, receiver) => `${sender} के लिए · ${receiver} की ओर से`,
-    returnSealCta: 'मुहर लगाकर शुभकामना भेजें',
+    sealHoldLabel: 'मुहर लगाने के लिए दबाए रखें',
+    sealChargingLabel: 'गेंदा व स्वर्ण मुहर लग रही है...',
+    sealCompleteLabel: 'शुभकामना मुहर सहेजी गई',
     returnResealCta: 'एक और शुभकामना भेजें',
     returnToastTitle: (sender) => `${sender} के लिए शुभकामना सहेजी गई`,
     returnToastBody: 'गेंदे के पुष्प और तिल-गुड़ की मिठास के साथ सुरक्षित।',
-    nextChapterPrefix: 'अगला अध्याय',
   },
 };
 
@@ -507,12 +569,12 @@ function MarigoldToranSvg() {
 }
 
 /** Sunlit brass emblem uniting Uttarayan sun rays, geometric kite, and mango leaves. */
-function HarvestCrestSvg() {
+function HarvestCrestSvg({ className = '' }: { className?: string }) {
   const rays = Array.from({ length: 12 }, (_, idx) => idx * 30);
   return (
     <svg
       viewBox="0 0 120 120"
-      className="h-20 w-20 sm:h-24 sm:w-24 animate-float motion-reduce:animate-none"
+      className={`h-20 w-20 sm:h-24 sm:w-24 ${className}`}
       aria-hidden="true"
     >
       {rays.map((deg) => (
@@ -523,7 +585,6 @@ function HarvestCrestSvg() {
       ))}
       <circle cx="60" cy="60" r="31" fill="#FFF7E6" stroke="#9A6B22" strokeWidth="2.2" />
       <circle cx="60" cy="60" r="24" fill="#FDE6B1" stroke="#E69F00" strokeWidth="1.4" />
-      {/* Geometric center diamond kite */}
       <polygon points="60,40 76,56 60,72 44,56" fill="#C83E2B" stroke="#9A6B22" strokeWidth="1.4" />
       <polygon points="60,40 76,56 60,56" fill="#E69F00" opacity="0.45" />
       <line x1="60" y1="40" x2="60" y2="72" stroke="#FFF7E6" strokeWidth="1.2" />
@@ -598,11 +659,9 @@ function SweetEmblemSvg({ sweetKey }: { sweetKey: SweetKey }) {
     return (
       <svg viewBox="0 0 88 72" className="h-16 w-20" aria-hidden="true">
         <ellipse cx="44" cy="56" rx="34" ry="8" fill="#E69F00" fillOpacity="0.24" stroke="#9A6B22" strokeWidth="1.5" />
-        {/* Pyramid of 3 golden tilgul ladoos */}
         <circle cx="33" cy="46" r="10.5" fill="#E69F00" stroke="#9A6B22" strokeWidth="1.4" />
         <circle cx="55" cy="46" r="10.5" fill="#D48C00" stroke="#9A6B22" strokeWidth="1.4" />
         <circle cx="44" cy="30" r="11" fill="#F2B129" stroke="#9A6B22" strokeWidth="1.5" />
-        {/* Sesame speckles */}
         {[
           [31, 44], [36, 48], [53, 44], [58, 47], [41, 27], [47, 31], [43, 34],
         ].map(([cx, cy], idx) => (
@@ -615,10 +674,8 @@ function SweetEmblemSvg({ sweetKey }: { sweetKey: SweetKey }) {
     return (
       <svg viewBox="0 0 88 72" className="h-16 w-20" aria-hidden="true">
         <ellipse cx="44" cy="56" rx="34" ry="8" fill="#C83E2B" fillOpacity="0.16" stroke="#9A6B22" strokeWidth="1.5" />
-        {/* Crisp gajak bars */}
         <rect x="20" y="34" width="28" height="16" rx="3" transform="rotate(-8 34 42)" fill="#E69F00" stroke="#9A6B22" strokeWidth="1.4" />
         <rect x="34" y="28" width="28" height="16" rx="3" transform="rotate(6 48 36)" fill="#F3B83E" stroke="#9A6B22" strokeWidth="1.4" />
-        {/* Rewari medallions */}
         <circle cx="62" cy="46" r="6" fill="#FFF7E6" stroke="#9A6B22" strokeWidth="1.3" />
         <circle cx="54" cy="50" r="5" fill="#FDE6B1" stroke="#9A6B22" strokeWidth="1.2" />
         <circle cx="44" cy="34" r="1.1" fill="#FFF7E6" />
@@ -629,10 +686,8 @@ function SweetEmblemSvg({ sweetKey }: { sweetKey: SweetKey }) {
   return (
     <svg viewBox="0 0 88 72" className="h-16 w-20" aria-hidden="true">
       <ellipse cx="44" cy="57" rx="32" ry="7.5" fill="#1F6E4A" fillOpacity="0.18" stroke="#9A6B22" strokeWidth="1.4" />
-      {/* Brass bowl of sakkarai pongal */}
       <path d="M22 36 C24 51, 33 56, 44 56 C55 56, 64 51, 66 36 Z" fill="#E69F00" stroke="#9A6B22" strokeWidth="1.5" />
       <ellipse cx="44" cy="36" rx="22" ry="6.5" fill="#B86B11" stroke="#9A6B22" strokeWidth="1.4" />
-      {/* Cashew & cardamom accents */}
       <path d="M36 35 Q40 31 43 35" fill="none" stroke="#FFF7E6" strokeWidth="2.2" strokeLinecap="round" />
       <ellipse cx="50" cy="36" rx="3" ry="1.8" fill="#1F6E4A" />
       <circle cx="44" cy="24" r="1.4" fill="#9A6B22" opacity="0.5" />
@@ -643,6 +698,7 @@ function SweetEmblemSvg({ sweetKey }: { sweetKey: SweetKey }) {
 }
 
 function SankrantiStage({
+  uid,
   kiteCount,
   altitudeBoost,
   cutBannerActive,
@@ -650,6 +706,7 @@ function SankrantiStage({
   onCutDori,
   copy,
 }: {
+  uid: string;
   kiteCount: number;
   altitudeBoost: number;
   cutBannerActive: boolean;
@@ -662,41 +719,39 @@ function SankrantiStage({
   return (
     <div className="space-y-3">
       <div
-        className="relative h-56 w-full overflow-hidden rounded-2xl border border-[#9A6B22]/35 shadow-inner"
+        className="relative h-60 w-full overflow-hidden rounded-2xl border border-[#9A6B22]/35 shadow-inner"
         style={{
           background:
-            'linear-gradient(180deg, #FDE8B8 0%, #FFEFC8 54%, #FFF7E6 100%)',
+            'linear-gradient(180deg, #FCD98C 0%, #FFEFC8 54%, #FFF7E6 100%)',
         }}
       >
         <svg viewBox="0 0 360 210" className="h-full w-full" aria-hidden="true">
-          {/* Rising Uttarayan sun */}
-          <circle cx="298" cy="48" r="34" fill="#E69F00" opacity="0.25" />
-          <circle cx="298" cy="48" r="21" fill="#E69F00" opacity="0.88" />
-          {/* Soft paper-cut clouds */}
+          <circle cx="298" cy="48" r="38" fill="#E69F00" opacity="0.22" />
+          <circle cx="298" cy="48" r="22" fill="#E69F00" opacity="0.9" />
           <path
             d="M24 54 Q38 40 54 48 Q68 36 84 48 Q96 48 96 58 L24 58 Z"
             fill="#FFFDF8"
-            opacity="0.8"
+            opacity="0.82"
           />
           <path
             d="M188 38 Q202 26 216 34 Q228 24 242 36 L188 38 Z"
             fill="#FFFDF8"
-            opacity="0.72"
+            opacity="0.74"
           />
-          {/* Dotted manjha string trails converging to Bareilly firki */}
           {visibleKites.map((kite, idx) => {
-            const liftedY = Math.max(10, kite.y - (altitudeBoost % 3) * 4);
+            const liftStep = (altitudeBoost % 4) * 3.5;
+            const liftedY = Math.max(9, kite.y - liftStep);
             const kx = (kite.x / 100) * 340 + 10;
             const ky = (liftedY / 100) * 165 + 10;
             const isCut = cutBannerActive && idx === visibleKites.length - 1;
             return (
               <path
                 key={`trail-${idx}`}
-                d={`M ${kx} ${ky + 12} Q ${(kx + 56) / 2} ${ky + 62} ${isCut ? kx - 18 : 58} ${isCut ? ky + 48 : 178}`}
+                d={`M ${kx} ${ky + 12} Q ${(kx + 56) / 2} ${ky + 62} ${isCut ? kx - 20 : 58} ${isCut ? ky + 48 : 178}`}
                 fill="none"
                 stroke="#9A6B22"
-                strokeWidth="1.1"
-                strokeOpacity={isCut ? '0.65' : '0.4'}
+                strokeWidth="1.15"
+                strokeOpacity={isCut ? '0.68' : '0.42'}
                 strokeDasharray="3 3"
               />
             );
@@ -713,9 +768,9 @@ function SankrantiStage({
           </g>
         </svg>
 
-        {/* Interactive diamond patangs */}
         {visibleKites.map((kite, idx) => {
-          const liftedY = Math.max(12, kite.y - (altitudeBoost % 3) * 4);
+          const liftStep = (altitudeBoost % 4) * 3.5;
+          const liftedY = Math.max(10, kite.y - liftStep);
           const isCutKite = cutBannerActive && idx === visibleKites.length - 1;
           return (
             <button
@@ -725,40 +780,44 @@ function SankrantiStage({
               aria-label={`Festival patang ${idx + 1}`}
               style={{
                 left: `${kite.x}%`,
-                top: `${isCutKite ? Math.max(10, liftedY - 8) : liftedY}%`,
-                animationDelay: `${idx * 170}ms`,
+                top: `${isCutKite ? Math.max(9, liftedY - 8) : liftedY}%`,
               }}
-              className="absolute flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full animate-kite-sway transition-all duration-300 hover:scale-110 active:scale-95 motion-reduce:animate-none"
+              className="absolute flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full transition-all duration-300 hover:scale-110 active:scale-95"
             >
-              <svg
-                viewBox="0 0 40 48"
-                style={{
-                  width: kite.size,
-                  height: kite.size * 1.15,
-                  transform: `rotate(${isCutKite ? kite.rot + 24 : kite.rot}deg)`,
-                }}
-                aria-hidden="true"
+              <span
+                className={`harvest-kite-${uid} inline-flex items-center justify-center`}
+                style={{ animationDelay: `${idx * 170}ms` }}
               >
-                <polygon
-                  points="20,2 37,19 20,36 3,19"
-                  fill={kite.fill}
-                  stroke="#2D1B10"
-                  strokeWidth="1.2"
-                />
-                <polygon points="20,2 37,19 20,19" fill={kite.trim} opacity="0.34" />
-                <line x1="20" y1="2" x2="20" y2="36" stroke="#FFF7E6" strokeWidth="1.2" />
-                <path d="M5 19 Q20 11 35 19" fill="none" stroke="#FFF7E6" strokeWidth="1.2" />
-                <polygon points="20,36 25,44 15,44" fill={kite.fill} />
-              </svg>
+                <svg
+                  viewBox="0 0 40 48"
+                  style={{
+                    width: kite.size,
+                    height: kite.size * 1.15,
+                    transform: `rotate(${isCutKite ? kite.rot + 24 : kite.rot}deg)`,
+                  }}
+                  aria-hidden="true"
+                >
+                  <polygon
+                    points="20,2 37,19 20,36 3,19"
+                    fill={kite.fill}
+                    stroke="#2D1B10"
+                    strokeWidth="1.2"
+                  />
+                  <polygon points="20,2 37,19 20,19" fill={kite.trim} opacity="0.34" />
+                  <line x1="20" y1="2" x2="20" y2="36" stroke="#FFF7E6" strokeWidth="1.2" />
+                  <path d="M5 19 Q20 11 35 19" fill="none" stroke="#FFF7E6" strokeWidth="1.2" />
+                  <polygon points="20,36 25,44 15,44" fill={kite.fill} />
+                </svg>
+              </span>
             </button>
           );
         })}
 
         <div className="pointer-events-none absolute inset-x-3 bottom-2.5 flex justify-center">
           <span
-            className={`rounded-full px-3 py-1 text-center text-[11px] font-bold shadow-xs ring-1 transition ${
+            className={`rounded-full px-3.5 py-1 text-center text-[11px] font-bold shadow-xs ring-1 transition ${
               cutBannerActive
-                ? 'bg-[#C83E2B] text-[#FFF7E6] ring-[#FFF7E6]/40 animate-pop-bounce'
+                ? `harvest-pop-${uid} bg-[#C83E2B] text-[#FFF7E6] ring-[#FFF7E6]/45`
                 : 'bg-[#FFF7E6]/92 text-[#2D1B10] ring-[#9A6B22]/30'
             }`}
           >
@@ -792,10 +851,12 @@ function SankrantiStage({
 }
 
 function LohriStage({
+  uid,
   offerCount,
   onTossOffering,
   copy,
 }: {
+  uid: string;
   offerCount: number;
   onTossOffering: () => void;
   copy: HarvestCopy;
@@ -810,14 +871,13 @@ function LohriStage({
   return (
     <div className="space-y-3">
       <div
-        className="relative flex h-56 w-full flex-col items-center justify-end overflow-hidden rounded-2xl border border-[#9A6B22]/45 p-3"
+        className="relative flex h-60 w-full flex-col items-center justify-end overflow-hidden rounded-2xl border border-[#9A6B22]/45 p-3"
         style={{
           background:
             'linear-gradient(180deg, #2D1810 0%, #5B2416 54%, #91381B 100%)',
         }}
       >
         <svg viewBox="0 0 360 190" className="h-full w-full" aria-hidden="true">
-          {/* Rising golden sparks */}
           {[
             { cx: 145, cy: 46, r: 2.5 },
             { cx: 182, cy: 24, r: 3.1 },
@@ -837,7 +897,6 @@ function LohriStage({
             />
           ))}
 
-          {/* Harvested golden wheat stalks framing left & right */}
           {[
             { x: 42, flip: 1 },
             { x: 318, flip: -1 },
@@ -854,27 +913,29 @@ function LohriStage({
 
           <ellipse cx="180" cy="144" rx="78" ry="24" fill="#E69F00" opacity="0.28" />
 
-          {/* Layered bonfire flames */}
-          <g transform={`translate(180, 142) scale(${sparkScale}) translate(-180, -142)`}>
-            <path
-              d="M180 42 C205 74 222 104 210 138 C200 148 160 148 150 138 C138 104 155 74 180 42 Z"
-              fill="#C83E2B"
-            />
-            <path
-              d="M180 58 C198 85 208 110 198 138 C190 145 170 145 162 138 C152 110 162 85 180 58 Z"
-              fill="#E69F00"
-            />
-            <path
-              d="M180 84 C190 102 195 118 189 138 C185 142 175 142 171 138 C165 118 170 102 180 84 Z"
-              fill="#FFF7E6"
-            />
+          <g
+            className={`harvest-flame-${uid}`}
+            style={{ transformOrigin: '180px 142px' }}
+          >
+            <g transform={`translate(180, 142) scale(${sparkScale}) translate(-180, -142)`}>
+              <path
+                d="M180 42 C205 74 222 104 210 138 C200 148 160 148 150 138 C138 104 155 74 180 42 Z"
+                fill="#C83E2B"
+              />
+              <path
+                d="M180 58 C198 85 208 110 198 138 C190 145 170 145 162 138 C152 110 162 85 180 58 Z"
+                fill="#E69F00"
+              />
+              <path
+                d="M180 84 C190 102 195 118 189 138 C185 142 175 142 171 138 C165 118 170 102 180 84 Z"
+                fill="#FFF7E6"
+              />
+            </g>
           </g>
 
-          {/* Crossed logs */}
           <rect x="132" y="138" width="96" height="12" rx="6" transform="rotate(-9 180 144)" fill="#5A3317" />
           <rect x="132" y="140" width="96" height="12" rx="6" transform="rotate(10 180 146)" fill="#7A451E" />
 
-          {/* Brass thali of til, rewari & gajak */}
           <g transform="translate(262, 148)">
             <ellipse cx="28" cy="18" rx="30" ry="9" fill="#E69F00" stroke="#9A6B22" strokeWidth="1.5" />
             <circle cx="16" cy="14" r="4.5" fill="#FFF7E6" />
@@ -885,10 +946,10 @@ function LohriStage({
         </svg>
 
         <div className="relative z-10 flex w-full flex-col items-center gap-1.5">
-          <div className="flex w-full max-w-[230px] items-center justify-between gap-2 text-[10px] font-bold uppercase tracking-wider text-[#FFF7E6]">
+          <div className="flex w-full max-w-[240px] items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[#FFF7E6]">
             <span>{copy.lohriWarmthLabel(warmth, offerCount)}</span>
           </div>
-          <div className="h-1.5 w-full max-w-[230px] overflow-hidden rounded-full bg-black/40">
+          <div className="h-1.5 w-full max-w-[240px] overflow-hidden rounded-full bg-black/40">
             <div
               className="h-full rounded-full bg-gradient-to-r from-[#E69F00] to-[#FFF7E6] transition-all duration-300"
               style={{ width: `${warmth}%` }}
@@ -912,10 +973,12 @@ function LohriStage({
 }
 
 function PongalStage({
+  uid,
   boilCount,
   onCelebratePongal,
   copy,
 }: {
+  uid: string;
   boilCount: number;
   onCelebratePongal: () => void;
   copy: HarvestCopy;
@@ -925,14 +988,13 @@ function PongalStage({
   return (
     <div className="space-y-3">
       <div
-        className="relative flex h-56 w-full flex-col items-center justify-end overflow-hidden rounded-2xl border border-[#9A6B22]/35 p-3"
+        className="relative flex h-60 w-full flex-col items-center justify-end overflow-hidden rounded-2xl border border-[#9A6B22]/35 p-3"
         style={{
           background:
             'linear-gradient(180deg, #FFFDF8 0%, #FFF7E6 62%, #FDE8B8 100%)',
         }}
       >
         <svg viewBox="0 0 360 190" className="h-full w-full" aria-hidden="true">
-          {/* Symmetrical pulli kolam mandala beneath the pot */}
           <g transform="translate(180, 162)" opacity="0.92">
             <ellipse cx="0" cy="0" rx="112" ry="20" fill="none" stroke="#FFFFFF" strokeWidth="2.4" />
             <ellipse cx="0" cy="0" rx="88" ry="14" fill="none" stroke="#C83E2B" strokeWidth="1.6" strokeDasharray="5 4" />
@@ -941,7 +1003,6 @@ function PongalStage({
             ))}
           </g>
 
-          {/* Crossed segmented emerald sugarcane stalks */}
           <g>
             <line x1="94" y1="162" x2="246" y2="26" stroke="#1F6E4A" strokeWidth="8" strokeLinecap="round" />
             <line x1="266" y1="162" x2="114" y2="26" stroke="#28845A" strokeWidth="8" strokeLinecap="round" />
@@ -949,36 +1010,34 @@ function PongalStage({
             <path d="M118 28 Q88 16 74 32" fill="none" stroke="#28845A" strokeWidth="3.5" strokeLinecap="round" />
           </g>
 
-          {/* Steam curls rising above the brass pot */}
-          <path
-            d={`M164 ${66 - frothLift} Q156 46 168 30`}
-            fill="none"
-            stroke="#9A6B22"
-            strokeWidth="2"
-            strokeOpacity="0.5"
-            strokeLinecap="round"
-          />
-          <path
-            d={`M196 ${64 - frothLift} Q206 44 192 28`}
-            fill="none"
-            stroke="#9A6B22"
-            strokeWidth="2"
-            strokeOpacity="0.5"
-            strokeLinecap="round"
-          />
+          <g className={`harvest-steam-${uid}`}>
+            <path
+              d={`M164 ${66 - frothLift} Q156 46 168 30`}
+              fill="none"
+              stroke="#9A6B22"
+              strokeWidth="2"
+              strokeOpacity="0.55"
+              strokeLinecap="round"
+            />
+            <path
+              d={`M196 ${64 - frothLift} Q206 44 192 28`}
+              fill="none"
+              stroke="#9A6B22"
+              strokeWidth="2"
+              strokeOpacity="0.55"
+              strokeLinecap="round"
+            />
+          </g>
 
-          {/* Embossed brass Pongal pot (paanai) */}
           <ellipse cx="180" cy="118" rx="44" ry="38" fill="#E69F00" stroke="#9A6B22" strokeWidth="2" />
           <ellipse cx="166" cy="112" rx="14" ry="22" fill="#FFF7E6" opacity="0.38" />
           <rect x="148" y="72" width="64" height="14" rx="7" fill="#9A6B22" stroke="#6E4A13" strokeWidth="1.6" />
 
-          {/* Mango leaves & kumkum collar tied around neck */}
           <path d="M152 86 L142 104 L160 98 Z" fill="#1F6E4A" />
           <path d="M180 86 L173 106 L187 106 Z" fill="#28845A" />
           <path d="M208 86 L218 104 L200 98 Z" fill="#1F6E4A" />
           <line x1="147" y1="86" x2="213" y2="86" stroke="#C83E2B" strokeWidth="3" />
 
-          {/* Frothy milk overflowing the rim */}
           <path
             d={`M146 ${76 - frothLift} Q160 ${56 - frothLift} 180 ${60 - frothLift} Q200 ${56 - frothLift} 214 ${76 - frothLift} Q202 88 192 80 Q180 98 168 80 Q158 88 146 ${76 - frothLift} Z`}
             fill="#FFFFFF"
@@ -997,7 +1056,7 @@ function PongalStage({
         <span
           className={`relative z-10 rounded-full px-3.5 py-1 text-center text-[11px] font-bold shadow-xs ring-1 ${
             boilCount > 0
-              ? 'bg-[#1F6E4A] text-[#FFF7E6] ring-[#FFF7E6]/40 animate-pop-bounce'
+              ? `harvest-pop-${uid} bg-[#1F6E4A] text-[#FFF7E6] ring-[#FFF7E6]/40`
               : 'bg-[#FFFDF8]/95 text-[#7A5114] ring-[#9A6B22]/30'
           }`}
         >
@@ -1017,8 +1076,8 @@ function PongalStage({
 }
 
 /**
- * 4-Chapter Indian Harvest Microsite ("Makar Sankranti, Lohri & Pongal Festive Keepsake")
- * crafted in Golden Harvest Parchment & Festive Craft aesthetic.
+ * Continuous-flow Indian Harvest Celebration microsite
+ * (Makar Sankranti, Lohri & Pongal) crafted in Golden Harvest Parchment & Marigold Craft aesthetic.
  */
 export function HarvestGreetingSite({
   manifest: _manifest,
@@ -1027,26 +1086,32 @@ export function HarvestGreetingSite({
   watermarked = false,
   onOpened,
 }: OccasionSiteProps) {
+  const uid = useId().replace(/:/g, '');
   const initialFestival = normalizeFestival(data.relation);
+
   const [opened, setOpened] = useState(false);
-  const [activeChapter, setActiveChapter] = useState<HarvestChapterId>('stage');
   const [activeFestival, setActiveFestival] = useState<FestivalKey>(initialFestival);
 
-  // Chapter 1 ritual states
+  // Interactive Festival Ritual states
   const [kiteCount, setKiteCount] = useState(3);
   const [kiteBoost, setKiteBoost] = useState(0);
   const [cutDoriActive, setCutDoriActive] = useState(false);
   const [lohriOfferings, setLohriOfferings] = useState(1);
   const [pongalBoils, setPongalBoils] = useState(0);
 
-  // Chapter 2 Sweet & Tradition Keepsake Flipper states
+  // Sweet & Tradition Keepsake Flipper states
   const [activeSweet, setActiveSweet] = useState<SweetKey>('tilgul');
-  const [sweetFlipped, setSweetFlipped] = useState(false);
+  const [flippedSweets, setFlippedSweets] = useState<Record<SweetKey, boolean>>({
+    tilgul: false,
+    gajak: false,
+    pongalSweet: false,
+  });
 
-  // Chapter 4 Return Blessing states
+  // Return Harvest Blessing Seal states
   const [selectedBlessingId, setSelectedBlessingId] = useState<string>(RETURN_BLESSINGS[0].id);
   const [blessingSealed, setBlessingSealed] = useState(false);
   const [sealCount, setSealCount] = useState(0);
+  const [sealCycle, setSealCycle] = useState(0);
 
   useEffect(() => {
     setActiveFestival(normalizeFestival(data.relation));
@@ -1056,26 +1121,22 @@ export function HarvestGreetingSite({
   const copy = HARVEST_COPY[coreLang] ?? HARVEST_COPY.en;
   const activeMeta = FESTIVAL_META[activeFestival];
   const coverMeta = FESTIVAL_META[initialFestival];
+  const headlineText = pickLocalizedText(data.headline, language) || copy.letterTitle;
   const messageText = pickLocalizedText(data.message, language);
   const canUseDropCap = coreLang !== 'hi' && /^[A-Za-z]/.test(messageText.trim());
-  const chapterTabs = CHAPTER_ORDER.map((id) => ({ id, label: copy.tabs[id] }));
-  const nextChapterId =
-    CHAPTER_ORDER[(CHAPTER_ORDER.indexOf(activeChapter) + 1) % CHAPTER_ORDER.length];
   const currentSweet = SWEET_KEEPSAKES[activeSweet];
+  const isCurrentSweetFlipped = flippedSweets[activeSweet];
+  const sanctuaryTracks = FESTIVE_TRACKS[coreLang] ?? FESTIVE_TRACKS.en;
+  const chosenBlessing =
+    RETURN_BLESSINGS.find((item) => item.id === selectedBlessingId) ?? RETURN_BLESSINGS[0];
 
   function handleOpen() {
     setOpened(true);
-    setActiveChapter('stage');
     onOpened?.();
   }
 
   function handleReplay() {
     setOpened(false);
-    setActiveChapter('stage');
-  }
-
-  function goNextChapter() {
-    setActiveChapter(nextChapterId);
   }
 
   function handleFlyKite() {
@@ -1091,22 +1152,81 @@ export function HarvestGreetingSite({
 
   function handleSelectSweet(key: SweetKey) {
     setActiveSweet(key);
-    setSweetFlipped(false);
   }
 
-  function handleSealReturnBlessing() {
+  function handleToggleSweetFlip() {
+    setFlippedSweets((prev) => ({
+      ...prev,
+      [activeSweet]: !prev[activeSweet],
+    }));
+  }
+
+  function handleSealComplete() {
     setBlessingSealed(true);
     setSealCount((c) => c + 1);
   }
 
+  function handleResealReset() {
+    setBlessingSealed(false);
+    setSealCycle((c) => c + 1);
+  }
+
+  const scopedKeyframes = `
+    @keyframes harvest-float-${uid} {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-5px); }
+    }
+    @keyframes harvest-kite-${uid} {
+      0%, 100% { transform: rotate(-3deg) translateY(0px); }
+      50% { transform: rotate(3deg) translateY(-5px); }
+    }
+    @keyframes harvest-flame-${uid} {
+      0%, 100% { transform: scaleY(0.96) scaleX(1.02); }
+      50% { transform: scaleY(1.05) scaleX(0.97); }
+    }
+    @keyframes harvest-steam-${uid} {
+      0%, 100% { opacity: 0.45; transform: translateY(0px); }
+      50% { opacity: 0.9; transform: translateY(-4px); }
+    }
+    @keyframes harvest-pop-${uid} {
+      0% { transform: scale(0.92); opacity: 0.5; }
+      70% { transform: scale(1.04); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes harvest-fade-${uid} {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .harvest-float-${uid} { animation: harvest-float-${uid} 3.6s ease-in-out infinite; }
+    .harvest-kite-${uid} { animation: harvest-kite-${uid} 3.2s ease-in-out infinite; }
+    .harvest-flame-${uid} { animation: harvest-flame-${uid} 1.4s ease-in-out infinite; }
+    .harvest-steam-${uid} { animation: harvest-steam-${uid} 2.4s ease-in-out infinite; }
+    .harvest-pop-${uid} { animation: harvest-pop-${uid} 0.35s ease-out both; }
+    .harvest-fade-${uid} { animation: harvest-fade-${uid} 0.45s ease-out both; }
+    @media (prefers-reduced-motion: reduce) {
+      .harvest-float-${uid},
+      .harvest-kite-${uid},
+      .harvest-flame-${uid},
+      .harvest-steam-${uid},
+      .harvest-pop-${uid},
+      .harvest-fade-${uid} {
+        animation: none !important;
+      }
+    }
+  `;
+
   if (!opened) {
     return (
       <div className="relative flex min-h-full w-full flex-col justify-between overflow-hidden rounded-[28px] bg-[#FFF7E6] text-[#2D1B10]">
+        <style>{scopedKeyframes}</style>
+
         <OccasionArtworkBackdrop
           src="/templates/occasions/harvest-greeting/cover.jpg"
           fallbackGradient="linear-gradient(155deg, #FFF7E6 0%, #FDE8BC 58%, #F8D38A 100%)"
           className="object-cover object-center opacity-40"
         />
+
+        <AmbientRainCanvas density="light" fireflies tint="#E69F00" />
 
         {watermarked ? (
           <div
@@ -1119,7 +1239,7 @@ export function HarvestGreetingSite({
 
         <div className="relative z-10 flex flex-1 flex-col items-center justify-center p-4 sm:p-6">
           {/* Traditional Jharokha Arch Card with Marigold Toran */}
-          <div className="relative flex w-full max-w-md flex-col items-center overflow-hidden rounded-t-[160px] rounded-b-[28px] border-2 border-[#9A6B22]/70 bg-[#FFF7E6]/92 px-5 pt-3 pb-6 text-center shadow-[0_18px_42px_-16px_rgba(154,107,34,0.32)] backdrop-blur-xs">
+          <div className="relative flex w-full max-w-md flex-col items-center overflow-hidden rounded-t-[160px] rounded-b-[28px] border-2 border-[#9A6B22]/70 bg-[#FFF7E6]/92 px-5 pt-3 pb-6 text-center shadow-[0_18px_42px_-16px_rgba(154,107,34,0.34)] backdrop-blur-xs">
             <div
               aria-hidden="true"
               className="pointer-events-none absolute inset-2 rounded-t-[150px] rounded-b-[22px] border border-[#C83E2B]/35"
@@ -1128,7 +1248,7 @@ export function HarvestGreetingSite({
             <MarigoldToranSvg />
 
             <div className="relative mt-1 flex w-full flex-col items-center">
-              <HarvestCrestSvg />
+              <HarvestCrestSvg className={`harvest-float-${uid}`} />
 
               <span className="mt-2.5 inline-flex items-center rounded-full border border-[#9A6B22]/35 bg-[#FFFDF8] px-3.5 py-1 text-[10.5px] font-bold uppercase tracking-[0.14em] text-[#7A5114]">
                 {coverMeta.badge[coreLang]}
@@ -1146,7 +1266,6 @@ export function HarvestGreetingSite({
                 {coverMeta.subtitle[coreLang]}
               </p>
 
-              {/* Sender & Recipient Ribbon */}
               <div className="mt-3.5 inline-flex max-w-full flex-wrap items-center justify-center gap-1.5 rounded-full border border-[#C83E2B]/25 bg-[#FFFDF8] px-4 py-1.5 text-xs font-semibold text-[#2D1B10] shadow-2xs">
                 <span className="text-[#5A3D28]">
                   {copy.forLabel} {data.receiverName}
@@ -1175,389 +1294,394 @@ export function HarvestGreetingSite({
   }
 
   return (
-    <div className="relative flex min-h-full w-full flex-col justify-between gap-3.5 overflow-hidden rounded-[28px] bg-[#FFF7E6] text-[#2D1B10] animate-fade-in motion-reduce:animate-none">
+    <div
+      className={`harvest-fade-${uid} relative flex min-h-full w-full flex-col overflow-hidden rounded-[28px] bg-[#FFF7E6] text-[#2D1B10]`}
+    >
+      <style>{scopedKeyframes}</style>
+
+      {/* Subtle golden harvest firefly sparks drifting behind the continuous experience */}
+      <AmbientRainCanvas density="light" fireflies tint="#E69F00" />
+
       {watermarked ? (
         <div
           aria-hidden="true"
-          className="flex justify-center border-b border-[#9A6B22]/25 bg-[#FFFDF8]/90 py-1.5 text-[10px] font-bold tracking-[0.18em] text-[#C83E2B]"
+          className="relative z-20 flex justify-center border-b border-[#9A6B22]/25 bg-[#FFFDF8]/92 py-1.5 text-[10px] font-bold tracking-[0.18em] text-[#C83E2B]"
         >
           {copy.previewBanner}
         </div>
       ) : null}
 
-      <div className="flex flex-1 flex-col justify-between gap-3.5 p-4 pt-3 sm:px-5">
-        {/* Top bar + 4-Chapter Navigation */}
-        <div className="space-y-2.5">
-          <div className="flex items-center justify-between gap-2">
-            <span className="inline-flex min-h-[32px] items-center rounded-full border border-[#9A6B22]/35 bg-[#FFFDF8] px-3 py-1 text-[10.5px] font-bold tracking-wider text-[#7A5114]">
-              {activeMeta.badge[coreLang]}
-            </span>
-            <button
-              type="button"
-              onClick={handleReplay}
-              className="inline-flex min-h-[44px] items-center rounded-full border border-[#9A6B22]/40 bg-[#FFFDF8] px-4 text-xs font-semibold text-[#2D1B10] shadow-2xs transition hover:bg-[#FDE8B8]/55 active:scale-95"
-            >
-              {getReplayLabel(language)}
-            </button>
-          </div>
+      <div className="relative z-10 mx-auto flex w-full max-w-xl flex-1 flex-col gap-5 p-4 pt-3.5 sm:px-5">
+        {/* Top Utility Bar */}
+        <header className="flex flex-wrap items-center justify-between gap-2">
+          <span className="inline-flex min-h-[34px] items-center rounded-full border border-[#9A6B22]/35 bg-[#FFFDF8]/95 px-3 py-1 text-[10.5px] font-bold tracking-wider text-[#7A5114] shadow-2xs">
+            {activeMeta.badge[coreLang]}
+          </span>
+          <button
+            type="button"
+            onClick={handleReplay}
+            className="inline-flex min-h-[44px] items-center rounded-full border border-[#9A6B22]/40 bg-[#FFFDF8]/95 px-4 text-xs font-semibold text-[#2D1B10] shadow-2xs transition hover:bg-[#FDE8B8]/55 active:scale-95"
+          >
+            {getReplayLabel(language)}
+          </button>
+        </header>
 
-          <OccasionChapterNav
-            tabs={chapterTabs}
-            activeId={activeChapter}
-            onSelect={(id) => setActiveChapter(id as HarvestChapterId)}
-            accentColor="#C83E2B"
-          />
+        {/* Sunlit Festive Greeting Banner */}
+        <div className="relative overflow-hidden rounded-3xl border border-[#9A6B22]/40 bg-gradient-to-br from-[#FFFDF8] via-[#FFF7E6] to-[#FDE8B8]/70 px-4 py-4 text-center shadow-[0_10px_28px_-14px_rgba(154,107,34,0.28)]">
+          <MarigoldToranSvg />
+          <p className="mt-1 text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#1F6E4A]">
+            {copy.heroSubline}
+          </p>
+          <h1 className="mt-1 break-words font-heading text-2xl font-bold tracking-tight text-[#2D1B10]">
+            {data.receiverName}
+          </h1>
+          <p className="mt-1 text-xs font-medium text-[#5A3D28]">
+            {activeMeta.subtitle[coreLang]}
+          </p>
         </div>
 
-        {/* CHAPTER 01: Festival Stage */}
-        {activeChapter === 'stage' ? (
-          <section
-            role="tabpanel"
-            aria-label={copy.tabs.stage}
-            className="flex flex-1 flex-col justify-between gap-3.5 rounded-2xl border border-[#9A6B22]/35 bg-[#FFFDF8] p-4 shadow-[0_8px_24px_-12px_rgba(154,107,34,0.2)] animate-fade-in motion-reduce:animate-none"
-          >
-            <div className="space-y-3">
-              <div
-                role="tablist"
-                aria-label={copy.festivalSwitcherLabel}
-                className="grid grid-cols-3 gap-1.5 rounded-2xl border border-[#9A6B22]/30 bg-[#FFF7E6] p-1"
-              >
-                {FESTIVAL_ORDER.map((key) => {
-                  const isSelected = activeFestival === key;
-                  return (
-                    <button
-                      key={key}
-                      type="button"
-                      role="tab"
-                      aria-selected={isSelected}
-                      onClick={() => setActiveFestival(key)}
-                      className={`min-h-[44px] rounded-xl px-1.5 text-[11px] font-bold leading-tight transition active:scale-95 ${
-                        isSelected
-                          ? 'bg-[#C83E2B] text-[#FFF7E6] shadow-xs'
-                          : 'bg-transparent text-[#2D1B10] hover:bg-[#FDE8B8]/60'
-                      }`}
-                    >
-                      {FESTIVAL_META[key].tabLabel[coreLang]}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {activeFestival === 'sankranti' ? (
-                <SankrantiStage
-                  kiteCount={kiteCount}
-                  altitudeBoost={kiteBoost}
-                  cutBannerActive={cutDoriActive}
-                  onFlyKite={handleFlyKite}
-                  onCutDori={handleCutDori}
-                  copy={copy}
-                />
-              ) : activeFestival === 'lohri' ? (
-                <LohriStage
-                  offerCount={lohriOfferings}
-                  onTossOffering={() => setLohriOfferings((c) => c + 1)}
-                  copy={copy}
-                />
-              ) : (
-                <PongalStage
-                  boilCount={pongalBoils}
-                  onCelebratePongal={() => setPongalBoils((c) => c + 1)}
-                  copy={copy}
-                />
-              )}
-            </div>
-
-            <button
-              type="button"
-              onClick={goNextChapter}
-              className="inline-flex min-h-[44px] items-center justify-center gap-2 self-center rounded-full border border-[#9A6B22]/45 bg-[#FFF7E6] px-6 py-2 text-xs font-bold text-[#7A5114] transition hover:bg-[#FDE8B8]/70 active:scale-[0.98]"
+        {/* SECTION 1: Interactive Festival Ritual Stage */}
+        <section
+          aria-labelledby={`stage-heading-${uid}`}
+          className="space-y-3.5 rounded-3xl border border-[#9A6B22]/35 bg-[#FFFDF8]/95 p-4 shadow-[0_8px_24px_-12px_rgba(154,107,34,0.2)]"
+        >
+          <div className="text-center">
+            <span className="inline-block rounded-full border border-[#9A6B22]/30 bg-[#FFF7E6] px-3 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#7A5114]">
+              {copy.stageEyebrow}
+            </span>
+            <h2
+              id={`stage-heading-${uid}`}
+              className="mt-1.5 font-heading text-lg font-bold text-[#2D1B10]"
             >
-              <span>
-                {copy.nextChapterPrefix}: {copy.tabs[nextChapterId]}
-              </span>
-              <NextArrowIcon />
-            </button>
-          </section>
-        ) : null}
+              {copy.stageTitle}
+            </h2>
+          </div>
 
-        {/* CHAPTER 02: Blessing & Sweets */}
-        {activeChapter === 'blessings' ? (
-          <section
-            role="tabpanel"
-            aria-label={copy.tabs.blessings}
-            className="flex flex-1 flex-col justify-between gap-4 animate-fade-in motion-reduce:animate-none"
+          <div
+            role="tablist"
+            aria-label={copy.festivalSwitcherLabel}
+            className="grid grid-cols-3 gap-1.5 rounded-2xl border border-[#9A6B22]/30 bg-[#FFF7E6] p-1"
           >
-            {/* Warm bordered family letter card */}
-            <div className="rounded-2xl border border-[#9A6B22]/45 bg-[#FDE8B8]/40 p-1.5 shadow-[0_6px_22px_-10px_rgba(154,107,34,0.22)]">
-              <div className="relative overflow-hidden rounded-[12px] border border-[#9A6B22]/35 bg-[#FFFDF8] px-4 py-5 text-center sm:px-5">
-                <KolamCornerSvg className="pointer-events-none absolute top-1 left-1" />
-                <KolamCornerSvg className="pointer-events-none absolute top-1 right-1 -scale-x-100" />
-
-                <span className="relative z-10 inline-block rounded-full border border-[#9A6B22]/30 bg-[#FFF7E6] px-3.5 py-1 text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#7A5114]">
-                  {copy.letterEyebrow}
-                </span>
-
-                <h3 className="relative z-10 mt-2.5 break-words font-heading text-xl font-bold leading-snug text-[#2D1B10]">
-                  {pickLocalizedText(data.headline, language) || copy.letterTitle}
-                </h3>
-
-                <BrassDivider />
-
-                <p
-                  className={`relative z-10 mt-3 break-words text-left font-serif text-[16px] leading-[1.7] text-[#2D1B10] ${
-                    canUseDropCap
-                      ? 'first-letter:float-left first-letter:mr-2.5 first-letter:mt-1 first-letter:font-heading first-letter:text-[38px] first-letter:font-bold first-letter:leading-[0.85] first-letter:text-[#C83E2B]'
-                      : ''
+            {FESTIVAL_ORDER.map((key) => {
+              const isSelected = activeFestival === key;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  role="tab"
+                  aria-selected={isSelected}
+                  onClick={() => setActiveFestival(key)}
+                  className={`min-h-[44px] rounded-xl px-1.5 text-[11px] font-bold leading-tight transition active:scale-95 ${
+                    isSelected
+                      ? 'bg-[#C83E2B] text-[#FFF7E6] shadow-xs'
+                      : 'bg-transparent text-[#2D1B10] hover:bg-[#FDE8B8]/60'
                   }`}
                 >
-                  {messageText}
-                </p>
+                  {FESTIVAL_META[key].tabLabel[coreLang]}
+                </button>
+              );
+            })}
+          </div>
 
-                {data.highlights && data.highlights.length > 0 ? (
-                  <div className="clear-both mt-4 space-y-2 text-left">
-                    <p className="text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#7A5114]">
-                      {copy.highlightsHeading}
-                    </p>
-                    {data.highlights.map((item, idx) => (
-                      <div
-                        key={`${item.title.en}-${idx}`}
-                        className="rounded-xl border border-[#9A6B22]/25 bg-[#FFF7E6] px-3 py-2"
-                      >
-                        <p className="text-xs font-bold text-[#C83E2B]">
-                          {pickLocalizedText(item.title, language)}
-                        </p>
-                        <p className="mt-0.5 text-xs text-[#2D1B10]/85">
-                          {pickLocalizedText(item.detail, language)}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                ) : null}
+          {activeFestival === 'sankranti' ? (
+            <SankrantiStage
+              uid={uid}
+              kiteCount={kiteCount}
+              altitudeBoost={kiteBoost}
+              cutBannerActive={cutDoriActive}
+              onFlyKite={handleFlyKite}
+              onCutDori={handleCutDori}
+              copy={copy}
+            />
+          ) : activeFestival === 'lohri' ? (
+            <LohriStage
+              uid={uid}
+              offerCount={lohriOfferings}
+              onTossOffering={() => setLohriOfferings((c) => c + 1)}
+              copy={copy}
+            />
+          ) : (
+            <PongalStage
+              uid={uid}
+              boilCount={pongalBoils}
+              onCelebratePongal={() => setPongalBoils((c) => c + 1)}
+              copy={copy}
+            />
+          )}
+        </section>
 
-                <div className="clear-both mt-4 flex flex-wrap items-center justify-center gap-2 border-t border-[#9A6B22]/25 pt-3 text-xs font-semibold text-[#5A3D28]">
-                  <span>
-                    {copy.forLabel} {data.receiverName}
-                  </span>
-                  <span aria-hidden="true">·</span>
-                  <span className="text-[#C83E2B]">
-                    {copy.fromLabel} {data.senderName}
-                  </span>
-                </div>
-              </div>
-            </div>
+        {/* SECTION 2: Warm Family Harvest Letter & Highlights */}
+        <section
+          aria-label={copy.letterEyebrow}
+          className="rounded-3xl border border-[#9A6B22]/45 bg-[#FDE8B8]/45 p-1.5 shadow-[0_6px_22px_-10px_rgba(154,107,34,0.22)]"
+        >
+          <div className="relative overflow-hidden rounded-[20px] border border-[#9A6B22]/35 bg-[#FFFDF8] px-4 py-5 text-center sm:px-5">
+            <KolamCornerSvg className="pointer-events-none absolute top-1 left-1" />
+            <KolamCornerSvg className="pointer-events-none absolute top-1 right-1 -scale-x-100" />
 
-            {/* Interactive Sweet & Tradition Keepsake Flipper */}
-            <div className="rounded-2xl border border-[#9A6B22]/35 bg-[#FFFDF8] p-4 shadow-2xs">
-              <div className="text-center">
-                <span className="inline-block rounded-full border border-[#1F6E4A]/30 bg-[#FFF7E6] px-3 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#1F6E4A]">
-                  {copy.sweetsEyebrow}
-                </span>
-                <h4 className="mt-1.5 font-heading text-base font-bold text-[#2D1B10]">
-                  {copy.sweetsTitle}
-                </h4>
-              </div>
+            <span className="relative z-10 inline-block rounded-full border border-[#9A6B22]/30 bg-[#FFF7E6] px-3.5 py-1 text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#7A5114]">
+              {copy.letterEyebrow}
+            </span>
 
-              <div className="mt-3 grid grid-cols-3 gap-1.5">
-                {SWEET_ORDER.map((key) => {
-                  const isActive = activeSweet === key;
-                  return (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => handleSelectSweet(key)}
-                      className={`min-h-[44px] rounded-xl border px-1.5 py-1.5 text-[11px] font-bold leading-tight transition active:scale-95 ${
-                        isActive
-                          ? 'border-[#9A6B22] bg-[#FFF7E6] text-[#C83E2B] shadow-2xs'
-                          : 'border-[#9A6B22]/25 bg-white text-[#5A3D28] hover:bg-[#FFF7E6]/60'
-                      }`}
-                    >
-                      {SWEET_KEEPSAKES[key].name[coreLang]}
-                    </button>
-                  );
-                })}
-              </div>
+            <WordByWordFadeLine
+              text={headlineText}
+              active={opened}
+              delayStepMs={55}
+              className="relative z-10 mt-2.5 break-words font-heading text-xl font-bold leading-snug text-[#2D1B10]"
+            />
 
-              <button
-                type="button"
-                onClick={() => setSweetFlipped((f) => !f)}
-                aria-pressed={sweetFlipped}
-                className="mt-3 flex min-h-[144px] w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#9A6B22]/45 bg-[#FFF7E6] p-4 text-center transition hover:border-[#C83E2B]/55 active:scale-[0.99]"
-              >
-                {!sweetFlipped ? (
-                  <div className="flex flex-col items-center gap-1.5 animate-fade-in motion-reduce:animate-none">
-                    <SweetEmblemSvg sweetKey={activeSweet} />
-                    <p className="font-heading text-base font-bold text-[#2D1B10]">
-                      {currentSweet.name[coreLang]}
-                    </p>
-                    <p className="text-xs font-semibold text-[#7A5114]">
-                      {currentSweet.festivalOrigin[coreLang]}
-                    </p>
-                    <span className="mt-1 inline-flex min-h-[30px] items-center rounded-full bg-[#FFFDF8] px-3 py-0.5 text-[11px] font-bold text-[#C83E2B] ring-1 ring-[#C83E2B]/25">
-                      {copy.flipToMeaningLabel}
-                    </span>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center gap-2 animate-fade-in motion-reduce:animate-none">
-                    <span className="rounded-full bg-[#1F6E4A] px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#FFF7E6]">
-                      {copy.culturalMeaningLabel}
-                    </span>
-                    <p className="text-xs font-medium leading-relaxed text-[#2D1B10]">
-                      {currentSweet.meaning[coreLang]}
-                    </p>
-                    <p className="rounded-xl border border-[#9A6B22]/25 bg-[#FFFDF8] px-3 py-2 font-serif text-xs font-semibold text-[#C83E2B]">
-                      {currentSweet.blessingNote[coreLang]}
-                    </p>
-                    <span className="text-[11px] font-bold text-[#7A5114]">
-                      {copy.flipToFrontLabel}
-                    </span>
-                  </div>
-                )}
-              </button>
-            </div>
+            <BrassDivider />
 
-            <button
-              type="button"
-              onClick={goNextChapter}
-              className="inline-flex min-h-[44px] items-center justify-center gap-2 self-center rounded-full border border-[#9A6B22]/45 bg-[#FFFDF8] px-6 py-2 text-xs font-bold text-[#7A5114] transition hover:bg-[#FDE8B8]/70 active:scale-[0.98]"
+            <p
+              className={`relative z-10 mt-3 break-words text-left font-serif text-[16px] leading-[1.7] text-[#2D1B10] ${
+                canUseDropCap
+                  ? 'first-letter:float-left first-letter:mr-2.5 first-letter:mt-1 first-letter:font-heading first-letter:text-[38px] first-letter:font-bold first-letter:leading-[0.85] first-letter:text-[#C83E2B]'
+                  : ''
+              }`}
             >
-              <span>
-                {copy.nextChapterPrefix}: {copy.tabs[nextChapterId]}
-              </span>
-              <NextArrowIcon />
-            </button>
-          </section>
-        ) : null}
+              {messageText}
+            </p>
 
-        {/* CHAPTER 03: Album & Chimes */}
-        {activeChapter === 'album' ? (
-          <section
-            role="tabpanel"
-            aria-label={copy.tabs.album}
-            className="flex flex-1 flex-col justify-between gap-4 rounded-2xl border border-[#9A6B22]/35 bg-[#FFFDF8] p-4 shadow-[0_8px_24px_-12px_rgba(154,107,34,0.18)] animate-fade-in motion-reduce:animate-none"
-          >
-            <div className="space-y-4">
-              <div className="text-center">
-                <span className="inline-block rounded-full border border-[#9A6B22]/30 bg-[#FFF7E6] px-3.5 py-1 text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#7A5114]">
-                  {copy.albumEyebrow}
-                </span>
-                <h3 className="mt-2 font-heading text-xl font-bold text-[#2D1B10]">
-                  {copy.albumTitle}
-                </h3>
-              </div>
-
-              {data.photos && data.photos.length > 0 ? (
-                <div>
-                  <OccasionPhotoGallery
-                    photos={data.photos}
-                    accentColor="#C83E2B"
-                    surfaceTint="#FFF7E6"
-                    captionPrefix={copy.photoCaptionPrefix}
-                    variant="heirloom"
-                  />
-                  <p className="mt-2 text-center text-xs font-medium text-[#5A3D28]">
-                    {copy.albumHint}
-                  </p>
-                </div>
-              ) : null}
-
-              <OccasionFilmstripGallery
-                photos={data.photos}
-                fallbackImage="/templates/occasions/harvest-greeting/cover.jpg"
-                accentColor="#9A6B22"
-                caption={copy.filmstripCaption}
-                frameLabels={copy.filmstripFrames}
-              />
-
-              <div className="space-y-1.5 pt-1">
-                <p className="text-center font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-[#7A5114]">
-                  {copy.cassetteEyebrow}
+            {data.highlights && data.highlights.length > 0 ? (
+              <div className="clear-both mt-4 space-y-2 text-left">
+                <p className="text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#7A5114]">
+                  {copy.highlightsHeading}
                 </p>
-                <OccasionCassettePlayer
-                  mood="festive"
-                  trackTitle={copy.cassetteTrackTitle}
-                  tapLabel={copy.cassetteTapLabel}
-                  playingLabel={copy.cassettePlayingLabel}
-                  accentColor="#C83E2B"
-                />
+                {data.highlights.map((item, idx) => (
+                  <div
+                    key={`${item.title.en}-${idx}`}
+                    className="rounded-xl border border-[#9A6B22]/25 bg-[#FFF7E6] px-3.5 py-2.5"
+                  >
+                    <p className="text-xs font-bold text-[#C83E2B]">
+                      {pickLocalizedText(item.title, language)}
+                    </p>
+                    <p className="mt-0.5 text-xs leading-relaxed text-[#2D1B10]/85">
+                      {pickLocalizedText(item.detail, language)}
+                    </p>
+                  </div>
+                ))}
               </div>
-            </div>
+            ) : null}
 
-            <button
-              type="button"
-              onClick={goNextChapter}
-              className="inline-flex min-h-[44px] items-center justify-center gap-2 self-center rounded-full border border-[#9A6B22]/45 bg-[#FFF7E6] px-6 py-2 text-xs font-bold text-[#7A5114] transition hover:bg-[#FDE8B8]/70 active:scale-[0.98]"
-            >
+            <div className="clear-both mt-4 flex flex-wrap items-center justify-center gap-2 border-t border-[#9A6B22]/25 pt-3 text-xs font-semibold text-[#5A3D28]">
               <span>
-                {copy.nextChapterPrefix}: {copy.tabs[nextChapterId]}
+                {copy.forLabel} {data.receiverName}
               </span>
-              <NextArrowIcon />
-            </button>
-          </section>
-        ) : null}
-
-        {/* CHAPTER 04: Return Blessing */}
-        {activeChapter === 'return' ? (
-          <section
-            role="tabpanel"
-            aria-label={copy.tabs.return}
-            className="flex flex-1 flex-col justify-between gap-4 rounded-2xl border border-[#9A6B22]/35 bg-[#FFFDF8] p-4 shadow-[0_8px_24px_-12px_rgba(154,107,34,0.18)] animate-fade-in motion-reduce:animate-none"
-          >
-            <div className="space-y-3.5 text-center">
-              <MarigoldToranSvg />
-
-              <div>
-                <span className="inline-block rounded-full border border-[#C83E2B]/30 bg-[#FFF7E6] px-3.5 py-1 text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#C83E2B]">
-                  {copy.returnEyebrow}
-                </span>
-                <h3 className="mt-2 font-heading text-xl font-bold text-[#2D1B10]">
-                  {copy.returnTitle}
-                </h3>
-                <p className="mt-1 text-xs font-medium text-[#5A3D28]">{copy.returnPrompt}</p>
-              </div>
-
-              <div className="space-y-2 text-left">
-                {RETURN_BLESSINGS.map((option) => {
-                  const isPicked = selectedBlessingId === option.id;
-                  return (
-                    <button
-                      key={option.id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedBlessingId(option.id);
-                        setBlessingSealed(false);
-                      }}
-                      aria-pressed={isPicked}
-                      className={`flex min-h-[44px] w-full flex-col rounded-xl border px-3.5 py-2.5 text-left transition active:scale-[0.99] ${
-                        isPicked
-                          ? 'border-[#C83E2B] bg-[#FFF7E6] shadow-2xs'
-                          : 'border-[#9A6B22]/25 bg-white hover:bg-[#FFF7E6]/60'
-                      }`}
-                    >
-                      <span className="text-xs font-bold text-[#2D1B10]">
-                        {option.label[coreLang]}
-                      </span>
-                      <span className="mt-0.5 text-[11px] leading-relaxed text-[#5A3D28]">
-                        {option.note[coreLang]}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="rounded-xl border border-[#9A6B22]/30 bg-[#FFF7E6] px-3 py-2 text-xs font-semibold text-[#7A5114]">
-                {copy.returnAddressedTo(data.senderName, data.receiverName)}
-              </div>
+              <span aria-hidden="true">·</span>
+              <span className="text-[#C83E2B]">
+                {copy.fromLabel} {data.senderName}
+              </span>
             </div>
+          </div>
+        </section>
 
-            <div className="space-y-2.5">
-              {blessingSealed ? (
-                <div
-                  role="status"
-                  className="flex items-center gap-2.5 rounded-2xl border border-[#1F6E4A]/35 bg-[#1F6E4A] px-4 py-3 text-left text-[#FFF7E6] shadow-sm animate-pop-bounce motion-reduce:animate-none"
+        {/* SECTION 3: Interactive 3-Sweet Cultural Flipper */}
+        <section
+          aria-labelledby={`sweets-heading-${uid}`}
+          className="rounded-3xl border border-[#9A6B22]/35 bg-[#FFFDF8]/95 p-4 shadow-[0_8px_24px_-12px_rgba(154,107,34,0.18)]"
+        >
+          <div className="text-center">
+            <span className="inline-block rounded-full border border-[#1F6E4A]/30 bg-[#FFF7E6] px-3 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#1F6E4A]">
+              {copy.sweetsEyebrow}
+            </span>
+            <h2
+              id={`sweets-heading-${uid}`}
+              className="mt-1.5 font-heading text-lg font-bold text-[#2D1B10]"
+            >
+              {copy.sweetsTitle}
+            </h2>
+          </div>
+
+          <div className="mt-3 grid grid-cols-3 gap-1.5">
+            {SWEET_ORDER.map((key) => {
+              const isActive = activeSweet === key;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => handleSelectSweet(key)}
+                  aria-pressed={isActive}
+                  className={`min-h-[44px] rounded-xl border px-1.5 py-1.5 text-[11px] font-bold leading-tight transition active:scale-95 ${
+                    isActive
+                      ? 'border-[#9A6B22] bg-[#FFF7E6] text-[#C83E2B] shadow-2xs'
+                      : 'border-[#9A6B22]/25 bg-white text-[#5A3D28] hover:bg-[#FFF7E6]/60'
+                  }`}
                 >
+                  {SWEET_KEEPSAKES[key].name[coreLang]}
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            type="button"
+            onClick={handleToggleSweetFlip}
+            aria-pressed={isCurrentSweetFlipped}
+            className="mt-3 flex min-h-[164px] w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#9A6B22]/45 bg-[#FFF7E6] p-4 text-center transition hover:border-[#C83E2B]/55 active:scale-[0.99]"
+          >
+            {!isCurrentSweetFlipped ? (
+              <div
+                key={`front-${activeSweet}`}
+                className={`harvest-fade-${uid} flex flex-col items-center gap-1.5`}
+              >
+                <SweetEmblemSvg sweetKey={activeSweet} />
+                <p className="font-heading text-base font-bold text-[#2D1B10]">
+                  {currentSweet.name[coreLang]}
+                </p>
+                <p className="text-xs font-semibold text-[#7A5114]">
+                  {currentSweet.festivalOrigin[coreLang]}
+                </p>
+                <span className="mt-1 inline-flex min-h-[32px] items-center rounded-full bg-[#FFFDF8] px-3.5 py-1 text-[11px] font-bold text-[#C83E2B] ring-1 ring-[#C83E2B]/25">
+                  {copy.flipToMeaningLabel}
+                </span>
+              </div>
+            ) : (
+              <div
+                key={`back-${activeSweet}`}
+                className={`harvest-fade-${uid} flex flex-col items-center gap-2`}
+              >
+                <span className="rounded-full bg-[#1F6E4A] px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#FFF7E6]">
+                  {copy.culturalMeaningLabel}
+                </span>
+                <p className="text-xs font-medium leading-relaxed text-[#2D1B10]">
+                  {currentSweet.meaning[coreLang]}
+                </p>
+                <p className="rounded-xl border border-[#9A6B22]/25 bg-[#FFFDF8] px-3 py-2 font-serif text-xs font-semibold text-[#C83E2B]">
+                  {currentSweet.blessingNote[coreLang]}
+                </p>
+                <span className="text-[11px] font-bold text-[#7A5114]">
+                  {copy.flipToFrontLabel}
+                </span>
+              </div>
+            )}
+          </button>
+        </section>
+
+        {/* SECTION 4: Adaptive Memories */}
+        <section
+          aria-labelledby={`album-heading-${uid}`}
+          className="rounded-3xl border border-[#9A6B22]/35 bg-[#FFFDF8]/95 p-4 shadow-[0_8px_24px_-12px_rgba(154,107,34,0.18)]"
+        >
+          <div className="text-center">
+            <span className="inline-block rounded-full border border-[#9A6B22]/30 bg-[#FFF7E6] px-3.5 py-1 text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#7A5114]">
+              {copy.albumEyebrow}
+            </span>
+            <h2
+              id={`album-heading-${uid}`}
+              className="mt-2 font-heading text-lg font-bold text-[#2D1B10]"
+            >
+              {copy.albumTitle}
+            </h2>
+          </div>
+
+          <OccasionAdaptiveGallery
+            photos={data.photos}
+            accentColor="#C83E2B"
+            captionPrefix={copy.photoCaptionPrefix}
+            emptyFallback={
+              <div className="mt-3 flex flex-col items-center rounded-2xl border border-[#9A6B22]/30 bg-[#FFF7E6] px-4 py-5 text-center">
+                <HarvestCrestSvg className="h-16 w-16" />
+                <p className="mt-2 font-heading text-sm font-bold text-[#2D1B10]">
+                  {copy.albumEmptyTitle}
+                </p>
+                <p className="mt-1 max-w-xs text-xs leading-relaxed text-[#5A3D28]">
+                  {copy.albumEmptyBody}
+                </p>
+              </div>
+            }
+          />
+
+          {data.photos && data.photos.length > 0 ? (
+            <p className="mt-2.5 text-center text-xs font-medium text-[#5A3D28]">
+              {copy.albumHint}
+            </p>
+          ) : null}
+        </section>
+
+        {/* SECTION 5: Folk Acoustic Sanctuary */}
+        <CurvedTrackSanctuary
+          tracks={sanctuaryTracks}
+          mood="festive"
+          accentColor="#C83E2B"
+          dark={false}
+          heading={copy.sanctuaryHeading}
+        />
+
+        {/* SECTION 6: Return Harvest Blessing Seal */}
+        <section
+          aria-labelledby={`return-heading-${uid}`}
+          className="space-y-3.5 rounded-3xl border border-[#9A6B22]/35 bg-[#FFFDF8]/95 p-4 shadow-[0_8px_24px_-12px_rgba(154,107,34,0.18)]"
+        >
+          <div className="text-center">
+            <MarigoldToranSvg />
+            <span className="mt-1 inline-block rounded-full border border-[#C83E2B]/30 bg-[#FFF7E6] px-3.5 py-1 text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#C83E2B]">
+              {copy.returnEyebrow}
+            </span>
+            <h2
+              id={`return-heading-${uid}`}
+              className="mt-2 font-heading text-lg font-bold text-[#2D1B10]"
+            >
+              {copy.returnTitle}
+            </h2>
+            <p className="mt-1 text-xs font-medium text-[#5A3D28]">{copy.returnPrompt}</p>
+          </div>
+
+          <div className="space-y-2 text-left">
+            {RETURN_BLESSINGS.map((option) => {
+              const isPicked = selectedBlessingId === option.id;
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedBlessingId(option.id);
+                    if (blessingSealed) {
+                      handleResealReset();
+                    }
+                  }}
+                  aria-pressed={isPicked}
+                  className={`flex min-h-[44px] w-full flex-col rounded-xl border px-3.5 py-2.5 text-left transition active:scale-[0.99] ${
+                    isPicked
+                      ? 'border-[#C83E2B] bg-[#FFF7E6] shadow-2xs'
+                      : 'border-[#9A6B22]/25 bg-white hover:bg-[#FFF7E6]/60'
+                  }`}
+                >
+                  <span className="text-xs font-bold text-[#2D1B10]">
+                    {option.label[coreLang]}
+                  </span>
+                  <span className="mt-0.5 text-[11px] leading-relaxed text-[#5A3D28]">
+                    {option.note[coreLang]}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="rounded-xl border border-[#9A6B22]/30 bg-[#FFF7E6] px-3 py-2 text-center text-xs font-semibold text-[#7A5114]">
+            {copy.returnAddressedTo(data.senderName, data.receiverName)}
+          </div>
+
+          {/* Warm dark terracotta wax-seal sanctuary so HoldToChargeRing contrast stays crisp */}
+          <div className="flex flex-col items-center gap-3 rounded-2xl border border-[#E69F00]/45 bg-gradient-to-br from-[#3A1710] via-[#512015] to-[#2B120C] px-4 py-5 text-center text-[#FFF7E6] shadow-md">
+            <HoldToChargeRing
+              key={sealCycle}
+              label={copy.sealHoldLabel}
+              chargingLabel={copy.sealChargingLabel}
+              completeLabel={copy.sealCompleteLabel}
+              accentColor="#E69F00"
+              durationMs={1100}
+              onComplete={handleSealComplete}
+            />
+
+            {blessingSealed ? (
+              <div
+                role="status"
+                className={`harvest-pop-${uid} w-full space-y-2 rounded-2xl border border-[#E69F00]/40 bg-[#1F6E4A] px-4 py-3 text-left text-[#FFF7E6] shadow-sm`}
+              >
+                <div className="flex items-start gap-2.5">
                   <svg
                     viewBox="0 0 24 24"
-                    className="h-5 w-5 shrink-0"
+                    className="mt-0.5 h-5 w-5 shrink-0"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2.4"
@@ -1569,34 +1693,25 @@ export function HarvestGreetingSite({
                     <p className="text-xs font-bold">
                       {copy.returnToastTitle(data.senderName)} ({sealCount})
                     </p>
-                    <p className="text-[11px] text-[#FFF7E6]/90">{copy.returnToastBody}</p>
+                    <p className="mt-0.5 text-[11px] font-medium text-[#FFF7E6]/90">
+                      {chosenBlessing.label[coreLang]} — {copy.returnToastBody}
+                    </p>
                   </div>
                 </div>
-              ) : null}
 
-              <button
-                type="button"
-                onClick={handleSealReturnBlessing}
-                className="inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-gradient-to-b from-[#C83E2B] to-[#A62E1E] px-5 py-3 text-sm font-bold text-[#FFF7E6] shadow-[0_10px_24px_-8px_rgba(200,62,43,0.45)] transition hover:brightness-105 active:scale-[0.98]"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  className="h-4 w-4 shrink-0"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  aria-hidden="true"
+                <button
+                  type="button"
+                  onClick={handleResealReset}
+                  className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl border border-[#FFF7E6]/35 bg-[#FFF7E6]/15 px-3 py-2 text-xs font-bold text-[#FFF7E6] transition hover:bg-[#FFF7E6]/25 active:scale-[0.98]"
                 >
-                  <circle cx="12" cy="12" r="8" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4" />
-                </svg>
-                <span>{blessingSealed ? copy.returnResealCta : copy.returnSealCta}</span>
-              </button>
-            </div>
-          </section>
-        ) : null}
+                  {copy.returnResealCta}
+                </button>
+              </div>
+            ) : null}
+          </div>
+        </section>
 
-        <footer className="border-t border-[#9A6B22]/25 pt-2.5 text-center text-[11px] font-medium text-[#5A3D28]">
+        <footer className="border-t border-[#9A6B22]/25 pt-3 pb-1 text-center text-[11px] font-medium text-[#5A3D28]">
           {getWebzyFooterLabel(language)}
         </footer>
       </div>

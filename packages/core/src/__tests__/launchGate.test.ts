@@ -26,10 +26,26 @@ describe('@webzy/core Phase 7 launch hardening invariants', () => {
       basePriceInr: 29,
       allowedAddons: ['pin', 'extend'],
       selectedAddons: ['pin', 'extend'],
-      defaultValidityDays: 30,
+      defaultValidityDays: 7,
     });
     expect(calc.totalPaise).toBe((29 + 9 + 19) * 100);
-    expect(calc.validityDays).toBe(120);
+    expect(calc.validityDays).toBe(90);
+
+    const calc14 = computeOrderPricingPaise({
+      basePriceInr: 29,
+      allowedAddons: ['extend'],
+      selectedAddons: ['extend_14d'],
+      defaultValidityDays: 7,
+    });
+    expect(calc14.validityDays).toBe(14);
+
+    const calc21 = computeOrderPricingPaise({
+      basePriceInr: 29,
+      allowedAddons: ['extend'],
+      selectedAddons: ['extend_21d'],
+      defaultValidityDays: 7,
+    });
+    expect(calc21.validityDays).toBe(21);
   });
 
   it('requires verified Admin role AND AAL2 TOTP 2FA on admin console access', () => {

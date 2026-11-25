@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import React, { useEffect, useRef } from 'react';
 
 export default function AdminGlobalError({
@@ -29,7 +30,7 @@ export default function AdminGlobalError({
         digest: typeof error?.digest === 'string' ? error.digest.slice(0, 64) : undefined,
         route,
       }),
-    }).catch(() => {});
+    }).catch(() => { });
   }, [error]);
 
   return (
@@ -97,7 +98,7 @@ export default function AdminGlobalError({
             >
               Retry
             </button>
-            <a
+            <Link
               href="/"
               style={{
                 display: 'inline-flex',
@@ -115,7 +116,7 @@ export default function AdminGlobalError({
               }}
             >
               Dashboard
-            </a>
+            </Link>
           </div>
         </main>
       </body>

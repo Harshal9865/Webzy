@@ -1,3 +1,5 @@
+import { cache } from 'react';
+import { cookies } from 'next/headers';
 import type { User } from '@supabase/supabase-js';
 import {
   AuthenticatorAssuranceLevel,
@@ -16,18 +18,27 @@ export interface AuthSessionState {
   aal: AuthenticatorAssuranceLevel;
 }
 
-export async function getAuthSessionState(): Promise<AuthSessionState> {
-  const { configured } = getSupabaseEnv();
+const EMPTY_AUTH_STATE = (configured: boolean): AuthSessionState => ({
+  configured,
+  user: null,
+  profile: null,
+  aal: null,
+});
+
+export const getAuthSessionState = cache(async (): Promise<AuthSessionState> => {
+  const { configured, adminConfigured } = getSupabaseEnv();
   if (!configured) {
-    return {
-      configured: false,
-      user: null,
-      profile: null,
-      aal: null,
-    };
+    return EMPTY_AUTH_STATE(false);
   }
 
   try {
+    // Fast-path: anonymous visitors with no Supabase auth cookie skip remote Auth HTTP calls completely
+    const cookieStore = await cookies();
+    const hasAuthCookie = cookieStore.getAll().some((c) => c.name.startsWith('sb-'));
+    if (!hasAuthCookie) {
+      return EMPTY_AUTH_STATE(true);
+    }
+
     const supabase = await createSupabaseServerClient();
     const {
       data: { user },
@@ -35,51 +46,51 @@ export async function getAuthSessionState(): Promise<AuthSessionState> {
     } = await supabase.auth.getUser();
 
     if (userError || !user) {
-      return { configured: true, user: null, profile: null, aal: null };
+      return EMPTY_AUTH_STATE(true);
     }
 
-    const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-    const aal = (aalData?.currentLevel as AuthenticatorAssuranceLevel) ?? 'aal1';
+    const admin = adminConfigured ? createSupabaseAdminClient() : null;
 
-    let profile: UserProfileRecord | null = null;
-    if (getSupabaseEnv().adminConfigured) {
-      const admin = createSupabaseAdminClient();
-      const { data: adminProfile } = await admin
-        .from('profiles')
-        .select('id, full_name, email, phone, role, is_banned, created_at')
-        .eq('id', user.id)
-        .maybeSingle();
+    // Run MFA level check and profile fetch in parallel to halve backend latency
+    const [aalRes, profileRes] = await Promise.all([
+      supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
+      admin
+        ? admin
+            .from('profiles')
+            .select('id, full_name, email, phone, role, is_banned, created_at')
+            .eq('id', user.id)
+            .maybeSingle()
+        : supabase
+            .from('profiles')
+            .select('id, full_name, email, phone, role, is_banned, created_at')
+            .eq('id', user.id)
+            .maybeSingle(),
+    ]);
 
-      if (adminProfile) {
-        profile = adminProfile as UserProfileRecord;
-      } else {
-        const metaFullName =
-          typeof user.user_metadata?.full_name === 'string'
-            ? user.user_metadata.full_name.trim()
-            : '';
-        const { data: insertedProfile } = await admin
-          .from('profiles')
-          .upsert(
-            {
-              id: user.id,
-              email: user.email || '',
-              full_name: metaFullName,
-              role: 'user',
-              is_banned: false,
-            },
-            { onConflict: 'id' },
-          )
-          .select('id, full_name, email, phone, role, is_banned, created_at')
-          .maybeSingle();
-        profile = (insertedProfile as UserProfileRecord | null) ?? null;
-      }
-    } else {
-      const { data: anonProfile } = await supabase
+    const aal = (aalRes.data?.currentLevel as AuthenticatorAssuranceLevel) ?? 'aal1';
+    let profile: UserProfileRecord | null =
+      (profileRes.data as UserProfileRecord | null) ?? null;
+
+    if (!profile && admin) {
+      const metaFullName =
+        typeof user.user_metadata?.full_name === 'string'
+          ? user.user_metadata.full_name.trim()
+          : '';
+      const { data: insertedProfile } = await admin
         .from('profiles')
+        .upsert(
+          {
+            id: user.id,
+            email: user.email || '',
+            full_name: metaFullName,
+            role: 'user',
+            is_banned: false,
+          },
+          { onConflict: 'id' },
+        )
         .select('id, full_name, email, phone, role, is_banned, created_at')
-        .eq('id', user.id)
         .maybeSingle();
-      profile = (anonProfile as UserProfileRecord | null) ?? null;
+      profile = (insertedProfile as UserProfileRecord | null) ?? null;
     }
 
     return {
@@ -92,14 +103,9 @@ export async function getAuthSessionState(): Promise<AuthSessionState> {
     logEvent('warn', 'infra.auth.session_check_failed', {
       message: err instanceof Error ? err.message.slice(0, 120) : 'unknown',
     });
-    return {
-      configured: true,
-      user: null,
-      profile: null,
-      aal: null,
-    };
+    return EMPTY_AUTH_STATE(true);
   }
-}
+});
 
 export async function writeAuditLog(params: {
   actorId?: string | null;

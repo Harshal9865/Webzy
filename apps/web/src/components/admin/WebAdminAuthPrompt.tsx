@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import React from 'react';
-import { useAuth } from '../components/auth/AuthProvider';
+import { useAuth } from '../auth/AuthProvider';
 
 export function WebAdminAuthPrompt({ webUrl }: { webUrl: string }) {
   const { openAuthModal } = useAuth();

@@ -76,7 +76,7 @@ export function buildThemePayloadFromDraft(
     receiverName,
     senderName,
     relation: input.relation?.trim() || theme.demoData.relation,
-    photos: Array.isArray(input.photos) ? input.photos.slice(0, 3) : [],
+    photos: Array.isArray(input.photos) ? input.photos.slice(0, 4) : [],
     revealAt: input.revealAt,
     timezone: input.timezone || 'Asia/Kolkata',
     whatsappPhone: input.whatsappPhone?.trim() ?? (input.receiverName ? '' : theme.demoData.whatsappPhone),

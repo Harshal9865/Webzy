@@ -191,10 +191,16 @@ export async function settleOrderAndPublish(params: {
   };
 
   if (row.order_status === 'published' && row.site_slug) {
-    await sendOrderPublishedEmailOnce(params.admin, {
+    // Dispatch transactional email non-blocking so checkout/payment redirect returns immediately
+    void sendOrderPublishedEmailOnce(params.admin, {
       orderId: params.orderId,
       siteSlug: row.site_slug,
       invoiceNo: row.invoice_no,
+    }).catch((mailErr) => {
+      logEvent('warn', 'payments.receipt_email_async_failed', {
+        orderId: params.orderId,
+        message: mailErr instanceof Error ? mailErr.message.slice(0, 120) : 'unknown',
+      });
     });
   }
 

@@ -31,9 +31,9 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
       en: 'For friends, siblings, or partners',
     },
     signatureMoment: {
-      hinglish: 'Balloons tap karo aur har line khul kar saamne aaye',
-      hi: 'गुब्बारों पर टैप करें और हर प्यारी लाइन खुले',
-      en: 'Tap floating balloons to reveal each heartfelt line',
+      hinglish: 'Har gubbare ke peeche ek pyari si dua aur muskaan chhupi hai',
+      hi: 'हर रंगीन गुब्बारे के पीछे एक प्यारी सी दुआ और मुस्कान छुपी है',
+      en: 'Every floating balloon carries a warm wish waiting to be opened',
     },
     palette: {
       primary: '#E11D63',
@@ -81,6 +81,11 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
       receiverName: 'Priya',
       senderName: 'Aarav',
       relation: 'friend',
+      photos: [
+        'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=900&q=80',
+        'https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&w=900&q=80',
+        'https://images.unsplash.com/photo-1464349153735-7db50ed83c84?auto=format&fit=crop&w=900&q=80',
+      ],
       headline: {
         hinglish: 'Happy Birthday, Priya!',
         hi: 'जन्मदिन मुबारक हो, प्रिया!',
@@ -138,9 +143,9 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
       en: 'For Mummy, Papa, and elders',
     },
     signatureMoment: {
-      hinglish: 'Yaadon ka flipbook jo aadar ke saath khulta hai',
-      hi: 'आदर और आशीर्वाद से भरी यादों की फ्लिपबुक',
-      en: 'Respectful family flipbook with blessing notes',
+      hinglish: 'Maa-Papa ke aashirwad aur parivaar ki pyaari yaadon ka ek sunehra panna',
+      hi: 'बड़ों के आशीर्वाद और परिवार की प्यारी यादों से सजा एक सुनहरा एहसास',
+      en: 'A gentle tribute filled with family blessings and cherished memories',
     },
     palette: {
       primary: '#B45309',
@@ -188,6 +193,11 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
       receiverName: 'Mummy',
       senderName: 'Ananya',
       relation: 'mummy',
+      photos: [
+        'https://images.unsplash.com/photo-1544517175-98e4cc2b461b?auto=format&fit=crop&w=900&q=80',
+        'https://images.unsplash.com/photo-1605207086986-3eab0256c331?auto=format&fit=crop&w=900&q=80',
+        'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=80',
+      ],
       headline: {
         hinglish: 'Janamdin Mubarak, Mummy',
         hi: 'जन्मदिन मुबारक हो, मम्मी',
@@ -215,6 +225,14 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
             en: 'Your patience carried us through everything.',
           },
         },
+        {
+          title: { hinglish: 'Dil se dua', hi: 'दिल से दुआ', en: 'Heartfelt prayer' },
+          detail: {
+            hinglish: 'Aapki achhi sehat aur hamesha khilti muskaan ki kaamna hai.',
+            hi: 'आपकी अच्छी सेहत और मुस्कुराते हुए कल की कामना है।',
+            en: 'Wishing you gentle mornings, good health, and endless joy.',
+          },
+        },
       ],
     },
   },
@@ -237,9 +255,9 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
       en: 'For a proposal or special date invite',
     },
     signatureMoment: {
-      hinglish: 'Playful buttons aur dil se likhi Haan screen',
-      hi: 'प्यारा सवाल और खास हाँ वाली स्क्रीन',
-      en: 'Playful ask card leading to a celebration reveal',
+      hinglish: 'Dil ki baat kehne ka ek meetha aur halka-phulka andaaz',
+      hi: 'दिल की बात कहने का एक मीठा, सच्चा और मुस्कुराता हुआ अंदाज़',
+      en: 'A tender, lighthearted way to ask the question on your heart',
     },
     palette: {
       primary: '#E11D63',
@@ -275,6 +293,11 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
     demoData: {
       receiverName: 'Meera',
       senderName: 'Kabir',
+      photos: [
+        'https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&w=900&q=80',
+        'https://images.unsplash.com/photo-1516585427167-9f4af9627e6c?auto=format&fit=crop&w=900&q=80',
+        'https://images.unsplash.com/photo-1515260268569-9271009adfdb?auto=format&fit=crop&w=900&q=80',
+      ],
       headline: {
         hinglish: 'Ek chota sa sawaal, Meera…',
         hi: 'एक छोटा सा सवाल, मीरा…',
@@ -285,6 +308,32 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
         hi: 'उस पहली बारिश वाली कॉफी के बाद से हर दिन तुम्हारे साथ बेहतर लगता है।',
         en: 'Ever since that rainy coffee evening, every day feels brighter with you.',
       },
+      highlights: [
+        {
+          title: { hinglish: 'Baarish aur coffee', hi: 'बारिश और कॉफ़ी', en: 'That rainy coffee' },
+          detail: {
+            hinglish: 'Us shaam ki baatein abhi bhi dil ke sabse kareeb hain.',
+            hi: 'उस शाम की बातें आज भी दिल के सबसे करीब हैं।',
+            en: 'Two cups, endless rain, and the easiest conversation ever.',
+          },
+        },
+        {
+          title: { hinglish: 'Chhoti si aadat', hi: 'छोटी सी आदत', en: 'Favorite habit' },
+          detail: {
+            hinglish: 'Har achhi khabar sabse pehle tumhe sunane ka mann karta hai.',
+            hi: 'हर अच्छी खबर सबसे पहले तुम्हें सुनाने का मन करता है।',
+            en: 'You are still the first person I want to share every good news with.',
+          },
+        },
+        {
+          title: { hinglish: 'Aaj ka sawaal', hi: 'आज का सवाल', en: 'One simple hope' },
+          detail: {
+            hinglish: 'Kya aane wali har shaam saath chai peene chalogi?',
+            hi: 'क्या आने वाली हर शाम साथ चाय पीने चलोगी?',
+            en: 'Would you let me keep planning these little evenings with you?',
+          },
+        },
+      ],
     },
   },
   {
@@ -306,9 +355,9 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
       en: 'For anniversaries and monthsaries',
     },
     signatureMoment: {
-      hinglish: 'Milestones card by card scroll karo',
-      hi: 'खास तारीखें और यादें एक-एक कर देखें',
-      en: 'Scroll through relationship milestones card by card',
+      hinglish: 'Pehli mulaqat se lekar aaj tak ke har haseen pal ka safar',
+      hi: 'पहली मुलाक़ात से लेकर आज तक के हर हसीन पल का सफ़र',
+      en: 'A quiet walk through every milestone from your first hello to today',
     },
     palette: {
       primary: '#9D174D',
@@ -344,6 +393,11 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
     demoData: {
       receiverName: 'Naina & Dev',
       senderName: 'Dev',
+      photos: [
+        'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=900&q=80',
+        'https://images.unsplash.com/photo-1529634806980-85c3dd6d34ac?auto=format&fit=crop&w=900&q=80',
+        'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=900&q=80',
+      ],
       headline: {
         hinglish: 'Happy Anniversary, Naina',
         hi: 'सालगिरह मुबारक, नैना',
@@ -402,9 +456,9 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
       en: 'Lighthearted make-up note for friends or partners',
     },
     signatureMoment: {
-      hinglish: 'Maan-jao slider aur chocolate-treat meter',
-      hi: 'मज़ेदार स्लाइडर और चॉकलेट ट्रीट मीटर',
-      en: 'Playful forgiveness slider and treat voucher picker',
+      hinglish: 'Narazgi pighlane aur ek pyaari si muskaan wapas laane ka bahana',
+      hi: 'नाराज़गी पिघलाने और चेहरे पर प्यारी सी मुस्कान वापस लाने का बहाना',
+      en: 'A playful peace offering made to melt away any frown',
     },
     palette: {
       primary: '#E11D63',
@@ -433,6 +487,11 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
     demoData: {
       receiverName: 'Tara',
       senderName: 'Rohan',
+      photos: [
+        'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=900&q=80',
+        'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?auto=format&fit=crop&w=900&q=80',
+        'https://images.unsplash.com/photo-1444418776041-9c7e33cc5a9c?auto=format&fit=crop&w=900&q=80',
+      ],
       headline: {
         hinglish: 'Ab gussa thoda kam karo na, Tara',
         hi: 'अब थोड़ा मुस्कुरा भी दो, तारा',
@@ -443,6 +502,32 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
         hi: 'आज की कॉफ़ी मेरी तरफ से — बस एक छोटी सी मुस्कान दे दो!',
         en: 'Ice cream and momos on me tonight — deal?',
       },
+      highlights: [
+        {
+          title: { hinglish: 'Galti qubool hai', hi: 'गलती क़बूल है', en: 'Full apology' },
+          detail: {
+            hinglish: 'Bina kisi bahane ke, main poori tarah maanta hoon meri galti thi.',
+            hi: 'बिना किसी बहाने के, मैं मानता हूँ कि गलती मेरी ही थी।',
+            en: 'No excuses this time — I messed up and I truly miss your laugh.',
+          },
+        },
+        {
+          title: { hinglish: 'Momos & cold coffee', hi: 'मोमोज़ और कोल्ड कॉफ़ी', en: 'Momos on me' },
+          detail: {
+            hinglish: 'Tumhari favorite jagah par aaj sham ki treat meri taraf se pakki.',
+            hi: 'तुम्हारी पसंदीदा जगह पर आज शाम की ट्रीट मेरी तरफ से पक्की।',
+            en: 'Your favorite corner table and extra chutney are waiting tonight.',
+          },
+        },
+        {
+          title: { hinglish: 'Best team hamesha', hi: 'सबसे अच्छी जोड़ी', en: 'Same team always' },
+          detail: {
+            hinglish: 'Chahe jitna bhi jhagda ho, din ke end mein hum saath hi achhe lagte hain.',
+            hi: 'चाहे जितनी भी नोक-झोंक हो, दिन के अंत में हम साथ ही अच्छे लगते हैं।',
+            en: 'Even on grumpy days, life is way better when we are on the same side.',
+          },
+        },
+      ],
     },
   },
   {
@@ -464,9 +549,9 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
       en: 'For gratitude, cheer-up, and thank you notes',
     },
     signatureMoment: {
-      hinglish: '5 "Open When…" cards jo tap par khulte hain',
-      hi: '5 खास कार्ड जो टैप करने पर खुलते हैं',
-      en: 'Five tactile open-when appreciation cards',
+      hinglish: 'Dil se nikle shukriya ke pal jo har thakan bhula dein',
+      hi: 'दिल से निकले शुक्रिया के पल जो हर थकान भुला दें',
+      en: 'Thoughtful notes of gratitude to brighten someone’s entire week',
     },
     palette: {
       primary: '#0F766E',
@@ -495,6 +580,11 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
     demoData: {
       receiverName: 'Didi',
       senderName: 'Kunal',
+      photos: [
+        'https://images.unsplash.com/photo-1494719019271-7bfff81660d2?auto=format&fit=crop&w=900&q=80',
+        'https://images.unsplash.com/photo-1510255877864-16a7f9202a39?auto=format&fit=crop&w=900&q=80',
+        'https://images.unsplash.com/photo-1529634002551-f0d0d940c0e5?auto=format&fit=crop&w=900&q=80',
+      ],
       headline: {
         hinglish: 'Sirf aapko thank you kehna tha, Didi',
         hi: 'बस आपको शुक्रिया कहना था, दीदी',
@@ -517,9 +607,17 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
         {
           title: { hinglish: 'Open for a laugh', hi: 'हँसने के लिए खोलें', en: 'Open for a laugh' },
           detail: {
-            hinglish: 'Abhi bhi aapki Maggis sabse best hoti hai!',
+            hinglish: 'Abhi bhi aapki chai aur Maggie sabse best hoti hai!',
             hi: 'आपकी चाय आज भी दुनिया की सबसे बेस्ट है!',
             en: 'Your weekend chai still beats every cafe in town.',
+          },
+        },
+        {
+          title: { hinglish: 'Open when quiet', hi: 'जब मन शांत हो', en: 'Open when quiet' },
+          detail: {
+            hinglish: 'Chahe jitni baar kahun kam hai — aap meri life ka sabse bada sahara ho.',
+            hi: 'चाहे जितनी बार कहूँ कम है — आप मेरे जीवन का सबसे बड़ा सहारा हैं।',
+            en: 'Even on ordinary days, your kindness makes everything lighter.',
           },
         },
       ],
@@ -544,9 +642,9 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
       en: 'New Year highlights story for friends or couples',
     },
     signatureMoment: {
-      hinglish: 'Story-style tap slides pure saal ke best moments ke saath',
-      hi: 'स्टोरी स्टाइल स्लाइड्स पूरे साल के खास पलों के साथ',
-      en: 'Tap-through story slides showcasing the year’s highlights',
+      hinglish: 'Beete saal ki sabse pyari yaadein aur naye saal ki umeedein',
+      hi: 'बीते साल की सबसे प्यारी यादें और नए साल की नई उम्मीदें',
+      en: 'A heartfelt look back at your favorite memories before the year begins',
     },
     palette: {
       primary: '#7C3AED',
@@ -575,6 +673,11 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
     demoData: {
       receiverName: 'Squad 2026',
       senderName: 'Neha',
+      photos: [
+        'https://images.unsplash.com/photo-1524334228333-0f6db392f8a1?auto=format&fit=crop&w=900&q=80',
+        'https://images.unsplash.com/photo-1541849546-216151f72a25?auto=format&fit=crop&w=900&q=80',
+        'https://images.unsplash.com/photo-1597362925519-b01b65ac3445?auto=format&fit=crop&w=900&q=80',
+      ],
       headline: {
         hinglish: 'Naya Saal Mubarak!',
         hi: 'नया साल मुबारक हो!',
@@ -589,6 +692,14 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
         {
           title: { hinglish: '365 days', hi: '365 दिन', en: '365 days' },
           detail: { hinglish: '42 chai breaks aur 3 trips.', hi: 'अनगिनत चाय और हँसी के पल।', en: '42 chai breaks and 3 road trips.' },
+        },
+        {
+          title: { hinglish: 'Sabse pyari yaad', hi: 'सबसे प्यारी याद', en: 'Favorite memory' },
+          detail: {
+            hinglish: 'Wo unplanned late-night drive aur non-stop gaane hamesha yaad rahenge.',
+            hi: 'वह अचानक बना सफ़र और देर रात के गाने हमेशा याद रहेंगे।',
+            en: 'That unplanned road trip and singing off-key at midnight.',
+          },
         },
         {
           title: { hinglish: '2027 Goal', hi: 'नया लक्ष्य', en: 'Next chapter' },
@@ -616,9 +727,9 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
       en: 'For Lohri, Makar Sankranti, and Pongal wishes',
     },
     signatureMoment: {
-      hinglish: 'Patang udane wali interactive festive sky',
-      hi: 'रंग-बिरंगी पतंगों वाला उत्सव कार्ड',
-      en: 'Interactive floating kite sky animation',
+      hinglish: 'Til-gud ki mithaas aur tyohar ki khushiyan apne parivaar ke naam',
+      hi: 'तिल-गुड़ की मिठास और त्योहार की खुशियों से भरा अपनापन',
+      en: 'Warmth of harvest bonfires, festive sweets, and skies full of joy',
     },
     palette: {
       primary: '#D97706',
@@ -659,6 +770,11 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
       receiverName: 'Sharma Parivaar',
       senderName: 'Patel Family',
       relation: 'sankranti',
+      photos: [
+        'https://images.unsplash.com/photo-1605299905846-56b4e32f5f3a?auto=format&fit=crop&w=900&q=80',
+        'https://images.unsplash.com/photo-1573129725017-e8a4c1c839b1?auto=format&fit=crop&w=900&q=80',
+        'https://images.unsplash.com/photo-1605292356183-a77d0a9c9d1d?auto=format&fit=crop&w=900&q=80',
+      ],
       headline: {
         hinglish: 'Makar Sankranti ki Hardik Shubhkamnayein',
         hi: 'मकर संक्रांति की हार्दिक शुभकामनाएँ',
@@ -670,6 +786,32 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
         hi: 'आपके घर में तिल-गुड़ जैसी मिठास और पतंग जैसी ऊँचाइयाँ हमेशा बनी रहें।',
         en: 'Wishing your home warmth, sweet beginnings, and skies full of joy.',
       },
+      highlights: [
+        {
+          title: { hinglish: 'Til-gud ki mithaas', hi: 'तिल-गुड़ की मिठास', en: 'Sweet beginnings' },
+          detail: {
+            hinglish: 'Purani saari kadwahat bhool kar meethi baaton se nayi shuruwat karein.',
+            hi: 'पुरानी बातें भुलाकर मीठी बोली और अपनेपन से नई शुरुआत करें।',
+            en: 'May every home share warmth, sweet treats, and gentle words.',
+          },
+        },
+        {
+          title: { hinglish: 'Oonchi udaan', hi: 'ऊँची उड़ान', en: 'Bright horizons' },
+          detail: {
+            hinglish: 'Aasmaan mein udti patangon ki tarah aapke sapne bhi bulandi chhooyein.',
+            hi: 'आसमान में उड़ती पतंगों की तरह आपके सपने भी नई ऊँचाइयाँ छूएँ।',
+            en: 'Wishing your family soaring dreams and sunlit skies all year.',
+          },
+        },
+        {
+          title: { hinglish: 'Parivaar ka sang', hi: 'परिवार का संग', en: 'Together at home' },
+          detail: {
+            hinglish: 'Lohri ki aag aur Sankranti ki dhoop sabke jeevan mein sukh laaye.',
+            hi: 'त्योहार की गरमाहट और अपनों का साथ हर आँगन में खुशहाली लाए।',
+            en: 'Harvest joy, warm bonfires, and grateful hearts gathered together.',
+          },
+        },
+      ],
     },
   },
   {
@@ -691,9 +833,9 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
       en: 'For shops, salons, coaching classes, and local brands',
     },
     signatureMoment: {
-      hinglish: 'Offer card ke saath ek tap mein WhatsApp inquiry button',
-      hi: 'ऑफ़र कार्ड और एक-टैप व्हाट्सऐप संपर्क बटन',
-      en: 'Festival offer showcase with one-tap WhatsApp inquiry CTA',
+      hinglish: 'Grahakon ka dil se shukriya aur tyohar ke khaas tohfe ek jagah',
+      hi: 'ग्राहकों का दिल से शुक्रिया और त्योहार की खास पेशकश एक साथ',
+      en: 'A warm thank-you to loyal patrons paired with a festive celebration',
     },
     palette: {
       primary: '#1D4ED8',
@@ -730,6 +872,11 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
       receiverName: 'Kesar Sweets & Bakery',
       senderName: 'Owner',
       whatsappPhone: '919800000000',
+      photos: [
+        'https://images.unsplash.com/photo-1615351897596-d3a9fffb5797?auto=format&fit=crop&w=900&q=80',
+        'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80',
+        'https://images.unsplash.com/photo-1600647993560-11a92e039466?auto=format&fit=crop&w=900&q=80',
+      ],
       offerTag: {
         hinglish: 'Festive Gift Boxes · 10% Off on Pre-Orders',
         hi: 'त्योहार स्पेशल बॉक्स · प्री-ऑर्डर पर 10% छूट',
@@ -745,6 +892,32 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
         hi: 'आपके विश्वास के लिए धन्यवाद। खास त्योहार ऑफ़र्स के लिए हमसे जुड़ें।',
         en: 'Thank you for trusting our kitchen this year. Tap below to book your festive box.',
       },
+      highlights: [
+        {
+          title: { hinglish: 'Shuddh aur taaza', hi: 'शुद्ध और ताज़ा स्वाद', en: 'Crafted fresh daily' },
+          detail: {
+            hinglish: 'Har mithai aur gift box pure desi ghee aur pyaar se taiyaar kiya gaya hai.',
+            hi: 'हर मिठाई और गिफ्ट बॉक्स शुद्ध देसी घी और प्यार से तैयार किया गया है।',
+            en: 'Every festive box is prepared fresh in small batches with pure ingredients.',
+          },
+        },
+        {
+          title: { hinglish: 'Khaas tyohar offer', hi: 'खास त्योहार ऑफ़र', en: 'Festive pre-order perk' },
+          detail: {
+            hinglish: 'Corporate aur family hampers par 10% vishesh chhoot is hafte ke liye.',
+            hi: 'फैमिली और कॉर्पोरेट हैंपर्स पर इस सप्ताह 10% विशेष छूट उपलब्ध है।',
+            en: 'Enjoy 10% off on curated family and corporate gift hampers this week.',
+          },
+        },
+        {
+          title: { hinglish: 'Ek tap mein booking', hi: 'आसान व्हाट्सऐप ऑर्डर', en: 'Easy WhatsApp booking' },
+          detail: {
+            hinglish: 'Apna pasandida box chunein aur same-day delivery ke liye seedha message karein.',
+            hi: 'अपना पसंदीदा बॉक्स चुनें और समय पर डिलीवरी के लिए सीधा संदेश भेजें।',
+            en: 'Message us directly on WhatsApp to reserve your box for doorstep delivery.',
+          },
+        },
+      ],
     },
   },
   {
