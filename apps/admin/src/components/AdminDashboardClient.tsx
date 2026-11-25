@@ -756,28 +756,31 @@ export function AdminDashboardClient({
   ];
 
   return (
-    <div className="min-h-screen overflow-x-clip bg-slate-50/90 text-slate-900">
+    <div className="min-h-screen overflow-x-clip bg-gradient-to-br from-[#FFF6F9] via-[#FAF8F6] to-[#FFFDFB] text-webzy-ink">
       {/* Top Executive Utility Header with Realtime Status + Global Quick-Jump */}
-      <header className="sticky top-0 z-40 border-b border-slate-200/90 bg-white/95 backdrop-blur-md">
-        <div className="h-0.5 w-full bg-slate-900" aria-hidden="true" />
+      <header className="sticky top-0 z-40 border-b border-webzy-tint bg-white/95 backdrop-blur-md">
+        <div
+          className="h-1 w-full bg-gradient-to-r from-webzy-primary via-amber-400 to-emerald-500"
+          aria-hidden="true"
+        />
         <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex min-w-0 items-center gap-3">
             <a
               href={config.webUrl}
-              className="group inline-flex min-h-[44px] shrink-0 items-center gap-2.5 font-heading text-xl font-bold tracking-tight text-slate-900 transition-transform active:scale-[0.98]"
+              className="group inline-flex min-h-[44px] shrink-0 items-center gap-2 font-heading text-xl font-bold tracking-tight text-webzy-ink transition-transform active:scale-[0.98]"
               title="Open Webzy Storefront"
             >
               <span
-                className="flex h-9 w-9 items-center justify-center rounded-xl bg-webzy-primary text-base font-bold text-white shadow-xs transition-transform duration-200 group-hover:scale-105"
+                className="flex h-9 w-9 items-center justify-center rounded-xl bg-webzy-primary text-base font-bold text-white shadow-btn-primary transition-transform duration-200 group-hover:scale-105"
                 aria-hidden="true"
               >
                 w
               </span>
               <span className="font-heading tracking-tight">Webzy</span>
             </a>
-            <div className="min-w-0 border-l border-slate-200/90 pl-3">
+            <div className="min-w-0 border-l border-webzy-tint pl-3">
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="font-heading text-sm font-bold tracking-tight text-slate-900 sm:text-base">
+                <h1 className="font-heading text-sm font-bold tracking-tight text-webzy-ink sm:text-base">
                   Operations Console
                 </h1>
 
@@ -786,12 +789,12 @@ export function AdminDashboardClient({
                   type="button"
                   onClick={() => setAutoSync((v) => !v)}
                   title="Click to pause or resume realtime database sync"
-                  className={`inline-flex min-h-[44px] items-center gap-2 rounded-xl border px-3 text-xs font-semibold transition font-tabular ${
+                  className={`inline-flex min-h-[44px] items-center gap-2 rounded-full px-3.5 text-xs font-bold transition font-tabular ${
                     syncState === 'error'
-                      ? 'border-red-200 bg-red-50 text-red-900 hover:bg-red-100'
+                      ? 'bg-red-100 text-red-900 hover:bg-red-200/70'
                       : autoSync
-                        ? 'border-emerald-200 bg-emerald-50 text-emerald-900 hover:bg-emerald-100'
-                        : 'border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200/70'
+                        ? 'bg-emerald-100 text-emerald-950 hover:bg-emerald-200/70'
+                        : 'bg-zinc-200 text-zinc-700 hover:bg-zinc-300/70'
                   }`}
                 >
                   <span
@@ -800,7 +803,7 @@ export function AdminDashboardClient({
                         ? 'bg-red-600'
                         : autoSync
                           ? 'animate-pulse bg-emerald-600'
-                          : 'bg-slate-400'
+                          : 'bg-zinc-500'
                     }`}
                   />
                   <span>
@@ -812,23 +815,23 @@ export function AdminDashboardClient({
                   </span>
                 </button>
 
-                <span className="hidden sm:inline-flex items-center rounded-lg border border-slate-200 bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-700">
+                <span className="hidden sm:inline-flex rounded-full bg-webzy-surface px-2.5 py-0.5 text-[10px] font-semibold uppercase text-webzy-ink/70">
                   {config.appEnv}
                 </span>
                 <span
-                  className={`inline-flex items-center rounded-lg border px-2 py-0.5 text-[10px] font-semibold font-tabular ${
+                  className={`inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-semibold font-tabular ${
                     liveHealth.status === 'ok'
-                      ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
-                      : 'border-amber-200 bg-amber-50 text-amber-900'
+                      ? 'bg-emerald-50 text-emerald-800'
+                      : 'bg-amber-100 text-amber-900'
                   }`}
                 >
                   DB: {liveHealth.status}
                   {typeof liveHealth.latencyMs === 'number' ? ` (${liveHealth.latencyMs}ms)` : ''}
                 </span>
               </div>
-              <p className="mt-0.5 truncate text-[11px] text-slate-500">
+              <p className="mt-0.5 truncate text-[11px] text-webzy-ink/60">
                 {requireMfa ? '2FA Verified · ' : ''}Signed in as{' '}
-                <strong className="font-semibold text-slate-700">{sessionEmail}</strong>
+                <strong className="text-webzy-ink/85">{sessionEmail}</strong>
               </p>
             </div>
           </div>
@@ -844,16 +847,16 @@ export function AdminDashboardClient({
                 setCommandOpen(true);
               }}
               placeholder="Quick jump: /s/slug, buyer, email..."
-              className="min-h-[44px] w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 text-xs text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-900 focus:bg-white focus:ring-2 focus:ring-slate-900/10"
+              className="min-h-[44px] w-full rounded-xl border border-webzy-tint bg-webzy-surface/75 px-3.5 text-xs text-webzy-ink outline-none transition placeholder:text-webzy-ink/45 focus:border-webzy-primary focus:bg-white"
             />
             {commandOpen && commandQuery.trim().length > 0 ? (
-              <div className="absolute left-0 right-0 top-full z-50 mt-1.5 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-elevation-3">
+              <div className="absolute left-0 right-0 top-full z-50 mt-1.5 overflow-hidden rounded-2xl border border-webzy-tint bg-white shadow-elevation-3">
                 {globalSearchHits.length === 0 ? (
-                  <p className="px-4 py-3 text-xs text-slate-500">
+                  <p className="px-4 py-3 text-xs text-webzy-ink/60">
                     No matching orders, sites, or users.
                   </p>
                 ) : (
-                  <ul className="divide-y divide-slate-100 text-xs">
+                  <ul className="divide-y divide-webzy-tint/60 text-xs">
                     {globalSearchHits.map((hit) => (
                       <li key={hit.key}>
                         <button
@@ -862,13 +865,13 @@ export function AdminDashboardClient({
                             selectTab(hit.tab);
                             setCommandQuery('');
                           }}
-                          className="flex min-h-[44px] w-full items-center justify-between gap-2 px-3.5 py-2 text-left transition hover:bg-slate-50"
+                          className="flex min-h-[44px] w-full items-center justify-between gap-2 px-3.5 py-2 text-left transition hover:bg-webzy-surface/60"
                         >
                           <div className="min-w-0">
-                            <p className="truncate font-semibold text-slate-900">{hit.title}</p>
-                            <p className="truncate text-[11px] text-slate-500">{hit.subtitle}</p>
+                            <p className="truncate font-bold text-webzy-ink">{hit.title}</p>
+                            <p className="truncate text-[11px] text-webzy-ink/60">{hit.subtitle}</p>
                           </div>
-                          <span className="shrink-0 rounded-md border border-slate-200 bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-700">
+                          <span className="shrink-0 rounded bg-webzy-tint px-2 py-0.5 text-[10px] font-bold text-webzy-primary">
                             {hit.badge}
                           </span>
                         </button>
@@ -885,14 +888,14 @@ export function AdminDashboardClient({
               type="button"
               onClick={handleRefreshAll}
               disabled={isRefreshing}
-              className="btn-spring inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 text-xs font-semibold text-slate-700 shadow-2xs transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50"
+              className="btn-spring inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-webzy-tint bg-white px-3.5 text-xs font-bold text-webzy-ink transition hover:bg-webzy-surface disabled:opacity-50"
             >
               <span>{isRefreshing ? 'Syncing…' : 'Sync Now'}</span>
             </button>
 
             <a
               href={config.webUrl}
-              className="btn-spring inline-flex min-h-[44px] items-center rounded-xl border border-slate-200 bg-white px-3.5 text-xs font-semibold text-slate-700 shadow-2xs transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
+              className="btn-spring inline-flex min-h-[44px] items-center rounded-xl border border-webzy-tint bg-white px-3.5 text-xs font-bold text-webzy-ink transition hover:bg-webzy-surface"
             >
               Storefront ↗
             </a>
@@ -901,7 +904,7 @@ export function AdminDashboardClient({
               <Link
                 href="/api/health"
                 target="_blank"
-                className="btn-spring hidden xl:inline-flex min-h-[44px] items-center rounded-xl border border-slate-200 bg-white px-3.5 text-xs font-semibold text-slate-700 shadow-2xs transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
+                className="btn-spring hidden xl:inline-flex min-h-[44px] items-center rounded-xl border border-webzy-tint bg-white px-3.5 text-xs font-bold text-webzy-ink transition hover:bg-webzy-surface"
               >
                 Health JSON
               </Link>
@@ -917,7 +920,7 @@ export function AdminDashboardClient({
         <aside className="min-w-0 lg:col-span-3">
           <nav
             aria-label="Admin sections"
-            className="scrollbar-none flex gap-2 overflow-x-auto pb-1 lg:sticky lg:top-24 lg:flex-col lg:gap-1 lg:overflow-visible lg:rounded-2xl lg:border lg:border-slate-200/90 lg:bg-white lg:p-2.5 lg:shadow-xs"
+            className="scrollbar-none flex gap-2 overflow-x-auto pb-1 lg:sticky lg:top-24 lg:flex-col lg:gap-1.5 lg:overflow-visible lg:rounded-3xl lg:border lg:border-webzy-tint lg:bg-white lg:p-3 lg:shadow-xs"
           >
             {navItems.map((item) => {
               const active = activeTab === item.id;
@@ -927,10 +930,10 @@ export function AdminDashboardClient({
                   type="button"
                   title={item.tooltip || `${item.label} (${item.shortcut})`}
                   onClick={() => selectTab(item.id)}
-                  className={`flex min-h-[44px] shrink-0 items-center justify-between gap-2 rounded-xl px-3.5 py-2 text-left text-xs font-semibold transition ${
+                  className={`flex min-h-[44px] shrink-0 items-center justify-between gap-2 rounded-xl px-3.5 py-2.5 text-left text-xs font-bold transition ${
                     active
-                      ? 'bg-slate-900 text-white shadow-xs'
-                      : 'border border-slate-200/90 bg-white text-slate-700 lg:border-transparent hover:bg-slate-100 hover:text-slate-900'
+                      ? 'bg-webzy-primary text-white shadow-btn-primary'
+                      : 'border border-webzy-tint bg-white text-webzy-ink/80 lg:border-transparent hover:bg-webzy-surface hover:text-webzy-primary'
                   }`}
                 >
                   <span className="truncate">{item.label}</span>
@@ -941,8 +944,8 @@ export function AdminDashboardClient({
                           item.alert
                             ? 'bg-red-600 text-white'
                             : active
-                              ? 'bg-white/20 text-white'
-                              : 'bg-slate-100 text-slate-700'
+                              ? 'bg-white/25 text-white'
+                              : 'bg-webzy-tint/80 text-webzy-primary'
                         }`}
                       >
                         {item.badge}
@@ -950,9 +953,7 @@ export function AdminDashboardClient({
                     ) : null}
                     <kbd
                       className={`kbd-hint hidden xl:inline-flex ${
-                        active
-                          ? '!border-white/25 !bg-white/15 !text-slate-100'
-                          : '!border-slate-200 !bg-slate-50 !text-slate-500'
+                        active ? '!border-white/30 !bg-white/20 !text-white' : ''
                       }`}
                     >
                       {item.shortcut}
@@ -962,14 +963,14 @@ export function AdminDashboardClient({
               );
             })}
 
-            <div className="mt-2 hidden border-t border-slate-200/90 pt-3 lg:block">
-              <p className="mb-2 px-1.5 text-[11px] font-medium text-slate-500 font-tabular">
+            <div className="mt-3 hidden border-t border-webzy-tint/70 pt-3 lg:block">
+              <p className="mb-2 px-1 text-[10px] font-medium text-webzy-ink/55 font-tabular">
                 Pipeline: {activeStudioPipelineCount} active / {totalStudioPipelineCount} total
               </p>
               <a
                 href="/api/export"
                 download
-                className="flex min-h-[44px] w-full items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-800 transition hover:border-slate-900 hover:bg-slate-900 hover:text-white"
+                className="flex min-h-[44px] w-full items-center justify-center rounded-xl border border-webzy-primary/35 bg-webzy-surface/80 px-3 text-[11px] font-bold text-webzy-primary transition hover:bg-webzy-primary hover:text-white"
               >
                 Backup Snapshot (JSON)
               </a>
@@ -1030,7 +1031,7 @@ export function AdminDashboardClient({
                   <button
                     type="button"
                     onClick={() => selectTab('safety')}
-                    className="inline-flex min-h-[44px] items-center rounded-xl bg-red-600 px-3.5 text-xs font-semibold text-white transition hover:bg-red-700"
+                    className="inline-flex min-h-[44px] items-center rounded-full bg-red-600 px-4 text-xs font-bold text-white transition hover:bg-red-700"
                   >
                     Open Safety Queue →
                   </button>
@@ -1039,7 +1040,7 @@ export function AdminDashboardClient({
                   <button
                     type="button"
                     onClick={() => selectTab('studio')}
-                    className="inline-flex min-h-[44px] items-center rounded-xl bg-slate-900 px-3.5 text-xs font-semibold text-white transition hover:bg-slate-800"
+                    className="inline-flex min-h-[44px] items-center rounded-full bg-webzy-ink px-4 text-xs font-bold text-white transition hover:opacity-90"
                   >
                     Review Briefs →
                   </button>
@@ -1056,18 +1057,18 @@ export function AdminDashboardClient({
                 <button
                   type="button"
                   onClick={() => selectTab('orders')}
-                  className="interactive-card flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-4 text-left shadow-xs transition hover:border-slate-300 hover:shadow-sm"
+                  className="interactive-card flex min-h-[44px] flex-col justify-between rounded-2xl border border-webzy-primary/25 bg-gradient-to-br from-webzy-surface via-white to-white p-4 text-left shadow-xs transition hover:border-webzy-primary/60 hover:shadow-sm"
                 >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] font-semibold text-slate-600">Total Revenue</span>
-                    <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-700 font-tabular">
+                  <div className="flex w-full items-center justify-between gap-2">
+                    <span className="text-[11px] font-semibold text-webzy-ink/75">Total Revenue</span>
+                    <span className="rounded bg-webzy-tint px-1.5 py-0.5 text-[10px] font-bold text-webzy-primary font-tabular">
                       INR · {metrics.combinedPaidOrdersCount} paid
                     </span>
                   </div>
-                  <p className="mt-2 font-sans text-2xl font-bold tracking-tight text-slate-900 font-tabular">
+                  <p className="mt-2 font-sans text-2xl font-bold tracking-tight text-webzy-primary font-tabular">
                     {formatPaiseAsInr(liveCounts.totalRevenuePaise)}
                   </p>
-                  <p className="mt-1 text-[11px] text-slate-500 font-tabular">
+                  <p className="mt-1 text-[11px] text-webzy-ink/65 font-tabular">
                     Live: {formatPaiseAsInr(liveCounts.liveRevenuePaise)}
                     {liveCounts.testRevenuePaise > 0
                       ? ` · Test: ${formatPaiseAsInr(liveCounts.testRevenuePaise)}`
@@ -1078,20 +1079,20 @@ export function AdminDashboardClient({
                 <button
                   type="button"
                   onClick={() => selectTab('sites')}
-                  className="interactive-card flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-4 text-left shadow-xs transition hover:border-slate-300 hover:shadow-sm"
+                  className="interactive-card flex min-h-[44px] flex-col justify-between rounded-2xl border border-sky-200/80 bg-gradient-to-br from-sky-50/80 via-white to-white p-4 text-left shadow-xs transition hover:border-sky-400 hover:shadow-sm"
                 >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] font-semibold text-slate-600">
+                  <div className="flex w-full items-center justify-between gap-2">
+                    <span className="text-[11px] font-semibold text-sky-950/75">
                       Live Sites &amp; RSVPs
                     </span>
-                    <span className="rounded-md bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
+                    <span className="rounded bg-sky-100 px-1.5 py-0.5 text-[10px] font-bold text-sky-800">
                       Active
                     </span>
                   </div>
-                  <p className="mt-2 font-sans text-2xl font-bold tracking-tight text-slate-900 font-tabular">
+                  <p className="mt-2 font-sans text-2xl font-bold tracking-tight text-sky-900 font-tabular">
                     {liveCounts.liveSites}
                   </p>
-                  <p className="mt-1 text-[11px] text-slate-500 font-tabular">
+                  <p className="mt-1 text-[11px] text-sky-950/65 font-tabular">
                     {weddingSitesCount} weddings · {totalWeddingRsvps} RSVPs
                   </p>
                 </button>
@@ -1099,36 +1100,36 @@ export function AdminDashboardClient({
                 <button
                   type="button"
                   onClick={() => selectTab('users')}
-                  className="interactive-card flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-4 text-left shadow-xs transition hover:border-slate-300 hover:shadow-sm"
+                  className="interactive-card flex min-h-[44px] flex-col justify-between rounded-2xl border border-indigo-200/80 bg-gradient-to-br from-indigo-50/80 via-white to-white p-4 text-left shadow-xs transition hover:border-indigo-400 hover:shadow-sm"
                 >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] font-semibold text-slate-600">Users</span>
-                    <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-700">
+                  <div className="flex w-full items-center justify-between gap-2">
+                    <span className="text-[11px] font-semibold text-indigo-950/75">Users</span>
+                    <span className="rounded bg-indigo-100 px-1.5 py-0.5 text-[10px] font-bold text-indigo-800">
                       Profiles
                     </span>
                   </div>
-                  <p className="mt-2 font-sans text-2xl font-bold tracking-tight text-slate-900 font-tabular">
+                  <p className="mt-2 font-sans text-2xl font-bold tracking-tight text-indigo-900 font-tabular">
                     {liveCounts.registeredUsers}
                   </p>
-                  <p className="mt-1 text-[11px] text-slate-500">Registered accounts</p>
+                  <p className="mt-1 text-[11px] text-indigo-950/65">Registered accounts</p>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => selectTab('safety')}
-                  className={`interactive-card flex flex-col justify-between rounded-2xl border p-4 text-left shadow-xs transition hover:shadow-sm ${
+                  className={`interactive-card flex min-h-[44px] flex-col justify-between rounded-2xl border p-4 text-left shadow-xs transition hover:shadow-sm ${
                     liveCounts.pendingSafety > 0
-                      ? 'border-red-300 bg-red-50/40 hover:border-red-400'
-                      : 'border-slate-200/90 bg-white hover:border-slate-300'
+                      ? 'border-red-300 bg-gradient-to-br from-red-50/85 via-white to-white hover:border-red-400'
+                      : 'border-emerald-200/80 bg-gradient-to-br from-emerald-50/65 via-white to-white hover:border-emerald-400'
                   }`}
                 >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] font-semibold text-slate-600">Safety Queue</span>
+                  <div className="flex w-full items-center justify-between gap-2">
+                    <span className="text-[11px] font-semibold text-webzy-ink/75">Safety Queue</span>
                     <span
-                      className={`rounded-md px-2 py-0.5 text-[10px] font-semibold ${
+                      className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${
                         liveCounts.pendingSafety > 0
                           ? 'bg-red-600 text-white'
-                          : 'bg-emerald-50 text-emerald-800'
+                          : 'bg-emerald-100 text-emerald-800'
                       }`}
                     >
                       {liveCounts.pendingSafety > 0 ? 'Action' : 'Clear'}
@@ -1136,56 +1137,56 @@ export function AdminDashboardClient({
                   </div>
                   <p
                     className={`mt-2 font-sans text-2xl font-bold tracking-tight font-tabular ${
-                      liveCounts.pendingSafety > 0 ? 'text-red-700' : 'text-emerald-700'
+                      liveCounts.pendingSafety > 0 ? 'text-red-700' : 'text-emerald-800'
                     }`}
                   >
                     {liveCounts.pendingSafety}
                   </p>
-                  <p className="mt-1 text-[11px] text-slate-500">Reports &amp; takedowns</p>
+                  <p className="mt-1 text-[11px] text-webzy-ink/65">Reports &amp; takedowns</p>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => selectTab('studio')}
-                  className="interactive-card flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-4 text-left shadow-xs transition hover:border-slate-300 hover:shadow-sm"
+                  className="interactive-card flex min-h-[44px] flex-col justify-between rounded-2xl border border-purple-200/80 bg-gradient-to-br from-purple-50/80 via-white to-white p-4 text-left shadow-xs transition hover:border-purple-400 hover:shadow-sm"
                 >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] font-semibold text-slate-600">
+                  <div className="flex w-full items-center justify-between gap-2">
+                    <span className="text-[11px] font-semibold text-purple-950/75">
                       Studio Pipeline
                     </span>
-                    <span className="rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-800 font-tabular">
+                    <span className="rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-bold text-purple-800 font-tabular">
                       {activeStudioPipelineCount} Active
                     </span>
                   </div>
-                  <p className="mt-2 font-sans text-2xl font-bold tracking-tight text-slate-900 font-tabular">
+                  <p className="mt-2 font-sans text-2xl font-bold tracking-tight text-purple-900 font-tabular">
                     {totalStudioPipelineCount}
                   </p>
-                  <p className="mt-1 text-[11px] text-slate-500 font-tabular">
+                  <p className="mt-1 text-[11px] text-purple-950/65 font-tabular">
                     {liveCounts.waitlistCount} Studio · {liveCustomRequests.length} Briefs
                   </p>
                 </button>
               </div>
 
               {/* CEO Unit Economics, Add-On Attach Rate & Conversion Funnel Strip */}
-              <section className="animate-slide-up rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs sm:p-6">
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/90 pb-4">
+              <section className="animate-slide-up rounded-3xl border border-webzy-tint bg-white p-5 shadow-xs sm:p-6">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-webzy-tint/60 pb-3.5">
                   <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-webzy-primary">
                       Founder &amp; CEO Executive Intelligence
                     </span>
-                    <h2 className="mt-0.5 font-heading text-base font-bold text-slate-900">
+                    <h2 className="mt-0.5 font-heading text-base font-bold text-webzy-ink">
                       Unit Economics, Add-On Attach Rate &amp; Viral Conversion Funnel
                     </h2>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <div className="inline-flex rounded-xl border border-slate-200 bg-slate-100 p-1 text-xs font-semibold">
+                    <div className="inline-flex rounded-full border border-webzy-tint bg-webzy-surface p-0.5 text-[11px] font-bold">
                       <button
                         type="button"
                         onClick={() => setRevenueScope('all')}
-                        className={`min-h-[44px] rounded-lg px-3 transition font-tabular ${
+                        className={`min-h-[44px] rounded-full px-3.5 transition font-tabular ${
                           revenueScope === 'all'
-                            ? 'bg-slate-900 text-white shadow-xs'
-                            : 'text-slate-600 hover:text-slate-900'
+                            ? 'bg-webzy-primary text-white shadow-xs'
+                            : 'text-webzy-ink/70 hover:text-webzy-ink'
                         }`}
                       >
                         All ({metrics.combinedPaidOrdersCount})
@@ -1193,10 +1194,10 @@ export function AdminDashboardClient({
                       <button
                         type="button"
                         onClick={() => setRevenueScope('live')}
-                        className={`min-h-[44px] rounded-lg px-3 transition font-tabular ${
+                        className={`min-h-[44px] rounded-full px-3.5 transition font-tabular ${
                           revenueScope === 'live'
                             ? 'bg-emerald-700 text-white shadow-xs'
-                            : 'text-slate-600 hover:text-slate-900'
+                            : 'text-webzy-ink/70 hover:text-webzy-ink'
                         }`}
                       >
                         Live ({metrics.livePaidOrdersCount})
@@ -1206,43 +1207,43 @@ export function AdminDashboardClient({
                 </div>
 
                 <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-                  <div className="rounded-xl border border-slate-200/90 bg-slate-50/70 p-4">
+                  <div className="rounded-2xl border border-webzy-tint/80 bg-webzy-surface/40 p-4">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-[11px] font-semibold text-slate-600">
+                      <span className="text-[11px] font-bold text-webzy-ink/70">
                         {revenueScope === 'all' ? 'Net Total Revenue & AOV' : 'Net Live Revenue & AOV'}
                       </span>
-                      <span className="rounded-md bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-900 font-tabular">
+                      <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-900 font-tabular">
                         AOV {formatPaiseAsInr(activeAovPaise)}
                       </span>
                     </div>
-                    <p className="mt-2 font-sans text-xl font-bold tracking-tight text-slate-900 font-tabular">
+                    <p className="mt-2 font-heading text-xl font-bold text-webzy-ink font-tabular">
                       {formatPaiseAsInr(netScopedRevenuePaise)}
                     </p>
-                    <p className="mt-1 text-[11px] text-slate-600 font-tabular">
+                    <p className="mt-1 text-[11px] text-webzy-ink/65 font-tabular">
                       Net after 18% GST ({formatPaiseAsInr(activeGstPaise)}) &amp; Gateway ({formatPaiseAsInr(activeGatewayFeePaise)})
                     </p>
-                    <p className="mt-1.5 text-[10px] font-medium text-slate-500 font-tabular">
+                    <p className="mt-1.5 text-[10px] font-semibold text-webzy-ink/55 font-tabular">
                       Refunded: {metrics.refundedLiveCount} order(s) ({formatPaiseAsInr(metrics.refundedLivePaise)})
                     </p>
                   </div>
 
-                  <div className="rounded-xl border border-slate-200/90 bg-slate-50/70 p-4">
+                  <div className="rounded-2xl border border-webzy-tint/80 bg-webzy-surface/40 p-4">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-[11px] font-semibold text-slate-600">
+                      <span className="text-[11px] font-bold text-webzy-ink/70">
                         Add-On Attach Rate
                       </span>
-                      <span className="rounded-md bg-slate-200/80 px-2 py-0.5 text-[10px] font-semibold text-slate-800 font-tabular">
+                      <span className="rounded bg-webzy-tint px-1.5 py-0.5 text-[10px] font-bold text-webzy-primary font-tabular">
                         {activeAddonStats.attachRatePct}% Attach
                       </span>
                     </div>
-                    <div className="mt-2.5 h-2.5 w-full overflow-hidden rounded-full border border-slate-200 bg-white">
+                    <div className="mt-2.5 h-2.5 w-full overflow-hidden rounded-full border border-webzy-tint bg-white">
                       <div
-                        className="animate-shimmer h-full rounded-full bg-slate-900 transition-all duration-500"
+                        className="animate-shimmer h-full rounded-full bg-webzy-primary transition-all duration-500"
                         style={{ width: `${Math.min(100, Math.max(4, activeAddonStats.attachRatePct))}%` }}
                       />
                     </div>
-                    <div className="mt-2.5 flex flex-wrap gap-1.5 text-[10px] font-semibold font-tabular">
-                      <span className="rounded-md border border-slate-200 bg-white px-2 py-0.5 text-slate-700">
+                    <div className="mt-2.5 flex flex-wrap gap-1.5 text-[10px] font-bold font-tabular">
+                      <span className="rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-indigo-900">
                         Secret PIN: {activeAddonStats.pinCount}
                       </span>
                       <span className="rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-amber-900">
@@ -1254,65 +1255,57 @@ export function AdminDashboardClient({
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-slate-200/90 bg-slate-50/70 p-4">
+                  <div className="rounded-2xl border border-webzy-tint/80 bg-webzy-surface/40 p-4">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-[11px] font-semibold text-slate-600">
+                      <span className="text-[11px] font-bold text-webzy-ink/70">
                         Conversion &amp; Viral K-Factor
                       </span>
-                      <span className="rounded-md bg-slate-200/80 px-2 py-0.5 text-[10px] font-semibold text-slate-800 font-tabular">
+                      <span className="rounded bg-sky-100 px-1.5 py-0.5 text-[10px] font-bold text-sky-900 font-tabular">
                         {viralViewsPerSite} views/site
                       </span>
                     </div>
                     <div className="mt-2.5 grid grid-cols-4 gap-1 text-center font-tabular">
-                      <div className="rounded-lg border border-slate-200 bg-white p-1.5">
-                        <p className="font-sans text-xs font-bold text-slate-900">
-                          {metrics.activeDraftsCount}
-                        </p>
-                        <p className="text-[9px] text-slate-500">Drafts</p>
+                      <div className="rounded-lg border border-webzy-tint/60 bg-white p-1.5">
+                        <p className="text-xs font-bold text-webzy-ink">{metrics.activeDraftsCount}</p>
+                        <p className="text-[9px] text-webzy-ink/60">Drafts</p>
                       </div>
-                      <div className="rounded-lg border border-slate-200 bg-white p-1.5">
-                        <p className="font-sans text-xs font-bold text-slate-900">
-                          {activePaidOrdersCount}
-                        </p>
-                        <p className="text-[9px] text-slate-500">Orders</p>
+                      <div className="rounded-lg border border-webzy-tint/60 bg-white p-1.5">
+                        <p className="text-xs font-bold text-webzy-ink">{activePaidOrdersCount}</p>
+                        <p className="text-[9px] text-webzy-ink/60">Orders</p>
                       </div>
-                      <div className="rounded-lg border border-slate-200 bg-white p-1.5">
-                        <p className="font-sans text-xs font-bold text-slate-900">
-                          {liveCounts.liveSites}
-                        </p>
-                        <p className="text-[9px] text-slate-500">Live</p>
+                      <div className="rounded-lg border border-webzy-tint/60 bg-white p-1.5">
+                        <p className="text-xs font-bold text-sky-800">{liveCounts.liveSites}</p>
+                        <p className="text-[9px] text-webzy-ink/60">Live</p>
                       </div>
-                      <div className="rounded-lg border border-slate-200 bg-white p-1.5">
-                        <p className="font-sans text-xs font-bold text-emerald-700">
-                          {metrics.totalViewsCount}
-                        </p>
-                        <p className="text-[9px] text-slate-500">Views</p>
+                      <div className="rounded-lg border border-webzy-tint/60 bg-white p-1.5">
+                        <p className="text-xs font-bold text-emerald-700">{metrics.totalViewsCount}</p>
+                        <p className="text-[9px] text-webzy-ink/60">Views</p>
                       </div>
                     </div>
-                    <p className="mt-2 text-[10px] text-slate-500">
+                    <p className="mt-2 text-[10px] text-webzy-ink/60">
                       Drafts → Paid Orders → Live Sites → Guest Views
                     </p>
                   </div>
 
-                  <div className="rounded-xl border border-slate-200/90 bg-slate-50/70 p-4">
+                  <div className="rounded-2xl border border-webzy-tint/80 bg-webzy-surface/40 p-4">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-[11px] font-semibold text-slate-600">
+                      <span className="text-[11px] font-bold text-webzy-ink/70">
                         B2B &amp; Custom Studio Pipeline
                       </span>
-                      <span className="rounded-md bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-900">
+                      <span className="rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-bold text-purple-900">
                         Quoted Value
                       </span>
                     </div>
-                    <p className="mt-2 font-sans text-xl font-bold tracking-tight text-slate-900 font-tabular">
+                    <p className="mt-2 font-heading text-xl font-bold text-purple-900 font-tabular">
                       {formatInr(metrics.pipelineQuotedInr)}
                     </p>
-                    <p className="mt-1 text-[11px] text-slate-600 font-tabular">
+                    <p className="mt-1 text-[11px] text-webzy-ink/65 font-tabular">
                       {activeStudioPipelineCount} active / unquoted leads · {totalStudioPipelineCount} total briefs
                     </p>
                     <button
                       type="button"
                       onClick={() => selectTab('studio')}
-                      className="mt-2 inline-flex min-h-[44px] items-center text-xs font-semibold text-slate-900 underline-offset-2 hover:underline"
+                      className="mt-1.5 inline-flex min-h-[44px] items-center text-[11px] font-bold text-webzy-primary hover:underline"
                     >
                       Open Studio Pipeline →
                     </button>
@@ -1321,13 +1314,13 @@ export function AdminDashboardClient({
               </section>
 
               {/* Operations Control Center */}
-              <section className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xs">
+              <section className="rounded-3xl border border-webzy-tint bg-white p-6 shadow-xs">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
-                    <h2 className="font-heading text-base font-bold text-slate-900">
+                    <h2 className="font-heading text-base font-bold text-webzy-ink">
                       Automated Maintenance &amp; Reconciliation
                     </h2>
-                    <p className="mt-0.5 text-xs text-slate-500">
+                    <p className="mt-0.5 text-xs text-webzy-ink/65">
                       Run payment recovery, unlock scheduled surprises, expire finished links, and export backups.
                     </p>
                   </div>
@@ -1338,24 +1331,24 @@ export function AdminDashboardClient({
                     type="button"
                     onClick={triggerWatchdog}
                     disabled={runningWatchdog}
-                    className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-slate-900 px-4 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 disabled:opacity-50"
+                    className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-webzy-primary bg-webzy-surface px-4 text-xs font-bold text-webzy-primary transition hover:bg-webzy-primary hover:text-white disabled:opacity-50"
                   >
-                    {runningWatchdog ? 'Scanning Pending Orders…' : 'Run Payment Watchdog'}
+                    {runningWatchdog ? 'Scanning Pending Orders...' : 'Run Payment Watchdog'}
                   </button>
 
                   <button
                     type="button"
                     onClick={triggerLifecycle}
                     disabled={runningLifecycle}
-                    className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-800 shadow-2xs transition hover:border-slate-300 hover:bg-slate-50 disabled:opacity-50"
+                    className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-webzy-tint bg-white px-4 text-xs font-bold text-webzy-ink transition hover:border-webzy-ink disabled:opacity-50"
                   >
-                    {runningLifecycle ? 'Running Sweep…' : 'Run Lifecycle Sweep'}
+                    {runningLifecycle ? 'Running Sweep...' : 'Run Lifecycle Sweep'}
                   </button>
 
                   <a
                     href="/api/export/orders?liveOnly=true"
                     download
-                    className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-4 text-xs font-semibold text-emerald-900 transition hover:bg-emerald-100"
+                    className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-emerald-300 bg-emerald-50 px-4 text-xs font-bold text-emerald-900 transition hover:bg-emerald-100"
                   >
                     Download Live Orders CSV
                   </a>
@@ -1363,7 +1356,7 @@ export function AdminDashboardClient({
                   <a
                     href="/api/export"
                     download
-                    className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-800 shadow-2xs transition hover:border-slate-300 hover:bg-slate-50"
+                    className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-webzy-tint bg-white px-4 text-xs font-bold text-webzy-ink transition hover:border-webzy-ink"
                   >
                     Download JSON Snapshot
                   </a>
@@ -1372,24 +1365,24 @@ export function AdminDashboardClient({
 
               {/* Split Activity Feed */}
               <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-                <section className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xs">
+                <section className="rounded-3xl border border-webzy-tint bg-white p-6 shadow-xs">
                   <div className="flex items-center justify-between gap-2">
-                    <h3 className="font-heading text-base font-bold text-slate-900">
+                    <h3 className="font-heading text-base font-bold text-webzy-ink">
                       Latest Customer Orders
                     </h3>
                     <button
                       type="button"
                       onClick={() => selectTab('orders')}
-                      className="inline-flex min-h-[44px] items-center px-2 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:underline font-tabular"
+                      className="inline-flex min-h-[44px] items-center px-2 text-xs font-bold text-webzy-primary hover:underline font-tabular"
                     >
                       View All ({liveOrders.length}) →
                     </button>
                   </div>
 
                   {liveOrders.length === 0 ? (
-                    <p className="mt-4 text-xs text-slate-500">No orders recorded yet.</p>
+                    <p className="mt-4 text-xs text-webzy-ink/60">No orders recorded yet.</p>
                   ) : (
-                    <div className="mt-3 divide-y divide-slate-100">
+                    <div className="mt-3 divide-y divide-webzy-tint/60">
                       {liveOrders.slice(0, 6).map((order) => (
                         <div
                           key={order.id}
@@ -1397,11 +1390,11 @@ export function AdminDashboardClient({
                         >
                           <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-1.5">
-                              <span className="truncate font-semibold text-slate-900">
+                              <span className="truncate font-bold text-webzy-ink">
                                 {order.buyer_name || 'Guest'}
                               </span>
                               <span
-                                className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
+                                className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
                                   order.status === 'paid' || order.status === 'published'
                                     ? 'bg-emerald-100 text-emerald-800'
                                     : order.status === 'refunded'
@@ -1412,25 +1405,25 @@ export function AdminDashboardClient({
                                 {order.status}
                               </span>
                               {order.is_test ? (
-                                <span className="rounded bg-slate-200 px-1.5 py-0.5 text-[9px] font-bold uppercase text-slate-700">
+                                <span className="rounded bg-zinc-200 px-1.5 py-0.5 text-[9px] font-bold uppercase text-zinc-700">
                                   TEST
                                 </span>
                               ) : null}
                             </div>
-                            <p className="mt-0.5 truncate text-[11px] text-slate-500 font-tabular">
+                            <p className="mt-0.5 truncate text-[11px] text-webzy-ink/60 font-tabular">
                               {order.buyer_email} · {order.invoice_no || order.id.slice(0, 8)}
                             </p>
                           </div>
 
                           <div className="shrink-0 text-right">
-                            <p className="font-sans text-sm font-bold text-slate-900 font-tabular">
+                            <p className="font-heading text-sm font-bold text-webzy-primary font-tabular">
                               {formatPaiseAsInr(order.amount_paise)}
                             </p>
                             {order.site_slug ? (
                               <button
                                 type="button"
                                 onClick={() => handleQuickCopyLink(order.id, order.site_slug!)}
-                                className="mt-0.5 rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 font-mono text-[10px] font-semibold text-slate-700 transition hover:bg-slate-100"
+                                className="mt-0.5 inline-flex min-h-[44px] items-center rounded bg-webzy-surface px-2 font-mono text-[10px] font-bold text-webzy-ink transition hover:bg-webzy-tint"
                               >
                                 {copiedOrderId === order.id ? 'Copied' : `/s/${order.site_slug}`}
                               </button>
@@ -1442,41 +1435,41 @@ export function AdminDashboardClient({
                   )}
                 </section>
 
-                <section className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xs">
+                <section className="rounded-3xl border border-webzy-tint bg-white p-6 shadow-xs">
                   <div className="flex items-center justify-between gap-2">
-                    <h3 className="font-heading text-base font-bold text-slate-900">
+                    <h3 className="font-heading text-base font-bold text-webzy-ink">
                       Recent Audit Trail
                     </h3>
                     <button
                       type="button"
                       onClick={() => selectTab('logs')}
-                      className="inline-flex min-h-[44px] items-center px-2 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:underline font-tabular"
+                      className="inline-flex min-h-[44px] items-center px-2 text-xs font-bold text-webzy-primary hover:underline font-tabular"
                     >
                       View All ({liveCounts.audits}) →
                     </button>
                   </div>
 
                   {liveAudits.length === 0 ? (
-                    <p className="mt-4 text-xs text-slate-500">No audit events recorded yet.</p>
+                    <p className="mt-4 text-xs text-webzy-ink/60">No audit events recorded yet.</p>
                   ) : (
-                    <div className="mt-3 divide-y divide-slate-100">
+                    <div className="mt-3 divide-y divide-webzy-tint/60">
                       {liveAudits.slice(0, 6).map((log) => (
                         <div
                           key={log.id}
                           className="flex items-start justify-between gap-3 py-3 text-xs"
                         >
                           <div className="min-w-0">
-                            <p className="font-mono text-[11px] font-semibold text-slate-900">
+                            <p className="font-mono text-[11px] font-bold text-webzy-ink">
                               {log.action}
                             </p>
-                            <p className="mt-0.5 text-[11px] text-slate-500">
+                            <p className="mt-0.5 text-[11px] text-webzy-ink/60">
                               {log.entity}
                               {log.entity_id ? ` · ${log.entity_id.slice(0, 10)}` : ''}
                             </p>
                           </div>
                           <span
                             suppressHydrationWarning
-                            className="shrink-0 text-[11px] text-slate-500 font-tabular"
+                            className="shrink-0 text-[11px] text-webzy-ink/50 font-tabular"
                           >
                             {formatIstTimestamp(log.at)}
                           </span>

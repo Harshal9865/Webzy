@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { verifySameOriginRequest } from '../../../infra/security/requestGuard';
+import { verifySameOriginRequest } from '../../../infra/security/origin';
 import { updateSupabaseSession } from '../../../infra/supabase/middleware';
 
 function applySecurityHeaders(response: NextResponse, isApiRoute: boolean): NextResponse {

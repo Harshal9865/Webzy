@@ -1,56 +1,10 @@
 import crypto from 'node:crypto';
 import { NextResponse, type NextRequest } from 'next/server';
-import { getWebzyPublicConfig, logEvent } from '@webzy/core';
+import { logEvent } from '@webzy/core';
 import { consumeRateLimit, hashIpForRateLimit } from '../supabase/rateLimit';
+import { verifySameOriginRequest } from './origin';
 
-function extractHostname(rawUrlOrHost: string | null | undefined): string | null {
-  if (!rawUrlOrHost) return null;
-  const trimmed = rawUrlOrHost.trim();
-  if (!trimmed) return null;
-  try {
-    if (trimmed.includes('://')) {
-      return new URL(trimmed).host.toLowerCase();
-    }
-    return trimmed.split(',')[0].trim().toLowerCase();
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Silent CSRF / Same-Origin protection for browser-triggered API mutations.
- * Compares Origin (or Referer fallback) against Host / X-Forwarded-Host and
- * configured Web/Admin origins.
- */
-export function verifySameOriginRequest(request: Request): boolean {
-  const method = request.method.toUpperCase();
-  if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') {
-    return true;
-  }
-
-  const originHeader = request.headers.get('origin');
-  const refererHeader = request.headers.get('referer');
-  const sourceHost = extractHostname(originHeader) || extractHostname(refererHeader);
-
-  // If browser sent neither Origin nor Referer in strict non-browser calls, allow only in local/non-browser cron flows (which enforce Bearer secrets separately)
-  if (!sourceHost) {
-    return process.env.NEXT_PUBLIC_APP_ENV !== 'production';
-  }
-
-  const cfg = getWebzyPublicConfig();
-  const allowedHosts = new Set<string>();
-  const requestHost =
-    extractHostname(request.headers.get('x-forwarded-host')) ||
-    extractHostname(request.headers.get('host'));
-  if (requestHost) allowedHosts.add(requestHost);
-
-  const webHost = extractHostname(cfg.webUrl);
-  const adminHost = extractHostname(cfg.adminUrl);
-  if (webHost) allowedHosts.add(webHost);
-  if (adminHost) allowedHosts.add(adminHost);
-
-  return allowedHosts.has(sourceHost);
-}
+export { verifySameOriginRequest };
 
 function normalizeIpCandidate(raw: string | null | undefined): string | null {
   if (!raw) return null;

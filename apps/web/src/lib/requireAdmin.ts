@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { evaluateAdminAccess, isAdminMfaRequired } from '@webzy/core';
-import { verifySameOriginRequest } from '../../../../infra/security/requestGuard';
+import { verifySameOriginRequest } from '../../../../infra/security/origin';
 import { getAuthSessionState } from '../../../../infra/supabase/auth';
 import { createSupabaseAdminClient } from '../../../../infra/supabase/server';
 

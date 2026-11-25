@@ -31,7 +31,7 @@ export function AdminSignOutButton({ redirectTo = '/login' }: AdminSignOutButton
         suppressHydrationWarning
         type="button"
         onClick={handleSignOut}
-        className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-700 shadow-2xs transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
+        className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-webzy-tint bg-white px-4 text-xs font-bold text-webzy-ink transition hover:bg-webzy-surface"
       >
         Sign out
       </button>
