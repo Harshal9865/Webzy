@@ -17,9 +17,12 @@ const cspDirectives = [
 ].join('; ');
 
 const nextConfig: NextConfig = {
+  compress: true,
+  poweredByHeader: false,
   transpilePackages: ['@webzy/core', '@webzy/themes', '@webzy/jobs'],
   experimental: {
     externalDir: true,
+    optimizePackageImports: ['@webzy/core', '@webzy/themes'],
   },
   async headers() {
     return [
