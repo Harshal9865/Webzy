@@ -1,223 +1,181 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import {
   type CoreLanguageCode,
   pickLocalizedText,
   toCoreLanguageCode,
 } from '@webzy/core';
 import {
-  OccasionAdaptiveGallery,
-  OccasionArtworkBackdrop,
   type OccasionSiteProps,
-  getReplayLabel,
   getWebzyFooterLabel,
 } from './shared/OccasionPrimitives';
-import {
-  AmbientRainCanvas,
-  type CurvedTrackItem,
-  CurvedTrackSanctuary,
-  HoldToChargeRing,
-  WordByWordFadeLine,
-} from './shared/OccasionCinematicFX';
 
 interface AshirwadCopy {
-  coverBadge: string;
-  fromLabel: string;
-  openCta: string;
-  coverHint: string;
-  sacredEyebrow: string;
-  diyaPrompt: string;
-  diyaLitBadge: string;
-  diyaRelightHint: string;
-  tributeEyebrow: string;
-  letterTitle: string;
-  signOffPrefix: string;
-  albumEyebrow: string;
-  photosTitle: string;
-  photosHint: string;
+  courtyardEyebrow: string;
+  recipientPrefix: string;
+  diyaSectionLabel: string;
+  lightDiyaCta: string;
+  diyaLitStatus: string;
+  diyaLitWhisper: string;
+  diyaUnlitWhisper: string;
+  scrollEyebrow: string;
+  signOffLabel: string;
+  showerBlessingsCta: string;
+  blessingsShoweredLabel: (count: number) => string;
+  galleryEyebrow: string;
+  galleryTitle: string;
+  galleryHint: string;
   photoCaptionPrefix: string;
-  soundtrackEyebrow: string;
-  soundtrackHeading: string;
-  tracks: readonly CurvedTrackItem[];
-  bookletEyebrow: string;
-  bookletTitle: string;
-  emptyBooklet: string;
-  pranamSectionEyebrow: string;
-  pranamInvite: string;
-  pranamHoldLabel: string;
-  pranamChargingLabel: string;
-  pranamCompleteLabel: string;
-  pranamAcknowledged: string;
-  pranamSendMore: (count: number) => string;
+  highlightsEyebrow: string;
+  closeModalLabel: string;
+  prevPhotoLabel: string;
+  nextPhotoLabel: string;
+  defaultPhotoCaptions: readonly [string, string];
 }
 
 const ASHIRWAD_COPY: Record<CoreLanguageCode, AshirwadCopy> = {
   en: {
-    coverBadge: 'Sadar Janamdin · With Respect',
-    fromLabel: 'With reverence, from',
-    openCta: 'Open with Respect',
-    coverHint: 'An heirloom family blessing crafted in warmth and gratitude',
-    sacredEyebrow: 'Ceremonial Invocation',
-    diyaPrompt: 'Tap the Hammered Brass Diya to light the sacred flame',
-    diyaLitBadge: 'Diya Lit · Family Blessings',
-    diyaRelightHint: 'Sacred flame glowing for your health, peace, and longevity.',
-    tributeEyebrow: 'A Family Tribute',
-    letterTitle: 'Heirloom Family Letter',
-    signOffPrefix: 'With eternal gratitude and pranam,',
-    albumEyebrow: 'Family Keepsakes',
-    photosTitle: 'Heirloom Moments',
-    photosHint: 'Tap any portrait to view larger',
-    photoCaptionPrefix: 'Family',
-    soundtrackEyebrow: 'Serene Evening Ragas',
-    soundtrackHeading: 'Classical Soundtrack Sanctuary',
-    tracks: [
-      {
-        id: 'santoor-warmth',
-        title: 'Santoor Warmth',
-        moodLabel: 'Evening Raga · Serene',
-        duration: '03:12',
-        note: 'Gentle plucked santoor strings inspired by Raga Yaman at twilight, welcoming calm and auspicious warmth into the home.',
-      },
-      {
-        id: 'sandhya-bansuri',
-        title: 'Sandhya Bansuri',
-        moodLabel: 'Bamboo Flute · Peaceful',
-        duration: '02:48',
-        note: 'Soft bamboo flute phrases over a steady tanpura drone, honoring quiet strength, patience, and lifelong grace.',
-      },
-      {
-        id: 'aarti-chime',
-        title: 'Aarti Temple Chime',
-        moodLabel: 'Brass Bell · Reverent',
-        duration: '02:24',
-        note: 'Resonant brass bells and gentle harmonic overtones evoking morning prayers, blessings, and family togetherness.',
-      },
-    ],
-    bookletEyebrow: 'Cherished Reflections',
-    bookletTitle: 'Memories & Gratitude',
-    emptyBooklet: 'Your warmth and wisdom guide every generation of our home.',
-    pranamSectionEyebrow: 'Brass Thali Pranam · Return Blessing',
-    pranamInvite: 'Press and hold the ceremonial seal to offer pranam and seal this family blessing.',
-    pranamHoldLabel: 'Hold for Brass Thali Pranam',
-    pranamChargingLabel: 'Offering Pranam...',
-    pranamCompleteLabel: 'Pranam Sealed with Gratitude',
-    pranamAcknowledged: 'Received with folded hands, warm wishes, and deep family reverence.',
-    pranamSendMore: (count) => `Offer Another Pranam (${count})`,
+    courtyardEyebrow: 'Sunlit Courtyard · Ashirwad',
+    recipientPrefix: 'With reverence for',
+    diyaSectionLabel: 'Sacred Brass Diya Ritual',
+    lightDiyaCta: 'Light the Diya',
+    diyaLitStatus: 'Sacred Flame Lit',
+    diyaLitWhisper: 'May warm light, serenity, and long life grace every morning.',
+    diyaUnlitWhisper: 'Tap to kindle the brass lamp and bathe the courtyard in golden light.',
+    scrollEyebrow: 'Silk Blessing Scroll',
+    signOffLabel: 'With eternal gratitude & pranam,',
+    showerBlessingsCta: 'Shower Blessings',
+    blessingsShoweredLabel: (count) =>
+      count === 1 ? 'Marigold blessings showered' : `${count} waves of marigold blessings`,
+    galleryEyebrow: 'Arched Keepsakes',
+    galleryTitle: 'Courtyard Memories',
+    galleryHint: 'Tap any arched portrait to inspect closely',
+    photoCaptionPrefix: 'Keepsake',
+    highlightsEyebrow: 'Cherished Notes',
+    closeModalLabel: 'Close photo viewer',
+    prevPhotoLabel: 'Previous photo',
+    nextPhotoLabel: 'Next photo',
+    defaultPhotoCaptions: ['Sunlit Veranda', 'Marigold Morning'],
   },
   hinglish: {
-    coverBadge: 'Sadar Janamdin · With Respect',
-    fromLabel: 'Aadar sahit:',
-    openCta: 'Open with Respect',
-    coverHint: 'Parivaar ke pyaar aur aadar se saja ek pavitra sandesh',
-    sacredEyebrow: 'Shubh Aarti & Diya',
-    diyaPrompt: 'Shubh jyot jalaane ke liye Brass Diya par tap karein',
-    diyaLitBadge: 'Diya Lit · Family Blessings',
-    diyaRelightHint: 'Aapki lambi umar, achhi sehat aur sukoon ke liye pavitra jyot roshan hai.',
-    tributeEyebrow: 'Parivaar ka Ashirwad',
-    letterTitle: 'Parivaar ka Patra',
-    signOffPrefix: 'Dil se aadar aur pranam,',
-    albumEyebrow: 'Anmol Yaadein',
-    photosTitle: 'Heirloom Moments',
-    photosHint: 'Badi photo dekhne ke liye tap karein',
-    photoCaptionPrefix: 'Parivaar',
-    soundtrackEyebrow: 'Sandhya Raga · Shant Dhun',
-    soundtrackHeading: 'Classical Soundtrack Sanctuary',
-    tracks: [
-      {
-        id: 'santoor-warmth',
-        title: 'Santoor Warmth',
-        moodLabel: 'Raga Yaman · Shanti',
-        duration: '03:12',
-        note: 'Shaam ke Raga Yaman se prerit santoor ki komal dhun, jo ghar mein sukoon aur mangal bhavna laati hai.',
-      },
-      {
-        id: 'sandhya-bansuri',
-        title: 'Sandhya Bansuri',
-        moodLabel: 'Bansuri · Sukoon',
-        duration: '02:48',
-        note: 'Tanpura ke saath bansuri ki meethi taan, aapke dhairya aur sneh ko aadar dene ke liye.',
-      },
-      {
-        id: 'aarti-chime',
-        title: 'Aarti Temple Chime',
-        moodLabel: 'Peetal Ghanti · Bhakti',
-        duration: '02:24',
-        note: 'Subah ki prarthana aur aarti ki pavitra goonj, poore parivaar ki mangal kaamna ke saath.',
-      },
-    ],
-    bookletEyebrow: 'Anmol Yaadein',
-    bookletTitle: 'Memories & Gratitude',
-    emptyBooklet: 'Aapka pyaar aur ashirwad hamare ghar ki sabse badi daulat hai.',
-    pranamSectionEyebrow: 'Peetal ki Thali · Sadar Pranam',
-    pranamInvite: 'Sadar pranam arpit karne aur ashirwad seal karne ke liye thali seal ko dabakar rakhein.',
-    pranamHoldLabel: 'Pranam ke liye dabakar rakhein',
-    pranamChargingLabel: 'Pranam arpit ho raha hai...',
-    pranamCompleteLabel: 'Sadar Pranam Arpit Hua',
-    pranamAcknowledged: 'Hath jodkar parivaar ki taraf se sadar pranam aur dil se shubhkamnayein.',
-    pranamSendMore: (count) => `Ek aur Pranam arpit karein (${count})`,
+    courtyardEyebrow: 'Sunlit Aangan · Sadar Ashirwad',
+    recipientPrefix: 'Aadar aur sneh ke saath',
+    diyaSectionLabel: 'Shubh Brass Diya Ritual',
+    lightDiyaCta: 'Light the Diya',
+    diyaLitStatus: 'Shubh Jyot Roshan Hui',
+    diyaLitWhisper: 'Aapki achhi sehat, sukoon aur lambi umar ke liye mangal jyot.',
+    diyaUnlitWhisper: 'Aangan ko sunahri roshni se bharne ke liye peetal ka diya jalayein.',
+    scrollEyebrow: 'Sneh Bhara Sandesh',
+    signOffLabel: 'Dil se aadar aur pranam,',
+    showerBlessingsCta: 'Shower Blessings',
+    blessingsShoweredLabel: (count) =>
+      count === 1 ? 'Genda phoolon ka ashirwad arpit' : `${count} baar mangal ashirwad arpit`,
+    galleryEyebrow: 'Anmol Yaadein',
+    galleryTitle: 'Aangan ki Tasveerein',
+    galleryHint: 'Paas se dekhne ke liye tasveer par tap karein',
+    photoCaptionPrefix: 'Yaad',
+    highlightsEyebrow: 'Khaas Baatein',
+    closeModalLabel: 'Tasveer band karein',
+    prevPhotoLabel: 'Pichli tasveer',
+    nextPhotoLabel: 'Agli tasveer',
+    defaultPhotoCaptions: ['Dhoop Bhara Aangan', 'Genda Phool Subah'],
   },
   hi: {
-    coverBadge: 'सादर जन्मदिन · ससम्मान',
-    fromLabel: 'सादर प्रेषक:',
-    openCta: 'ससम्मान खोलें',
-    coverHint: 'परिवार के स्नेह, आदर और कृतज्ञता से सजी पावन भेंट',
-    sacredEyebrow: 'मंगल दीप प्रज्वलन',
-    diyaPrompt: 'मंगल ज्योति प्रज्वलित करने के लिए पीतल के दीये पर टैप करें',
-    diyaLitBadge: 'दीया प्रज्वलित · परिवार का आशीर्वाद',
-    diyaRelightHint: 'आपके उत्तम स्वास्थ्य, सुख, शांति और दीर्घायु के लिए पावन ज्योति प्रज्वलित है।',
-    tributeEyebrow: 'परिवार का आशीर्वाद',
-    letterTitle: 'परिवार की ओर से सादर पत्र',
-    signOffPrefix: 'सादर चरण स्पर्श एवं आभार,',
-    albumEyebrow: 'परिवार की धरोहर',
-    photosTitle: 'परिवार की अनमोल यादें',
-    photosHint: 'बड़ी फ़ोटो देखने के लिए टैप करें',
-    photoCaptionPrefix: 'परिवार',
-    soundtrackEyebrow: 'संध्या राग · मधुर संगीत',
-    soundtrackHeading: 'शास्त्रीय संगीत कक्ष',
-    tracks: [
-      {
-        id: 'santoor-warmth',
-        title: 'Santoor Warmth',
-        moodLabel: 'संध्या राग यमन · शांत',
-        duration: '03:12',
-        note: 'संध्या के राग यमन से प्रेरित संतूर की कोमल झंकार, जो घर में शांति और मांगलिक ऊष्मा भरती है।',
-      },
-      {
-        id: 'sandhya-bansuri',
-        title: 'संध्या बाँसुरी',
-        moodLabel: 'बाँसुरी एवं तानपूरा · मधुर',
-        duration: '02:48',
-        note: 'तानपूरे की गूँज के साथ बाँसुरी के शांत स्वर, आपके धैर्य, त्याग और स्नेह को नमन करते हुए।',
-      },
-      {
-        id: 'aarti-chime',
-        title: 'मंगल आरती स्वर',
-        moodLabel: 'पीतल घंटी · पावन',
-        duration: '02:24',
-        note: 'प्रातःकालीन प्रार्थना और पीतल की घंटी की पावन ध्वनि, संपूर्ण परिवार के मंगल की कामना सहित।',
-      },
-    ],
-    bookletEyebrow: 'हृदय की स्मृतियाँ',
-    bookletTitle: 'यादें और कृतज्ञता',
-    emptyBooklet: 'आपका स्नेह और आशीर्वाद हमारे घर की सबसे बड़ी शक्ति है।',
-    pranamSectionEyebrow: 'पीतल की थाली · सादर प्रणाम',
-    pranamInvite: 'सादर प्रणाम अर्पित करने और आशीर्वाद की मुहर लगाने के लिए नीचे दबाकर रखें।',
-    pranamHoldLabel: 'प्रणाम अर्पित करने के लिए दबाकर रखें',
-    pranamChargingLabel: 'प्रणाम अर्पित हो रहा है...',
-    pranamCompleteLabel: 'सादर प्रणाम समर्पित हुआ',
-    pranamAcknowledged: 'हाथ जोड़कर परिवार की ओर से सादर प्रणाम एवं मंगलकामनाएँ।',
-    pranamSendMore: (count) => `पुनः प्रणाम अर्पित करें (${count})`,
+    courtyardEyebrow: 'स्वर्णिम आँगन · सादर आशीर्वाद',
+    recipientPrefix: 'सादर एवं ससम्मान',
+    diyaSectionLabel: 'मंगल दीप प्रज्वलन',
+    lightDiyaCta: 'दीया प्रज्वलित करें',
+    diyaLitStatus: 'मंगल ज्योति प्रज्वलित',
+    diyaLitWhisper: 'आपके उत्तम स्वास्थ्य, शांति और दीर्घायु की पावन मंगलकामना।',
+    diyaUnlitWhisper: 'आँगन को स्वर्णिम आभा से भरने के लिए पीतल का दीया प्रज्वलित करें।',
+    scrollEyebrow: 'रेशमी आशीर्वाद पत्र',
+    signOffLabel: 'सादर प्रणाम एवं कृतज्ञता सहित,',
+    showerBlessingsCta: 'पुष्प वर्षा करें',
+    blessingsShoweredLabel: (count) =>
+      count === 1 ? 'गेंदा पुष्प आशीर्वाद समर्पित' : `${count} बार मंगल पुष्प वर्षा`,
+    galleryEyebrow: 'परिवार की धरोहर',
+    galleryTitle: 'आँगन की मधुर स्मृतियाँ',
+    galleryHint: 'विस्तार से देखने के लिए चित्र पर टैप करें',
+    photoCaptionPrefix: 'स्मृति',
+    highlightsEyebrow: 'हृदय की बातें',
+    closeModalLabel: 'चित्र बंद करें',
+    prevPhotoLabel: 'पिछला चित्र',
+    nextPhotoLabel: 'अगला चित्र',
+    defaultPhotoCaptions: ['स्वर्णिम आँगन', 'प्रातःकालीन गेंदा'],
   },
 };
 
 const RELATION_LABELS: Record<string, Record<CoreLanguageCode, string>> = {
-  mummy: { en: 'Beloved Mother', hinglish: 'Mummy / Maa', hi: 'मम्मी / माँ' },
-  papa: { en: 'Revered Father', hinglish: 'Papa / Pitaji', hi: 'पापा / पिताजी' },
-  grandparent: { en: 'Respected Elder', hinglish: 'Dada-Dadi / Nana-Nani', hi: 'दादा-दादी / नाना-नानी' },
+  mummy: { en: 'Beloved Mother', hinglish: 'Mummy · Maa', hi: 'मम्मी · माँ' },
+  papa: { en: 'Revered Father', hinglish: 'Papa · Pitaji', hi: 'पापा · पिताजी' },
+  grandparent: {
+    en: 'Respected Elder',
+    hinglish: 'Dada-Dadi · Nana-Nani',
+    hi: 'दादा-दादी · नाना-नानी',
+  },
 };
 
-function resolveRelationLabel(relation: string | undefined, coreLang: CoreLanguageCode): string | null {
+const FALLBACK_HERITAGE_PHOTOS: readonly string[] = [
+  'https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1605649487212-47bdab064df7?auto=format&fit=crop&w=800&q=80',
+];
+
+interface AmbientPetal {
+  id: number;
+  leftPct: number;
+  size: number;
+  delaySec: number;
+  durationSec: number;
+  swayPx: number;
+  rotateStart: number;
+  tone: string;
+}
+
+const AMBIENT_PETALS: readonly AmbientPetal[] = [
+  { id: 1, leftPct: 8, size: 14, delaySec: 0, durationSec: 11, swayPx: 18, rotateStart: 12, tone: '#F59E0B' },
+  { id: 2, leftPct: 21, size: 11, delaySec: 2.4, durationSec: 13, swayPx: -16, rotateStart: 45, tone: '#EA580C' },
+  { id: 3, leftPct: 37, size: 13, delaySec: 5.1, durationSec: 12, swayPx: 22, rotateStart: -20, tone: '#FBBF24' },
+  { id: 4, leftPct: 54, size: 10, delaySec: 1.2, durationSec: 14, swayPx: -14, rotateStart: 30, tone: '#D97706' },
+  { id: 5, leftPct: 71, size: 14, delaySec: 3.8, durationSec: 11.5, swayPx: 16, rotateStart: -35, tone: '#F59E0B' },
+  { id: 6, leftPct: 86, size: 12, delaySec: 6.3, durationSec: 12.8, swayPx: -20, rotateStart: 18, tone: '#EA580C' },
+  { id: 7, leftPct: 93, size: 10, delaySec: 4.4, durationSec: 13.5, swayPx: -12, rotateStart: 60, tone: '#FBBF24' },
+];
+
+interface BurstParticle {
+  id: string;
+  leftPct: number;
+  delayMs: number;
+  durationMs: number;
+  size: number;
+  kind: 'petal' | 'sparkle';
+  tone: string;
+  driftX: number;
+}
+
+function createBlessingBurst(waveId: number): BurstParticle[] {
+  const tones = ['#F59E0B', '#EA580C', '#FBBF24', '#D97706', '#FDE68A'];
+  return Array.from({ length: 18 }, (_, index) => {
+    const isSparkle = index % 3 === 0;
+    const leftPct = 6 + ((index * 17 + waveId * 13) % 88);
+    const driftX = (index % 2 === 0 ? 1 : -1) * (14 + ((index * 7) % 24));
+    return {
+      id: `wave-${waveId}-${index}`,
+      leftPct,
+      delayMs: (index % 6) * 110,
+      durationMs: 2600 + (index % 5) * 340,
+      size: isSparkle ? 12 + (index % 3) * 3 : 11 + (index % 4) * 3,
+      kind: isSparkle ? 'sparkle' : 'petal',
+      tone: tones[(index + waveId) % tones.length],
+      driftX,
+    };
+  });
+}
+
+function resolveRelationLabel(
+  relation: string | undefined,
+  coreLang: CoreLanguageCode,
+): string | null {
   if (!relation?.trim()) return null;
   const normalized = relation.trim().toLowerCase();
   const mapped = RELATION_LABELS[normalized];
@@ -225,264 +183,577 @@ function resolveRelationLabel(relation: string | undefined, coreLang: CoreLangua
   return relation.trim();
 }
 
-function MarigoldToranBorder() {
+function ScallopedJharokhaArch({ lit }: { lit: boolean }) {
   return (
     <svg
-      viewBox="0 0 360 36"
-      className="h-8 w-full shrink-0"
+      viewBox="0 0 420 132"
+      preserveAspectRatio="none"
+      className="pointer-events-none absolute inset-x-0 top-0 h-[112px] w-full sm:h-[132px]"
       fill="none"
       aria-hidden="true"
     >
+      {/* Outer sandstone arch fill framing the upper corners */}
       <path
-        d="M8 6 Q60 22 120 8 Q180 24 240 8 Q300 22 352 6"
-        stroke="#B45309"
-        strokeWidth="1.5"
-        strokeOpacity="0.55"
-        fill="none"
+        d="M0 0 H420 V132
+           C406 112 398 92 384 82
+           C374 75 362 72 356 62
+           C350 52 336 46 322 46
+           C312 34 294 28 278 31
+           C264 20 242 15 224 22
+           C218 14 213 10 210 6
+           C207 10 202 14 196 22
+           C178 15 156 20 142 31
+           C126 28 108 34 98 46
+           C84 46 70 52 64 62
+           C58 72 46 75 36 82
+           C22 92 14 112 0 132 Z"
+        fill={lit ? '#F5E3C3' : '#F3E5CC'}
+        fillOpacity="0.72"
       />
-      {[36, 90, 144, 180, 216, 270, 324].map((cx, index) => (
-        <g key={cx}>
-          <path
-            d={`M${cx - 12} 8 C${cx - 10} 20, ${cx - 4} 24, ${cx - 6} 10 Z`}
-            fill="#657A3A"
-            fillOpacity="0.68"
-          />
-          <path
-            d={`M${cx + 12} 8 C${cx + 10} 20, ${cx + 4} 24, ${cx + 6} 10 Z`}
-            fill="#657A3A"
-            fillOpacity="0.68"
-          />
-          <circle
-            cx={cx}
-            cy={index === 3 ? 17 : 13}
-            r={index === 3 ? 6.5 : 5}
-            fill="#D97706"
-          />
-          <circle
-            cx={cx}
-            cy={index === 3 ? 17 : 13}
-            r={index === 3 ? 3 : 2.2}
-            fill="#FEF3C7"
-          />
-        </g>
-      ))}
+      {/* Primary sculpted cusped jharokha line */}
+      <path
+        d="M4 128
+           C16 108 24 91 38 82
+           C48 75 59 72 65 62
+           C71 52 84 46 98 46
+           C108 34 126 28 142 31
+           C156 20 178 15 196 22
+           C202 14 207 10 210 6
+           C213 10 218 14 224 22
+           C242 15 264 20 278 31
+           C294 28 312 34 322 46
+           C336 46 349 52 355 62
+           C361 72 372 75 382 82
+           C396 91 404 108 416 128"
+        stroke="#B45309"
+        strokeOpacity={lit ? '0.62' : '0.45'}
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      {/* Delicate inner hairline molding */}
+      <path
+        d="M14 130
+           C25 112 33 96 45 88
+           C54 81 65 78 71 69
+           C77 59 89 54 102 54
+           C112 42 128 37 143 40
+           C157 29 178 24 195 31
+           C201 23 206 19 210 15
+           C214 19 219 23 225 31
+           C242 24 263 29 277 40
+           C292 37 308 42 318 54
+           C331 54 343 59 349 69
+           C355 78 366 81 375 88
+           C387 96 395 112 406 130"
+        stroke="#D97706"
+        strokeOpacity="0.34"
+        strokeWidth="1"
+        strokeDasharray="3 3"
+      />
+      {/* Keystone lotus finial at arch crown */}
+      <circle cx="210" cy="6" r="3" fill="#D97706" fillOpacity="0.7" />
+      <circle cx="210" cy="15" r="1.8" fill="#B45309" fillOpacity="0.55" />
     </svg>
   );
 }
 
-function BrassLotusKalashSeal() {
+function SwayingMarigoldToran() {
+  const garlandNodes = [34, 82, 130, 178, 210, 242, 290, 338, 386];
   return (
-    <div
-      className="relative flex h-24 w-24 items-center justify-center rounded-full border-2 border-[#D97706]/70 bg-gradient-to-br from-[#FEF3C7] via-[#FDE68A] to-[#D97706]/35 shadow-[0_4px_14px_rgba(180,83,9,0.22),inset_0_1px_2px_rgba(255,255,255,0.9)]"
-      aria-hidden="true"
-    >
-      <div className="flex h-[82px] w-[82px] items-center justify-center rounded-full border border-[#B45309]/45 bg-[#FFFBEB]/85">
-        <svg viewBox="0 0 64 64" className="h-12 w-12 text-[#B45309]" fill="none">
-          <circle cx="32" cy="32" r="27" stroke="currentColor" strokeWidth="1.2" strokeDasharray="2 3" />
-          <path
-            d="M32 13 C27 21, 27 28, 32 33 C37 28, 37 21, 32 13 Z"
-            fill="#D97706"
-            fillOpacity="0.22"
-            stroke="currentColor"
-            strokeWidth="1.6"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M32 33 C23 30, 17 24, 17 18 C23 19, 28 24, 32 33 Z"
-            fill="#D97706"
-            fillOpacity="0.16"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M32 33 C41 30, 47 24, 47 18 C41 19, 36 24, 32 33 Z"
-            fill="#D97706"
-            fillOpacity="0.16"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M23 35 H41 L38 41 C41 44, 39 50, 32 50 C25 50, 23 44, 26 41 Z"
-            fill="#B45309"
-            fillOpacity="0.14"
-            stroke="currentColor"
-            strokeWidth="1.7"
-            strokeLinejoin="round"
-          />
-          <path d="M21 35 H43" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-          <path d="M26 52 H38" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-        </svg>
-      </div>
+    <div className="pointer-events-none relative z-20 -mx-1 overflow-hidden pt-0.5" aria-hidden="true">
+      <svg
+        viewBox="0 0 420 64"
+        className="ashirwad-toran-sway h-14 w-full origin-top sm:h-16"
+        fill="none"
+      >
+        {/* Braided silk festoon cords */}
+        <path
+          d="M4 8 Q72 30 140 12 Q210 34 280 12 Q348 30 416 8"
+          stroke="#92400E"
+          strokeOpacity="0.55"
+          strokeWidth="1.6"
+        />
+        <path
+          d="M4 11 Q72 33 140 15 Q210 37 280 15 Q348 33 416 11"
+          stroke="#D97706"
+          strokeOpacity="0.45"
+          strokeWidth="1"
+        />
+
+        {/* Hanging mango leaves (aam patta) & ruffled marigold blossoms */}
+        {garlandNodes.map((cx, idx) => {
+          const isCenter = cx === 210;
+          const isValley = idx === 1 || idx === 4 || idx === 7;
+          const cy = isCenter ? 25 : isValley ? 22 : 16;
+          const r = isCenter ? 8.5 : isValley ? 6.8 : 5.8;
+
+          return (
+            <g key={cx}>
+              {/* Left & right mango leaves */}
+              <path
+                d={`M${cx - 5} ${cy + 1} C${cx - 14} ${cy + 10}, ${cx - 12} ${cy + 23}, ${cx - 6} ${cy + 27} C${cx - 2} ${cy + 20}, ${cx - 2} ${cy + 10}, ${cx - 5} ${cy + 1} Z`}
+                fill="#526B36"
+                fillOpacity="0.82"
+              />
+              <path
+                d={`M${cx - 6} ${cy + 5} L${cx - 8} ${cy + 22}`}
+                stroke="#A3B87A"
+                strokeWidth="0.7"
+                strokeOpacity="0.75"
+              />
+              <path
+                d={`M${cx + 5} ${cy + 1} C${cx + 14} ${cy + 10}, ${cx + 12} ${cy + 23}, ${cx + 6} ${cy + 27} C${cx + 2} ${cy + 20}, ${cx + 2} ${cy + 10}, ${cx + 5} ${cy + 1} Z`}
+                fill="#658042"
+                fillOpacity="0.82"
+              />
+              <path
+                d={`M${cx + 6} ${cy + 5} L${cx + 8} ${cy + 22}`}
+                stroke="#A3B87A"
+                strokeWidth="0.7"
+                strokeOpacity="0.75"
+              />
+
+              {/* Center hanging jasmine & marigold drop */}
+              {isCenter || isValley ? (
+                <g>
+                  <line
+                    x1={cx}
+                    y1={cy + r}
+                    x2={cx}
+                    y2={cy + r + (isCenter ? 19 : 13)}
+                    stroke="#B45309"
+                    strokeOpacity="0.55"
+                    strokeWidth="1.1"
+                  />
+                  <circle cx={cx} cy={cy + r + 5} r="2.2" fill="#FFFBEB" stroke="#D97706" strokeWidth="0.7" />
+                  <circle
+                    cx={cx}
+                    cy={cy + r + (isCenter ? 15 : 11)}
+                    r={isCenter ? 4.8 : 3.4}
+                    fill={isCenter ? '#EA580C' : '#F59E0B'}
+                  />
+                  <circle
+                    cx={cx}
+                    cy={cy + r + (isCenter ? 15 : 11)}
+                    r={isCenter ? 2.1 : 1.5}
+                    fill="#FEF3C7"
+                  />
+                </g>
+              ) : null}
+
+              {/* Layered marigold blossom */}
+              <circle cx={cx} cy={cy} r={r + 1.1} fill="#C2410C" fillOpacity="0.32" />
+              <circle cx={cx} cy={cy} r={r} fill={idx % 2 === 0 ? '#EA580C' : '#F59E0B'} />
+              <circle
+                cx={cx}
+                cy={cy}
+                r={r * 0.72}
+                fill={idx % 2 === 0 ? '#F59E0B' : '#FBBF24'}
+                stroke="#FFFBEB"
+                strokeOpacity="0.45"
+                strokeWidth="0.7"
+                strokeDasharray="1.6 1.4"
+              />
+              <circle cx={cx} cy={cy} r={r * 0.34} fill="#FEF3C7" />
+            </g>
+          );
+        })}
+      </svg>
     </div>
   );
 }
 
-function HammeredBrassDiya({ lit }: { lit: boolean }) {
+function BotanicalCornerFiligree({ className }: { className: string }) {
   return (
-    <div className="relative mx-auto flex h-32 w-36 items-center justify-center" aria-hidden="true">
-      {/* Warm radial bloom */}
-      <span
+    <svg
+      viewBox="0 0 48 48"
+      className={`pointer-events-none absolute h-10 w-10 text-[#B45309]/45 ${className}`}
+      fill="none"
+      aria-hidden="true"
+    >
+      {/* Curved botanical corner stem */}
+      <path
+        d="M4 38 V12 C4 7.5 7.5 4 12 4 H38"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+      />
+      {/* Lotus bud at corner */}
+      <path
+        d="M11 11 C15 9 19 10 21 14 C17 16 13 15 11 11 Z"
+        fill="#D97706"
+        fillOpacity="0.22"
+        stroke="currentColor"
+        strokeWidth="1"
+      />
+      <path
+        d="M11 11 C9 15 10 19 14 21 C16 17 15 13 11 11 Z"
+        fill="#D97706"
+        fillOpacity="0.22"
+        stroke="currentColor"
+        strokeWidth="1"
+      />
+      {/* Jasmine blossom accent */}
+      <circle cx="24" cy="8.5" r="1.8" fill="#FFFBEB" stroke="currentColor" strokeWidth="0.9" />
+      <circle cx="8.5" cy="24" r="1.8" fill="#FFFBEB" stroke="currentColor" strokeWidth="0.9" />
+      <circle cx="15" cy="15" r="1.5" fill="currentColor" />
+    </svg>
+  );
+}
+
+function LotusDivider() {
+  return (
+    <div className="my-4 flex items-center justify-center gap-3" aria-hidden="true">
+      <span className="h-px flex-1 bg-gradient-to-r from-transparent via-[#D97706]/35 to-[#B45309]/45" />
+      <svg viewBox="0 0 36 20" className="h-4 w-8 shrink-0 text-[#B45309]" fill="none">
+        <path
+          d="M18 3 C15.2 7.5, 15.2 12, 18 15.5 C20.8 12, 20.8 7.5, 18 3 Z"
+          fill="#D97706"
+          fillOpacity="0.26"
+          stroke="currentColor"
+          strokeWidth="1.15"
+        />
+        <path
+          d="M18 15.5 C12.5 14, 9 10.5, 8 7 C12.2 7.8, 15.5 10.8, 18 15.5 Z"
+          fill="#F59E0B"
+          fillOpacity="0.2"
+          stroke="currentColor"
+          strokeWidth="1.05"
+        />
+        <path
+          d="M18 15.5 C23.5 14, 27 10.5, 28 7 C23.8 7.8, 20.5 10.8, 18 15.5 Z"
+          fill="#F59E0B"
+          fillOpacity="0.2"
+          stroke="currentColor"
+          strokeWidth="1.05"
+        />
+        <circle cx="4" cy="11.5" r="1.2" fill="currentColor" fillOpacity="0.55" />
+        <circle cx="32" cy="11.5" r="1.2" fill="currentColor" fillOpacity="0.55" />
+      </svg>
+      <span className="h-px flex-1 bg-gradient-to-l from-transparent via-[#D97706]/35 to-[#B45309]/45" />
+    </div>
+  );
+}
+
+function BrassDiyaMedallion({ lit }: { lit: boolean }) {
+  const uid = useId();
+  const bowlGradId = `${uid}-brass-bowl`;
+  const rimGradId = `${uid}-brass-rim`;
+  const auraGradId = `${uid}-flame-aura`;
+  const flameOuterId = `${uid}-flame-outer`;
+  const flameInnerId = `${uid}-flame-inner`;
+
+  const rangoliAngles = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330];
+
+  return (
+    <div className="relative mx-auto flex h-48 w-56 items-center justify-center sm:h-52 sm:w-64" aria-hidden="true">
+      {/* Radiant amber halo when lit */}
+      <div
         className={`pointer-events-none absolute rounded-full transition-all duration-700 motion-reduce:transition-none ${
           lit
-            ? 'h-32 w-32 bg-amber-400/50 blur-xl animate-pulse motion-reduce:animate-none'
-            : 'h-16 w-16 bg-amber-300/20 blur-lg'
-        }`}
-      />
-      <span
-        className={`pointer-events-none absolute rounded-full border transition-all duration-700 motion-reduce:transition-none ${
-          lit
-            ? 'h-24 w-24 scale-105 border-[#F59E0B]/45 bg-[#FEF3C7]/55 opacity-100 blur-xs'
-            : 'h-12 w-12 scale-75 border-transparent bg-transparent opacity-0'
+            ? 'ashirwad-halo-breathe h-52 w-52 bg-[radial-gradient(circle,rgba(251,191,36,0.52)_0%,rgba(245,158,11,0.22)_46%,rgba(245,158,11,0)_74%)] opacity-100'
+            : 'h-28 w-28 bg-[radial-gradient(circle,rgba(217,119,6,0.14)_0%,rgba(217,119,6,0)_70%)] opacity-60'
         }`}
       />
 
-      <svg viewBox="0 0 112 84" className="relative h-28 w-32" fill="none">
+      <svg viewBox="0 0 220 185" className="relative z-10 h-full w-full" fill="none">
         <defs>
-          <radialGradient id="diya-bloom-aura" cx="50%" cy="32%" r="48%">
-            <stop offset="0%" stopColor="#FDE68A" stopOpacity={lit ? '0.85' : '0.25'} />
-            <stop offset="60%" stopColor="#F59E0B" stopOpacity={lit ? '0.28' : '0'} />
+          <radialGradient id={auraGradId} cx="50%" cy="32%" r="45%">
+            <stop offset="0%" stopColor="#FEF3C7" stopOpacity={lit ? '0.95' : '0.1'} />
+            <stop offset="48%" stopColor="#F59E0B" stopOpacity={lit ? '0.4' : '0'} />
             <stop offset="100%" stopColor="#F59E0B" stopOpacity="0" />
           </radialGradient>
-          <linearGradient id="brass-bowl-grad" x1="20" y1="44" x2="92" y2="66" gradientUnits="userSpaceOnUse">
+          <linearGradient id={bowlGradId} x1="56" y1="108" x2="164" y2="146" gradientUnits="userSpaceOnUse">
             <stop offset="0%" stopColor="#FDE68A" />
-            <stop offset="45%" stopColor="#D97706" />
-            <stop offset="100%" stopColor="#92400E" />
+            <stop offset="38%" stopColor="#D97706" />
+            <stop offset="76%" stopColor="#9A3412" />
+            <stop offset="100%" stopColor="#78350F" />
+          </linearGradient>
+          <linearGradient id={rimGradId} x1="60" y1="104" x2="160" y2="116" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stopColor="#FFFBEB" />
+            <stop offset="50%" stopColor="#F59E0B" />
+            <stop offset="100%" stopColor="#B45309" />
+          </linearGradient>
+          <linearGradient id={flameOuterId} x1="110" y1="30" x2="110" y2="96" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stopColor="#FEF08A" />
+            <stop offset="45%" stopColor="#F59E0B" />
+            <stop offset="100%" stopColor="#EA580C" />
+          </linearGradient>
+          <linearGradient id={flameInnerId} x1="110" y1="52" x2="110" y2="92" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stopColor="#FFFFFF" />
+            <stop offset="65%" stopColor="#FEF3C7" />
+            <stop offset="100%" stopColor="#FDE047" />
           </linearGradient>
         </defs>
 
-        <circle cx="56" cy="27" r="30" fill="url(#diya-bloom-aura)" />
+        {/* Rangoli lotus medallion base (perspective ellipse) */}
+        <g transform="translate(110 144)">
+          <ellipse
+            cx="0"
+            cy="0"
+            rx="86"
+            ry="27"
+            fill={lit ? '#FEF3C7' : '#F8EFE0'}
+            fillOpacity={lit ? '0.82' : '0.72'}
+            stroke="#D97706"
+            strokeOpacity={lit ? '0.58' : '0.35'}
+            strokeWidth="1.3"
+          />
+          <ellipse
+            cx="0"
+            cy="0"
+            rx="75"
+            ry="22.5"
+            stroke="#B45309"
+            strokeOpacity="0.34"
+            strokeWidth="1"
+            strokeDasharray="2.5 3.5"
+          />
+          {/* 12 lotus rangoli petals around the platter */}
+          <g transform="scale(1, 0.31)">
+            {rangoliAngles.map((deg, idx) => (
+              <g key={deg} transform={`rotate(${deg})`}>
+                <path
+                  d="M0 -42 C8 -56, 8 -70, 0 -78 C-8 -70, -8 -56, 0 -42 Z"
+                  fill={idx % 2 === 0 ? '#EA580C' : '#F59E0B'}
+                  fillOpacity={lit ? '0.26' : '0.16'}
+                  stroke="#B45309"
+                  strokeOpacity="0.4"
+                  strokeWidth="1.4"
+                />
+                <circle
+                  cx="0"
+                  cy="-84"
+                  r="2.8"
+                  fill={idx % 2 === 0 ? '#D97706' : '#658042'}
+                  fillOpacity="0.58"
+                />
+              </g>
+            ))}
+          </g>
+          {/* Soft shadow under diya pedestal */}
+          <ellipse cx="0" cy="-2" rx="34" ry="8" fill="#78350F" fillOpacity="0.2" />
+        </g>
 
-        {/* Blooming golden rays when lit */}
+        {/* Warm aura around flame */}
+        <circle cx="110" cy="64" r="56" fill={`url(#${auraGradId})`} />
+
+        {/* Radiant golden sun-rays when lit */}
         <g
           stroke="#D97706"
-          strokeWidth="1.6"
+          strokeWidth="1.5"
           strokeLinecap="round"
-          className="transition-all duration-500 motion-reduce:transition-none"
+          className="transition-all duration-700 motion-reduce:transition-none"
           style={{
-            opacity: lit ? 0.88 : 0,
+            opacity: lit ? 0.85 : 0,
             transform: lit ? 'scale(1)' : 'scale(0.65)',
-            transformOrigin: '56px 28px',
+            transformOrigin: '110px 66px',
           }}
         >
-          <line x1="56" y1="2" x2="56" y2="9" />
-          <line x1="39" y1="7" x2="43" y2="13" />
-          <line x1="73" y1="7" x2="69" y2="13" />
-          <line x1="26" y1="16" x2="33" y2="20" />
-          <line x1="86" y1="16" x2="79" y2="20" />
-          <line x1="21" y1="29" x2="29" y2="29" />
-          <line x1="91" y1="29" x2="83" y2="29" />
-          <circle cx="33" cy="11" r="1.4" fill="#F59E0B" stroke="none" />
-          <circle cx="79" cy="11" r="1.4" fill="#F59E0B" stroke="none" />
+          <line x1="110" y1="12" x2="110" y2="23" />
+          <line x1="82" y1="20" x2="88" y2="30" />
+          <line x1="138" y1="20" x2="132" y2="30" />
+          <line x1="60" y1="40" x2="70" y2="46" />
+          <line x1="160" y1="40" x2="150" y2="46" />
+          <line x1="52" y1="66" x2="64" y2="66" />
+          <line x1="168" y1="66" x2="156" y2="66" />
+          <circle cx="71" cy="29" r="1.8" fill="#F59E0B" stroke="none" />
+          <circle cx="149" cy="29" r="1.8" fill="#F59E0B" stroke="none" />
         </g>
 
-        {/* Sacred flame */}
-        <g
-          className="transition-transform duration-500 motion-reduce:transition-none"
-          style={{
-            transform: lit ? 'scale(1.16) translateY(-2px)' : 'scale(0.92)',
-            transformOrigin: '56px 40px',
-          }}
-        >
-          <path
-            d="M56 13 C49.5 22.5, 47 30, 50.5 36.5 C52.8 40, 59.2 40, 61.5 36.5 C65 30, 62.5 22.5, 56 13 Z"
-            fill={lit ? '#F59E0B' : '#FBBF24'}
-            stroke="#B45309"
-            strokeWidth="1.4"
-          />
-          <path
-            d="M56 19.5 C53 24.5, 52.5 29.5, 54.6 33 C55.3 34.2, 56.7 34.2, 57.4 33 C59.5 29.5, 59 24.5, 56 19.5 Z"
-            fill={lit ? '#FFFBEB' : '#FEF3C7'}
-          />
-        </g>
-
-        {/* Hammered brass diya bowl + spout */}
+        {/* Cotton wick resting in ghee */}
         <path
-          d="M25 45 C29 58, 41 64, 56 64 C71 64, 83 58, 87 45 C73 48.5, 39 48.5, 25 45 Z"
-          fill="url(#brass-bowl-grad)"
-          fillOpacity={lit ? '0.44' : '0.3'}
-          stroke="#92400E"
-          strokeWidth="1.8"
+          d="M110 96 C109 91, 110 86, 110 82"
+          stroke="#78350F"
+          strokeWidth="2.4"
+          strokeLinecap="round"
+        />
+
+        {/* Animated flickering flame when lit */}
+        {lit ? (
+          <g className="ashirwad-flame-flicker" style={{ transformOrigin: '110px 92px' }}>
+            <path
+              d="M110 31 C96 51, 91 68, 98 83 C102.5 91.5, 117.5 91.5, 122 83 C129 68, 124 51, 110 31 Z"
+              fill={`url(#${flameOuterId})`}
+              stroke="#B45309"
+              strokeOpacity="0.45"
+              strokeWidth="1.1"
+            />
+            <path
+              d="M110 51 C102.5 63, 101 74, 105.2 82.5 C107.2 86.2, 112.8 86.2, 114.8 82.5 C119 74, 117.5 63, 110 51 Z"
+              fill={`url(#${flameInnerId})`}
+            />
+          </g>
+        ) : (
+          /* Subtle unlit wick tip highlight */
+          <circle cx="110" cy="82" r="2.2" fill="#92400E" fillOpacity="0.6" />
+        )}
+
+        {/* Hammered brass diya body */}
+        <path
+          d="M58 108 C65 130, 84 140, 110 140 C136 140, 155 130, 162 108 C140 114, 80 114, 58 108 Z"
+          fill={`url(#${bowlGradId})`}
+          stroke="#78350F"
+          strokeWidth="1.7"
+          strokeLinejoin="round"
+        />
+        {/* Decorative lotus engraving band on brass bowl */}
+        <path
+          d="M72 121 Q82 127 91 122 Q100 129 110 123 Q120 129 129 122 Q138 127 148 121"
+          stroke="#FDE68A"
+          strokeOpacity="0.55"
+          strokeWidth="1.1"
+          fill="none"
+        />
+        {/* Hammered dimples */}
+        <g fill="#FEF3C7" fillOpacity="0.45">
+          <circle cx="81" cy="117" r="1.3" />
+          <circle cx="95" cy="119" r="1.4" />
+          <circle cx="110" cy="120" r="1.5" />
+          <circle cx="125" cy="119" r="1.4" />
+          <circle cx="139" cy="117" r="1.3" />
+        </g>
+
+        {/* Brass diya rim & glowing ghee pool */}
+        <ellipse
+          cx="110"
+          cy="108"
+          rx="52"
+          ry="8.5"
+          fill={`url(#${rimGradId})`}
+          stroke="#78350F"
+          strokeWidth="1.5"
+        />
+        <ellipse
+          cx="110"
+          cy="108"
+          rx="42"
+          ry="5.2"
+          fill={lit ? '#FEF3C7' : '#FDE68A'}
+          fillOpacity={lit ? '0.85' : '0.52'}
+        />
+
+        {/* Carved pedestal stem & foot */}
+        <path
+          d="M97 139 L91 147 H129 L123 139 Z"
+          fill="#B45309"
+          stroke="#78350F"
+          strokeWidth="1.5"
           strokeLinejoin="round"
         />
         <ellipse
-          cx="56"
-          cy="45"
-          rx="31"
-          ry="4.8"
-          fill="#FEF3C7"
-          fillOpacity="0.72"
-          stroke="#B45309"
-          strokeWidth="1.4"
-        />
-        {/* Hammered brass dimple accents */}
-        <g fill="#92400E" fillOpacity="0.45">
-          <circle cx="38" cy="53" r="1.2" />
-          <circle cx="46" cy="56" r="1.3" />
-          <circle cx="56" cy="57" r="1.3" />
-          <circle cx="66" cy="56" r="1.3" />
-          <circle cx="74" cy="53" r="1.2" />
-          <circle cx="51" cy="51.5" r="1" />
-          <circle cx="61" cy="51.5" r="1" />
-        </g>
-        {/* Pedestal base */}
-        <path d="M47 64 L43 70 M65 64 L69 70" stroke="#92400E" strokeWidth="1.8" strokeLinecap="round" />
-        <path d="M37 70 H75" stroke="#92400E" strokeWidth="2.2" strokeLinecap="round" />
-      </svg>
-    </div>
-  );
-}
-
-function ToranRosetteDivider() {
-  return (
-    <div className="my-3 flex items-center justify-center gap-3" aria-hidden="true">
-      <span className="h-px flex-1 bg-gradient-to-r from-transparent via-[#D97706]/45 to-[#B45309]/55" />
-      <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-[#B45309]" fill="none">
-        <path
-          d="M12 3 L15 9 L21 12 L15 15 L12 21 L9 15 L3 12 L9 9 Z"
+          cx="110"
+          cy="148"
+          rx="23"
+          ry="4"
           fill="#D97706"
-          fillOpacity="0.25"
-          stroke="currentColor"
+          stroke="#78350F"
           strokeWidth="1.4"
         />
-        <circle cx="12" cy="12" r="2" fill="currentColor" />
       </svg>
-      <span className="h-px flex-1 bg-gradient-to-l from-transparent via-[#D97706]/45 to-[#B45309]/55" />
     </div>
   );
 }
 
-function BrassThaliIcon() {
+function FlameButtonIcon() {
   return (
-    <svg viewBox="0 0 28 28" className="h-6 w-6 shrink-0" fill="none" aria-hidden="true">
-      <ellipse cx="14" cy="19" rx="11" ry="4.8" stroke="currentColor" strokeWidth="1.7" />
+    <svg viewBox="0 0 20 20" className="h-4 w-4 shrink-0" fill="none" aria-hidden="true">
       <path
-        d="M14 6.5 C12.5 9.5, 12 11.8, 13.2 13.3 C13.7 14, 14.3 14, 14.8 13.3 C16 11.8, 15.5 9.5, 14 6.5 Z"
+        d="M10 2.5 C7.2 6.5, 6 9.8, 7.5 13 C8.4 15, 11.6 15, 12.5 13 C14 9.8, 12.8 6.5, 10 2.5 Z"
         fill="currentColor"
       />
-      <path d="M10.5 15.5 H17.5 L16.2 18.2 H11.8 Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+      <path d="M5.5 16.5 H14.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
     </svg>
   );
 }
 
-function KhadiCornerFlourish({ className }: { className: string }) {
+function MarigoldPetalIcon() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      className={`pointer-events-none absolute h-5 w-5 text-[#B45309]/45 ${className}`}
-      fill="none"
-      aria-hidden="true"
-    >
-      <path d="M2 16 V4 C2 2.9 2.9 2 4 2 H16" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-      <circle cx="6.5" cy="6.5" r="1.4" fill="currentColor" />
+    <svg viewBox="0 0 20 20" className="h-4 w-4 shrink-0" fill="none" aria-hidden="true">
+      <path
+        d="M10 2.5 C12.5 5.5, 12.5 9.5, 10 12.5 C7.5 9.5, 7.5 5.5, 10 2.5 Z"
+        fill="currentColor"
+        fillOpacity="0.9"
+      />
+      <path
+        d="M10 12.5 C6 11.5, 3.5 9, 3 6.2 C6.2 6.8, 8.6 9.2, 10 12.5 Z"
+        fill="currentColor"
+        fillOpacity="0.65"
+      />
+      <path
+        d="M10 12.5 C14 11.5, 16.5 9, 17 6.2 C13.8 6.8, 11.4 9.2, 10 12.5 Z"
+        fill="currentColor"
+        fillOpacity="0.65"
+      />
+      <circle cx="10" cy="15.5" r="1.4" fill="currentColor" />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" aria-hidden="true">
+      <path d="M5 5 L15 15 M15 5 L5 15" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function ChevronIcon({ direction }: { direction: 'left' | 'right' }) {
+  return (
+    <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" aria-hidden="true">
+      <path
+        d={direction === 'left' ? 'M12.5 4.5 L7 10 L12.5 15.5' : 'M7.5 4.5 L13 10 L7.5 15.5'}
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function FallbackCourtyardArt({ index }: { index: number }) {
+  return (
+    <svg viewBox="0 0 180 220" className="h-full w-full" fill="none" aria-hidden="true">
+      <rect width="180" height="220" fill={index % 2 === 0 ? '#F9EFE0' : '#FBF3E4'} />
+      <circle cx="90" cy="76" r="38" fill="#FDE68A" fillOpacity="0.55" />
+      <path
+        d="M28 220 V96 C28 56 56 34 90 22 C124 34 152 56 152 96 V220"
+        stroke="#B45309"
+        strokeOpacity="0.45"
+        strokeWidth="1.6"
+      />
+      <path
+        d="M90 108 C80 124 80 142 90 156 C100 142 100 124 90 108 Z"
+        fill="#EA580C"
+        fillOpacity="0.28"
+        stroke="#B45309"
+        strokeWidth="1.3"
+      />
+      <path
+        d="M90 156 C72 150 60 138 56 124 C70 126 82 138 90 156 Z"
+        fill="#F59E0B"
+        fillOpacity="0.26"
+        stroke="#B45309"
+        strokeWidth="1.2"
+      />
+      <path
+        d="M90 156 C108 150 120 138 124 124 C110 126 98 138 90 156 Z"
+        fill="#F59E0B"
+        fillOpacity="0.26"
+        stroke="#B45309"
+        strokeWidth="1.2"
+      />
+      <path d="M52 174 H128" stroke="#B45309" strokeOpacity="0.45" strokeWidth="1.2" strokeLinecap="round" />
     </svg>
   );
 }
 
 /**
- * Continuous-flow Heirloom Family Blessing Website ("Birthday Ashirwad").
- * Designed with ceremonial marigold, brass, and khadi warmth for mothers, fathers, and elders.
+ * Sunlit Courtyard & Marigold Botanical Heirloom Experience ("Birthday Ashirwad").
+ * Features a scalloped jharokha arch, swaying marigold-and-mango-leaf toran,
+ * interactive brass diya lighting ritual, arched family keepsake gallery,
+ * and a serene silk blessing scroll with floating marigold petals.
  */
 export function BirthdayAshirwadSite({
   manifest,
@@ -491,385 +762,632 @@ export function BirthdayAshirwadSite({
   watermarked = false,
   onOpened,
 }: OccasionSiteProps) {
-  const [opened, setOpened] = useState(false);
   const [diyaLit, setDiyaLit] = useState(false);
-  const [pranamSealed, setPranamSealed] = useState(false);
-  const [pranamCount, setPranamCount] = useState(0);
+  const [blessingWaves, setBlessingWaves] = useState(0);
+  const [burstParticles, setBurstParticles] = useState<BurstParticle[]>([]);
+  const [failedPhotos, setFailedPhotos] = useState<Record<string, boolean>>({});
+  const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
+
+  const openedNotifiedRef = useRef(false);
+  const waveCounterRef = useRef(0);
+  const burstTimeoutRef = useRef<number | null>(null);
 
   const coreLang = toCoreLanguageCode(language);
   const copy = ASHIRWAD_COPY[coreLang] ?? ASHIRWAD_COPY.en;
-  const primaryColor = manifest.palette.primary || '#B45309';
-  const relationLabel = resolveRelationLabel(data.relation, coreLang);
+  const isHindi = coreLang === 'hi';
+  const hindiSafeStyle: React.CSSProperties | undefined = isHindi
+    ? { fontStyle: 'normal', letterSpacing: '0em' }
+    : undefined;
+
+  const accentColor = manifest.palette.primary || '#B45309';
   const themeTitle = pickLocalizedText(manifest.name, language);
+  const relationLabel = resolveRelationLabel(data.relation, coreLang);
   const headlineText = pickLocalizedText(data.headline, language);
   const messageText = pickLocalizedText(data.message, language);
-  const canUseBrassDropCap = coreLang !== 'hi' && /^[A-Za-z]/.test(messageText.trim());
   const highlights = data.highlights ?? [];
-  const hasPhotos = (data.photos ?? []).some((src) => typeof src === 'string' && src.trim().length > 0);
 
-  function handleOpen() {
-    setOpened(true);
-    onOpened?.();
+  const galleryItems = useMemo(() => {
+    const userPhotos = (data.photos ?? []).filter(
+      (src): src is string => typeof src === 'string' && src.trim().length > 0,
+    );
+    if (userPhotos.length > 0) {
+      return userPhotos.map((src, index) => ({
+        src,
+        caption: `${copy.photoCaptionPrefix} 0${index + 1}`,
+      }));
+    }
+    return FALLBACK_HERITAGE_PHOTOS.map((src, index) => ({
+      src,
+      caption: copy.defaultPhotoCaptions[index] ?? `${copy.photoCaptionPrefix} 0${index + 1}`,
+    }));
+  }, [copy.defaultPhotoCaptions, copy.photoCaptionPrefix, data.photos]);
+
+  const triggerPetalShower = useCallback(() => {
+    waveCounterRef.current += 1;
+    const nextWave = createBlessingBurst(waveCounterRef.current);
+    setBurstParticles(nextWave);
+
+    if (burstTimeoutRef.current !== null) {
+      window.clearTimeout(burstTimeoutRef.current);
+    }
+    burstTimeoutRef.current = window.setTimeout(() => {
+      setBurstParticles([]);
+    }, 4600);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (burstTimeoutRef.current !== null) {
+        window.clearTimeout(burstTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (activePhotoIndex === null) return;
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setActivePhotoIndex(null);
+      } else if (event.key === 'ArrowRight') {
+        setActivePhotoIndex((prev) =>
+          prev === null ? null : (prev + 1) % galleryItems.length,
+        );
+      } else if (event.key === 'ArrowLeft') {
+        setActivePhotoIndex((prev) =>
+          prev === null ? null : (prev - 1 + galleryItems.length) % galleryItems.length,
+        );
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activePhotoIndex, galleryItems.length]);
+
+  function handleLightDiya() {
+    setDiyaLit(true);
+    triggerPetalShower();
+    if (!openedNotifiedRef.current) {
+      openedNotifiedRef.current = true;
+      onOpened?.();
+    }
   }
 
-  function handleReplay() {
-    setOpened(false);
-    setDiyaLit(false);
-    setPranamSealed(false);
-    setPranamCount(0);
+  function handleShowerBlessings() {
+    setBlessingWaves((prev) => prev + 1);
+    triggerPetalShower();
+    if (!openedNotifiedRef.current) {
+      openedNotifiedRef.current = true;
+      onOpened?.();
+    }
   }
+
+  const activePhoto = activePhotoIndex !== null ? galleryItems[activePhotoIndex] ?? null : null;
 
   return (
-    <div className="relative flex min-h-full w-full max-w-full flex-col justify-between overflow-x-hidden rounded-[28px] bg-[#FFFBEB] text-[#2B1B2E]">
+    <div
+      className="relative flex min-h-full w-full max-w-full flex-col justify-between overflow-x-clip rounded-[28px] text-[#3B1F16] transition-colors duration-700 motion-reduce:transition-none"
+      style={{
+        background: diyaLit
+          ? 'linear-gradient(180deg, #FDF6E5 0%, #FBF0D9 42%, #FAF1E2 100%)'
+          : 'linear-gradient(180deg, #FBF6EC 0%, #F8EFE0 48%, #FBF5EA 100%)',
+      }}
+    >
+      <style>{`
+        @keyframes ashirwad-toran-sway {
+          0%, 100% { transform: rotate(-0.85deg); }
+          50% { transform: rotate(0.85deg); }
+        }
+        @keyframes ashirwad-petal-drift {
+          0% {
+            transform: translate3d(0, -24px, 0) rotate(0deg);
+            opacity: 0;
+          }
+          12% { opacity: 0.72; }
+          85% { opacity: 0.62; }
+          100% {
+            transform: translate3d(var(--sway-x, 18px), 520px, 0) rotate(220deg);
+            opacity: 0;
+          }
+        }
+        @keyframes ashirwad-petal-burst {
+          0% {
+            transform: translate3d(0, -16px, 0) scale(0.75) rotate(0deg);
+            opacity: 0;
+          }
+          14% { opacity: 0.95; }
+          82% { opacity: 0.85; }
+          100% {
+            transform: translate3d(var(--burst-x, 20px), 460px, 0) scale(1.05) rotate(260deg);
+            opacity: 0;
+          }
+        }
+        @keyframes ashirwad-flame-flicker {
+          0%, 100% { transform: scaleY(1) scaleX(1) skewX(0deg); }
+          25% { transform: scaleY(1.06) scaleX(0.96) skewX(-1.4deg); }
+          55% { transform: scaleY(0.96) scaleX(1.03) skewX(1.2deg); }
+          80% { transform: scaleY(1.04) scaleX(0.98) skewX(-0.8deg); }
+        }
+        @keyframes ashirwad-halo-breathe {
+          0%, 100% { transform: scale(1); opacity: 0.92; }
+          50% { transform: scale(1.07); opacity: 1; }
+        }
+        .ashirwad-toran-sway {
+          animation: ashirwad-toran-sway 6.2s ease-in-out infinite;
+        }
+        .ashirwad-petal-drift {
+          animation: ashirwad-petal-drift var(--dur, 12s) linear var(--delay, 0s) infinite;
+        }
+        .ashirwad-petal-burst {
+          animation: ashirwad-petal-burst var(--burst-dur, 3s) cubic-bezier(0.22, 0.61, 0.36, 1) var(--burst-delay, 0ms) forwards;
+        }
+        .ashirwad-flame-flicker {
+          animation: ashirwad-flame-flicker 2.1s ease-in-out infinite;
+        }
+        .ashirwad-halo-breathe {
+          animation: ashirwad-halo-breathe 3.8s ease-in-out infinite;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .ashirwad-toran-sway,
+          .ashirwad-petal-drift,
+          .ashirwad-petal-burst,
+          .ashirwad-flame-flicker,
+          .ashirwad-halo-breathe {
+            animation: none !important;
+          }
+        }
+      `}</style>
+
+      {/* Sunlit courtyard diagonal rays & warm ambient glow */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 overflow-hidden"
+        style={{
+          background: diyaLit
+            ? 'radial-gradient(ellipse 85% 48% at 50% 24%, rgba(251, 191, 36, 0.28) 0%, rgba(245, 158, 11, 0.08) 54%, transparent 78%), linear-gradient(125deg, rgba(255,251,235,0.55) 0%, transparent 45%, rgba(217,119,6,0.06) 100%)'
+            : 'radial-gradient(ellipse 80% 42% at 50% 18%, rgba(253, 230, 138, 0.28) 0%, transparent 72%), linear-gradient(125deg, rgba(255,251,235,0.5) 0%, transparent 48%, rgba(180,83,9,0.04) 100%)',
+        }}
+      />
+
+      {/* Scalloped Jharokha Arch framing the sunlit courtyard */}
+      <ScallopedJharokhaArch lit={diyaLit} />
+
+      {/* Gently drifting ambient golden marigold petals */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 z-10 overflow-hidden"
+      >
+        {AMBIENT_PETALS.map((petal) => (
+          <svg
+            key={petal.id}
+            viewBox="0 0 18 14"
+            className="ashirwad-petal-drift absolute top-0"
+            style={
+              {
+                left: `${petal.leftPct}%`,
+                width: `${petal.size}px`,
+                height: `${Math.round(petal.size * 0.78)}px`,
+                '--dur': `${petal.durationSec}s`,
+                '--delay': `${petal.delaySec}s`,
+                '--sway-x': `${petal.swayPx}px`,
+              } as React.CSSProperties
+            }
+            fill="none"
+          >
+            <path
+              d="M2 7 C4 2, 12 1, 16 6 C14 11, 6 13, 2 7 Z"
+              fill={petal.tone}
+              fillOpacity="0.62"
+              transform={`rotate(${petal.rotateStart} 9 7)`}
+            />
+          </svg>
+        ))}
+
+        {/* Interactive petal & lotus-sparkle shower wave */}
+        {burstParticles.map((particle) => (
+          <svg
+            key={particle.id}
+            viewBox="0 0 20 20"
+            className="ashirwad-petal-burst absolute top-2"
+            style={
+              {
+                left: `${particle.leftPct}%`,
+                width: `${particle.size}px`,
+                height: `${particle.size}px`,
+                '--burst-dur': `${particle.durationMs}ms`,
+                '--burst-delay': `${particle.delayMs}ms`,
+                '--burst-x': `${particle.driftX}px`,
+              } as React.CSSProperties
+            }
+            fill="none"
+          >
+            {particle.kind === 'sparkle' ? (
+              <path
+                d="M10 1 L12 8 L19 10 L12 12 L10 19 L8 12 L1 10 L8 8 Z"
+                fill={particle.tone}
+                fillOpacity="0.92"
+              />
+            ) : (
+              <path
+                d="M3 10 C5 4, 13 3, 17 9 C15 15, 7 17, 3 10 Z"
+                fill={particle.tone}
+                fillOpacity="0.88"
+              />
+            )}
+          </svg>
+        ))}
+      </div>
+
       {watermarked ? (
         <div
           aria-hidden="true"
-          className="pointer-events-none relative z-20 flex justify-center border-b border-[#F5E6C8] bg-[#FEF3C7]/90 py-1.5 text-[10px] font-bold tracking-[0.18em] text-[#92400E]"
+          className="pointer-events-none relative z-30 flex justify-center border-b border-[#E7D3AD] bg-[#FEF3C7]/90 py-1.5 text-[10px] font-bold tracking-[0.18em] text-[#92400E]"
         >
           WEBZY FREE PREVIEW
         </div>
       ) : null}
 
-      {!opened ? (
-        /* ACT 1: Marigold Toran & Brass Kalash Cover */
-        <div className="relative flex flex-1 flex-col justify-between overflow-hidden">
-          <OccasionArtworkBackdrop
-            src="/templates/occasions/birthday-ashirwad/cover.jpg"
-            fallbackGradient="linear-gradient(155deg, #FFFBEB 0%, #FEF3C7 60%, #FFF7ED 100%)"
-            className="object-cover object-center opacity-30"
-          />
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#FFFBEB]/45 via-transparent to-[#FEF3C7]/60"
-          />
+      {/* Swaying Marigold & Mango-Leaf Toran Garland */}
+      <SwayingMarigoldToran />
 
-          <div className="relative z-10 flex flex-1 flex-col items-center justify-center p-3.5 sm:p-6">
-            <div className="w-full max-w-md rounded-2xl border border-[#E7D3AD] bg-[#FFFBEB]/92 p-1.5 shadow-[0_10px_34px_rgba(180,83,9,0.14)] backdrop-blur-[2px]">
-              <div className="relative rounded-[12px] border border-[#D97706]/35 bg-[#FFFDF8]/92 px-4 py-6 text-center sm:px-6">
-                <KhadiCornerFlourish className="left-2.5 top-2.5" />
-                <KhadiCornerFlourish className="right-2.5 top-2.5 rotate-90" />
-                <KhadiCornerFlourish className="bottom-2.5 right-2.5 rotate-180" />
-                <KhadiCornerFlourish className="bottom-2.5 left-2.5 -rotate-90" />
+      {/* Main Courtyard Sanctuary Content */}
+      <main className="relative z-20 mx-auto flex w-full max-w-lg flex-1 flex-col gap-6 px-4 pb-7 pt-2 sm:px-6 sm:pt-3">
+        {/* 1. Sunlit Courtyard Header */}
+        <header className="text-center">
+          <span
+            style={hindiSafeStyle}
+            className={`inline-flex items-center gap-1.5 rounded-full border border-[#D97706]/30 bg-[#FFFDF8]/85 px-3.5 py-1 text-[11px] font-semibold text-[#9A3412] shadow-2xs backdrop-blur-xs ${
+              isHindi ? '' : 'uppercase tracking-[0.14em]'
+            }`}
+          >
+            <span className="h-1.5 w-1.5 rounded-full bg-[#D97706]" aria-hidden="true" />
+            <span>{copy.courtyardEyebrow}</span>
+          </span>
 
-                <MarigoldToranBorder />
+          <p
+            style={hindiSafeStyle}
+            className="mt-3 font-serif text-xs font-medium text-[#7C4A2D]"
+          >
+            {copy.recipientPrefix}
+          </p>
 
-                <div className="mt-4 flex flex-col items-center">
-                  <BrassLotusKalashSeal />
+          <h1
+            style={hindiSafeStyle}
+            className="mt-1 break-words font-heading text-[28px] font-bold leading-tight text-[#3B1F16] sm:text-[34px]"
+          >
+            {data.receiverName}
+          </h1>
 
-                  <span className="mt-5 inline-block max-w-full break-words rounded-full border border-[#F5E6C8] bg-white px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#B45309] shadow-2xs">
-                    {copy.coverBadge}
-                  </span>
+          {relationLabel ? (
+            <span
+              style={hindiSafeStyle}
+              className="mt-2 inline-flex min-h-[26px] items-center rounded-full border border-[#D97706]/25 bg-[#FEF3C7]/75 px-3.5 py-0.5 font-serif text-xs font-semibold text-[#92400E]"
+            >
+              {relationLabel}
+            </span>
+          ) : null}
+        </header>
 
-                  <h2 className="mt-4 max-w-full break-words font-heading text-[26px] font-bold leading-tight text-[#2B1B2E] sm:text-[32px]">
-                    {data.receiverName}
-                  </h2>
+        {/* 2. Interactive Brass Diya Lighting Ritual */}
+        <section
+          aria-label={copy.diyaSectionLabel}
+          className={`relative overflow-hidden rounded-[24px] border p-5 text-center transition-all duration-700 motion-reduce:transition-none sm:p-6 ${
+            diyaLit
+              ? 'border-[#D97706]/45 bg-[#FFFDF7]/92 shadow-[0_14px_38px_-12px_rgba(217,119,6,0.28)]'
+              : 'border-[#E6D3B3] bg-[#FFFDF8]/85 shadow-[0_10px_28px_-14px_rgba(120,53,15,0.16)]'
+          }`}
+        >
+          <BotanicalCornerFiligree className="left-2 top-2" />
+          <BotanicalCornerFiligree className="right-2 top-2 -scale-x-100" />
+          <BotanicalCornerFiligree className="bottom-2 right-2 -scale-x-100 -scale-y-100" />
+          <BotanicalCornerFiligree className="bottom-2 left-2 -scale-y-100" />
 
-                  {relationLabel ? (
-                    <span className="mt-2 inline-flex min-h-[28px] items-center rounded-full border border-[#D97706]/30 bg-[#FEF3C7]/70 px-3.5 py-0.5 font-serif text-xs font-semibold tracking-wide text-[#92400E]">
-                      {relationLabel}
-                    </span>
-                  ) : null}
+          <button
+            type="button"
+            onClick={handleLightDiya}
+            aria-pressed={diyaLit}
+            aria-label={diyaLit ? `${copy.diyaLitStatus} — ${themeTitle}` : copy.lightDiyaCta}
+            className="group relative mx-auto flex w-full flex-col items-center rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B45309] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FFFDF8]"
+          >
+            <BrassDiyaMedallion lit={diyaLit} />
 
-                  <p className="mt-3 max-w-full break-words font-serif text-base text-[#2B1B2E]/85">
-                    {copy.fromLabel}{' '}
-                    <span className="font-semibold text-[#2B1B2E]">{data.senderName}</span>
-                  </p>
+            <span
+              style={{
+                ...(hindiSafeStyle ?? {}),
+                background: diyaLit
+                  ? 'linear-gradient(180deg, #FEF3C7 0%, #FDE68A 100%)'
+                  : `linear-gradient(180deg, #D97706 0%, ${accentColor} 100%)`,
+              }}
+              className={`mt-2 inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full px-6 py-2.5 font-serif text-sm font-bold shadow-sm transition duration-200 group-hover:brightness-105 group-active:scale-[0.98] motion-reduce:transition-none ${
+                diyaLit
+                  ? 'border border-[#D97706]/45 text-[#92400E]'
+                  : 'border border-[#92400E]/80 text-[#FFFDF8] shadow-[0_6px_18px_-4px_rgba(180,83,9,0.42)]'
+              }`}
+            >
+              <FlameButtonIcon />
+              <span>{diyaLit ? copy.diyaLitStatus : copy.lightDiyaCta}</span>
+            </span>
+          </button>
 
-                  <button
-                    type="button"
-                    onClick={handleOpen}
-                    aria-label={`${copy.openCta} — ${themeTitle}`}
-                    className="mt-6 inline-flex min-h-[48px] w-full max-w-[260px] items-center justify-center rounded-full border border-[#92400E] bg-gradient-to-b from-[#D97706] to-[#B45309] px-7 py-3 font-serif text-base font-bold tracking-wide text-white shadow-[0_4px_14px_rgba(180,83,9,0.3)] transition duration-200 hover:brightness-105 active:translate-y-[1px] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B45309] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FFFBEB] motion-reduce:transition-none"
+          <p
+            style={hindiSafeStyle}
+            className="mx-auto mt-3 max-w-xs font-serif text-[13px] leading-relaxed text-[#6E442C]"
+          >
+            {diyaLit ? copy.diyaLitWhisper : copy.diyaUnlitWhisper}
+          </p>
+        </section>
+
+        {/* 3. Serene Silk Blessing Scroll */}
+        <section aria-label={copy.scrollEyebrow}>
+          <div className="rounded-[24px] border border-[#E2CCA6] bg-[#FBF3E4]/85 p-1.5 shadow-[0_12px_30px_-14px_rgba(120,53,15,0.16)]">
+            <div className="relative overflow-hidden rounded-[19px] border border-[#D97706]/28 bg-gradient-to-b from-[#FFFDF9] via-[#FFFBF2] to-[#FDF6E7] px-5 py-7 text-center sm:px-8 sm:py-8">
+              <BotanicalCornerFiligree className="left-2 top-2" />
+              <BotanicalCornerFiligree className="right-2 top-2 -scale-x-100" />
+              <BotanicalCornerFiligree className="bottom-2 right-2 -scale-x-100 -scale-y-100" />
+              <BotanicalCornerFiligree className="bottom-2 left-2 -scale-y-100" />
+
+              <span
+                style={hindiSafeStyle}
+                className={`inline-block rounded-full border border-[#E7D3AD] bg-[#FFFBEB] px-3.5 py-1 text-[10.5px] font-semibold text-[#9A3412] ${
+                  isHindi ? '' : 'uppercase tracking-[0.15em]'
+                }`}
+              >
+                {copy.scrollEyebrow}
+              </span>
+
+              <h2
+                style={hindiSafeStyle}
+                className="mt-3.5 break-words font-heading text-[22px] font-bold leading-snug text-[#3B1F16] sm:text-[26px]"
+              >
+                {headlineText}
+              </h2>
+
+              <LotusDivider />
+
+              <p
+                style={hindiSafeStyle}
+                className="mx-auto max-w-md break-words font-serif text-[16px] leading-[1.82] text-[#4A2B1D] sm:text-[17px]"
+              >
+                {messageText}
+              </p>
+
+              {highlights.length > 0 ? (
+                <div className="mt-5 space-y-2 border-t border-[#EBD8B7] pt-4 text-left">
+                  <p
+                    style={hindiSafeStyle}
+                    className={`text-center text-[10px] font-semibold text-[#9A3412]/80 ${
+                      isHindi ? '' : 'uppercase tracking-[0.14em]'
+                    }`}
                   >
-                    {copy.openCta}
-                  </button>
-
-                  <p className="mt-3 max-w-xs font-serif text-xs leading-relaxed text-[#2B1B2E]/65">
-                    {copy.coverHint}
+                    {copy.highlightsEyebrow}
                   </p>
+                  <div className="grid gap-2">
+                    {highlights.slice(0, 3).map((item, idx) => (
+                      <div
+                        key={`${item.title.en}-${idx}`}
+                        className="rounded-xl border border-[#EFE0C4] bg-[#FFFDF8]/90 px-3.5 py-2.5"
+                      >
+                        <h3
+                          style={hindiSafeStyle}
+                          className="break-words font-heading text-sm font-bold text-[#92400E]"
+                        >
+                          {pickLocalizedText(item.title, language)}
+                        </h3>
+                        <p
+                          style={hindiSafeStyle}
+                          className="mt-0.5 break-words font-serif text-[13.5px] leading-relaxed text-[#573524]"
+                        >
+                          {pickLocalizedText(item.detail, language)}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
+              ) : null}
+
+              <LotusDivider />
+
+              <div className="mt-2">
+                <p
+                  style={hindiSafeStyle}
+                  className="font-serif text-xs text-[#7C4A2D]"
+                >
+                  {copy.signOffLabel}
+                </p>
+                <p
+                  style={hindiSafeStyle}
+                  className="mt-1 break-words font-heading text-lg font-bold text-[#B45309]"
+                >
+                  {data.senderName}
+                </p>
+              </div>
+
+              {/* Interactive Shower Blessings trigger */}
+              <div className="mt-5 flex flex-col items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleShowerBlessings}
+                  style={hindiSafeStyle}
+                  className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-[#D97706]/50 bg-[#FEF3C7]/85 px-5 py-2 font-serif text-xs font-bold text-[#92400E] shadow-2xs transition duration-200 hover:bg-[#FDE68A]/85 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B45309] focus-visible:ring-offset-2 motion-reduce:transition-none"
+                >
+                  <MarigoldPetalIcon />
+                  <span>{copy.showerBlessingsCta}</span>
+                </button>
+
+                {blessingWaves > 0 ? (
+                  <p
+                    role="status"
+                    style={hindiSafeStyle}
+                    className="font-serif text-[11.5px] font-medium text-[#9A3412]"
+                  >
+                    {copy.blessingsShoweredLabel(blessingWaves)}
+                  </p>
+                ) : null}
               </div>
             </div>
           </div>
-        </div>
-      ) : (
-        /* ACT 2: Continuous Flowing Heirloom Sanctuary */
-        <div className="relative flex flex-1 flex-col justify-between bg-gradient-to-b from-[#FFFBEB] via-[#FEF9E7] to-[#FFFBEB] animate-fade-in motion-reduce:animate-none">
-          {/* Subtle ambient golden shimmer across the sanctuary */}
-          <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-75" aria-hidden="true">
-            <AmbientRainCanvas fireflies tint="#F59E0B" density="light" />
+        </section>
+
+        {/* 4. Arched Family Keepsake Gallery (2-up arched polaroid cards) */}
+        <section aria-label={copy.galleryTitle} className="space-y-3">
+          <div className="text-center">
+            <span
+              style={hindiSafeStyle}
+              className={`inline-block rounded-full border border-[#E7D3AD] bg-[#FFFDF8]/90 px-3.5 py-1 text-[10.5px] font-semibold text-[#9A3412] ${
+                isHindi ? '' : 'uppercase tracking-[0.14em]'
+              }`}
+            >
+              {copy.galleryEyebrow}
+            </span>
+            <h2
+              style={hindiSafeStyle}
+              className="mt-2 font-heading text-xl font-bold text-[#3B1F16]"
+            >
+              {copy.galleryTitle}
+            </h2>
+            <p
+              style={hindiSafeStyle}
+              className="mt-0.5 font-serif text-xs text-[#7C4A2D]"
+            >
+              {copy.galleryHint}
+            </p>
           </div>
 
-          <div className="relative z-10 mx-auto flex w-full max-w-xl flex-1 flex-col gap-5 px-3.5 pb-6 pt-3.5 sm:px-6 sm:pt-5">
-            {/* Top header bar with Heirloom badge & Replay control */}
-            <header className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-                <span className="inline-flex min-h-[34px] items-center rounded-full border border-[#E7D3AD] bg-white/90 px-3.5 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-[#B45309] shadow-2xs">
-                  {themeTitle}
-                </span>
-                {relationLabel ? (
-                  <span className="inline-flex min-h-[34px] items-center rounded-full border border-[#F5E6C8] bg-[#FEF3C7]/80 px-3 py-1 font-serif text-xs font-semibold text-[#92400E]">
-                    {relationLabel}
-                  </span>
-                ) : null}
-              </div>
-
-              <button
-                type="button"
-                onClick={handleReplay}
-                className="inline-flex min-h-[44px] shrink-0 items-center rounded-full border border-[#D97706]/45 bg-white/95 px-4 text-xs font-semibold text-[#2B1B2E] shadow-2xs transition hover:bg-[#FEF3C7]/70 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B45309] focus-visible:ring-offset-2 motion-reduce:transition-none"
-              >
-                {getReplayLabel(language)}
-              </button>
-            </header>
-
-            {/* 1. Sacred Diya Ritual */}
-            <section
-              aria-label={copy.sacredEyebrow}
-              className="rounded-2xl border border-[#E7D3AD] bg-white/95 p-1.5 shadow-[0_6px_22px_rgba(180,83,9,0.08)]"
-            >
-              <div className="rounded-[12px] border border-[#D97706]/25 bg-[#FFFDF8] px-4 py-5 text-center sm:px-6">
-                <MarigoldToranBorder />
-
-                <span className="mt-2 inline-block rounded-full border border-[#F5E6C8] bg-[#FFFBEB] px-3.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#B45309]">
-                  {copy.sacredEyebrow}
-                </span>
-
-                <div className="mt-4 flex flex-col items-center">
-                  <button
-                    type="button"
-                    onClick={() => setDiyaLit((lit) => !lit)}
-                    aria-pressed={diyaLit}
-                    aria-label={diyaLit ? copy.diyaLitBadge : copy.diyaPrompt}
-                    className={`group flex min-h-[48px] w-full max-w-sm flex-col items-center justify-center rounded-2xl border px-4 py-4 transition duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B45309] focus-visible:ring-offset-2 motion-reduce:transition-none ${
-                      diyaLit
-                        ? 'border-[#D97706]/60 bg-gradient-to-b from-[#FFFBEB] to-[#FEF3C7]/85 shadow-[0_8px_24px_rgba(217,119,6,0.18)]'
-                        : 'border-[#F5E6C8] bg-[#FFFBEB]/70 hover:border-[#D97706]/45 hover:bg-[#FFFBEB]'
-                    }`}
-                  >
-                    <HammeredBrassDiya lit={diyaLit} />
-
-                    {diyaLit ? (
-                      <span className="mt-2 inline-flex min-h-[34px] items-center rounded-full border border-[#D97706]/45 bg-white px-4 py-1 text-xs font-bold tracking-wide text-[#B45309] shadow-2xs animate-pop-bounce motion-reduce:animate-none">
-                        {copy.diyaLitBadge}
-                      </span>
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            {galleryItems.map((item, idx) => {
+              const isFailed = Boolean(failedPhotos[item.src]);
+              return (
+                <button
+                  key={`${item.src.slice(0, 32)}-${idx}`}
+                  type="button"
+                  onClick={() => setActivePhotoIndex(idx)}
+                  aria-label={`${item.caption} — ${copy.galleryHint}`}
+                  className="group flex flex-col rounded-t-[999px] rounded-b-[18px] border border-[#D97706]/35 bg-[#FFFDF9] p-2 pb-3 text-center shadow-[0_10px_24px_-14px_rgba(120,53,15,0.24)] transition duration-300 hover:-translate-y-0.5 hover:border-[#D97706]/65 hover:shadow-[0_14px_28px_-12px_rgba(180,83,9,0.28)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B45309] focus-visible:ring-offset-2 motion-reduce:transition-none"
+                >
+                  <div className="relative aspect-[4/5] w-full overflow-hidden rounded-t-[999px] rounded-b-[10px] border border-[#D97706]/25 bg-[#F8EFE0]">
+                    {!isFailed ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img
+                        src={item.src}
+                        alt={item.caption}
+                        loading="lazy"
+                        onError={() =>
+                          setFailedPhotos((prev) => ({ ...prev, [item.src]: true }))
+                        }
+                        className="h-full w-full object-cover transition duration-500 group-hover:scale-105 motion-reduce:transition-none"
+                      />
                     ) : (
-                      <span className="mt-2 inline-flex min-h-[34px] items-center rounded-full border border-[#F5E6C8] bg-white px-3.5 py-1.5 text-xs font-semibold leading-snug text-[#92400E] transition group-hover:border-[#D97706]/45">
-                        {copy.diyaPrompt}
-                      </span>
+                      <FallbackCourtyardArt index={idx} />
                     )}
-                  </button>
-
-                  {diyaLit ? (
-                    <p className="mt-3 max-w-sm font-serif text-sm font-medium leading-relaxed text-[#92400E] animate-fade-in motion-reduce:animate-none">
-                      {copy.diyaRelightHint}
-                    </p>
-                  ) : null}
-                </div>
-              </div>
-            </section>
-
-            {/* 2. Khadi Blessing Letter */}
-            <section aria-label={copy.letterTitle}>
-              <div className="rounded-2xl border border-[#E7D3AD] bg-[#FDF9EE]/95 p-1.5 shadow-[0_8px_26px_rgba(180,83,9,0.09)]">
-                <div className="relative rounded-[12px] border border-[#D97706]/35 bg-[#FFFDF8] px-4 py-6 text-center sm:px-7">
-                  <KhadiCornerFlourish className="left-2.5 top-2.5" />
-                  <KhadiCornerFlourish className="right-2.5 top-2.5 rotate-90" />
-                  <KhadiCornerFlourish className="bottom-2.5 right-2.5 rotate-180" />
-                  <KhadiCornerFlourish className="bottom-2.5 left-2.5 -rotate-90" />
-
-                  <span className="inline-block rounded-full border border-[#F5E6C8] bg-[#FFFBEB] px-3.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#B45309]">
-                    {copy.tributeEyebrow}
-                  </span>
-
-                  <p className="mt-2.5 text-xs font-semibold uppercase tracking-[0.14em] text-[#2B1B2E]/60">
-                    {copy.letterTitle}
-                  </p>
-
-                  <WordByWordFadeLine
-                    text={headlineText}
-                    active={opened}
-                    delayStepMs={65}
-                    className="mt-2 break-words font-heading text-[24px] font-bold leading-snug text-[#2B1B2E] sm:text-[28px]"
-                  />
-
-                  <ToranRosetteDivider />
-
-                  <p
-                    className={`mt-4 break-words text-left font-serif text-[17px] leading-[1.78] text-[#2B1B2E] sm:text-[18px] ${
-                      canUseBrassDropCap
-                        ? 'first-letter:float-left first-letter:mr-2.5 first-letter:mt-1 first-letter:font-heading first-letter:text-[42px] first-letter:font-bold first-letter:leading-[0.85] first-letter:text-[#B45309]'
-                        : ''
-                    }`}
-                  >
-                    {messageText}
-                  </p>
-
-                  <div className="clear-both pt-4">
-                    <ToranRosetteDivider />
-                  </div>
-
-                  <div className="mt-3 text-center">
-                    <p className="font-serif text-sm text-[#2B1B2E]/75">{copy.signOffPrefix}</p>
-                    <p className="mt-1 break-words font-heading text-lg font-bold text-[#B45309]">
-                      {data.senderName}
-                    </p>
-                    {relationLabel ? (
-                      <p className="mt-0.5 break-words text-xs font-semibold tracking-wide text-[#2B1B2E]/70">
-                        {data.receiverName} · {relationLabel}
-                      </p>
-                    ) : null}
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* 3. Adaptive Family Album (only rendered when photos exist; never renders dashed blanks) */}
-            {hasPhotos ? (
-              <section
-                aria-label={copy.photosTitle}
-                className="rounded-2xl border border-[#E7D3AD] bg-white/95 p-1.5 shadow-[0_6px_22px_rgba(180,83,9,0.08)]"
-              >
-                <div className="rounded-[12px] border border-[#D97706]/25 bg-[#FFFDF8] px-4 py-5 sm:px-6">
-                  <div className="text-center">
-                    <span className="inline-block rounded-full border border-[#F5E6C8] bg-[#FFFBEB] px-3.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#B45309]">
-                      {copy.albumEyebrow}
-                    </span>
-                    <h3 className="mt-2 font-heading text-xl font-bold text-[#2B1B2E]">
-                      {copy.photosTitle}
-                    </h3>
-                    <p className="mt-1 text-xs font-medium text-[#2B1B2E]/65">
-                      {copy.photosHint}
-                    </p>
-                  </div>
-
-                  <div className="mt-3">
-                    <OccasionAdaptiveGallery
-                      photos={data.photos}
-                      accentColor={primaryColor}
-                      captionPrefix={copy.photoCaptionPrefix}
+                    {/* Subtle warm sunlit vignette */}
+                    <span
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-0 rounded-t-[999px] rounded-b-[10px] ring-1 ring-inset ring-[#FDE68A]/45"
                     />
                   </div>
-                </div>
-              </section>
-            ) : null}
 
-            {/* 4. Classical Soundtrack Sanctuary */}
-            <section aria-label={copy.soundtrackHeading} className="space-y-1.5">
-              <p className="text-center font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-[#B45309]">
-                {copy.soundtrackEyebrow}
-              </p>
-              <CurvedTrackSanctuary
-                tracks={copy.tracks}
-                mood="festive"
-                accentColor={primaryColor}
-                dark={false}
-                heading={copy.soundtrackHeading}
-              />
-            </section>
-
-            {/* 5. Memories & Gratitude Cards */}
-            <section
-              aria-label={copy.bookletTitle}
-              className="rounded-2xl border border-[#E7D3AD] bg-white/95 p-1.5 shadow-[0_6px_22px_rgba(180,83,9,0.08)]"
-            >
-              <div className="rounded-[12px] border border-[#D97706]/25 bg-[#FFFDF8] px-4 py-5 sm:px-6">
-                <div className="text-center">
-                  <span className="inline-block rounded-full border border-[#F5E6C8] bg-[#FFFBEB] px-3.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#B45309]">
-                    {copy.bookletEyebrow}
+                  <span
+                    style={hindiSafeStyle}
+                    className="mt-2.5 block truncate px-1 font-serif text-xs font-semibold text-[#6E442C]"
+                  >
+                    {item.caption}
                   </span>
-                  <h3 className="mt-2 font-heading text-xl font-bold text-[#2B1B2E]">
-                    {copy.bookletTitle}
-                  </h3>
-                </div>
+                </button>
+              );
+            })}
+          </div>
+        </section>
 
-                {highlights.length > 0 ? (
-                  <div className="mt-4 space-y-3">
-                    {highlights.map((item, idx) => (
-                      <article
-                        key={`${item.title.en}-${idx}`}
-                        className="rounded-xl border border-[#F5E6C8] bg-[#FFFBEB]/80 px-4 py-3.5 text-left shadow-2xs"
-                      >
-                        <div className="flex items-start gap-3">
-                          <span
-                            aria-hidden="true"
-                            className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#D97706]/40 bg-white font-mono text-[11px] font-bold text-[#B45309]"
-                          >
-                            0{idx + 1}
-                          </span>
-                          <div className="min-w-0 flex-1">
-                            <h4 className="break-words font-heading text-base font-bold text-[#92400E] sm:text-lg">
-                              {pickLocalizedText(item.title, language)}
-                            </h4>
-                            <p className="mt-1 break-words font-serif text-[15.5px] leading-[1.68] text-[#2B1B2E]/90 sm:text-base">
-                              {pickLocalizedText(item.detail, language)}
-                            </p>
-                          </div>
-                        </div>
-                      </article>
-                    ))}
-                  </div>
+        {/* Footer */}
+        <footer
+          style={hindiSafeStyle}
+          className="mt-1 border-t border-[#E6D3B3] pt-4 text-center text-xs font-medium text-[#7C4A2D]"
+        >
+          {getWebzyFooterLabel(language)}
+        </footer>
+      </main>
+
+      {/* Tap-to-inspect Arched Keepsake Modal */}
+      {activePhoto && activePhotoIndex !== null ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={activePhoto.caption}
+          onClick={() => setActivePhotoIndex(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#2A160E]/75 p-4 backdrop-blur-xs"
+        >
+          <div
+            onClick={(event) => event.stopPropagation()}
+            className="relative w-full max-w-sm rounded-[26px] border border-[#D97706]/45 bg-[#FFFDF8] p-3.5 shadow-[0_24px_60px_rgba(24,10,5,0.45)]"
+          >
+            <button
+              type="button"
+              onClick={() => setActivePhotoIndex(null)}
+              aria-label={copy.closeModalLabel}
+              className="absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#D97706]/35 bg-[#FFFDF8]/95 text-[#78350F] shadow-xs transition hover:bg-[#FEF3C7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B45309]"
+            >
+              <CloseIcon />
+            </button>
+
+            <div className="overflow-hidden rounded-t-[180px] rounded-b-[14px] border border-[#D97706]/30 bg-[#F8EFE0]">
+              <div className="aspect-[4/5] w-full">
+                {!failedPhotos[activePhoto.src] ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={activePhoto.src}
+                    alt={activePhoto.caption}
+                    onError={() =>
+                      setFailedPhotos((prev) => ({ ...prev, [activePhoto.src]: true }))
+                    }
+                    className="h-full w-full object-cover"
+                  />
                 ) : (
-                  <p className="mt-4 rounded-xl border border-[#F5E6C8] bg-[#FFFBEB]/80 px-4 py-4 text-center font-serif text-base leading-[1.7] text-[#2B1B2E]">
-                    {copy.emptyBooklet}
-                  </p>
+                  <FallbackCourtyardArt index={activePhotoIndex} />
                 )}
               </div>
-            </section>
+            </div>
 
-            {/* 6. Brass Thali Pranam / Return Blessing Seal */}
-            <section
-              aria-label={copy.pranamSectionEyebrow}
-              className="rounded-2xl border border-[#D97706]/50 bg-gradient-to-br from-[#3A1E15] via-[#2B1613] to-[#201013] px-4 py-6 text-center text-white shadow-[0_12px_28px_rgba(43,27,46,0.22)] outline outline-1 -outline-offset-4 outline-[#F59E0B]/30 sm:px-6"
-            >
-              <div className="flex flex-col items-center">
-                <span className="inline-flex items-center gap-2 rounded-full border border-[#F59E0B]/35 bg-[#F59E0B]/15 px-3.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#FDE68A]">
-                  <BrassThaliIcon />
-                  <span>{copy.pranamSectionEyebrow}</span>
-                </span>
+            <div className="mt-3 flex items-center justify-between gap-2 px-1">
+              {galleryItems.length > 1 ? (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setActivePhotoIndex(
+                      (activePhotoIndex - 1 + galleryItems.length) % galleryItems.length,
+                    )
+                  }
+                  aria-label={copy.prevPhotoLabel}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#E6D3B3] bg-[#FFFBEB] text-[#78350F] transition hover:bg-[#FEF3C7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B45309]"
+                >
+                  <ChevronIcon direction="left" />
+                </button>
+              ) : (
+                <span className="w-9" />
+              )}
 
-                <p className="mt-3 max-w-sm font-serif text-sm leading-relaxed text-[#FEF3C7]/90">
-                  {copy.pranamInvite}
-                </p>
+              <p
+                style={hindiSafeStyle}
+                className="truncate font-serif text-sm font-semibold text-[#4A2B1D]"
+              >
+                {activePhoto.caption}
+              </p>
 
-                <div className="mt-5">
-                  <HoldToChargeRing
-                    label={copy.pranamHoldLabel}
-                    chargingLabel={copy.pranamChargingLabel}
-                    completeLabel={copy.pranamCompleteLabel}
-                    accentColor="#F59E0B"
-                    durationMs={1250}
-                    onComplete={() => {
-                      setPranamSealed(true);
-                      setPranamCount((c) => (c === 0 ? 1 : c));
-                    }}
-                  />
-                </div>
-
-                {pranamSealed ? (
-                  <div className="mt-4 flex w-full max-w-sm flex-col items-center gap-2.5 animate-fade-in motion-reduce:animate-none">
-                    <p className="rounded-xl border border-[#F59E0B]/35 bg-[#FFFBEB]/10 px-4 py-2.5 font-serif text-xs font-medium leading-relaxed text-[#FEF3C7]">
-                      {copy.pranamAcknowledged}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => setPranamCount((c) => c + 1)}
-                      className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-[#F59E0B]/55 bg-[#F59E0B]/20 px-5 py-2 font-serif text-xs font-bold text-[#FEF3C7] transition hover:bg-[#F59E0B]/30 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FDE68A] motion-reduce:transition-none"
-                    >
-                      <BrassThaliIcon />
-                      <span>{copy.pranamSendMore(pranamCount)}</span>
-                    </button>
-                  </div>
-                ) : null}
-              </div>
-            </section>
-
-            <footer className="mt-1 w-full border-t border-[#E7D3AD] pt-3.5 text-center text-xs font-medium text-[#2B1B2E]/70">
-              {getWebzyFooterLabel(language)}
-            </footer>
+              {galleryItems.length > 1 ? (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setActivePhotoIndex((activePhotoIndex + 1) % galleryItems.length)
+                  }
+                  aria-label={copy.nextPhotoLabel}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#E6D3B3] bg-[#FFFBEB] text-[#78350F] transition hover:bg-[#FEF3C7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B45309]"
+                >
+                  <ChevronIcon direction="right" />
+                </button>
+              ) : (
+                <span className="w-9" />
+              )}
+            </div>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

@@ -924,165 +924,27 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
     ],
     music: [{ id: 'track-08', label: 'Warm Cafe Acoustic', mood: 'upbeat', licenseStatus: 'verified' }],
     demoData: {
-      receiverName: 'Velvet Crumb Bakehouse',
-      senderName: 'Fresh Daily · Jaipur',
+      receiverName: 'Velvet Crumb',
+      senderName: 'Artisan Studio · Jaipur',
       relation: 'bakery',
       whatsappPhone: '919800000000',
-      photos: [
-        'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80',
-        'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=900&q=80',
-        'https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=900&q=80',
-        'https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=900&q=80',
-        'https://images.unsplash.com/photo-1517433670267-08bbd4be890f?auto=format&fit=crop&w=900&q=80',
-      ],
+      photos: [],
       offerTag: {
-        hinglish: 'Fresh Batch · Complimentary Gift Box & 20% Off First Custom Order',
-        hi: 'ताज़ा बैच · पहले कस्टम ऑर्डर पर 20% छूट और मुफ़्त गिफ्ट बॉक्स',
-        en: 'Fresh Small-Batch Menu · 20% Off First Custom Order',
+        hinglish: 'SAVE 20% · FIRST ORDER',
+        hi: '20% छूट · पहला ऑर्डर',
+        en: 'SAVE 20% · FIRST ORDER',
       },
       headline: {
-        hinglish: 'Velvet Crumb Bakehouse — Rozana Fresh & Handcrafted',
-        hi: 'वेलवेट क्रम बेकहाउस — हर दिन ताज़ा और स्वादिष्ट',
-        en: 'Velvet Crumb Bakehouse — Crafted Fresh Every Morning',
+        hinglish: 'Small-Batch Patisserie',
+        hi: 'आर्टिज़न पेस्ट्री स्टूडियो',
+        en: 'Small-Batch Patisserie',
       },
       message: {
-        hinglish:
-          'Belgian chocolate tarts, sourdough loaves aur custom celebration cakes — ab seedha WhatsApp par order karein.',
-        hi: 'बेल्जियन चॉकलेट टार्ट, आर्टिज़न ब्रेड और कस्टम सेलिब्रेशन केक — अब सीधे WhatsApp पर ऑर्डर करें।',
-        en: 'Small-batch celebration cakes, Belgian chocolate pastries, and curated gift hampers baked fresh daily with instant WhatsApp ordering.',
+        hinglish: 'Handcrafted daily · Direct WhatsApp order.',
+        hi: 'हर दिन ताज़ा · सीधा WhatsApp ऑर्डर।',
+        en: 'Handcrafted daily · Direct WhatsApp order.',
       },
-      highlights: [
-        {
-          title: { hinglish: 'Same-day fresh', hi: 'उसी दिन ताज़ा', en: 'Same-day fresh' },
-          detail: {
-            hinglish: 'Har subah chhote batches mein pure ingredients ke saath baked.',
-            hi: 'हर सुबह शुद्ध सामग्री के साथ छोटे बैच में तैयार।',
-            en: 'Baked every morning in small batches using pure ingredients.',
-          },
-        },
-        {
-          title: { hinglish: 'Custom gift hampers', hi: 'कस्टम गिफ्ट हैम्पर्स', en: 'Custom gift hampers' },
-          detail: {
-            hinglish: 'Celebrations aur corporate gifting ke liye curated ribbon boxes.',
-            hi: 'समारोह और कॉर्पोरेट गिफ्टिंग के लिए आकर्षक रिबन बॉक्स।',
-            en: 'Curated ribbon gift boxes tailored for celebrations and studio events.',
-          },
-        },
-        {
-          title: { hinglish: 'Instant WhatsApp bag', hi: 'सीधा WhatsApp ऑर्डर', en: 'Instant WhatsApp bag' },
-          detail: {
-            hinglish: 'Items bag mein add karein aur ek tap mein order message bhejein.',
-            hi: 'अपनी पसंद के आइटम बैग में जोड़ें और एक टैप में ऑर्डर भेजें।',
-            en: 'Customers build their bag and send a ready-to-confirm order in one tap.',
-          },
-        },
-      ],
-    },
-  },
-  {
-    id: 'business-greeting-01',
-    version: '1.0.0',
-    mode: 'ready-made',
-    occasion: 'business',
-    languages: ['hinglish', 'hi', 'en'],
-    price: { base: 99, compareAt: 249, addons: ['extend'] },
-    isActive: true,
-    name: {
-      hinglish: 'Business Greeting & Grand Opening',
-      hi: 'बिज़नेस शुभकामना और ग्रैंड ओपनिंग',
-      en: 'Business Festive & Launch Card',
-    },
-    audience: {
-      hinglish: 'Shops, coaching centers aur local brands ke liye',
-      hi: 'दुकान, कोचिंग और स्थानीय व्यवसाय के लिए',
-      en: 'For shops, salons, coaching classes, and local brands',
-    },
-    signatureMoment: {
-      hinglish: 'Grahakon ka dil se shukriya aur tyohar ke khaas tohfe ek jagah',
-      hi: 'ग्राहकों का दिल से शुक्रिया और त्योहार की खास पेशकश एक साथ',
-      en: 'A warm thank-you to loyal patrons paired with a festive celebration',
-    },
-    palette: {
-      primary: '#1D4ED8',
-      secondary: '#F59E0B',
-      surface: '#EFF6FF',
-      ink: '#1E293B',
-    },
-    fields: [
-      {
-        key: 'receiverName',
-        type: 'text',
-        required: true,
-        max: 40,
-        label: { hinglish: 'Business ka naam', hi: 'व्यवसाय का नाम', en: 'Business name' },
-      },
-      {
-        key: 'message',
-        type: 'longtext',
-        required: true,
-        aiDraft: true,
-        max: 240,
-        label: { hinglish: 'Offer ya greeting message', hi: 'ऑफ़र या संदेश', en: 'Offer or greeting note' },
-      },
-      {
-        key: 'whatsappPhone',
-        type: 'text',
-        optional: true,
-        max: 15,
-        label: { hinglish: 'WhatsApp number (business)', hi: 'बिज़नेस व्हाट्सऐप नंबर', en: 'Business WhatsApp number' },
-      },
-    ],
-    music: [{ id: 'track-09', label: 'Clean Corporate Bell', mood: 'crisp', licenseStatus: 'verified' }],
-    demoData: {
-      receiverName: 'Kesar Sweets & Bakery',
-      senderName: 'Owner',
-      whatsappPhone: '919800000000',
-      photos: [
-        'https://images.unsplash.com/photo-1615351897596-d3a9fffb5797?auto=format&fit=crop&w=900&q=80',
-        'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80',
-        'https://images.unsplash.com/photo-1600647993560-11a92e039466?auto=format&fit=crop&w=900&q=80',
-      ],
-      offerTag: {
-        hinglish: 'Festive Gift Boxes · 10% Off on Pre-Orders',
-        hi: 'त्योहार स्पेशल बॉक्स · प्री-ऑर्डर पर 10% छूट',
-        en: 'Festive Gift Boxes · 10% Off Pre-Orders',
-      },
-      headline: {
-        hinglish: 'Kesar Sweets ki taraf se Hardik Shubhkamnayein',
-        hi: 'केसर स्वीट्स की ओर से हार्दिक शुभकामनाएँ',
-        en: 'Warm Festive Wishes from Kesar Sweets',
-      },
-      message: {
-        hinglish: 'Naye saal par aapka bahut bahut dhanyavaad. Khaas offers ke liye humse judiye.',
-        hi: 'आपके विश्वास के लिए धन्यवाद। खास त्योहार ऑफ़र्स के लिए हमसे जुड़ें।',
-        en: 'Thank you for trusting our kitchen this year. Tap below to book your festive box.',
-      },
-      highlights: [
-        {
-          title: { hinglish: 'Shuddh aur taaza', hi: 'शुद्ध और ताज़ा स्वाद', en: 'Crafted fresh daily' },
-          detail: {
-            hinglish: 'Har mithai aur gift box pure desi ghee aur pyaar se taiyaar kiya gaya hai.',
-            hi: 'हर मिठाई और गिफ्ट बॉक्स शुद्ध देसी घी और प्यार से तैयार किया गया है।',
-            en: 'Every festive box is prepared fresh in small batches with pure ingredients.',
-          },
-        },
-        {
-          title: { hinglish: 'Khaas tyohar offer', hi: 'खास त्योहार ऑफ़र', en: 'Festive pre-order perk' },
-          detail: {
-            hinglish: 'Corporate aur family hampers par 10% vishesh chhoot is hafte ke liye.',
-            hi: 'फैमिली और कॉर्पोरेट हैंपर्स पर इस सप्ताह 10% विशेष छूट उपलब्ध है।',
-            en: 'Enjoy 10% off on curated family and corporate gift hampers this week.',
-          },
-        },
-        {
-          title: { hinglish: 'Ek tap mein booking', hi: 'आसान व्हाट्सऐप ऑर्डर', en: 'Easy WhatsApp booking' },
-          detail: {
-            hinglish: 'Apna pasandida box chunein aur same-day delivery ke liye seedha message karein.',
-            hi: 'अपना पसंदीदा बॉक्स चुनें और समय पर डिलीवरी के लिए सीधा संदेश भेजें।',
-            en: 'Message us directly on WhatsApp to reserve your box for doorstep delivery.',
-          },
-        },
-      ],
+      highlights: [],
     },
   },
   {

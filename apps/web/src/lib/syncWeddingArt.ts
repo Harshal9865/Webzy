@@ -111,27 +111,27 @@ const ARTWORK_MAP: Array<{ src: string; dest: string[] }> = [
     dest: ['occasions', 'birthday-confetti', 'cover.jpg'],
   },
   {
-    src: 'birthday_ashirwad_cover_1795410161724.jpg',
+    src: 'birthday_ashirwad_01_v2_1795707997123.jpg',
     dest: ['occasions', 'birthday-ashirwad', 'cover.jpg'],
   },
   {
-    src: 'twilight_stationery_flatlay_1795524071530.jpg',
+    src: 'will_you_01_cover_1795707706427.jpg',
     dest: ['occasions', 'will-you', 'cover.jpg'],
   },
   {
-    src: 'timeline_heart_tree_1795523941584.jpg',
+    src: 'our_timeline_01_1795707713007.jpg',
     dest: ['occasions', 'our-timeline', 'cover.jpg'],
   },
   {
-    src: 'timeline_heart_tree_1795523941584.jpg',
+    src: 'our_timeline_01_1795707713007.jpg',
     dest: ['occasions', 'our-timeline', 'scene.jpg'],
   },
   {
-    src: 'maan_jao_cover_1795523994195.jpg',
+    src: 'maan_jao_01_1795707734325.jpg',
     dest: ['occasions', 'maan-jao', 'cover.jpg'],
   },
   {
-    src: 'scrapbook_flatlay_fullbleed_1795524049203.jpg',
+    src: 'make_them_smile_01_cover_1795707681935.jpg',
     dest: ['occasions', 'make-them-smile', 'cover.jpg'],
   },
   {

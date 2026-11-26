@@ -2,10 +2,13 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import type { ThemeManifest } from '../schema';
+import { ThemeRenderer } from './ThemeRenderer';
 
 interface ThemeCardArtProps {
   theme: ThemeManifest;
 }
+
+const VIRTUAL_VIEWPORT_WIDTH = 390;
 
 const WEDDING_ART_PREVIEW: Record<
   string,
@@ -61,57 +64,13 @@ const WEDDING_ART_PREVIEW: Record<
   },
 };
 
-const OCCASION_ART_PREVIEW: Record<
-  string,
-  { cover: string; isDark?: boolean }
-> = {
-  'birthday-confetti-01': {
-    cover: '/templates/occasions/birthday-confetti/cover.jpg?v=2',
-    isDark: false,
-  },
-  'birthday-ashirwad-01': {
-    cover: '/templates/occasions/birthday-ashirwad/cover.jpg',
-  },
-  'will-you-01': {
-    cover: '/templates/occasions/will-you/cover.jpg',
-    isDark: true,
-  },
-  'our-timeline-01': {
-    cover: '/templates/occasions/our-timeline/cover.jpg',
-  },
-  'maan-jao-01': {
-    cover: '/templates/occasions/maan-jao/cover.jpg',
-  },
-  'make-them-smile-01': {
-    cover: '/templates/occasions/make-them-smile/cover.jpg',
-  },
-  'our-year-01': {
-    cover: '/templates/occasions/our-year/cover.jpg',
-    isDark: true,
-  },
-  'harvest-greeting-01': {
-    cover: '/templates/occasions/harvest-greeting/cover.jpg',
-  },
-  'portfolio-01': {
-    cover: '/templates/occasions/portfolio/cover.jpg?v=1',
-    isDark: false,
-  },
-  'small-business-01': {
-    cover: '/templates/occasions/small-business/cover.jpg?v=1',
-    isDark: false,
-  },
-  'business-greeting-01': {
-    cover: '/templates/occasions/business-greeting/cover.jpg',
-    isDark: true,
-  },
-};
-
 export function ThemeCardArt({ theme }: ThemeCardArtProps) {
   const [imgLoaded, setImgLoaded] = useState(false);
   const [imgFailed, setImgFailed] = useState(false);
+  const [previewScale, setPreviewScale] = useState(0.58);
   const imgRef = useRef<HTMLImageElement | null>(null);
+  const stageRef = useRef<HTMLDivElement | null>(null);
   const weddingPreview = WEDDING_ART_PREVIEW[theme.id];
-  const occasionPreview = OCCASION_ART_PREVIEW[theme.id];
 
   useEffect(() => {
     setImgFailed(false);
@@ -122,6 +81,31 @@ export function ThemeCardArt({ theme }: ThemeCardArtProps) {
       setImgLoaded(false);
     }
   }, [theme.id]);
+
+  // Measure card width so the live occasion website preview scales crisply to fill the exact card frame.
+  useEffect(() => {
+    if (weddingPreview) return;
+    const node = stageRef.current;
+    if (!node) return;
+
+    const updateScale = () => {
+      const width = node.clientWidth;
+      if (width > 0) {
+        setPreviewScale(width / VIRTUAL_VIEWPORT_WIDTH);
+      }
+    };
+
+    updateScale();
+
+    if (typeof ResizeObserver === 'function') {
+      const ro = new ResizeObserver(updateScale);
+      ro.observe(node);
+      return () => ro.disconnect();
+    }
+
+    window.addEventListener('resize', updateScale);
+    return () => window.removeEventListener('resize', updateScale);
+  }, [weddingPreview, theme.id]);
 
   if (weddingPreview) {
     const showLightOverlay = imgLoaded && !weddingPreview.isDark;
@@ -144,13 +128,12 @@ export function ThemeCardArt({ theme }: ThemeCardArtProps) {
               setImgLoaded(false);
               setImgFailed(true);
             }}
-            className={`h-full w-full object-cover object-bottom transition-all duration-500 group-hover:scale-105 ${
+            className={`absolute inset-0 h-full w-full object-cover object-bottom transition-all duration-500 group-hover:scale-105 ${
               imgLoaded ? 'opacity-100' : 'opacity-0'
             }`}
           />
         ) : null}
 
-        {/* Heritage Arch Filigree SVG shown cleanly whenever artwork .jpg is absent */}
         {!imgLoaded ? (
           <svg
             className="pointer-events-none absolute inset-0 h-full w-full opacity-45"
@@ -173,7 +156,7 @@ export function ThemeCardArt({ theme }: ThemeCardArtProps) {
         ) : null}
 
         <div
-          className={`absolute inset-0 flex flex-col items-center p-2.5 sm:p-3 text-center ${
+          className={`relative z-10 flex h-full flex-col items-center p-2.5 text-center sm:p-3 ${
             imgLoaded ? 'justify-start pt-3 sm:pt-4' : 'justify-center'
           }`}
           style={{
@@ -190,14 +173,14 @@ export function ThemeCardArt({ theme }: ThemeCardArtProps) {
             {weddingPreview.eyebrow}
           </span>
           <p
-            className={`mt-0.5 sm:mt-1 font-royal-script text-xl sm:text-2xl leading-tight ${
+            className={`mt-0.5 font-royal-script text-xl leading-tight sm:mt-1 sm:text-2xl ${
               showLightOverlay ? 'text-[#1E3524]' : 'text-[#FFF7E2]'
             }`}
           >
             {weddingPreview.couple}
           </p>
           <span
-            className={`mt-1 sm:mt-1.5 rounded-full border px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.16em] sm:tracking-[0.18em] ${
+            className={`mt-1 rounded-full border px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.16em] sm:mt-1.5 sm:tracking-[0.18em] ${
               showLightOverlay
                 ? 'border-[#C9A243]/70 bg-white/85 text-[#2D4F35]'
                 : 'border-[#E5C158]/60 bg-black/35 text-[#F8DF94]'
@@ -210,111 +193,57 @@ export function ThemeCardArt({ theme }: ThemeCardArtProps) {
     );
   }
 
-  const { primary, secondary, surface, ink } = theme.palette;
-  const showOccasionPhoto = Boolean(occasionPreview && !imgFailed);
+  const { primary, surface } = theme.palette;
 
   return (
     <div
-      className="relative aspect-[5/4] w-full overflow-hidden rounded-xl sm:rounded-2xl border border-black/8"
+      ref={stageRef}
+      className="relative aspect-[5/4] w-full overflow-hidden rounded-xl border border-black/10 sm:rounded-2xl"
       style={{
-        background: `linear-gradient(150deg, ${surface} 0%, #ffffff 100%)`,
+        backgroundColor: surface,
+        contain: 'layout style paint',
+        contentVisibility: 'auto',
       }}
       aria-hidden="true"
     >
-      {/* Bespoke Occasion Product Cover Artwork (synced automatically into /templates/occasions/...) */}
-      {showOccasionPhoto ? (
-        /* eslint-disable-next-line @next/next/no-img-element */
-        <img
-          key={occasionPreview.cover}
-          ref={imgRef}
-          src={occasionPreview.cover}
-          alt=""
-          onLoad={() => setImgLoaded(true)}
-          onError={() => {
-            setImgLoaded(false);
-            setImgFailed(true);
-          }}
-          className={`h-full w-full object-cover object-center transition-all duration-700 group-hover:scale-105 ${
-            imgLoaded ? 'opacity-100' : 'opacity-0'
-          }`}
-        />
-      ) : null}
-
-      {/* Fallback Ambient Shapes When Artwork Not Loaded Yet */}
-      {!imgLoaded ? (
-        <>
-          <div
-            className="absolute -right-6 -top-6 h-24 w-24 rounded-full opacity-20"
-            style={{ backgroundColor: secondary }}
-          />
-          <div
-            className="absolute -bottom-8 -left-6 h-28 w-28 rounded-full opacity-15"
-            style={{ backgroundColor: primary }}
-          />
-        </>
-      ) : null}
-
-      {/* Frosted/Scrimmed Editorial Overlay Preserving Text Contrast Across All Card Sizes */}
+      {/* Live scaled miniature of the exact website opened when clicking this card */}
       <div
-        className={`relative flex h-full flex-col justify-between p-2.5 sm:p-3.5 ${
-          imgLoaded
-            ? occasionPreview?.isDark
-              ? 'bg-gradient-to-b from-black/65 via-black/35 to-black/70'
-              : 'bg-gradient-to-b from-white/88 via-white/45 to-white/85'
-            : ''
-        }`}
+        className="pointer-events-none absolute left-0 top-0 select-none overflow-hidden"
+        style={{
+          width: `${VIRTUAL_VIEWPORT_WIDTH}px`,
+          height: '520px',
+          transform: `scale(${previewScale})`,
+          transformOrigin: 'top left',
+        }}
       >
-        <div
-          className={`flex h-full flex-col justify-between rounded-lg sm:rounded-xl p-2 sm:p-2.5 ${
-            imgLoaded
-              ? ''
-              : 'border border-black/5 bg-white/90 shadow-sm'
-          }`}
-        >
-          <div className="flex items-center justify-between gap-1.5 sm:gap-2">
-            <span
-              className="hidden h-2 w-8 rounded-full sm:inline-block sm:h-2.5 sm:w-12"
-              style={{ backgroundColor: imgLoaded && occasionPreview?.isDark ? '#F59E0B' : primary }}
-            />
-            <span
-              className="ml-auto rounded-full px-2 py-0.5 text-[9.5px] sm:text-[10px] font-bold uppercase tracking-wider text-white shadow-xs"
-              style={{ backgroundColor: primary }}
-            >
-              {theme.occasion}
-            </span>
-          </div>
+        <div className="h-full w-full transition-transform duration-500 ease-out group-hover:scale-[1.03]">
+          <ThemeRenderer
+            manifest={theme}
+            data={theme.demoData}
+            language="en"
+            watermarked={false}
+          />
+        </div>
+      </div>
 
-          <div className="my-auto py-1.5">
-            <p
-              className="line-clamp-1 font-heading text-sm font-bold"
-              style={{ color: imgLoaded && occasionPreview?.isDark ? '#FFFFFF' : ink }}
-            >
-              {theme.demoData.headline.hinglish}
-            </p>
-            <p
-              className="mt-1 line-clamp-2 text-[11px] leading-snug"
-              style={{ color: imgLoaded && occasionPreview?.isDark ? 'rgba(255,255,255,0.86)' : `${ink}CC` }}
-            >
-              {theme.demoData.message.hinglish}
-            </p>
-          </div>
+      {/* Subtle top/bottom edge scrim + clean occasion pill & tap prompt */}
+      <div className="pointer-events-none relative z-10 flex h-full flex-col justify-between bg-gradient-to-t from-black/40 via-transparent to-black/15 p-2 sm:p-2.5">
+        <div className="flex items-start justify-between">
+          <span
+            className="rounded-full px-2 py-0.5 text-[8.5px] font-bold uppercase tracking-wider text-white shadow-xs backdrop-blur-[2px] sm:text-[9.5px]"
+            style={{ backgroundColor: `${primary}E6` }}
+          >
+            {theme.occasion}
+          </span>
+        </div>
 
-          <div className="flex items-center justify-between pt-1">
-            <div className="flex gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-full ring-1 ring-white/50" style={{ backgroundColor: primary }} />
-              <span className="h-2.5 w-2.5 rounded-full ring-1 ring-white/50" style={{ backgroundColor: secondary }} />
-              <span className="h-2.5 w-2.5 rounded-full bg-[#FFE8EF] ring-1 ring-black/10" />
-            </div>
-            <span
-              className="rounded-full px-2.5 py-0.5 text-[10px] font-semibold shadow-xs"
-              style={{
-                backgroundColor: imgLoaded ? '#FFFFFF' : surface,
-                color: primary,
-              }}
-            >
-              Tap to open
-            </span>
-          </div>
+        <div className="flex items-end justify-end">
+          <span
+            className="rounded-full bg-white/95 px-2.5 py-0.5 text-[9px] font-bold shadow-xs backdrop-blur-xs sm:text-[10px]"
+            style={{ color: primary }}
+          >
+            Tap to open
+          </span>
         </div>
       </div>
     </div>

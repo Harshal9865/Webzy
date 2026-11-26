@@ -1,22 +1,48 @@
 'use client';
 
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { type LanguageCode, pickLocalizedText } from '@webzy/core';
 import type { ThemeDemoPayload, ThemeManifest } from '../schema';
-import { BirthdayAshirwadSite } from '../occasions/BirthdayAshirwadSite';
-import { BirthdayConfettiSite } from '../occasions/BirthdayConfettiSite';
-import { BusinessGreetingSite } from '../occasions/BusinessGreetingSite';
-import { HarvestGreetingSite } from '../occasions/HarvestGreetingSite';
-import { MaanJaoSite } from '../occasions/MaanJaoSite';
-import { MakeThemSmileSite } from '../occasions/MakeThemSmileSite';
-import { OurTimelineSite } from '../occasions/OurTimelineSite';
-import { OurYearWrappedSite } from '../occasions/OurYearWrappedSite';
-import { PortfolioSite } from '../occasions/PortfolioSite';
-import { SmallBusinessSite } from '../occasions/SmallBusinessSite';
-import { WillYouSite } from '../occasions/WillYouSite';
 import { getWeddingMockByTemplateId } from '../weddings/mockData';
 import { isWeddingTemplateId } from '../weddings/schema';
-import { WeddingScroll } from '../weddings/shared/WeddingScroll';
+
+// Code-split every theme renderer into its own on-demand chunk so pages never download all 14 themes at once.
+const BirthdayAshirwadSite = lazy(() =>
+  import('../occasions/BirthdayAshirwadSite').then((m) => ({ default: m.BirthdayAshirwadSite })),
+);
+const BirthdayConfettiSite = lazy(() =>
+  import('../occasions/BirthdayConfettiSite').then((m) => ({ default: m.BirthdayConfettiSite })),
+);
+const BusinessGreetingSite = lazy(() =>
+  import('../occasions/BusinessGreetingSite').then((m) => ({ default: m.BusinessGreetingSite })),
+);
+const HarvestGreetingSite = lazy(() =>
+  import('../occasions/HarvestGreetingSite').then((m) => ({ default: m.HarvestGreetingSite })),
+);
+const MaanJaoSite = lazy(() =>
+  import('../occasions/MaanJaoSite').then((m) => ({ default: m.MaanJaoSite })),
+);
+const MakeThemSmileSite = lazy(() =>
+  import('../occasions/MakeThemSmileSite').then((m) => ({ default: m.MakeThemSmileSite })),
+);
+const OurTimelineSite = lazy(() =>
+  import('../occasions/OurTimelineSite').then((m) => ({ default: m.OurTimelineSite })),
+);
+const OurYearWrappedSite = lazy(() =>
+  import('../occasions/OurYearWrappedSite').then((m) => ({ default: m.OurYearWrappedSite })),
+);
+const PortfolioSite = lazy(() =>
+  import('../occasions/PortfolioSite').then((m) => ({ default: m.PortfolioSite })),
+);
+const SmallBusinessSite = lazy(() =>
+  import('../occasions/SmallBusinessSite').then((m) => ({ default: m.SmallBusinessSite })),
+);
+const WillYouSite = lazy(() =>
+  import('../occasions/WillYouSite').then((m) => ({ default: m.WillYouSite })),
+);
+const WeddingScroll = lazy(() =>
+  import('../weddings/shared/WeddingScroll').then((m) => ({ default: m.WeddingScroll })),
+);
 
 interface ThemeRendererProps {
   manifest: ThemeManifest;
@@ -24,6 +50,21 @@ interface ThemeRendererProps {
   language?: LanguageCode;
   watermarked?: boolean;
   onOpened?: () => void;
+}
+
+function ThemeLoadingSkeleton({ surface, primary }: { surface: string; primary: string }) {
+  return (
+    <div
+      className="flex min-h-[360px] w-full flex-col items-center justify-center gap-3 rounded-[28px] p-6"
+      style={{ backgroundColor: surface }}
+      aria-busy="true"
+    >
+      <span
+        className="h-7 w-7 animate-spin rounded-full border-2 border-t-transparent"
+        style={{ borderColor: `${primary}40`, borderTopColor: primary }}
+      />
+    </div>
+  );
 }
 
 function renderOccasionMiniSite({
@@ -79,13 +120,13 @@ export function ThemeRenderer({
     const baseWedding = getWeddingMockByTemplateId(manifest.id);
     const weddingLang =
       language === 'hi' ||
-        language === 'gu' ||
-        language === 'mr' ||
-        language === 'pa' ||
-        language === 'bn' ||
-        language === 'ta' ||
-        language === 'te' ||
-        language === 'kn'
+      language === 'gu' ||
+      language === 'mr' ||
+      language === 'pa' ||
+      language === 'bn' ||
+      language === 'ta' ||
+      language === 'te' ||
+      language === 'kn'
         ? language
         : 'en';
 
@@ -111,27 +152,47 @@ export function ThemeRenderer({
         : baseWedding.gallery;
 
     return (
-      <WeddingScroll
-        data={{
-          ...baseWedding,
-          language: weddingLang,
-          brideName,
-          groomName,
-          personalMessage: customMessage || baseWedding.personalMessage,
-          gallery: customGallery,
-        }}
-        embedded
-        onOpen={onOpened}
-      />
+      <Suspense
+        fallback={
+          <ThemeLoadingSkeleton
+            surface={manifest.palette.surface}
+            primary={manifest.palette.primary}
+          />
+        }
+      >
+        <WeddingScroll
+          data={{
+            ...baseWedding,
+            language: weddingLang,
+            brideName,
+            groomName,
+            personalMessage: customMessage || baseWedding.personalMessage,
+            gallery: customGallery,
+          }}
+          embedded
+          onOpen={onOpened}
+        />
+      </Suspense>
     );
   }
 
   const payload = data ?? manifest.demoData;
-  return renderOccasionMiniSite({
-    manifest,
-    data: payload,
-    language,
-    watermarked,
-    onOpened,
-  });
+  return (
+    <Suspense
+      fallback={
+        <ThemeLoadingSkeleton
+          surface={manifest.palette.surface}
+          primary={manifest.palette.primary}
+        />
+      }
+    >
+      {renderOccasionMiniSite({
+        manifest,
+        data: payload,
+        language,
+        watermarked,
+        onOpened,
+      })}
+    </Suspense>
+  );
 }

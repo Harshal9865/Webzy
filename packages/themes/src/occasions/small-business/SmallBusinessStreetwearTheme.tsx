@@ -20,6 +20,7 @@ interface ColorwayOption {
   id: string;
   label: string;
   hex: string;
+  shadeHex: string;
   strokeHex: string;
   detailHex: string;
 }
@@ -30,12 +31,22 @@ interface StreetwearDrop {
   code: string;
   price: number;
   spec: string;
+  kind: 'jacket' | 'cargo' | 'hoodie';
 }
 
+const SAMPLE_PHOTOS: readonly string[] = [
+  'https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=900&q=80',
+  'https://images.unsplash.com/photo-1523398002811-999ca8dec234?auto=format&fit=crop&w=900&q=80',
+  'https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=900&q=80',
+  'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=900&q=80',
+  'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=80',
+  'https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=900&q=80',
+];
+
 const COLORWAYS: readonly ColorwayOption[] = [
-  { id: 'obsidian', label: 'Obsidian', hex: '#141416', strokeHex: '#FFFFFF', detailHex: '#52525B' },
-  { id: 'chalk', label: 'Chalk', hex: '#EBEAE4', strokeHex: '#111111', detailHex: '#A1A1AA' },
-  { id: 'slate', label: 'Graphite', hex: '#38404D', strokeHex: '#E4E4E7', detailHex: '#71717A' },
+  { id: 'obsidian', label: 'Obsidian', hex: '#161618', shadeHex: '#0A0A0C', strokeHex: '#FFFFFF', detailHex: '#52525B' },
+  { id: 'chalk', label: 'Chalk', hex: '#EAE8E1', shadeHex: '#D1CEC3', strokeHex: '#111111', detailHex: '#71717A' },
+  { id: 'slate', label: 'Graphite', hex: '#343B46', shadeHex: '#202630', strokeHex: '#F4F4F5', detailHex: '#94A3B8' },
 ];
 
 const SIZES: readonly SizeOption[] = ['XS', 'S', 'M', 'L', 'XL'];
@@ -44,105 +55,179 @@ const RELEVANT_DROPS: readonly StreetwearDrop[] = [
   {
     id: 'sw-1',
     name: 'BOX SHELL JACKET 04',
-    code: 'ARCHIVE-04',
+    code: 'ARC-04',
     price: 3499,
-    spec: '100% Heavyweight Cotton · Tailored Cut · 400 GSM',
+    spec: '400 GSM Heavy Cotton',
+    kind: 'jacket',
   },
   {
     id: 'sw-2',
-    name: 'RAW SEAM CARGO PANT',
-    code: 'UTILITY-09',
+    name: 'RAW SEAM CARGO',
+    code: 'UTL-09',
     price: 2699,
-    spec: 'Ripstop Twill · Articulated Knee · Matte Hardware',
+    spec: 'Ripstop Articulated Twill',
+    kind: 'cargo',
   },
   {
     id: 'sw-3',
     name: 'BOXY DROP HOODIE',
-    code: 'CORE-12',
+    code: 'COR-12',
     price: 2299,
-    spec: '440 GSM French Terry · Dropped Shoulder',
+    spec: '440 GSM French Terry',
+    kind: 'hoodie',
   },
 ];
 
-function TechnicalGarmentSvg({
+/** Editorial Streetwear Lookbook Art Plates with halftone backdrop, registration marks & architectural shading. */
+function TechnicalGarmentArtPlate({
   angleIdx,
   colorway,
+  uid,
 }: {
   angleIdx: GarmentAngleIdx;
   colorway: ColorwayOption;
+  uid: string;
 }) {
-  if (angleIdx === 0) {
-    // Front technical jacket blueprint
-    return (
-      <svg viewBox="0 0 220 200" className="h-full w-full" aria-hidden="true">
-        <rect x="0" y="0" width="220" height="200" fill="#FAFAFA" />
-        <path d="M20 20h180M20 180h180" stroke="#111111" strokeWidth="0.6" strokeOpacity="0.15" />
-        {/* Jacket body */}
-        <path
-          d="M72 34 L94 26 L126 26 L148 34 L182 64 L168 156 L146 156 L154 78 L148 166 L72 166 L66 78 L74 156 L52 156 L38 64 Z"
-          fill={colorway.hex}
-          stroke="#111111"
-          strokeWidth="2"
-          strokeLinejoin="round"
-        />
-        {/* Collar & center zip */}
-        <path d="M94 26 L110 46 L126 26" fill="none" stroke={colorway.strokeHex} strokeWidth="1.8" />
-        <line x1="110" y1="46" x2="110" y2="166" stroke={colorway.strokeHex} strokeWidth="1.6" strokeDasharray="3 2" />
-        {/* Chest pocket welt */}
-        <rect x="78" y="84" width="24" height="28" fill="none" stroke={colorway.strokeHex} strokeWidth="1.3" />
-        <rect x="118" y="84" width="24" height="28" fill="none" stroke={colorway.strokeHex} strokeWidth="1.3" />
-        {/* Technical callout */}
-        <text x="16" y="18" fontSize="8" fontFamily="monospace" fill="#111111">FIG 01 // FRONT SILHOUETTE</text>
-      </svg>
-    );
-  }
-  if (angleIdx === 1) {
-    // Drape / side silhouette
-    return (
-      <svg viewBox="0 0 220 200" className="h-full w-full" aria-hidden="true">
-        <rect x="0" y="0" width="220" height="200" fill="#FAFAFA" />
-        <path
-          d="M84 30 C110 24, 136 38, 142 70 L152 158 L70 164 L78 72 Z"
-          fill={colorway.hex}
-          stroke="#111111"
-          strokeWidth="2"
-        />
-        <path d="M98 62 C112 96, 118 124, 114 158" fill="none" stroke={colorway.strokeHex} strokeWidth="1.6" strokeOpacity="0.8" />
-        <path d="M120 50 C134 86, 138 118, 134 156" fill="none" stroke={colorway.detailHex} strokeWidth="1.4" />
-        <text x="16" y="18" fontSize="8" fontFamily="monospace" fill="#111111">FIG 02 // SHOULDER DRAPE</text>
-      </svg>
-    );
-  }
-  if (angleIdx === 2) {
-    // Stitch close-up macro
-    return (
-      <svg viewBox="0 0 220 200" className="h-full w-full" aria-hidden="true">
-        <rect x="0" y="0" width="220" height="200" fill={colorway.hex} />
-        <line x1="0" y1="100" x2="220" y2="100" stroke={colorway.strokeHex} strokeWidth="2" />
-        <line x1="0" y1="88" x2="220" y2="88" stroke={colorway.strokeHex} strokeWidth="1.8" strokeDasharray="8 6" />
-        <line x1="0" y1="112" x2="220" y2="112" stroke={colorway.strokeHex} strokeWidth="1.8" strokeDasharray="8 6" />
-        <rect x="14" y="12" width="136" height="18" fill="#111111" />
-        <text x="20" y="24" fontSize="8" fontFamily="monospace" fill="#FFFFFF">FIG 03 // DOUBLE-NEEDLE STITCH</text>
-      </svg>
-    );
-  }
-  // Flat-lay dimension diagram
   return (
-    <svg viewBox="0 0 220 200" className="h-full w-full" aria-hidden="true">
-      <rect x="0" y="0" width="220" height="200" fill="#FAFAFA" />
-      <rect x="64" y="42" width="92" height="118" fill={colorway.hex} stroke="#111111" strokeWidth="2" />
-      <line x1="48" y1="42" x2="48" y2="160" stroke="#111111" strokeWidth="1" />
-      <line x1="44" y1="42" x2="52" y2="42" stroke="#111111" strokeWidth="1" />
-      <line x1="44" y1="160" x2="52" y2="160" stroke="#111111" strokeWidth="1" />
-      <line x1="64" y1="176" x2="156" y2="176" stroke="#111111" strokeWidth="1" />
-      <text x="16" y="18" fontSize="8" fontFamily="monospace" fill="#111111">FIG 04 // FLAT SPEC 68CM</text>
+    <svg viewBox="0 0 280 220" className="h-full w-full" aria-hidden="true">
+      <defs>
+        <pattern id={`dots-${uid}`} width="8" height="8" patternUnits="userSpaceOnUse">
+          <circle cx="2" cy="2" r="0.9" fill="#111111" fillOpacity="0.14" />
+        </pattern>
+        <linearGradient id={`garment-grad-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor={colorway.hex} />
+          <stop offset="100%" stopColor={colorway.shadeHex} />
+        </linearGradient>
+      </defs>
+
+      {/* Studio backdrop with halftone editorial block */}
+      <rect x="0" y="0" width="280" height="220" fill="#F6F5F1" />
+      <rect x="148" y="0" width="132" height="220" fill={`url(#dots-${uid})`} />
+      {/* Bold geometric accent stripe */}
+      <rect x="18" y="18" width="4" height="184" fill="#111111" />
+      {/* Registration crosshairs */}
+      <g stroke="#111111" strokeWidth="0.9" strokeOpacity="0.45">
+        <path d="M254 16v10M249 21h10" />
+        <path d="M254 194v10M249 199h10" />
+      </g>
+
+      {angleIdx === 0 ? (
+        <g>
+          {/* Architectural floor shadow */}
+          <ellipse cx="144" cy="192" rx="68" ry="9" fill="#111111" fillOpacity="0.16" />
+          {/* Boxy technical shell silhouette */}
+          <path
+            d="M104 34 L126 24 L158 24 L180 34 L218 68 L202 170 L178 170 L186 84 L180 182 L104 182 L98 84 L106 170 L82 170 L66 68 Z"
+            fill={`url(#garment-grad-${uid})`}
+            stroke="#111111"
+            strokeWidth="2"
+            strokeLinejoin="round"
+          />
+          {/* Sculpted storm collar & hood fold */}
+          <path d="M126 24 L142 46 L158 24" fill="none" stroke={colorway.strokeHex} strokeWidth="1.8" />
+          <path d="M116 32 L142 54 L168 32" fill="none" stroke={colorway.detailHex} strokeWidth="1.2" />
+          {/* Concealed storm placket */}
+          <rect x="139" y="46" width="6" height="136" fill={colorway.shadeHex} stroke={colorway.strokeHex} strokeWidth="0.8" />
+          {/* 3D Bellows Utility Pockets */}
+          <rect x="110" y="96" width="24" height="32" fill={colorway.shadeHex} stroke={colorway.strokeHex} strokeWidth="1.2" />
+          <line x1="110" y1="104" x2="134" y2="104" stroke={colorway.strokeHex} strokeWidth="1.2" />
+          <rect x="150" y="96" width="24" height="32" fill={colorway.shadeHex} stroke={colorway.strokeHex} strokeWidth="1.2" />
+          <line x1="150" y1="104" x2="174" y2="104" stroke={colorway.strokeHex} strokeWidth="1.2" />
+          {/* Articulated sleeve seam */}
+          <path d="M84 114 L102 118 M182 118 L200 114" stroke={colorway.strokeHex} strokeWidth="1.2" strokeDasharray="3 2" />
+          {/* Woven atelier label */}
+          <rect x="154" y="156" width="16" height="9" fill={colorway.strokeHex} />
+          <text x="30" y="30" fontSize="8" fontFamily="monospace" fontWeight="700" fill="#111111">PLATE 01 // FRONT</text>
+        </g>
+      ) : angleIdx === 1 ? (
+        <g>
+          <ellipse cx="144" cy="192" rx="56" ry="8" fill="#111111" fillOpacity="0.16" />
+          {/* Sculptural side-profile shoulder drape */}
+          <path
+            d="M110 30 C142 22 174 38 182 78 L194 178 L96 184 L104 82 Z"
+            fill={`url(#garment-grad-${uid})`}
+            stroke="#111111"
+            strokeWidth="2"
+          />
+          {/* Deep architectural fold lines */}
+          <path d="M126 66 C140 104 146 138 142 180" fill="none" stroke={colorway.strokeHex} strokeWidth="1.8" strokeOpacity="0.85" />
+          <path d="M150 52 C164 94 168 130 164 178" fill="none" stroke={colorway.detailHex} strokeWidth="1.4" />
+          {/* Cuff strap hardware */}
+          <rect x="114" y="152" width="32" height="8" fill={colorway.shadeHex} stroke={colorway.strokeHex} strokeWidth="1.2" />
+          <circle cx="140" cy="156" r="2" fill={colorway.strokeHex} />
+          <text x="30" y="30" fontSize="8" fontFamily="monospace" fontWeight="700" fill="#111111">PLATE 02 // DRAPE</text>
+        </g>
+      ) : angleIdx === 2 ? (
+        <g>
+          {/* Macro double-needle twill weave & bar-tack seam */}
+          <rect x="30" y="22" width="220" height="176" fill={`url(#garment-grad-${uid})`} stroke="#111111" strokeWidth="2" />
+          <g stroke={colorway.detailHex} strokeOpacity="0.35" strokeWidth="1">
+            {[36, 56, 76, 96, 116, 136, 156, 176, 196, 216, 236].map((x) => (
+              <line key={x} x1={x} y1="22" x2={x - 18} y2="198" />
+            ))}
+          </g>
+          <line x1="30" y1="110" x2="250" y2="110" stroke={colorway.strokeHex} strokeWidth="2.4" />
+          <line x1="30" y1="96" x2="250" y2="96" stroke={colorway.strokeHex} strokeWidth="1.8" strokeDasharray="10 6" />
+          <line x1="30" y1="124" x2="250" y2="124" stroke={colorway.strokeHex} strokeWidth="1.8" strokeDasharray="10 6" />
+          {/* Metal rivet detail */}
+          <circle cx="140" cy="110" r="9" fill="#111111" stroke={colorway.strokeHex} strokeWidth="1.6" />
+          <circle cx="140" cy="110" r="3" fill={colorway.strokeHex} />
+          <rect x="38" y="30" width="128" height="18" fill="#111111" />
+          <text x="44" y="42" fontSize="8" fontFamily="monospace" fontWeight="700" fill="#FFFFFF">PLATE 03 // 400GSM SEAM</text>
+        </g>
+      ) : (
+        <g>
+          {/* Architectural flat-lay proportion blueprint */}
+          <rect x="86" y="44" width="112" height="134" fill={`url(#garment-grad-${uid})`} stroke="#111111" strokeWidth="2" />
+          <line x1="142" y1="44" x2="142" y2="178" stroke={colorway.strokeHex} strokeWidth="1.2" strokeDasharray="4 3" />
+          <line x1="86" y1="110" x2="198" y2="110" stroke={colorway.strokeHex} strokeWidth="1" strokeOpacity="0.6" />
+          {/* Dimension caliper lines */}
+          <g stroke="#111111" strokeWidth="1.1">
+            <line x1="66" y1="44" x2="66" y2="178" />
+            <line x1="60" y1="44" x2="72" y2="44" />
+            <line x1="60" y1="178" x2="72" y2="178" />
+            <line x1="86" y1="194" x2="198" y2="194" />
+            <line x1="86" y1="188" x2="86" y2="200" />
+            <line x1="198" y1="188" x2="198" y2="200" />
+          </g>
+          <text x="30" y="30" fontSize="8" fontFamily="monospace" fontWeight="700" fill="#111111">PLATE 04 // 68×64 CM</text>
+        </g>
+      )}
+    </svg>
+  );
+}
+
+function MiniDropArtSvg({ kind }: { kind: StreetwearDrop['kind'] }) {
+  return (
+    <svg viewBox="0 0 100 68" className="h-full w-full" aria-hidden="true">
+      <rect x="0" y="0" width="100" height="68" fill="#F4F3EF" />
+      {kind === 'jacket' ? (
+        <path
+          d="M32 14 L42 10 H58 L68 14 L80 26 L75 56 H66 L68 32 L66 60 H34 L32 32 L34 56 H25 L20 26 Z"
+          fill="#161618"
+          stroke="#111111"
+          strokeWidth="1.4"
+        />
+      ) : kind === 'cargo' ? (
+        <g fill="#161618" stroke="#111111" strokeWidth="1.4">
+          <path d="M32 10 H68 L74 60 H56 L50 30 L44 60 H26 Z" />
+          <rect x="27" y="30" width="10" height="12" fill="#27272A" stroke="#FFFFFF" strokeWidth="0.9" />
+          <rect x="63" y="30" width="10" height="12" fill="#27272A" stroke="#FFFFFF" strokeWidth="0.9" />
+        </g>
+      ) : (
+        <g fill="#161618" stroke="#111111" strokeWidth="1.4">
+          <path d="M34 18 C36 8 64 8 66 18 L80 30 L74 58 H66 L67 34 L65 60 H35 L33 34 L34 58 H26 L20 30 Z" />
+          <rect x="40" y="42" width="20" height="10" fill="none" stroke="#FFFFFF" strokeWidth="0.9" />
+        </g>
+      )}
     </svg>
   );
 }
 
 /**
- * Small Business Theme 2: "Monochrome Atelier" (Viral Jacket brutalist lookbook style).
- * Optic white, 1px #111111 grid borders, 4-angle switcher, size/colorway controls & quality bars.
+ * Small Business Theme 2: "Monochrome Atelier" (Avant-Garde Lookbook Zine).
+ * Optic white, crisp 1px architectural grids, halftone editorial garment plates,
+ * 4-angle inspection, colorway/size controls & woven atelier spec stamp.
  */
 export function SmallBusinessStreetwearTheme({
   data,
@@ -160,10 +245,11 @@ export function SmallBusinessStreetwearTheme({
 
   const storeName = deriveStoreName(data, copy.defaultStore);
   const headline = pickLocalizedText(data.headline, language).trim() || RELEVANT_DROPS[0].name;
-  const brandNote = pickLocalizedText(data.message, language).trim();
   const offerTag = data.offerTag ? pickLocalizedText(data.offerTag, language).trim() : '';
 
   const photos = getValidPhotos(data.photos);
+  const hasUserPhotos = photos.length > 0;
+  const effectivePhotos = hasUserPhotos ? photos : SAMPLE_PHOTOS;
   const [failedUrls, setFailedUrls] = useState<Record<string, boolean>>({});
   const [selectedDropIdx, setSelectedDropIdx] = useState(0);
   const [angleIdx, setAngleIdx] = useState<GarmentAngleIdx>(0);
@@ -206,7 +292,9 @@ export function SmallBusinessStreetwearTheme({
 
   const activeDrop = drops[selectedDropIdx] ?? drops[0];
   const activeColor = COLORWAYS[colorwayIdx] ?? COLORWAYS[0];
-  const activePhoto = photos[angleIdx] ?? photos[selectedDropIdx];
+  const activePhoto = hasUserPhotos
+    ? (photos[angleIdx] ?? photos[selectedDropIdx] ?? photos[0])
+    : effectivePhotos[(selectedDropIdx + angleIdx) % effectivePhotos.length];
   const showPhoto = Boolean(activePhoto && !failedUrls[activePhoto]);
 
   const orderMessage = [
@@ -253,38 +341,42 @@ export function SmallBusinessStreetwearTheme({
       className="relative flex min-h-full w-full flex-col overflow-x-clip bg-[#FFFFFF] text-[#111111]"
       style={hiSafeStyle(language)}
     >
-      {/* Top Brutalist Lookbook Masthead */}
-      <header className="border-b border-[#111111] px-3.5 py-3 sm:px-6">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-1.5">
-          <span className="min-w-0 font-mono text-[9.5px] font-bold uppercase tracking-[0.16em] text-[#111111]">
+      {/* Stark Zine Masthead */}
+      <header className="border-b-2 border-[#111111] px-3.5 py-2.5 sm:px-6">
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-2">
+          <span className="font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-[#111111]">
             {offerTag || copy.dropTag}
           </span>
-          <span className="shrink-0 border border-[#111111] px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-widest">
-            {copy.stockLine}
+          <span className="bg-[#111111] px-2 py-0.5 font-mono text-[8.5px] font-bold uppercase tracking-widest text-white">
+            24H DISPATCH
           </span>
         </div>
         <h1
-          className="mx-auto mt-2 max-w-5xl break-words font-zine text-3xl font-black uppercase leading-none tracking-tight text-[#111111] sm:text-5xl"
+          className="mx-auto mt-1.5 max-w-5xl break-words font-zine text-3xl font-black uppercase leading-[0.95] tracking-tight text-[#111111] sm:text-5xl"
           style={hiSafeStyle(language)}
         >
           {storeName}
         </h1>
       </header>
 
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-3.5 py-5 sm:px-6">
-        {/* Featured Flagship Drop Hero */}
+      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-5 px-3.5 py-4 sm:px-6">
+        {/* Flagship Lookbook Plate + Controls */}
         <section
           aria-labelledby={`drop-title-${uid}`}
-          className="grid grid-cols-1 border border-[#111111] md:grid-cols-12"
+          className="grid grid-cols-1 border-2 border-[#111111] md:grid-cols-12"
         >
-          {/* Left: Garment Viewport + 4-Angle Thumbnail Switcher */}
-          <div className="flex flex-col border-b border-[#111111] md:col-span-7 md:border-b-0 md:border-r">
-            <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#FAFAFA]">
+          <div className="flex flex-col border-b-2 border-[#111111] md:col-span-7 md:border-b-0 md:border-r-2">
+            <div className="group relative aspect-[5/4] w-full overflow-hidden bg-[#F6F5F1]">
               {showPhoto ? (
                 <button
                   type="button"
-                  onClick={() => onOpenPhoto?.(photos.indexOf(activePhoto))}
-                  className="h-full w-full"
+                  onClick={() => {
+                    if (hasUserPhotos) {
+                      const idx = photos.indexOf(activePhoto);
+                      if (idx >= 0) onOpenPhoto?.(idx);
+                    }
+                  }}
+                  className="relative h-full w-full"
                   aria-label="Zoom garment photo"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -294,19 +386,52 @@ export function SmallBusinessStreetwearTheme({
                     onError={() =>
                       setFailedUrls((prev) => ({ ...prev, [activePhoto]: true }))
                     }
-                    className="h-full w-full object-cover"
+                    className="h-full w-full object-cover contrast-[1.05] saturate-[0.82] transition duration-700 ease-out group-hover:scale-[1.04] group-hover:saturate-100"
                   />
+                  {/* Editorial colorway edge strip + monochrome vignette */}
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-y-0 left-0 w-1.5 transition-colors duration-300"
+                    style={{ backgroundColor: activeColor.hex }}
+                  />
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/65 via-black/15 to-transparent"
+                  />
+                  {/* Halftone corner stamp & registration crosshairs */}
+                  <svg
+                    viewBox="0 0 64 64"
+                    aria-hidden="true"
+                    className="pointer-events-none absolute left-2.5 top-2.5 h-8 w-8 text-white/85 drop-shadow-xs"
+                  >
+                    <g fill="currentColor" opacity="0.7">
+                      <circle cx="6" cy="6" r="1.4" />
+                      <circle cx="14" cy="6" r="1.4" />
+                      <circle cx="22" cy="6" r="1.4" />
+                      <circle cx="6" cy="14" r="1.4" />
+                      <circle cx="14" cy="14" r="1.4" />
+                      <circle cx="6" cy="22" r="1.4" />
+                    </g>
+                    <path d="M44 8v10M39 13h10" stroke="currentColor" strokeWidth="1.2" />
+                  </svg>
+                  <span className="pointer-events-none absolute bottom-2.5 left-3.5 border border-white/30 bg-[#111111]/85 px-2 py-0.5 font-mono text-[8.5px] font-bold uppercase tracking-[0.16em] text-white backdrop-blur-xs">
+                    PLATE 0{angleIdx + 1} // {activeColor.label}
+                  </span>
                 </button>
               ) : (
-                <TechnicalGarmentSvg angleIdx={angleIdx} colorway={activeColor} />
+                <TechnicalGarmentArtPlate
+                  angleIdx={angleIdx}
+                  colorway={activeColor}
+                  uid={uid}
+                />
               )}
 
-              <span className="absolute left-2.5 top-2.5 bg-[#111111] px-2 py-0.5 font-mono text-[9.5px] font-bold uppercase tracking-widest text-white">
+              <span className="pointer-events-none absolute right-2.5 top-2.5 bg-[#111111] px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-widest text-white">
                 {activeDrop.code}
               </span>
             </div>
 
-            {/* 4-Angle Switcher Strip */}
+            {/* 4-Angle Inspection Strip */}
             <div className="grid grid-cols-4 border-t border-[#111111]">
               {([0, 1, 2, 3] as const).map((idx) => {
                 const isActive = angleIdx === idx;
@@ -316,7 +441,7 @@ export function SmallBusinessStreetwearTheme({
                     type="button"
                     onClick={() => setAngleIdx(idx)}
                     aria-pressed={isActive}
-                    className={`min-h-[42px] border-r border-[#111111] px-1 py-2 text-center font-mono text-[10px] font-bold uppercase tracking-wider transition last:border-r-0 ${
+                    className={`min-h-[38px] border-r border-[#111111] px-1 py-1.5 text-center font-mono text-[9.5px] font-bold uppercase tracking-wider transition last:border-r-0 ${
                       isActive
                         ? 'bg-[#111111] text-white'
                         : 'bg-white text-[#111111] hover:bg-[#F4F4F5]'
@@ -329,36 +454,29 @@ export function SmallBusinessStreetwearTheme({
             </div>
           </div>
 
-          {/* Right: Specs, Colorway, Size Selector & Inverted CTA */}
-          <div className="flex flex-col justify-between gap-4 p-4 sm:p-5 md:col-span-5">
+          <div className="flex flex-col justify-between gap-4 p-4 md:col-span-5">
             <div>
               <div className="flex items-start justify-between gap-2">
                 <h2
                   id={`drop-title-${uid}`}
-                  className="break-words font-zine text-xl font-black uppercase leading-tight tracking-wide text-[#111111] sm:text-2xl"
+                  className="break-words font-zine text-xl font-black uppercase leading-tight text-[#111111] sm:text-2xl"
                   style={hiSafeStyle(language)}
                 >
                   {selectedDropIdx === 0 ? headline : activeDrop.name}
                 </h2>
-                <span className="font-tabular shrink-0 border border-[#111111] px-2 py-0.5 font-mono text-xs font-extrabold">
+                <span className="font-tabular shrink-0 bg-[#111111] px-2 py-0.5 font-mono text-xs font-extrabold text-white">
                   ₹{activeDrop.price}
                 </span>
               </div>
 
-              <p className="mt-2 font-mono text-[10.5px] leading-relaxed text-[#111111]/75">
-                {activeDrop.spec || copy.specLine}
+              <p className="mt-1.5 font-mono text-[10px] uppercase tracking-wider text-[#111111]/65">
+                {activeDrop.spec}
               </p>
-
-              {brandNote ? (
-                <p className="mt-2 border-l-2 border-[#111111] pl-2.5 text-xs leading-relaxed text-[#111111]/85">
-                  {brandNote}
-                </p>
-              ) : null}
 
               {/* Colorway Swatches */}
               <div className="mt-4">
-                <p className="font-mono text-[9.5px] font-bold uppercase tracking-[0.16em] text-[#111111]/65">
-                  {copy.colorLabel}: <span className="text-[#111111]">{activeColor.label}</span>
+                <p className="font-mono text-[9px] font-bold uppercase tracking-[0.16em] text-[#111111]/60">
+                  {copy.colorLabel} // <span className="text-[#111111]">{activeColor.label}</span>
                 </p>
                 <div className="mt-1.5 flex items-center gap-2">
                   {COLORWAYS.map((cw, idx) => {
@@ -370,8 +488,8 @@ export function SmallBusinessStreetwearTheme({
                         onClick={() => setColorwayIdx(idx)}
                         aria-label={`Colorway ${cw.label}`}
                         aria-pressed={isSelected}
-                        className={`flex h-9 w-9 items-center justify-center border transition ${
-                          isSelected ? 'border-2 border-[#111111] scale-105' : 'border-[#111111]/30'
+                        className={`flex h-8 w-8 items-center justify-center border transition ${
+                          isSelected ? 'scale-105 border-2 border-[#111111]' : 'border-[#111111]/30'
                         }`}
                         style={{ backgroundColor: cw.hex }}
                       >
@@ -387,12 +505,12 @@ export function SmallBusinessStreetwearTheme({
                 </div>
               </div>
 
-              {/* Size Selector Pills */}
+              {/* Size Matrix */}
               <div className="mt-4">
-                <p className="font-mono text-[9.5px] font-bold uppercase tracking-[0.16em] text-[#111111]/65">
+                <p className="font-mono text-[9px] font-bold uppercase tracking-[0.16em] text-[#111111]/60">
                   {copy.sizeLabel}
                 </p>
-                <div className="mt-1.5 grid grid-cols-5 gap-1.5">
+                <div className="mt-1.5 grid grid-cols-5 gap-1">
                   {SIZES.map((sz) => {
                     const active = selectedSize === sz;
                     return (
@@ -401,7 +519,7 @@ export function SmallBusinessStreetwearTheme({
                         type="button"
                         onClick={() => setSelectedSize(sz)}
                         aria-pressed={active}
-                        className={`min-h-[38px] border border-[#111111] font-mono text-[11px] font-bold transition ${
+                        className={`min-h-[36px] border border-[#111111] font-mono text-[10.5px] font-bold transition ${
                           active
                             ? 'bg-[#111111] text-white'
                             : 'bg-white text-[#111111] hover:bg-[#F4F4F5]'
@@ -418,56 +536,75 @@ export function SmallBusinessStreetwearTheme({
             <button
               type="button"
               onClick={handleOrderDrop}
-              className="min-h-[48px] w-full bg-[#111111] px-4 py-3 font-mono text-[11px] font-extrabold uppercase tracking-[0.16em] text-white transition hover:bg-[#27272A] active:scale-[0.99]"
+              className="min-h-[46px] w-full bg-[#111111] px-4 py-2.5 font-mono text-[11px] font-extrabold uppercase tracking-[0.16em] text-white transition hover:bg-[#27272A] active:scale-[0.99]"
             >
               {copy.orderDropBtn}
             </button>
           </div>
         </section>
 
-        {/* RELEVANT DROPS 3-Card Product Strip */}
+        {/* Visual Drop Strip with Illustrated Silhouettes */}
         <section aria-labelledby={`relevant-drops-${uid}`}>
-          <div className="mb-2.5 flex items-center justify-between border-b border-[#111111] pb-1.5">
+          <div className="mb-2 flex items-center justify-between border-b border-[#111111] pb-1">
             <h2
               id={`relevant-drops-${uid}`}
-              className="font-zine text-lg font-black uppercase tracking-wider text-[#111111]"
+              className="font-zine text-base font-black uppercase tracking-wider text-[#111111]"
               style={hiSafeStyle(language)}
             >
               {copy.relevantHeading}
             </h2>
-            <span className="font-mono text-[9.5px] font-bold uppercase text-[#111111]/65">
-              {copy.inspectHint}
+            <span className="font-mono text-[9px] font-bold uppercase text-[#111111]/60">
+              01 — 03
             </span>
           </div>
 
-          <div className="flex snap-x gap-2.5 overflow-x-auto pb-1 scrollbar-none md:grid md:grid-cols-3 md:overflow-visible">
+          <div className="grid grid-cols-3 gap-2">
             {drops.map((drop, idx) => {
               const isSelected = selectedDropIdx === idx;
+              const dropPhoto = effectivePhotos[(idx + 3) % effectivePhotos.length];
+              const showDropPhoto = Boolean(dropPhoto && !failedUrls[dropPhoto]);
               return (
                 <button
                   key={drop.id}
                   type="button"
                   onClick={() => setSelectedDropIdx(idx)}
-                  className={`flex w-[210px] shrink-0 snap-start flex-col justify-between border text-left transition md:w-auto ${
+                  className={`group flex flex-col justify-between overflow-hidden border text-left transition duration-300 ${
                     isSelected
-                      ? 'border-2 border-[#111111] bg-[#FAFAFA]'
-                      : 'border-[#111111] bg-white hover:bg-[#F4F4F5]'
+                      ? 'border-2 border-[#111111] bg-[#F6F5F1] shadow-[3px_3px_0_#111111]'
+                      : 'border-[#111111]/40 bg-white hover:-translate-y-0.5 hover:border-[#111111]'
                   }`}
                 >
-                  <div className="p-3">
-                    <span className="font-mono text-[9px] font-bold uppercase tracking-widest text-[#111111]/60">
-                      {drop.code}
-                    </span>
-                    <p className="mt-1 font-zine text-base font-black uppercase leading-tight text-[#111111]">
+                  <div className="relative aspect-[5/4] w-full overflow-hidden border-b border-[#111111]/20 bg-[#F4F3EF]">
+                    {showDropPhoto ? (
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={dropPhoto}
+                          alt={drop.name}
+                          onError={() =>
+                            setFailedUrls((prev) => ({ ...prev, [dropPhoto]: true }))
+                          }
+                          className="h-full w-full object-cover contrast-[1.06] saturate-[0.75] transition duration-700 ease-out group-hover:scale-[1.06] group-hover:saturate-100"
+                        />
+                        <span
+                          aria-hidden="true"
+                          className="pointer-events-none absolute right-1.5 top-1.5 bg-[#111111]/85 px-1.5 py-0.5 font-mono text-[7.5px] font-bold text-white"
+                        >
+                          0{idx + 1}
+                        </span>
+                      </>
+                    ) : (
+                      <MiniDropArtSvg kind={drop.kind} />
+                    )}
+                  </div>
+                  <div className="p-2">
+                    <p className="truncate font-zine text-xs font-black uppercase text-[#111111] sm:text-sm">
                       {drop.name}
                     </p>
-                    <p className="mt-1 line-clamp-2 font-mono text-[10px] text-[#111111]/70">
-                      {drop.spec}
-                    </p>
-                  </div>
-                  <div className="flex w-full items-center justify-between bg-[#111111] px-3 py-2 font-mono text-[10.5px] font-bold text-white">
-                    <span>{copy.inspectHint}</span>
-                    <span className="font-tabular">₹{drop.price}</span>
+                    <div className="mt-1 flex items-center justify-between font-mono text-[9.5px] font-bold">
+                      <span className="text-[#111111]/60">{drop.code}</span>
+                      <span className="font-tabular text-[#111111]">₹{drop.price}</span>
+                    </div>
                   </div>
                 </button>
               );
@@ -475,31 +612,31 @@ export function SmallBusinessStreetwearTheme({
           </div>
         </section>
 
-        {/* VERIFIED BUYER QUALITY Meter + Patron Reviews */}
+        {/* Woven Garment Label + Spec Bars (Art-Forward, Minimal Copy) */}
         <section
           aria-labelledby={`quality-meter-${uid}`}
-          className="grid grid-cols-1 gap-4 border border-[#111111] p-4 sm:grid-cols-2 sm:p-5"
+          className="grid grid-cols-1 gap-4 border-2 border-[#111111] bg-[#FAFAFA] p-4 sm:grid-cols-2"
         >
           <div>
             <h2
               id={`quality-meter-${uid}`}
-              className="font-zine text-lg font-black uppercase tracking-wide"
+              className="font-zine text-base font-black uppercase tracking-wide"
               style={hiSafeStyle(language)}
             >
               {copy.qualityHeading}
             </h2>
-            <div className="mt-3 space-y-2.5">
+            <div className="mt-2.5 space-y-2">
               {[
                 { label: copy.qualityMetrics[0], score: '10/10', pct: '100%' },
                 { label: copy.qualityMetrics[1], score: '9.5/10', pct: '95%' },
                 { label: copy.qualityMetrics[2], score: '10/10', pct: '100%' },
               ].map((row) => (
                 <div key={row.label}>
-                  <div className="flex items-center justify-between font-mono text-[10.5px] font-bold uppercase">
+                  <div className="flex items-center justify-between font-mono text-[10px] font-bold uppercase">
                     <span>{row.label}</span>
                     <span>{row.score}</span>
                   </div>
-                  <div className="mt-1 h-2 w-full border border-[#111111] bg-white">
+                  <div className="mt-1 h-1.5 w-full border border-[#111111] bg-white">
                     <div className="h-full bg-[#111111]" style={{ width: row.pct }} />
                   </div>
                 </div>
@@ -507,35 +644,44 @@ export function SmallBusinessStreetwearTheme({
             </div>
           </div>
 
-          <div className="flex flex-col justify-between gap-2.5 border-t border-[#111111]/20 pt-3 sm:border-l sm:border-t-0 sm:pl-4 sm:pt-0">
-            <h3 className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-[#111111]/70">
-              {copy.reviewsHeading}
-            </h3>
-            <div className="space-y-2">
-              <div className="border border-[#111111] bg-[#FAFAFA] p-2.5">
-                <p className="font-mono text-[9.5px] font-bold uppercase tracking-wider text-[#111111]/65">
-                  PATRON #418 · VERIFIED DROP
-                </p>
-                <p className="mt-1 text-xs font-medium leading-snug">
-                  Heavyweight fabric holds its boxy drape after washes. Stitching is dead straight.
-                </p>
-              </div>
-              <div className="border border-[#111111] bg-[#FAFAFA] p-2.5">
-                <p className="font-mono text-[9.5px] font-bold uppercase tracking-wider text-[#111111]/65">
-                  PATRON #209 · VERIFIED DROP
-                </p>
-                <p className="mt-1 text-xs font-medium leading-snug">
-                  WhatsApp dispatch confirmation arrived within minutes. Clean monochrome finish.
-                </p>
-              </div>
+          {/* Woven Atelier Barcode & Care Stamp */}
+          <div className="flex flex-col justify-between border-t border-[#111111]/25 pt-3 sm:border-l sm:border-t-0 sm:pl-4 sm:pt-0">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[9px] font-bold uppercase tracking-[0.18em]">
+                ATELIER SPEC // 400GSM
+              </span>
+              <span className="border border-[#111111] px-1.5 py-0.5 font-mono text-[8.5px] font-bold">
+                LIMITED
+              </span>
             </div>
+
+            {/* Graphic Barcode SVG */}
+            <svg viewBox="0 0 200 36" className="my-2.5 h-9 w-full" aria-hidden="true">
+              {[2, 8, 13, 16, 22, 29, 32, 38, 44, 47, 54, 62, 66, 71, 78, 84, 88, 95, 102, 106, 112, 120, 124, 131, 138, 142, 148, 155, 161, 166, 174, 180, 186, 192].map((x, i) => (
+                <rect
+                  key={x}
+                  x={x}
+                  y="2"
+                  width={i % 3 === 0 ? 3.2 : i % 2 === 0 ? 1.8 : 1.1}
+                  height="26"
+                  fill="#111111"
+                />
+              ))}
+              <text x="2" y="35" fontSize="6.5" fontFamily="monospace" fill="#111111">
+                {activeDrop.code} // {activeColor.label.toUpperCase()} // SZ-{selectedSize}
+              </text>
+            </svg>
+
+            <p className="font-mono text-[9px] uppercase tracking-wider text-[#111111]/65">
+              SMALL-BATCH ARCHIVE · HAND-INSPECTED
+            </p>
           </div>
         </section>
 
-        {/* Oversized Brutalist Monochrome Footer Wordmark */}
-        <section className="overflow-hidden border-t-2 border-[#111111] pt-4 text-center">
+        {/* Oversized Wordmark Stamp */}
+        <section className="overflow-hidden border-t-2 border-[#111111] pt-3 text-center">
           <p
-            className="break-words font-zine text-3xl font-black uppercase leading-none tracking-tighter text-[#111111] sm:text-6xl"
+            className="break-words font-zine text-3xl font-black uppercase leading-none tracking-tighter text-[#111111] sm:text-5xl"
             style={hiSafeStyle(language)}
           >
             {storeName}
@@ -570,7 +716,7 @@ export function SmallBusinessStreetwearTheme({
               <button
                 type="button"
                 onClick={() => setShowSummary(false)}
-                className="min-h-[44px] px-2 font-mono text-xs font-bold underline"
+                className="min-h-[40px] px-2 font-mono text-xs font-bold underline"
               >
                 {sharedCopy.closeBtn}
               </button>
@@ -581,7 +727,7 @@ export function SmallBusinessStreetwearTheme({
             <button
               type="button"
               onClick={handleCopyOrder}
-              className="mt-3 min-h-[44px] w-full bg-[#111111] font-mono text-xs font-bold uppercase tracking-wider text-white"
+              className="mt-3 min-h-[42px] w-full bg-[#111111] font-mono text-xs font-bold uppercase tracking-wider text-white"
             >
               {sharedCopy.copyOrderBtn}
             </button>

@@ -42,20 +42,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const session = await getAuthSessionState();
-    if (!session.user) {
-      return NextResponse.json(
-        { error: 'Please sign in via magic link before paying.', code: 'AUTH_REQUIRED' },
-        { status: 401 },
-      );
-    }
-    if (session.profile?.is_banned) {
-      return NextResponse.json(
-        { error: 'Account access restricted. Contact support.' },
-        { status: 403 },
-      );
-    }
-
     const body = (await request.json().catch(() => ({}))) as {
       draftToken?: string;
       addons?: string[];
@@ -79,13 +65,31 @@ export async function POST(request: NextRequest) {
 
     const admin = createSupabaseAdminClient();
     const tokenHash = crypto.createHash('sha256').update(body.draftToken).digest('hex');
-    const { data: draft } = await admin
-      .from('drafts')
-      .select('id, theme_id, theme_version_id, user_id, content_json')
-      .eq('draft_token_hash', tokenHash)
-      .is('deleted_at', null)
-      .gt('expires_at', new Date().toISOString())
-      .maybeSingle();
+
+    // Run session auth and draft lookup in parallel to shave a full network round-trip from checkout
+    const [session, { data: draft }] = await Promise.all([
+      getAuthSessionState(),
+      admin
+        .from('drafts')
+        .select('id, theme_id, theme_version_id, user_id, content_json')
+        .eq('draft_token_hash', tokenHash)
+        .is('deleted_at', null)
+        .gt('expires_at', new Date().toISOString())
+        .maybeSingle(),
+    ]);
+
+    if (!session.user) {
+      return NextResponse.json(
+        { error: 'Please sign in via magic link before paying.', code: 'AUTH_REQUIRED' },
+        { status: 401 },
+      );
+    }
+    if (session.profile?.is_banned) {
+      return NextResponse.json(
+        { error: 'Account access restricted. Contact support.' },
+        { status: 403 },
+      );
+    }
 
     if (!draft) {
       throw new WebzyError('Your draft expired or could not be found.', {

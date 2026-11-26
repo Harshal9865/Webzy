@@ -50,6 +50,38 @@ export function SmallBusinessSite({
   const coreLang = toCoreLanguageCode(language);
   const photos = getValidPhotos(data.photos);
 
+  // When previewing other styles in demo mode, give each edition its own art-directed identity instead of bleeding bakery copy across Streetwear/Boutique/3D.
+  const effectiveData =
+    watermarked && manualVariant && manualVariant !== autoVariant
+      ? {
+          ...data,
+          receiverName:
+            manualVariant === 'streetwear'
+              ? 'MONOCHROME ATELIER'
+              : manualVariant === 'boutique'
+                ? 'FORMA STUDIO'
+                : manualVariant === 'kinetic3d'
+                  ? 'PRISM 3D'
+                  : data.receiverName,
+          headline:
+            manualVariant === 'streetwear'
+              ? { en: 'BOX SHELL JACKET 04', hi: 'BOX SHELL JACKET 04', hinglish: 'BOX SHELL JACKET 04' }
+              : manualVariant === 'boutique'
+                ? { en: 'Refined Everyday Silhouettes', hi: 'एवरीडे मिनिमल कलेक्शन', hinglish: 'Refined Everyday Silhouettes' }
+                : manualVariant === 'kinetic3d'
+                  ? { en: 'PRISM STUDIO 3D', hi: 'PRISM STUDIO 3D', hinglish: 'PRISM STUDIO 3D' }
+                  : data.headline,
+          offerTag:
+            manualVariant === 'streetwear'
+              ? { en: 'ARCHIVE DROP 04', hi: 'ARCHIVE DROP 04', hinglish: 'ARCHIVE DROP 04' }
+              : manualVariant === 'boutique'
+                ? { en: 'AUTUMN / WINTER EDIT', hi: 'नया कलेक्शन', hinglish: 'AUTUMN / WINTER EDIT' }
+                : manualVariant === 'kinetic3d'
+                  ? { en: 'SPATIAL EDITION', hi: 'स्पेशियल एडिशन', hinglish: 'SPATIAL EDITION' }
+                  : data.offerTag,
+        }
+      : data;
+
   function handleSelectDemoVariant(nextVariant: SmallBusinessThemeVariant) {
     setManualVariant(nextVariant);
     setLightboxIdx(null);
@@ -105,7 +137,7 @@ export function SmallBusinessSite({
           <SmallBusinessBakeryTheme
             key={`bakery-${sceneKey}`}
             manifest={manifest}
-            data={data}
+            data={effectiveData}
             language={language}
             watermarked={watermarked}
             onOpened={onOpened}
@@ -115,7 +147,7 @@ export function SmallBusinessSite({
           <SmallBusinessStreetwearTheme
             key={`streetwear-${sceneKey}`}
             manifest={manifest}
-            data={data}
+            data={effectiveData}
             language={language}
             watermarked={watermarked}
             onOpened={onOpened}
@@ -125,7 +157,7 @@ export function SmallBusinessSite({
           <SmallBusinessBoutiqueTheme
             key={`boutique-${sceneKey}`}
             manifest={manifest}
-            data={data}
+            data={effectiveData}
             language={language}
             watermarked={watermarked}
             onOpened={onOpened}
@@ -135,7 +167,7 @@ export function SmallBusinessSite({
           <SmallBusiness3DScrollTheme
             key={`kinetic3d-${sceneKey}`}
             manifest={manifest}
-            data={data}
+            data={effectiveData}
             language={language}
             watermarked={watermarked}
             onOpened={onOpened}

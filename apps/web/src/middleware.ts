@@ -5,7 +5,7 @@ export async function middleware(request: NextRequest) {
   return updateSupabaseSession(request);
 }
 
-// Run session refresh only on auth-protected / payment routes for fast storefront browsing
+// Run session refresh only on auth-protected pages; payment/order APIs authenticate directly to avoid double Supabase round-trips
 export const config = {
   matcher: [
     '/account/:path*',
@@ -16,9 +16,7 @@ export const config = {
     '/success/:path*',
     '/edit/:path*',
     '/api/profile',
-    '/api/orders',
     '/api/sites/:path*',
-    '/api/payments/:path*',
     '/api/uploads/:path*',
     '/api/drafts/:path*',
     '/api/requests',

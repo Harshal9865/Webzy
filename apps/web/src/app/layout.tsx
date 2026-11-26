@@ -39,6 +39,7 @@ const notoSansDevanagari = Noto_Sans_Devanagari({
   subsets: ['devanagari'],
   variable: '--font-devanagari',
   display: 'swap',
+  preload: false,
 });
 
 const cormorantGaramond = Cormorant_Garamond({
@@ -46,6 +47,7 @@ const cormorantGaramond = Cormorant_Garamond({
   style: ['normal', 'italic'],
   variable: '--font-cormorant',
   display: 'swap',
+  preload: false,
 });
 
 const pinyonScript = Pinyon_Script({
@@ -53,30 +55,35 @@ const pinyonScript = Pinyon_Script({
   weight: '400',
   variable: '--font-pinyon',
   display: 'swap',
+  preload: false,
 });
 
 const notoSerifGujarati = Noto_Serif_Gujarati({
   subsets: ['gujarati'],
   variable: '--font-gujarati',
   display: 'swap',
+  preload: false,
 });
 
 const bricolageGrotesque = Bricolage_Grotesque({
   subsets: ['latin'],
   variable: '--font-bricolage',
   display: 'swap',
+  preload: false,
 });
 
 const caveat = Caveat({
   subsets: ['latin'],
   variable: '--font-caveat',
   display: 'swap',
+  preload: false,
 });
 
 const fredoka = Fredoka({
   subsets: ['latin'],
   variable: '--font-fredoka',
   display: 'swap',
+  preload: false,
 });
 
 const instrumentSerif = Instrument_Serif({
@@ -85,6 +92,7 @@ const instrumentSerif = Instrument_Serif({
   style: ['normal', 'italic'],
   variable: '--font-instrument-serif',
   display: 'swap',
+  preload: false,
 });
 
 const newsreader = Newsreader({
@@ -92,6 +100,7 @@ const newsreader = Newsreader({
   style: ['normal', 'italic'],
   variable: '--font-newsreader',
   display: 'swap',
+  preload: false,
 });
 
 const silkscreen = Silkscreen({
@@ -99,6 +108,7 @@ const silkscreen = Silkscreen({
   weight: ['400', '700'],
   variable: '--font-pixel',
   display: 'swap',
+  preload: false,
 });
 
 const playfairDisplay = Playfair_Display({
@@ -106,6 +116,7 @@ const playfairDisplay = Playfair_Display({
   style: ['normal', 'italic'],
   variable: '--font-playfair',
   display: 'swap',
+  preload: false,
 });
 
 const bebasNeue = Bebas_Neue({
@@ -113,6 +124,7 @@ const bebasNeue = Bebas_Neue({
   weight: '400',
   variable: '--font-bebas',
   display: 'swap',
+  preload: false,
 });
 
 export const metadata: Metadata = {

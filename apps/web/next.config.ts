@@ -17,12 +17,21 @@ const cspDirectives = [
 ].join('; ');
 
 const nextConfig: NextConfig = {
+  compress: true,
+  poweredByHeader: false,
   transpilePackages: ['@webzy/core', '@webzy/themes', '@webzy/jobs'],
   experimental: {
     externalDir: true,
+    optimizePackageImports: ['@webzy/core', '@webzy/themes'],
   },
   async headers() {
     return [
+      {
+        source: '/templates/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
       {
         source: '/(.*)',
         headers: [

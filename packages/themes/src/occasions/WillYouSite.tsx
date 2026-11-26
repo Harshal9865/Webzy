@@ -1,1118 +1,1415 @@
 'use client';
 
-import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { type CoreLanguageCode, pickLocalizedText, toCoreLanguageCode } from '@webzy/core';
 import {
-  AmbientRainCanvas,
-  type CurvedTrackItem,
-  CurvedTrackSanctuary,
-  LaserHeartCanvas,
-  WordByWordFadeLine,
-} from './shared/OccasionCinematicFX';
-import {
-  OccasionAdaptiveGallery,
-  OccasionArtworkBackdrop,
   type OccasionSiteProps,
   getReplayLabel,
   getWebzyFooterLabel,
 } from './shared/OccasionPrimitives';
 
-interface DateOption {
-  id: 'coffee' | 'chai' | 'rooftop';
-  title: Record<CoreLanguageCode, string>;
-  subtitle: Record<CoreLanguageCode, string>;
-  timeHint: Record<CoreLanguageCode, string>;
+const DEVANAGARI_RE = /[\u0900-\u097F]/;
+
+function hasDevanagari(text: string): boolean {
+  return DEVANAGARI_RE.test(text);
 }
 
-const DATE_OPTIONS: readonly DateOption[] = [
+interface PolaroidSample {
+  src: string;
+  caption: Record<CoreLanguageCode, string>;
+}
+
+const SAMPLE_POLAROIDS: readonly PolaroidSample[] = [
   {
-    id: 'coffee',
-    title: {
-      en: 'Coffee & Sunset Walk',
-      hinglish: 'Coffee & Sunset Walk',
-      hi: 'कॉफ़ी और सनसेट वॉक',
-    },
-    subtitle: {
-      en: 'Warm cups and an unhurried golden-hour stroll',
-      hinglish: 'Cozy cafe corners aur shaam ki lambi baatein',
-      hi: 'गर्म कॉफ़ी के साथ ढलती शाम की सुकून भरी सैर',
-    },
-    timeHint: {
-      en: 'GOLDEN HOUR · 5:30 PM',
-      hinglish: 'SHAAM · 5:30 PM',
-      hi: 'संध्या · शाम 5:30',
+    src: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=600&q=80',
+    caption: {
+      en: 'starlight glow',
+      hinglish: 'sitaron ki raat',
+      hi: 'सितारों की रात',
     },
   },
   {
-    id: 'chai',
-    title: {
-      en: 'Adrak Chai & Drive',
-      hinglish: 'Adrak Chai & Drive',
-      hi: 'अदरक चाय और ड्राइव',
-    },
-    subtitle: {
-      en: 'Your favorite playlist, open windows, and quiet roads',
-      hinglish: 'Tumhari playlist, thandi hawa aur lambi sadkein',
-      hi: 'आपकी पसंदीदा धुनें, खुली हवा और शांत रास्ते',
-    },
-    timeHint: {
-      en: 'TWILIGHT · 7:00 PM',
-      hinglish: 'SHAAM DHALTE · 7:00 PM',
-      hi: 'शाम · रात 7:00',
+    src: 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&w=600&q=80',
+    caption: {
+      en: 'hand in hand',
+      hinglish: 'haathon mein haath',
+      hi: 'हाथों में हाथ',
     },
   },
   {
-    id: 'rooftop',
-    title: {
-      en: 'Rooftop Dessert',
-      hinglish: 'Rooftop Dessert',
-      hi: 'रूफटॉप डेज़र्ट',
-    },
-    subtitle: {
-      en: 'Warm lantern lights, sweet treats, and open night skies',
-      hinglish: 'Sitaron ke neeche meetha aur sirf hum dono',
-      hi: 'रोशनी से सजी छत, मीठा और तारों भरा आसमान',
-    },
-    timeHint: {
-      en: 'STARLIGHT · 8:30 PM',
-      hinglish: 'SITARON KE SAATH · 8:30 PM',
-      hi: 'सितारों तले · रात 8:30',
+    src: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80',
+    caption: {
+      en: 'sunset blooms',
+      hinglish: 'shaam ke phool',
+      hi: 'शाम के फूल',
     },
   },
 ];
 
-interface WhisperItem {
-  title: string;
-  detail: string;
-}
-
-const FALLBACK_WHISPERS: Record<CoreLanguageCode, readonly WhisperItem[]> = {
-  en: [
-    {
-      title: 'The Quiet Spark',
-      detail: 'Every ordinary evening turns softer the moment you walk in.',
-    },
-    {
-      title: 'Unfinished Stories',
-      detail: 'Still finding excuses to stretch a five-minute talk into hours.',
-    },
-    {
-      title: 'One Honest Hope',
-      detail: 'I would love to turn our little moments into a planned evening.',
-    },
-  ],
-  hinglish: [
-    {
-      title: 'Pehli Muskaan',
-      detail: 'Tumhare aane se har shaam apne aap khaas lagne lagti hai.',
-    },
-    {
-      title: 'Lambi Baatein',
-      detail: 'Abhi bhi paanch minute ki baat ko ghanton kheenchne ka mann karta hai.',
-    },
-    {
-      title: 'Dil Ki Chahat',
-      detail: 'Chalo in chhoti yaadon ko ek pyaari si date mein badalte hain.',
-    },
-  ],
-  hi: [
-    {
-      title: 'पहली मुस्कान',
-      detail: 'तुम्हारे साथ हर साधारण शाम अपने आप ख़ास बन जाती है।',
-    },
-    {
-      title: 'अनकही बातें',
-      detail: 'आज भी पांच मिनट की बातचीत को घंटों तक सुनने का मन करता है।',
-    },
-    {
-      title: 'दिल की आरज़ू',
-      detail: 'चलो इन प्यारी यादों को एक यादगार शाम में बदल देते हैं।',
-    },
-  ],
-};
-
 interface LocalizedCopy {
   coverEyebrow: string;
-  coverHeader: string;
-  toPrefix: string;
-  fromLabel: string;
-  slideRosePrompt: string;
-  tapOpenFallback: string;
-  sanctuaryEyebrow: string;
-  sanctuaryHint: string;
-  fullArtShow: string;
-  fullArtHide: string;
-  whisperCounter: (index: number, total: number) => string;
-  laserEyebrow: string;
-  laserTapPrompt: string;
-  laserSubtitle: string;
-  letterEyebrow: string;
-  signedPrefix: string;
-  soundtrackHeading: string;
-  tracks: (primaryTitle: string) => readonly CurvedTrackItem[];
-  galleryEyebrow: string;
-  photoCaption: string;
-  datePickerEyebrow: string;
-  datePickerHeading: string;
-  askEyebrow: string;
-  askTitle: string;
-  askIdlePrompt: string;
-  yesCta: string;
-  noCta: string;
-  nudges: readonly string[];
-  passEyebrow: string;
-  stampText: string;
-  acceptedHeading: (receiver: string) => string;
-  acceptedSubtext: (sender: string) => string;
-  guestLabel: string;
-  hostLabel: string;
-  planLabel: string;
-  timeLabel: string;
-  passLabel: string;
-  replayQuestionCta: string;
+  coverPrompt: string;
+  forPrefix: string;
+  fromPrefix: string;
+  tapSealHint: string;
+  openingLabel: string;
+  defaultHeadline: string;
+  defaultMessage: string;
+  polaroidEyebrow: string;
+  photoLabel: string;
+  questionEyebrow: string;
+  questionTitle: string;
+  yesLabel: string;
+  noLabel: string;
+  catIdleCaption: string;
+  catCaptions: readonly [string, string, string, string];
+  ticketEyebrow: string;
+  ticketStamp: string;
+  ticketTitle: (receiver: string) => string;
+  ticketSubtitle: (sender: string) => string;
+  promiseLabel: string;
+  promiseValue: string;
+  petalShowerCta: string;
+  askAgainCta: string;
+  closeLabel: string;
 }
 
 const COPY_BY_LANG: Record<CoreLanguageCode, LocalizedCopy> = {
   en: {
-    coverEyebrow: 'MIDNIGHT PLUM SEAL',
-    coverHeader: 'Something I needed to say',
-    toPrefix: 'To:',
-    fromLabel: 'From:',
-    slideRosePrompt: 'Slide the rose to open →',
-    tapOpenFallback: 'Or tap the seal to open',
-    sanctuaryEyebrow: 'STORY SANCTUARY',
-    sanctuaryHint: 'Tap each glowing heart orb to read a hidden whisper',
-    fullArtShow: 'Full Art',
-    fullArtHide: 'Show Whispers',
-    whisperCounter: (idx, total) => `WHISPER 0${idx + 1} / 0${total}`,
-    laserEyebrow: 'HEARTBEAT HOLOGRAM',
-    laserTapPrompt: 'Tap sky to pulse heart',
-    laserSubtitle: '3D Particle Heart',
-    letterEyebrow: 'THE HEARTFELT LETTER',
-    signedPrefix: 'Always yours,',
-    soundtrackHeading: 'ROMANTIC SOUNDTRACK',
-    tracks: (primaryTitle) => [
-      {
-        id: 'track-1',
-        title: primaryTitle,
-        moodLabel: 'Soft Piano',
-        duration: '02:48',
-        note: 'Gentle keys for quiet corners, warm lights, and unhurried smiles.',
-      },
-      {
-        id: 'track-2',
-        title: 'Starlight Reverie',
-        moodLabel: 'Velvet Strings',
-        duration: '03:12',
-        note: 'Saved for late-evening walks when the sky turns deep indigo.',
-      },
-      {
-        id: 'track-3',
-        title: 'After the Rain',
-        moodLabel: 'Warm Chime',
-        duration: '02:34',
-        note: 'Like steam rising off two cups while the whole city slows down.',
-      },
-    ],
-    galleryEyebrow: 'SHARED MOMENTS',
-    photoCaption: 'Memory',
-    datePickerEyebrow: 'CHOOSE OUR EVENING',
-    datePickerHeading: 'Pick our date plan:',
-    askEyebrow: 'THE QUESTION',
-    askTitle: 'Will you go out with me?',
-    askIdlePrompt: 'Pick a plan above and tell me what your heart says.',
-    yesCta: 'Yes, let us go',
-    noCta: 'Let me think',
-    nudges: [
-      'Take a second — coffee and sunset views are already waiting.',
-      'Even adrak chai and your favorite playlist on the drive?',
-      'Notice how that Yes button keeps glowing brighter for you.',
-      'One tap turns tonight into our favorite memory.',
-    ],
-    passEyebrow: 'STARGAZING DATE PASS',
-    stampText: 'CONFIRMED · DATE LOCKED',
-    acceptedHeading: (receiver) => `It is a date, ${receiver}`,
-    acceptedSubtext: (sender) => `${sender} is already counting down the hours.`,
-    guestLabel: 'Guest of Honor',
-    hostLabel: 'Invited By',
-    planLabel: 'Chosen Itinerary',
-    timeLabel: 'Window',
-    passLabel: 'Pass Serial',
-    replayQuestionCta: 'Change Date / Replay',
+    coverEyebrow: 'MOONLIT CONSERVATORY',
+    coverPrompt: 'A quiet little note for you',
+    forPrefix: 'For',
+    fromPrefix: 'with love,',
+    tapSealHint: 'Tap the wax seal to unfold',
+    openingLabel: 'Unfolding under moonlight...',
+    defaultHeadline: 'Will you be mine?',
+    defaultMessage:
+      'Every ordinary evening feels like starlight the moment you are near. Let me steal you away for one unforgettable night.',
+    polaroidEyebrow: 'KEEPSAKE POLAROIDS',
+    photoLabel: 'Memory',
+    questionEyebrow: 'ONE LITTLE QUESTION',
+    questionTitle: 'Will you go out with me?',
+    yesLabel: 'Yes, always',
+    noLabel: 'No',
+    catIdleCaption: 'for you',
+    catCaptions: ['pretty pls?', 'take rose', 'wait pls?', 'say yes!'],
+    ticketEyebrow: 'CONSTELLATION PROMISE',
+    ticketStamp: 'WRITTEN IN STARS',
+    ticketTitle: (receiver) => `Forever starts tonight, ${receiver}`,
+    ticketSubtitle: (sender) => `${sender} is smiling at the moon right now.`,
+    promiseLabel: 'PROMISE',
+    promiseValue: 'Moonlit walks, warm laughs & endless blooms',
+    petalShowerCta: 'Petal Shower',
+    askAgainCta: 'Replay',
+    closeLabel: 'Close',
   },
   hinglish: {
-    coverEyebrow: 'MIDNIGHT PLUM SEAL',
-    coverHeader: 'Kuch dil se kehna tha',
-    toPrefix: 'To:',
-    fromLabel: 'From:',
-    slideRosePrompt: 'Slide the rose to open →',
-    tapOpenFallback: 'Ya seal par tap karke kholo',
-    sanctuaryEyebrow: 'YAADON KA SAFAR',
-    sanctuaryHint: 'Har chamakte heart orb par tap karke raaz padho',
-    fullArtShow: 'Full Art',
-    fullArtHide: 'Whispers Dikhao',
-    whisperCounter: (idx, total) => `WHISPER 0${idx + 1} / 0${total}`,
-    laserEyebrow: 'HEARTBEAT HOLOGRAM',
-    laserTapPrompt: 'Aasmaan tap karke dil roshan karo',
-    laserSubtitle: '3D Particle Heart',
-    letterEyebrow: 'DIL KA KHAT',
-    signedPrefix: 'Sirf tumhara,',
-    soundtrackHeading: 'SHAAM KI DHUNEIN',
-    tracks: (primaryTitle) => [
-      {
-        id: 'track-1',
-        title: primaryTitle,
-        moodLabel: 'Soft Piano',
-        duration: '02:48',
-        note: 'Halki si dhun, shaam ki chai aur lambi baaton ke liye.',
-      },
-      {
-        id: 'track-2',
-        title: 'Sitaron Ki Shaam',
-        moodLabel: 'Velvet Strings',
-        duration: '03:12',
-        note: 'Jab aasmaan gehra neela ho aur hawa thandi chal rahi ho.',
-      },
-      {
-        id: 'track-3',
-        title: 'Baarish Ke Baad',
-        moodLabel: 'Warm Chime',
-        duration: '02:34',
-        note: 'Do garam cup aur ek aisi shaam jo khatam na ho.',
-      },
-    ],
-    galleryEyebrow: 'HAMARI TASVEEREIN',
-    photoCaption: 'Yaad',
-    datePickerEyebrow: 'SHAAM KA PLAN',
-    datePickerHeading: 'Chuno hum kahan chalein:',
-    askEyebrow: 'EK DIL SE SAWAAL',
-    askTitle: 'Kya tum mere saath chalogi?',
-    askIdlePrompt: 'Apna pasandida plan chuno aur dil ki baat batao.',
-    yesCta: 'Haan, bilkul',
-    noCta: 'Let me think',
-    nudges: [
-      'Soch lo! Coffee aur sunset walk meri taraf se pakki.',
-      'Adrak chai aur tumhari playlist wali drive bhi toh hai!',
-      'Dekho Haan wala button kitna glow kar raha hai tumhare liye.',
-      'Itna mat socho, ek pyaari si Haan bol do.',
-    ],
-    passEyebrow: 'STARGAZING DATE PASS',
-    stampText: 'CONFIRMED · DATE LOCKED',
-    acceptedHeading: (receiver) => `Chalo done raha, ${receiver}`,
-    acceptedSubtext: (sender) => `${sender} ke chehre par abhi sabse badi smile hai.`,
-    guestLabel: 'Guest',
-    hostLabel: 'Host',
-    planLabel: 'Chosen Plan',
-    timeLabel: 'Waqt',
-    passLabel: 'Pass Serial',
-    replayQuestionCta: 'Change Date / Replay',
+    coverEyebrow: 'MOONLIT CONSERVATORY',
+    coverPrompt: 'Tumhare liye ek pyaara sa khat',
+    forPrefix: 'Sirf',
+    fromPrefix: 'pyaar se,',
+    tapSealHint: 'Kholne ke liye wax seal par tap karo',
+    openingLabel: 'Chaandni mein khul raha hai...',
+    defaultHeadline: 'Kya tum meri banogi?',
+    defaultMessage:
+      'Tumhare saath har shaam sitaron si lagti hai. Chalo ek aisi raat banayein jo kabhi khatam na ho.',
+    polaroidEyebrow: 'YAADON KE POLAROIDS',
+    photoLabel: 'Yaad',
+    questionEyebrow: 'EK DIL SE SAWAAL',
+    questionTitle: 'Kya tum mere saath chalogi?',
+    yesLabel: 'Haan, bilkul',
+    noLabel: 'Nahi',
+    catIdleCaption: 'tumhare liye',
+    catCaptions: ['maan jao?', 'ye lo phool', 'ruko pls?', 'haan bolo!'],
+    ticketEyebrow: 'CONSTELLATION PROMISE',
+    ticketStamp: 'SITARON MEIN LIKHA',
+    ticketTitle: (receiver) => `Ye shaam hamari rahi, ${receiver}`,
+    ticketSubtitle: (sender) => `${sender} ke chehre par abhi sabse badi muskaan hai.`,
+    promiseLabel: 'WAADA',
+    promiseValue: 'Chaandni raatein, hansi aur dher saara pyaar',
+    petalShowerCta: 'Phool Barsao',
+    askAgainCta: 'Phir Se',
+    closeLabel: 'Band Karein',
   },
   hi: {
-    coverEyebrow: 'गहरी शाम की मोहर',
-    coverHeader: 'दिल से एक बात कहनी थी',
-    toPrefix: 'प्रिय:',
-    fromLabel: 'प्रेषक:',
-    slideRosePrompt: 'खोलने के लिए गुलाब स्लाइड करें →',
-    tapOpenFallback: 'या मोहर पर टैप करके खोलें',
-    sanctuaryEyebrow: 'यादों का झरोखा',
-    sanctuaryHint: 'हर चमकते दिल पर टैप करके अनकही बात पढ़ें',
-    fullArtShow: 'पूरी कला',
-    fullArtHide: 'संदेश दिखाएं',
-    whisperCounter: (idx, total) => `संदेश 0${idx + 1} / 0${total}`,
-    laserEyebrow: 'रोशनी का हृदय',
-    laserTapPrompt: 'चमक बढ़ाने के लिए टैप करें',
-    laserSubtitle: '3D कण हृदय',
-    letterEyebrow: 'दिल का पैग़ाम',
-    signedPrefix: 'सिर्फ़ तुम्हारा,',
-    soundtrackHeading: 'हमारी शाम की धुनें',
-    tracks: (primaryTitle) => [
-      {
-        id: 'track-1',
-        title: primaryTitle,
-        moodLabel: 'कोमल पियानो',
-        duration: '02:48',
-        note: 'सुकून भरी शाम, हल्की रोशनी और दिल की अनकही बातों के लिए।',
-      },
-      {
-        id: 'track-2',
-        title: 'सितारों की सरगम',
-        moodLabel: 'मखमली धुन',
-        duration: '03:12',
-        note: 'नीले आसमान और शांत रास्तों की एक मीठी याद।',
-      },
-      {
-        id: 'track-3',
-        title: 'बारिश के बाद',
-        moodLabel: 'गुनगुनी धुन',
-        duration: '02:34',
-        note: 'दो कप गर्म चाय और कभी न ख़त्म होने वाली बातचीत।',
-      },
-    ],
-    galleryEyebrow: 'सुनहरी यादें',
-    photoCaption: 'याद',
-    datePickerEyebrow: 'शाम की योजना',
-    datePickerHeading: 'अपना पसंदीदा डेट प्लान चुनें:',
-    askEyebrow: 'दिल से सवाल',
-    askTitle: 'क्या तुम मेरे साथ एक शाम बिताओगी?',
-    askIdlePrompt: 'ऊपर अपना प्लान चुनें और दिल से जवाब दें।',
-    yesCta: 'हाँ, बिल्कुल',
-    noCta: 'सोचने दो',
-    nudges: [
-      'ज़रा सोचो — कॉफ़ी और सुनहरा सूर्यास्त इंतज़ार कर रहा है।',
-      'अदरक वाली चाय और तुम्हारी पसंदीदा प्लेलिस्ट भी पक्की!',
-      'देखो हाँ वाला बटन तुम्हारे लिए कितना चमक रहा है।',
-      'अब इतना मत सोचो, मुस्कुराकर हाँ कह दो।',
-    ],
-    passEyebrow: 'स्टारगेज़िंग डेट पास',
-    stampText: 'CONFIRMED · DATE LOCKED',
-    acceptedHeading: (receiver) => `यह शाम पक्की रही, ${receiver}`,
-    acceptedSubtext: (sender) => `${sender} के चेहरे पर अभी सबसे प्यारी मुस्कान है।`,
-    guestLabel: 'मेहमान',
-    hostLabel: 'मेज़बान',
-    planLabel: 'चुना हुआ प्लान',
-    timeLabel: 'समय',
-    passLabel: 'पास क्रमांक',
-    replayQuestionCta: 'प्लान बदलें / फिर से देखें',
+    coverEyebrow: 'चाँदनी बग़ीचा',
+    coverPrompt: 'तुम्हारे लिए एक प्यारा सा पैग़ाम',
+    forPrefix: 'प्रिय',
+    fromPrefix: 'स्नेह सहित,',
+    tapSealHint: 'खोलने के लिए मोहर पर टैप करें',
+    openingLabel: 'चाँदनी में खुल रहा है...',
+    defaultHeadline: 'क्या तुम मेरी बनोगी?',
+    defaultMessage:
+      'तुम्हारे पास होने से हर साधारण शाम सितारों सी चमक उठती है। चलो एक यादगार शाम साथ बिताते हैं।',
+    polaroidEyebrow: 'सुनहरी यादें',
+    photoLabel: 'याद',
+    questionEyebrow: 'दिल से एक सवाल',
+    questionTitle: 'क्या तुम मेरे साथ चलोगी?',
+    yesLabel: 'हाँ, बिल्कुल',
+    noLabel: 'नहीं',
+    catIdleCaption: 'तुम्हारे लिए',
+    catCaptions: ['मान जाओ?', 'ये लो गुलाब', 'रुको ना?', 'हाँ बोलो!'],
+    ticketEyebrow: 'सितारों का वादा',
+    ticketStamp: 'सितारों में लिखा',
+    ticketTitle: (receiver) => `यह शाम हमारी रही, ${receiver}`,
+    ticketSubtitle: (sender) => `${sender} के चेहरे पर अभी सबसे प्यारी मुस्कान है।`,
+    promiseLabel: 'वादा',
+    promiseValue: 'चाँदनी सैर, मीठी हँसी और अनगिनत फूल',
+    petalShowerCta: 'फूल बरसाएँ',
+    askAgainCta: 'फिर से देखें',
+    closeLabel: 'बंद करें',
   },
 };
 
-function RoseBloomSvg() {
-  return (
-    <svg viewBox="0 0 32 32" className="h-6 w-6" fill="none" aria-hidden="true">
-      <circle cx="16" cy="16" r="14" fill="#FFF1F2" stroke="#F43F5E" strokeWidth="1.4" />
-      <path
-        d="M16 7.5c3.8 0 6.5 2.7 6.5 6.1 0 4-3.4 7.4-6.5 7.4s-6.5-3.4-6.5-7.4c0-3.4 2.7-6.1 6.5-6.1Z"
-        fill="#FB7185"
-      />
-      <path
-        d="M16 10c2 0 3.4 1.4 3.4 3.2 0 2-1.6 3.7-3.4 3.7s-3.4-1.7-3.4-3.7c0-1.8 1.4-3.2 3.4-3.2Z"
-        fill="#E11D48"
-      />
-      <path
-        d="M16 21v4.2M12.2 22c1.4.5 2.4 1.4 3.8 1.9M19.8 22c-1.4.5-2.4 1.4-3.8 1.9"
-        stroke="#15803D"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
+const CONSTELLATION_STARS = [
+  { cx: 12, cy: 14, r: 1.5, delay: '0s' },
+  { cx: 24, cy: 9, r: 1.1, delay: '0.7s' },
+  { cx: 36, cy: 18, r: 1.7, delay: '1.4s' },
+  { cx: 49, cy: 11, r: 1.2, delay: '0.4s' },
+  { cx: 63, cy: 16, r: 1.6, delay: '1.9s' },
+  { cx: 77, cy: 10, r: 1.3, delay: '1.1s' },
+  { cx: 88, cy: 20, r: 1.5, delay: '2.3s' },
+  { cx: 18, cy: 32, r: 1.0, delay: '1.6s' },
+  { cx: 43, cy: 29, r: 1.2, delay: '2.1s' },
+  { cx: 71, cy: 31, r: 1.1, delay: '0.9s' },
+  { cx: 91, cy: 39, r: 1.4, delay: '1.3s' },
+  { cx: 9, cy: 48, r: 1.2, delay: '2.6s' },
+  { cx: 29, cy: 56, r: 1.0, delay: '0.5s' },
+  { cx: 82, cy: 58, r: 1.3, delay: '1.8s' },
+] as const;
 
-function DateOptionIcon({ id }: { id: DateOption['id'] }) {
-  if (id === 'coffee') {
-    return (
-      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M4 10h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5v-5Z" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M16 11h1.5a2.5 2.5 0 0 1 0 5H16" />
-        <path strokeLinecap="round" d="M8 6.5c0-1 .8-1.5.8-2.5M12 6.5c0-1 .8-1.5.8-2.5" />
-      </svg>
-    );
-  }
-  if (id === 'chai') {
-    return (
-      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-        <circle cx="12" cy="12" r="8.5" />
-        <circle cx="12" cy="12" r="2.2" />
-        <path strokeLinecap="round" d="M4 11.5h5.8M14.2 11.5H20M12 14.2V20" />
-      </svg>
-    );
-  }
-  return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M19.5 14.5A7.5 7.5 0 0 1 9.5 4.5a7.5 7.5 0 1 0 10 10Z"
-      />
-      <path strokeLinecap="round" d="M16 5v3M14.5 6.5h3" />
-    </svg>
-  );
-}
+const FIREFLIES = [
+  { left: '12%', top: '72%', size: 5, delay: '0s', duration: '7.5s' },
+  { left: '26%', top: '46%', size: 4, delay: '1.4s', duration: '8.8s' },
+  { left: '41%', top: '80%', size: 6, delay: '2.2s', duration: '9.2s' },
+  { left: '58%', top: '34%', size: 4, delay: '0.8s', duration: '7.8s' },
+  { left: '74%', top: '66%', size: 5, delay: '3.1s', duration: '8.4s' },
+  { left: '86%', top: '42%', size: 5, delay: '1.9s', duration: '9.5s' },
+  { left: '19%', top: '24%', size: 4, delay: '2.7s', duration: '8.1s' },
+  { left: '66%', top: '84%', size: 5, delay: '0.4s', duration: '7.2s' },
+  { left: '90%', top: '76%', size: 4, delay: '3.8s', duration: '8.6s' },
+  { left: '48%', top: '20%', size: 3.5, delay: '2.5s', duration: '9.0s' },
+] as const;
 
-function BarcodeStub() {
-  const widths = [2, 1, 3, 1, 2, 1, 1, 3, 2, 1, 2, 3, 1, 2, 1, 2, 1, 3, 1, 2];
+const FALLING_PETALS = [
+  { left: '8%', delay: '0s', duration: '11s', scale: 0.9, shade: '#FDA4AF' },
+  { left: '22%', delay: '2.8s', duration: '13s', scale: 0.75, shade: '#FBCFE8' },
+  { left: '38%', delay: '5.1s', duration: '12s', scale: 1.0, shade: '#FB7185' },
+  { left: '54%', delay: '1.3s', duration: '14s', scale: 0.8, shade: '#FDA4AF' },
+  { left: '70%', delay: '4.2s', duration: '11.5s', scale: 0.95, shade: '#FBCFE8' },
+  { left: '84%', delay: '6.4s', duration: '12.5s', scale: 0.85, shade: '#FB7185' },
+  { left: '93%', delay: '3.4s', duration: '13.5s', scale: 0.7, shade: '#FDA4AF' },
+  { left: '30%', delay: '8.0s', duration: '12s', scale: 0.85, shade: '#FBCFE8' },
+] as const;
+
+const BURST_PARTICLES = [
+  { angle: 0, dist: 125, kind: 'petal', color: '#FDA4AF', delay: '0ms' },
+  { angle: 22, dist: 145, kind: 'star', color: '#FDE68A', delay: '30ms' },
+  { angle: 45, dist: 132, kind: 'petal', color: '#FB7185', delay: '50ms' },
+  { angle: 68, dist: 150, kind: 'star', color: '#FEF08A', delay: '20ms' },
+  { angle: 90, dist: 128, kind: 'petal', color: '#FBCFE8', delay: '60ms' },
+  { angle: 112, dist: 148, kind: 'star', color: '#FDE68A', delay: '40ms' },
+  { angle: 135, dist: 136, kind: 'petal', color: '#F43F5E', delay: '70ms' },
+  { angle: 158, dist: 142, kind: 'star', color: '#FEF08A', delay: '25ms' },
+  { angle: 180, dist: 126, kind: 'petal', color: '#FDA4AF', delay: '55ms' },
+  { angle: 202, dist: 146, kind: 'star', color: '#FDE68A', delay: '35ms' },
+  { angle: 225, dist: 134, kind: 'petal', color: '#FB7185', delay: '65ms' },
+  { angle: 248, dist: 148, kind: 'star', color: '#FEF08A', delay: '15ms' },
+  { angle: 270, dist: 130, kind: 'petal', color: '#FBCFE8', delay: '45ms' },
+  { angle: 292, dist: 144, kind: 'star', color: '#FDE68A', delay: '75ms' },
+  { angle: 315, dist: 138, kind: 'petal', color: '#F43F5E', delay: '30ms' },
+  { angle: 338, dist: 152, kind: 'star', color: '#FEF08A', delay: '60ms' },
+] as const;
+
+const RUNAWAY_SPOTS = [
+  { x: 0, y: 0 },
+  { x: 52, y: -22 },
+  { x: -58, y: 18 },
+  { x: 46, y: 24 },
+  { x: -48, y: -20 },
+  { x: 18, y: 28 },
+  { x: -34, y: -12 },
+] as const;
+
+function ConservatoryBackdrop({ intensified = false }: { intensified?: boolean }) {
   return (
-    <div className="flex h-7 items-stretch justify-center gap-[2px] opacity-75" aria-hidden="true">
-      {widths.map((w, idx) => (
-        <span key={idx} className="rounded-[0.5px] bg-[#FDA4AF]" style={{ width: `${w}px` }} />
+    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+      {/* Deep Midnight-Indigo & Rose-Velvet Gradient Sky */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: intensified
+            ? 'radial-gradient(circle at 50% 18%, #521B4D 0%, #24103B 46%, #110922 78%, #070513 100%)'
+            : 'radial-gradient(circle at 50% 14%, #3D1746 0%, #1B0E32 48%, #0D081E 82%, #070512 100%)',
+        }}
+      />
+
+      {/* Soft Rose-Velvet & Moonlight Mist Halos */}
+      <div
+        className="absolute -top-12 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full blur-3xl"
+        style={{ background: 'radial-gradient(circle, rgba(253,230,138,0.18) 0%, rgba(244,63,94,0.08) 55%, transparent 75%)' }}
+      />
+      <div
+        className="absolute bottom-0 left-0 h-56 w-56 rounded-full blur-3xl"
+        style={{ background: 'radial-gradient(circle, rgba(190,24,93,0.22) 0%, transparent 72%)' }}
+      />
+      <div
+        className="absolute bottom-10 right-0 h-56 w-56 rounded-full blur-3xl"
+        style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.18) 0%, transparent 72%)' }}
+      />
+
+      {/* Twinkling Constellation Sky SVG */}
+      <svg
+        viewBox="0 0 100 70"
+        preserveAspectRatio="none"
+        className="absolute inset-x-0 top-0 h-[58%] w-full opacity-90"
+      >
+        <path
+          d="M12 14 L24 9 L36 18 L49 11 L63 16 L77 10 L88 20"
+          fill="none"
+          stroke="#FDE68A"
+          strokeOpacity="0.16"
+          strokeWidth="0.22"
+          strokeDasharray="1.2 1.4"
+        />
+        {CONSTELLATION_STARS.map((star, idx) => (
+          <circle
+            key={`star-${idx}`}
+            cx={star.cx}
+            cy={star.cy}
+            r={star.r * 0.45}
+            fill={idx % 3 === 0 ? '#FEF08A' : '#FFF1F2'}
+            className="wy-twinkle"
+            style={{ animationDelay: star.delay }}
+          />
+        ))}
+      </svg>
+
+      {/* Victorian Botanical Glasshouse Arch Silhouette */}
+      <svg
+        viewBox="0 0 400 620"
+        preserveAspectRatio="xMidYMin slice"
+        className="absolute inset-0 h-full w-full opacity-45"
+      >
+        <defs>
+          <linearGradient id="wy-arch-stroke" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#FDE68A" stopOpacity="0.55" />
+            <stop offset="50%" stopColor="#FDA4AF" stopOpacity="0.24" />
+            <stop offset="100%" stopColor="#818CF8" stopOpacity="0.08" />
+          </linearGradient>
+        </defs>
+        {/* Outer pointed glasshouse arch */}
+        <path
+          d="M24 620 V210 C24 88 106 24 200 20 C294 24 376 88 376 210 V620"
+          fill="none"
+          stroke="url(#wy-arch-stroke)"
+          strokeWidth="1.8"
+        />
+        {/* Inner botanical dome rib */}
+        <path
+          d="M44 620 V218 C44 108 116 48 200 44 C284 48 356 108 356 218 V620"
+          fill="none"
+          stroke="url(#wy-arch-stroke)"
+          strokeWidth="1"
+        />
+        {/* Radial glasshouse spokes */}
+        <line x1="200" y1="20" x2="200" y2="155" stroke="url(#wy-arch-stroke)" strokeWidth="0.9" />
+        <line x1="200" y1="44" x2="88" y2="148" stroke="url(#wy-arch-stroke)" strokeWidth="0.8" />
+        <line x1="200" y1="44" x2="312" y2="148" stroke="url(#wy-arch-stroke)" strokeWidth="0.8" />
+        <path
+          d="M44 195 Q200 135 356 195"
+          fill="none"
+          stroke="url(#wy-arch-stroke)"
+          strokeWidth="0.9"
+        />
+        {/* Decorative top finial */}
+        <circle cx="200" cy="44" r="5" fill="none" stroke="#FDE68A" strokeOpacity="0.45" strokeWidth="1" />
+      </svg>
+
+      {/* Luminous Crescent Moon */}
+      <div className="wy-moon-glow absolute right-6 top-6 h-14 w-14 sm:right-9 sm:top-8 sm:h-16 sm:w-16">
+        <svg viewBox="0 0 64 64" className="h-full w-full drop-shadow-[0_0_18px_rgba(253,230,138,0.65)]">
+          <defs>
+            <radialGradient id="wy-moon-fill" cx="35%" cy="35%" r="70%">
+              <stop offset="0%" stopColor="#FFFBEB" />
+              <stop offset="65%" stopColor="#FDE68A" />
+              <stop offset="100%" stopColor="#F59E0B" />
+            </radialGradient>
+          </defs>
+          <path
+            d="M39.5 11.5A21 21 0 1 0 53 41.2 17 17 0 1 1 39.5 11.5Z"
+            fill="url(#wy-moon-fill)"
+          />
+          <path
+            d="M47 16 L48.4 19.6 L52 21 L48.4 22.4 L47 26 L45.6 22.4 L42 21 L45.6 19.6 Z"
+            fill="#FFFBEB"
+            opacity="0.9"
+          />
+        </svg>
+      </div>
+
+      {/* Layered Botanical Vines & Fern Nature Art (Top-Left) */}
+      <svg
+        viewBox="0 0 180 220"
+        className="wy-vine-sway absolute -left-2 -top-2 h-44 w-36 opacity-80 sm:h-52 sm:w-44"
+        fill="none"
+      >
+        <path
+          d="M12 0 C16 48 42 84 36 140 C33 166 20 190 14 214"
+          stroke="#4ADE80"
+          strokeOpacity="0.42"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
+        <path
+          d="M28 0 C50 34 86 44 128 32"
+          stroke="#86EFAC"
+          strokeOpacity="0.34"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+        {/* Eucalyptus & fern leaves */}
+        <ellipse cx="26" cy="40" rx="11" ry="5.5" transform="rotate(-24 26 40)" fill="#166534" fillOpacity="0.72" />
+        <ellipse cx="44" cy="64" rx="12" ry="6" transform="rotate(20 44 64)" fill="#15803D" fillOpacity="0.68" />
+        <ellipse cx="24" cy="96" rx="11" ry="5.5" transform="rotate(-32 24 96)" fill="#14532D" fillOpacity="0.78" />
+        <ellipse cx="46" cy="122" rx="10" ry="5" transform="rotate(16 46 122)" fill="#166534" fillOpacity="0.66" />
+        <ellipse cx="22" cy="158" rx="9" ry="4.5" transform="rotate(-22 22 158)" fill="#15803D" fillOpacity="0.62" />
+        <ellipse cx="66" cy="34" rx="11" ry="5" transform="rotate(-14 66 34)" fill="#15803D" fillOpacity="0.65" />
+        <ellipse cx="98" cy="36" rx="10" ry="4.8" transform="rotate(14 98 36)" fill="#166534" fillOpacity="0.62" />
+        {/* Moonlit rosebuds on vine */}
+        <circle cx="52" cy="54" r="5" fill="#FB7185" fillOpacity="0.82" />
+        <circle cx="52" cy="54" r="2.2" fill="#FFE4E6" />
+        <circle cx="116" cy="30" r="4.2" fill="#FDA4AF" fillOpacity="0.82" />
+        <circle cx="30" cy="134" r="4.5" fill="#F43F5E" fillOpacity="0.78" />
+      </svg>
+
+      {/* Layered Botanical Fern & Blossom Art (Bottom-Right) */}
+      <svg
+        viewBox="0 0 190 190"
+        className="wy-vine-sway-alt absolute -bottom-3 -right-3 h-40 w-40 opacity-75 sm:h-48 sm:w-48"
+        fill="none"
+      >
+        <path
+          d="M182 186 C152 142 130 106 86 78 C64 64 42 56 22 54"
+          stroke="#4ADE80"
+          strokeOpacity="0.38"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
+        <path
+          d="M178 184 C166 130 162 84 172 34"
+          stroke="#86EFAC"
+          strokeOpacity="0.32"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+        />
+        <ellipse cx="144" cy="138" rx="14" ry="6" transform="rotate(-48 144 138)" fill="#14532D" fillOpacity="0.78" />
+        <ellipse cx="122" cy="112" rx="13" ry="5.8" transform="rotate(-38 122 112)" fill="#166534" fillOpacity="0.74" />
+        <ellipse cx="94" cy="88" rx="12" ry="5.4" transform="rotate(-26 94 88)" fill="#15803D" fillOpacity="0.68" />
+        <ellipse cx="62" cy="70" rx="10" ry="4.8" transform="rotate(-14 62 70)" fill="#166534" fillOpacity="0.62" />
+        <ellipse cx="164" cy="108" rx="11" ry="5" transform="rotate(24 164 108)" fill="#15803D" fillOpacity="0.66" />
+        <ellipse cx="164" cy="72" rx="10" ry="4.5" transform="rotate(-24 164 72)" fill="#166534" fillOpacity="0.62" />
+        <circle cx="106" cy="96" r="5.5" fill="#FB7185" fillOpacity="0.8" />
+        <circle cx="106" cy="96" r="2.3" fill="#FFF1F2" />
+        <circle cx="158" cy="54" r="4.2" fill="#FDA4AF" fillOpacity="0.8" />
+      </svg>
+
+      {/* Drifting Golden Fireflies */}
+      {FIREFLIES.map((fly, idx) => (
+        <span
+          key={`fly-${idx}`}
+          className="wy-firefly absolute rounded-full"
+          style={{
+            left: fly.left,
+            top: fly.top,
+            width: `${fly.size}px`,
+            height: `${fly.size}px`,
+            backgroundColor: '#FEF08A',
+            boxShadow: '0 0 12px 3px rgba(253, 224, 71, 0.72)',
+            animationDelay: fly.delay,
+            animationDuration: fly.duration,
+          }}
+        />
+      ))}
+
+      {/* Falling Sakura / Rose Petals */}
+      {FALLING_PETALS.map((petal, idx) => (
+        <svg
+          key={`petal-${idx}`}
+          viewBox="0 0 20 20"
+          className="wy-petal-fall absolute -top-6 h-4 w-4"
+          style={{
+            left: petal.left,
+            animationDelay: petal.delay,
+            animationDuration: petal.duration,
+            transform: `scale(${petal.scale})`,
+          }}
+        >
+          <path
+            d="M10 2 C15 4 17 11 10 18 C3 11 5 4 10 2 Z"
+            fill={petal.shade}
+            fillOpacity="0.72"
+          />
+        </svg>
       ))}
     </div>
   );
 }
 
-const HOTSPOT_COORDS = [
-  { top: '16%', left: '14%' },
-  { top: '26%', left: '68%' },
-  { top: '54%', left: '38%' },
-] as const;
+/** Expressive Die-Cut Cat Meme Companion Sticker (5 reactive moods: 0 idle, 1..4 runaway reactions, 5 purring celebration) */
+function CatMemeSticker({ mood, caption }: { mood: 0 | 1 | 2 | 3 | 4 | 5; caption: string }) {
+  const isHindi = hasDevanagari(caption);
 
-const DODGE_OFFSETS = [
-  { x: 0, y: 0 },
-  { x: 12, y: -4 },
-  { x: -12, y: 3 },
-  { x: 10, y: 4 },
-] as const;
+  return (
+    <div
+      key={`cat-mood-${mood}`}
+      className="wy-sticker-pop relative mx-auto inline-flex flex-col items-center"
+    >
+      {/* Die-cut white vinyl sticker container */}
+      <div className="relative flex h-28 w-28 items-center justify-center rounded-[28px] border-[3px] border-[#FFFDF9] bg-gradient-to-b from-[#FFF9F4] via-[#FFF1F5] to-[#FDE8EF] shadow-[0_14px_30px_-10px_rgba(0,0,0,0.65),0_0_24px_-6px_rgba(253,164,175,0.45)]">
+        <svg viewBox="0 0 120 120" className="h-24 w-24" aria-hidden="true">
+          {/* Soft floor shadow */}
+          <ellipse cx="60" cy="106" rx="34" ry="6" fill="#F43F5E" fillOpacity="0.14" />
+
+          {/* Cat ears */}
+          <path d="M29 52 L24 22 L50 38 Z" fill="#FFFDF9" stroke="#3B1D2E" strokeWidth="3" strokeLinejoin="round" />
+          <path d="M32 45 L29 29 L44 39 Z" fill="#FDA4AF" />
+          <path d="M91 52 L96 22 L70 38 Z" fill="#FFFDF9" stroke="#3B1D2E" strokeWidth="3" strokeLinejoin="round" />
+          <path d="M88 45 L91 29 L76 39 Z" fill="#FDA4AF" />
+
+          {/* Round chubby cat head & body */}
+          <ellipse cx="60" cy="68" rx="36" ry="32" fill="#FFFDF9" stroke="#3B1D2E" strokeWidth="3" />
+
+          {/* Subtle forehead tabby stripes */}
+          <path d="M55 38 L55 44 M60 36 L60 44 M65 38 L65 44" stroke="#E5C8B8" strokeWidth="2.4" strokeLinecap="round" />
+
+          {/* Rosy blush cheeks */}
+          <ellipse cx="36" cy="74" rx="7" ry="4.2" fill="#FB7185" fillOpacity="0.45" />
+          <ellipse cx="84" cy="74" rx="7" ry="4.2" fill="#FB7185" fillOpacity="0.45" />
+
+          {/* Whiskers */}
+          <path
+            d="M19 67 L30 69 M18 74 L30 74 M101 67 L90 69 M102 74 L90 74"
+            stroke="#3B1D2E"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeOpacity="0.7"
+          />
+
+          {/* Tiny nose & mouth */}
+          <path d="M57 69 L63 69 L60 72 Z" fill="#F43F5E" />
+          {mood === 1 || mood === 3 ? (
+            /* Pleading wobbly 'w' mouth */
+            <path
+              d="M53 77 Q56.5 73 60 76 Q63.5 73 67 77"
+              fill="none"
+              stroke="#3B1D2E"
+              strokeWidth="2.4"
+              strokeLinecap="round"
+            />
+          ) : (
+            /* Sweet happy ':3' cat smile */
+            <path
+              d="M52 74 Q56 79 60 74 Q64 79 68 74"
+              fill="none"
+              stroke="#3B1D2E"
+              strokeWidth="2.4"
+              strokeLinecap="round"
+            />
+          )}
+
+          {/* Mood-specific Eyes & Accessories */}
+          {mood === 0 ? (
+            /* Mood 0: Sweet hopeful cat with floating little heart */
+            <>
+              <circle cx="45" cy="61" r="5.2" fill="#2A1422" />
+              <circle cx="43.5" cy="59.2" r="2" fill="#FFFFFF" />
+              <circle cx="75" cy="61" r="5.2" fill="#2A1422" />
+              <circle cx="73.5" cy="59.2" r="2" fill="#FFFFFF" />
+              <path
+                d="M95 30 C95 26 101 26 101 30 C101 34 95 38 95 38 C95 38 89 34 89 30 C89 26 95 26 95 30 Z"
+                fill="#F43F5E"
+              />
+            </>
+          ) : null}
+
+          {mood === 1 ? (
+            /* Mood 1: Giant starry pleading galaxy eyes */
+            <>
+              <circle cx="44" cy="60" r="9.5" fill="#1F1029" />
+              <circle cx="41" cy="56.5" r="3.6" fill="#FFFFFF" />
+              <circle cx="47.5" cy="63.5" r="1.8" fill="#FEF08A" />
+              <path d="M44 59 L45 61 L47 62 L45 63 L44 65 L43 63 L41 62 L43 61 Z" fill="#FBCFE8" />
+
+              <circle cx="76" cy="60" r="9.5" fill="#1F1029" />
+              <circle cx="73" cy="56.5" r="3.6" fill="#FFFFFF" />
+              <circle cx="79.5" cy="63.5" r="1.8" fill="#FEF08A" />
+              <path d="M76 59 L77 61 L79 62 L77 63 L76 65 L75 63 L73 62 L75 61 Z" fill="#FBCFE8" />
+
+              {/* Tiny tear shimmer */}
+              <circle cx="35.5" cy="68.5" r="2.2" fill="#93C5FD" />
+              <circle cx="84.5" cy="68.5" r="2.2" fill="#93C5FD" />
+            </>
+          ) : null}
+
+          {mood === 2 ? (
+            /* Mood 2: Holding a tiny glowing rose */
+            <>
+              <circle cx="45" cy="60" r="6" fill="#2A1422" />
+              <circle cx="43.5" cy="58" r="2.3" fill="#FFFFFF" />
+              <circle cx="75" cy="60" r="6" fill="#2A1422" />
+              <circle cx="73.5" cy="58" r="2.3" fill="#FFFFFF" />
+              {/* Tiny paws holding rose */}
+              <ellipse cx="47" cy="91" rx="8" ry="6" fill="#FFFDF9" stroke="#3B1D2E" strokeWidth="2.5" />
+              <ellipse cx="73" cy="91" rx="8" ry="6" fill="#FFFDF9" stroke="#3B1D2E" strokeWidth="2.5" />
+              {/* Rose stem & bloom */}
+              <path d="M60 98 L64 78" stroke="#16A34A" strokeWidth="2.8" strokeLinecap="round" />
+              <ellipse cx="58" cy="88" rx="5" ry="2.6" transform="rotate(-25 58 88)" fill="#22C55E" />
+              <circle cx="65" cy="75" r="7.5" fill="#E11D48" stroke="#881337" strokeWidth="1.5" />
+              <path d="M62 74 Q65 71 68 74 Q65 78 62 74 Z" fill="#FDA4AF" />
+            </>
+          ) : null}
+
+          {mood === 3 ? (
+            /* Mood 3: Dramatic tiny paw reaching out + "pls?" speech tag */
+            <>
+              <circle cx="44" cy="60" r="7.5" fill="#1F1029" />
+              <circle cx="42" cy="57.5" r="2.8" fill="#FFFFFF" />
+              <circle cx="46.5" cy="62.5" r="1.4" fill="#FFFFFF" />
+              <circle cx="76" cy="60" r="7.5" fill="#1F1029" />
+              <circle cx="74" cy="57.5" r="2.8" fill="#FFFFFF" />
+              <circle cx="78.5" cy="62.5" r="1.4" fill="#FFFFFF" />
+
+              {/* Dramatic tiny outstretched paw with pink toe beans */}
+              <circle cx="88" cy="88" r="13" fill="#FFFDF9" stroke="#3B1D2E" strokeWidth="2.6" />
+              <ellipse cx="88" cy="91" rx="5" ry="3.8" fill="#FDA4AF" />
+              <circle cx="82.5" cy="84" r="2.2" fill="#FDA4AF" />
+              <circle cx="88" cy="82" r="2.2" fill="#FDA4AF" />
+              <circle cx="93.5" cy="84" r="2.2" fill="#FDA4AF" />
+
+              {/* Mini comic speech badge "pls?" */}
+              <rect x="6" y="10" width="38" height="20" rx="10" fill="#FFF1F2" stroke="#F43F5E" strokeWidth="2" />
+              <text
+                x="25"
+                y="23.5"
+                textAnchor="middle"
+                fontSize="10.5"
+                fontWeight="800"
+                fill="#BE123C"
+                fontFamily="monospace"
+              >
+                pls?
+              </text>
+            </>
+          ) : null}
+
+          {mood === 4 ? (
+            /* Mood 4: Heart-shaped glossy pink sunglasses */
+            <>
+              {/* Glasses bridge */}
+              <line x1="54" y1="60" x2="66" y2="60" stroke="#9F1239" strokeWidth="2.8" />
+              {/* Left heart lens */}
+              <path
+                d="M44 55 C44 51 35 51 35 57 C35 64 44 70 44 70 C44 70 53 64 53 57 C53 51 44 51 44 55 Z"
+                fill="#F43F5E"
+                stroke="#881337"
+                strokeWidth="2.2"
+              />
+              <path d="M38.5 57 L41.5 54.5" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" opacity="0.8" />
+              {/* Right heart lens */}
+              <path
+                d="M76 55 C76 51 67 51 67 57 C67 64 76 70 76 70 C76 70 85 64 85 57 C85 51 76 51 76 55 Z"
+                fill="#F43F5E"
+                stroke="#881337"
+                strokeWidth="2.2"
+              />
+              <path d="M70.5 57 L73.5 54.5" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" opacity="0.8" />
+              {/* Star sparkle near glasses */}
+              <path d="M98 22 L100 27 L105 29 L100 31 L98 36 L96 31 L91 29 L96 27 Z" fill="#F59E0B" />
+            </>
+          ) : null}
+
+          {mood === 5 ? (
+            /* Mood 5: Celebratory purring cat with flower crown */
+            <>
+              {/* Happy closed purring eyes */}
+              <path d="M37 62 Q44 54 51 62" fill="none" stroke="#3B1D2E" strokeWidth="3" strokeLinecap="round" />
+              <path d="M69 62 Q76 54 83 62" fill="none" stroke="#3B1D2E" strokeWidth="3" strokeLinecap="round" />
+              {/* Botanical flower crown */}
+              <ellipse cx="42" cy="34" rx="7" ry="3.5" transform="rotate(-18 42 34)" fill="#22C55E" />
+              <ellipse cx="78" cy="34" rx="7" ry="3.5" transform="rotate(18 78 34)" fill="#22C55E" />
+              <circle cx="48" cy="34" r="6" fill="#FDA4AF" stroke="#BE123C" strokeWidth="1.4" />
+              <circle cx="48" cy="34" r="2.2" fill="#FEF08A" />
+              <circle cx="60" cy="30" r="7" fill="#F43F5E" stroke="#881337" strokeWidth="1.5" />
+              <circle cx="60" cy="30" r="2.5" fill="#FEF08A" />
+              <circle cx="72" cy="34" r="6" fill="#FBCFE8" stroke="#BE123C" strokeWidth="1.4" />
+              <circle cx="72" cy="34" r="2.2" fill="#F59E0B" />
+              {/* Floating twin hearts */}
+              <path
+                d="M18 34 C18 31 23 31 23 34 C23 37.5 18 40.5 18 40.5 C18 40.5 13 37.5 13 34 C13 31 18 31 18 34 Z"
+                fill="#F43F5E"
+              />
+              <path
+                d="M102 32 C102 29 107 29 107 32 C107 35.5 102 38.5 102 38.5 C102 38.5 97 35.5 97 32 C97 29 102 29 102 32 Z"
+                fill="#FDE68A"
+              />
+            </>
+          ) : null}
+        </svg>
+      </div>
+
+      {/* Tiny 2-word sticker caption pill */}
+      <span
+        className={`-mt-2.5 inline-flex items-center rounded-full border border-[#FDE68A]/55 bg-[#1B0C2E]/95 px-3 py-0.5 text-[11px] font-bold text-[#FDE68A] shadow-md ${
+          isHindi ? 'tracking-normal' : 'tracking-wider'
+        }`}
+      >
+        {caption}
+      </span>
+    </div>
+  );
+}
+
+/** Tiny SVG Heart Pin for Polaroid corners */
+function HeartPinSvg({ className = 'h-3.5 w-3.5' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 20 20" className={className} fill="currentColor" aria-hidden="true">
+      <path d="M10 17.2 8.7 16C4.2 12 1.5 9.5 1.5 6.4 1.5 3.9 3.4 2 5.9 2c1.4 0 2.8.7 3.6 1.8h1c.8-1.1 2.2-1.8 3.6-1.8 2.5 0 4.4 1.9 4.4 4.4 0 3.1-2.7 5.6-7.2 9.6L10 17.2Z" />
+    </svg>
+  );
+}
+
+/** Offline-safe botanical vignette fallback if a polaroid photo fails to load */
+function PolaroidBotanicalFallback({ index }: { index: number }) {
+  const palettes = [
+    ['#2A113B', '#581C4B', '#FDE68A'],
+    ['#1F1035', '#4C1D57', '#FDA4AF'],
+    ['#2B1232', '#6B1D45', '#FBCFE8'],
+  ] as const;
+  const [bg1, bg2, accent] = palettes[index % palettes.length];
+  return (
+    <div
+      className="flex h-full w-full items-center justify-center"
+      style={{ background: `linear-gradient(145deg, ${bg1}, ${bg2})` }}
+      aria-hidden="true"
+    >
+      <svg viewBox="0 0 64 64" className="h-10 w-10">
+        <path
+          d="M32 50 C20 40 14 33 14 25 C14 18 19.5 14 25 14 C28.5 14 30.8 16 32 18.2 C33.2 16 35.5 14 39 14 C44.5 14 50 18 50 25 C50 33 44 40 32 50 Z"
+          fill={accent}
+          fillOpacity="0.85"
+        />
+      </svg>
+    </div>
+  );
+}
 
 /**
- * Three-act romantic proposal experience:
- * Act 1: Midnight Plum wax-sealed rose slider gate
- * Act 2: Illustrated Story Sanctuary with glowing heart hotspots, fireflies, Full Art toggle & LaserHeartCanvas
- * Act 3: WordByWordFadeLine letter, CurvedTrackSanctuary, AdaptiveGallery, Date Plan, Yes/Think-Again Ask & Stargazing Date Pass
+ * Moonlit Botanical Conservatory & Cat-Meme Proposal Experience (`will-you-01`)
+ * Stage 1: Wax-Sealed Botanical Envelope Cover with smooth unfold transition
+ * Stage 2: Minimal Poetic Note, 3-Polaroid Keepsake Strip & Interactive Cat-Meme Runaway "No" Ask
+ * Stage 3: Luminous Golden-Petal & Starlight Burst + Constellation Promise Keepsake Ticket
  */
 export function WillYouSite({
-  manifest,
   data,
   language,
   watermarked = false,
   onOpened,
 }: OccasionSiteProps) {
-  const [opened, setOpened] = useState(false);
-  const [slideProgress, setSlideProgress] = useState(0);
-  const [activeWhisperIdx, setActiveWhisperIdx] = useState<number>(0);
-  const [visitedWhispers, setVisitedWhispers] = useState<Record<number, boolean>>({ 0: true });
-  const [fullArt, setFullArt] = useState(false);
-  const [selectedDateId, setSelectedDateId] = useState<DateOption['id']>('coffee');
-  const [accepted, setAccepted] = useState(false);
+  const [stage, setStage] = useState<'cover' | 'opening' | 'question' | 'accepted'>('cover');
   const [nudgeCount, setNudgeCount] = useState(0);
+  const [burstKey, setBurstKey] = useState(0);
+  const [showBurst, setShowBurst] = useState(false);
+  const [failedPhotos, setFailedPhotos] = useState<Record<string, boolean>>({});
+  const [zoomIdx, setZoomIdx] = useState<number | null>(null);
 
-  const sliderId = useId();
-  const passRef = useRef<HTMLElement | null>(null);
+  const openTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const burstTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastDodgeRef = useRef<number>(0);
 
   const coreLang = toCoreLanguageCode(language);
   const copy = COPY_BY_LANG[coreLang] ?? COPY_BY_LANG.en;
+  const isHindi = coreLang === 'hi';
+
   const senderDisplay = (data.senderName || 'A').trim();
   const receiverDisplay = (data.receiverName || 'You').trim();
   const senderInitial = senderDisplay.charAt(0).toUpperCase() || 'A';
-  const receiverInitial = receiverDisplay.charAt(0).toUpperCase() || 'B';
-  const passSerial = `WY-2026-${senderInitial}${receiverInitial}`;
-  const primaryTrackTitle = manifest.music[0]?.label || 'Soft Piano Blush';
-  const chosenDateObj = DATE_OPTIONS.find((d) => d.id === selectedDateId) ?? DATE_OPTIONS[0];
-  const headlineText = pickLocalizedText(data.headline, language);
-  const messageText = pickLocalizedText(data.message, language);
+  const receiverInitial = receiverDisplay.charAt(0).toUpperCase() || 'Y';
 
-  const whispers = useMemo<WhisperItem[]>(() => {
-    const fallbacks = FALLBACK_WHISPERS[coreLang] ?? FALLBACK_WHISPERS.en;
-    return [0, 1, 2].map((idx) => {
-      const custom = data.highlights?.[idx];
-      if (custom) {
-        const title = pickLocalizedText(custom.title, language).trim();
-        const detail = pickLocalizedText(custom.detail, language).trim();
-        if (title || detail) {
+  const rawHeadline = pickLocalizedText(data.headline, language).trim();
+  const rawMessage = pickLocalizedText(data.message, language).trim();
+  const headlineText = rawHeadline || copy.defaultHeadline;
+  const messageText = rawMessage || copy.defaultMessage;
+
+  const polaroids = useMemo(() => {
+    const customPhotos = (data.photos ?? [])
+      .map((src) => (typeof src === 'string' ? src.trim() : ''))
+      .filter((src) => src.length > 0);
+
+    if (customPhotos.length > 0) {
+      return [0, 1, 2].map((idx) => {
+        const customSrc = customPhotos[idx];
+        if (customSrc) {
           return {
-            title: title || fallbacks[idx].title,
-            detail: detail || fallbacks[idx].detail,
+            src: customSrc,
+            caption: `${copy.photoLabel} 0${idx + 1}`,
           };
         }
-      }
-      return fallbacks[idx];
-    });
-  }, [coreLang, data.highlights, language]);
+        const sample = SAMPLE_POLAROIDS[idx];
+        return {
+          src: sample.src,
+          caption: sample.caption[coreLang],
+        };
+      });
+    }
 
-  const tracks = useMemo(() => copy.tracks(primaryTrackTitle), [copy, primaryTrackTitle]);
+    return SAMPLE_POLAROIDS.map((sample) => ({
+      src: sample.src,
+      caption: sample.caption[coreLang],
+    }));
+  }, [copy.photoLabel, coreLang, data.photos]);
 
   useEffect(() => {
-    if (slideProgress >= 88 && !opened) {
-      if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
-        navigator.vibrate(30);
-      }
-      setOpened(true);
+    return () => {
+      if (openTimerRef.current) clearTimeout(openTimerRef.current);
+      if (burstTimerRef.current) clearTimeout(burstTimerRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (zoomIdx === null) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setZoomIdx(null);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [zoomIdx]);
+
+  const triggerPetalBurst = useCallback(() => {
+    setBurstKey((prev) => prev + 1);
+    setShowBurst(true);
+    if (burstTimerRef.current) clearTimeout(burstTimerRef.current);
+    burstTimerRef.current = setTimeout(() => {
+      setShowBurst(false);
+    }, 1500);
+  }, []);
+
+  const handleUnfoldEnvelope = useCallback(() => {
+    if (stage !== 'cover') return;
+    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+      navigator.vibrate(25);
+    }
+    setStage('opening');
+    openTimerRef.current = setTimeout(() => {
+      setStage('question');
       onOpened?.();
+    }, 540);
+  }, [onOpened, stage]);
+
+  const handleDodgeNo = useCallback(() => {
+    const now = Date.now();
+    if (now - lastDodgeRef.current < 160) return;
+    lastDodgeRef.current = now;
+    setNudgeCount((prev) => prev + 1);
+    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+      navigator.vibrate(14);
     }
-  }, [slideProgress, opened, onOpened]);
+  }, []);
 
-  function handleQuickOpen() {
-    setSlideProgress(100);
-    setOpened(true);
-    onOpened?.();
-  }
-
-  function handleReplayCover() {
-    setAccepted(false);
-    setNudgeCount(0);
-    setSlideProgress(0);
-    setFullArt(false);
-    setActiveWhisperIdx(0);
-    setVisitedWhispers({ 0: true });
-    setOpened(false);
-  }
-
-  function handleSelectWhisper(idx: number) {
-    setActiveWhisperIdx(idx);
-    setVisitedWhispers((prev) => (prev[idx] ? prev : { ...prev, [idx]: true }));
-    if (fullArt) {
-      setFullArt(false);
-    }
-  }
-
-  function handleAccept() {
-    setAccepted(true);
+  const handleSayYes = useCallback(() => {
     if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
       navigator.vibrate([25, 40, 35]);
     }
-    setTimeout(() => {
-      passRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }, 80);
-  }
+    setStage('accepted');
+    triggerPetalBurst();
+  }, [triggerPetalBurst]);
 
-  const currentDodge = DODGE_OFFSETS[nudgeCount % DODGE_OFFSETS.length];
-  const yesScale = Math.min(1.14, 1 + nudgeCount * 0.035);
-  const glowSpread = Math.min(34, 14 + nudgeCount * 5);
+  const handleReplayCover = useCallback(() => {
+    if (openTimerRef.current) clearTimeout(openTimerRef.current);
+    setZoomIdx(null);
+    setNudgeCount(0);
+    setShowBurst(false);
+    setStage('cover');
+  }, []);
 
-  if (!opened) {
-    return (
-      <div className="relative flex h-full min-h-full w-full flex-col justify-between overflow-hidden rounded-[28px] bg-[#16081F] text-[#FFF1F2]">
-        <OccasionArtworkBackdrop
-          src="/templates/occasions/will-you/cover.jpg"
-          fallbackGradient="radial-gradient(circle at 50% 24%, #421249 0%, #1C0A28 65%, #0D0414 100%)"
-          className="object-cover object-center opacity-50"
-        />
-        <AmbientRainCanvas fireflies density="light" tint="rgba(253, 230, 138, 0.72)" />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#16081F]/70 via-[#16081F]/45 to-[#0D0414]/95"
-        />
+  const catMood: 0 | 1 | 2 | 3 | 4 =
+    nudgeCount === 0 ? 0 : (((nudgeCount - 1) % 4) + 1) as 1 | 2 | 3 | 4;
+  const catCaption =
+    nudgeCount === 0
+      ? copy.catIdleCaption
+      : copy.catCaptions[(nudgeCount - 1) % copy.catCaptions.length];
 
-        {watermarked ? (
-          <div
-            aria-hidden="true"
-            className="relative z-20 flex justify-center bg-[#2B1B2E]/90 py-1 text-[10px] font-bold tracking-widest text-[#E8B4B8]"
-          >
-            WEBZY FREE PREVIEW
-          </div>
-        ) : null}
+  const dodgeSpot = RUNAWAY_SPOTS[nudgeCount % RUNAWAY_SPOTS.length];
+  const yesScale = Math.min(1.16, 1 + nudgeCount * 0.032);
+  const yesGlow = Math.min(38, 16 + nudgeCount * 5);
 
-        <div className="relative z-10 mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center px-5 py-7 text-center">
-          <span className="inline-flex items-center rounded-full border border-[#FDE68A]/30 bg-[#261036]/75 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[#FDE68A]">
-            {copy.coverEyebrow}
-          </span>
+  const eyebrowClass = isHindi
+    ? 'font-semibold tracking-normal text-[11px]'
+    : 'font-mono text-[10px] font-bold uppercase tracking-[0.22em]';
 
-          <p className="mt-3 font-heading text-lg italic tracking-wide text-[#FFF1F2] sm:text-xl">
-            {copy.coverHeader}
-          </p>
-
-          {/* Textured Rose-Linen Envelope with Crimson Wax Seal */}
-          <div
-            onClick={handleQuickOpen}
-            role="button"
-            tabIndex={0}
-            aria-label={copy.tapOpenFallback}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                handleQuickOpen();
-              }
-            }}
-            className="relative my-6 w-full max-w-[304px] cursor-pointer overflow-hidden rounded-2xl border border-[#F5E6D3]/60 bg-gradient-to-br from-[#F7E7DA] via-[#EFE0D2] to-[#E6D0BF] px-5 pb-6 pt-12 text-center text-[#3A1E28] shadow-[0_26px_52px_-12px_rgba(0,0,0,0.72)] transition hover:scale-[1.015] active:scale-[0.99]"
-          >
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-x-0 top-0 h-16 border-b border-[#D6BA9E]/60 bg-gradient-to-b from-[#FAF0E6]/90 to-[#EED9C7]/60"
-              style={{ clipPath: 'polygon(0 0, 100% 0, 50% 95%)' }}
-            />
-
-            <div
-              aria-hidden="true"
-              className="relative z-10 mx-auto -mt-4 mb-3 flex h-12 w-12 items-center justify-center rounded-full border border-[#FCA5A5]/45 bg-gradient-to-br from-[#E11D48] via-[#BE123C] to-[#881337] font-heading text-xs font-bold text-white shadow-md"
-            >
-              {senderInitial}&amp;{receiverInitial}
-            </div>
-
-            <p className="break-words font-heading text-xl font-bold italic text-[#2B1B2E]">
-              {copy.toPrefix} {receiverDisplay}
-            </p>
-            <p className="mt-1 break-words text-xs font-semibold text-[#5E3A47]">
-              {copy.fromLabel} {senderDisplay}
-            </p>
-          </div>
-
-          {/* Signature "Slide the rose to open ->" Draggable Pill */}
-          <div className="w-full max-w-[304px] space-y-2.5">
-            <div className="relative flex h-14 items-center overflow-hidden rounded-full border border-[#FDE68A]/35 bg-[#241032]/90 px-2 shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)]">
-              <label htmlFor={sliderId} className="sr-only">
-                {copy.slideRosePrompt}
-              </label>
-
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-[#F43F5E]/35 to-[#FB7185]/15 transition-all duration-75"
-                style={{ width: `${Math.max(16, slideProgress)}%` }}
-              />
-
-              <span
-                aria-hidden="true"
-                className="pointer-events-none absolute top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full shadow-md transition-all duration-75"
-                style={{
-                  left: `clamp(6px, calc(${slideProgress}% - 22px), calc(100% - 50px))`,
-                }}
-              >
-                <RoseBloomSvg />
-              </span>
-
-              <span className="pointer-events-none relative z-0 w-full pl-9 pr-3 text-center font-heading text-xs italic tracking-wide text-[#FDE68A]/95">
-                {copy.slideRosePrompt}
-              </span>
-
-              <input
-                id={sliderId}
-                type="range"
-                min={0}
-                max={100}
-                value={slideProgress}
-                onChange={(e) => setSlideProgress(Number(e.target.value))}
-                className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
-              />
-            </div>
-
-            <button
-              type="button"
-              onClick={handleQuickOpen}
-              className="inline-flex min-h-[44px] items-center justify-center rounded-full px-4 text-xs font-medium text-[#E8B4B8]/85 underline underline-offset-4 transition hover:text-[#FFF1F2]"
-            >
-              {copy.tapOpenFallback}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const activeWhisper = whispers[activeWhisperIdx] ?? whispers[0];
-  const activeOptionLabel = chosenDateObj.title[coreLang];
+  const polaroidTilts = ['-rotate-3', 'rotate-1', 'rotate-3'] as const;
+  const washiTints = [
+    'bg-[#FDA4AF]/70 -rotate-6',
+    'bg-[#FDE68A]/70 rotate-3',
+    'bg-[#C4B5FD]/70 -rotate-3',
+  ] as const;
 
   return (
-    <div className="relative flex min-h-full w-full flex-col overflow-hidden rounded-[28px] bg-[#0B0614] text-[#FFF1F2] animate-fade-in">
+    <div className="relative flex min-h-full w-full flex-col overflow-x-clip overflow-y-hidden rounded-[28px] bg-[#080514] text-[#FFF7F5]">
+      {/* Scoped Keyframes with prefers-reduced-motion support */}
+      <style>{`
+        @keyframes wy-twinkle {
+          0%, 100% { opacity: 0.25; transform: scale(0.85); }
+          50% { opacity: 1; transform: scale(1.25); }
+        }
+        @keyframes wy-firefly {
+          0%, 100% { transform: translate(0px, 0px) scale(0.85); opacity: 0.28; }
+          35% { transform: translate(12px, -22px) scale(1.15); opacity: 0.95; }
+          70% { transform: translate(-10px, -40px) scale(0.95); opacity: 0.65; }
+        }
+        @keyframes wy-petal-fall {
+          0% { transform: translate3d(0, -10%, 0) rotate(0deg); opacity: 0; }
+          12% { opacity: 0.8; }
+          85% { opacity: 0.7; }
+          100% { transform: translate3d(-44px, 560px, 0) rotate(240deg); opacity: 0; }
+        }
+        @keyframes wy-vine-sway {
+          0%, 100% { transform: rotate(0deg); }
+          50% { transform: rotate(2.4deg); }
+        }
+        @keyframes wy-moon-glow {
+          0%, 100% { transform: scale(1); opacity: 0.92; }
+          50% { transform: scale(1.06); opacity: 1; }
+        }
+        @keyframes wy-float-slow {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-6px); }
+        }
+        @keyframes wy-sticker-pop {
+          0% { transform: scale(0.82) rotate(-4deg); opacity: 0.4; }
+          65% { transform: scale(1.06) rotate(2deg); opacity: 1; }
+          100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        @keyframes wy-fade-up {
+          0% { opacity: 0; transform: translateY(14px) scale(0.98); }
+          100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes wy-burst-out {
+          0% { transform: translate(-50%, -50%) translate(0px, 0px) scale(0.3) rotate(0deg); opacity: 1; }
+          75% { opacity: 0.95; }
+          100% { transform: translate(-50%, -50%) translate(var(--wy-tx), var(--wy-ty)) scale(1.15) rotate(180deg); opacity: 0; }
+        }
+        .wy-twinkle { animation: wy-twinkle 3.2s ease-in-out infinite; transform-origin: center; }
+        .wy-firefly { animation: wy-firefly 8s ease-in-out infinite; }
+        .wy-petal-fall { animation: wy-petal-fall 12s linear infinite; }
+        .wy-vine-sway { animation: wy-vine-sway 7.5s ease-in-out infinite; transform-origin: top left; }
+        .wy-vine-sway-alt { animation: wy-vine-sway 8.5s ease-in-out infinite reverse; transform-origin: bottom right; }
+        .wy-moon-glow { animation: wy-moon-glow 5.5s ease-in-out infinite; }
+        .wy-float-slow { animation: wy-float-slow 4.6s ease-in-out infinite; }
+        .wy-sticker-pop { animation: wy-sticker-pop 380ms cubic-bezier(0.22, 1.25, 0.36, 1) both; }
+        .wy-fade-up { animation: wy-fade-up 520ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+        .wy-burst-particle { animation: wy-burst-out 1350ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @media (prefers-reduced-motion: reduce) {
+          .wy-twinkle,
+          .wy-firefly,
+          .wy-petal-fall,
+          .wy-vine-sway,
+          .wy-vine-sway-alt,
+          .wy-moon-glow,
+          .wy-float-slow,
+          .wy-sticker-pop,
+          .wy-fade-up,
+          .wy-burst-particle {
+            animation: none !important;
+            transition-duration: 0.01ms !important;
+          }
+        }
+      `}</style>
+
+      {/* Detailed Animated Moonlit Conservatory Background */}
+      <ConservatoryBackdrop intensified={stage === 'accepted'} />
+
+      {/* Watermark Strip (when in free preview mode) */}
       {watermarked ? (
         <div
           aria-hidden="true"
-          className="relative z-20 flex justify-center bg-[#23122C] py-1 text-[10px] font-bold tracking-widest text-[#E8B4B8]"
+          className="relative z-30 flex justify-center bg-[#1E0D2E]/90 py-1 font-mono text-[10px] font-bold tracking-widest text-[#FBCFE8]"
         >
           WEBZY FREE PREVIEW
         </div>
       ) : null}
 
-      {/* Top Bar */}
-      <header className="relative z-20 flex items-center justify-between gap-2 border-b border-white/10 bg-[#12081D]/85 px-4 py-3 backdrop-blur-md">
-        <span className="inline-flex min-h-[36px] max-w-[60%] items-center truncate rounded-full border border-[#F43F5E]/35 bg-[#241032]/90 px-3 py-1 text-xs font-medium text-[#FBCFE8]">
-          <span className="truncate">
-            {senderDisplay} → {receiverDisplay}
+      {/* Luminous Golden-Petal & Starlight Burst Overlay */}
+      {showBurst ? (
+        <div
+          key={`burst-${burstKey}`}
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-50 overflow-hidden"
+        >
+          {BURST_PARTICLES.map((p, idx) => {
+            const rad = (p.angle * Math.PI) / 180;
+            const tx = `${Math.round(Math.cos(rad) * p.dist)}px`;
+            const ty = `${Math.round(Math.sin(rad) * p.dist)}px`;
+            return (
+              <span
+                key={`bp-${idx}`}
+                className="wy-burst-particle absolute left-1/2 top-1/2"
+                style={
+                  {
+                    '--wy-tx': tx,
+                    '--wy-ty': ty,
+                    animationDelay: p.delay,
+                  } as React.CSSProperties
+                }
+              >
+                {p.kind === 'star' ? (
+                  <svg viewBox="0 0 24 24" className="h-5 w-5" fill={p.color}>
+                    <path d="M12 2 L14.4 9.2 L22 12 L14.4 14.8 L12 22 L9.6 14.8 L2 12 L9.6 9.2 Z" />
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 20 20" className="h-5 w-5" fill={p.color}>
+                    <path d="M10 2 C15 4.5 17 11 10 18 C3 11 5 4.5 10 2 Z" />
+                  </svg>
+                )}
+              </span>
+            );
+          })}
+        </div>
+      ) : null}
+
+      {/* =====================================================================
+          STAGE 1: WAX-SEALED BOTANICAL ENVELOPE COVER
+         ===================================================================== */}
+      {stage === 'cover' || stage === 'opening' ? (
+        <main className="relative z-10 mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center px-5 py-10 text-center">
+          <span
+            className={`inline-flex items-center gap-2 rounded-full border border-[#FDE68A]/35 bg-[#1B0D30]/75 px-3.5 py-1 text-[#FDE68A] backdrop-blur-xs ${eyebrowClass}`}
+          >
+            <span className="h-1.5 w-1.5 rounded-full bg-[#FDA4AF]" aria-hidden="true" />
+            {copy.coverEyebrow}
           </span>
-        </span>
 
-        <button
-          type="button"
-          onClick={handleReplayCover}
-          className="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/10 px-4 text-xs font-semibold text-[#FFF1F2] transition hover:bg-white/15 active:scale-95"
-        >
-          {getReplayLabel(language)}
-        </button>
-      </header>
-
-      {/* Main Continuous Flow */}
-      <main className="relative z-10 flex flex-1 flex-col gap-5 px-3.5 pb-6 pt-4 sm:px-5">
-        {/* ACT 2A: Illustrated Story Sanctuary with Glowing Heart Hotspots + Firefly Sky */}
-        <section
-          aria-label={copy.sanctuaryEyebrow}
-          className="relative overflow-hidden rounded-3xl border border-[#F43F5E]/25 bg-[#150821] shadow-[0_24px_60px_-20px_rgba(244,63,94,0.35)]"
-        >
-          <OccasionArtworkBackdrop
-            src="/templates/occasions/will-you/cover.jpg"
-            fallbackGradient="radial-gradient(circle at 50% 22%, #47144D 0%, #1C0A29 58%, #090512 100%)"
-            className={`object-cover object-center transition-opacity duration-500 ${
-              fullArt ? 'opacity-95' : 'opacity-50'
+          <p
+            className={`mt-3 font-heading text-lg text-[#FFF1F2]/95 sm:text-xl ${
+              isHindi ? 'not-italic tracking-normal' : 'italic tracking-wide'
             }`}
-          />
+          >
+            {copy.coverPrompt}
+          </p>
 
-          <AmbientRainCanvas
-            fireflies
-            density="medium"
-            tint={fullArt ? 'rgba(253, 224, 71, 0.95)' : 'rgba(253, 224, 71, 0.8)'}
-          />
-
-          <div
-            aria-hidden="true"
-            className={`pointer-events-none absolute inset-0 transition-opacity duration-500 ${
-              fullArt
-                ? 'bg-gradient-to-b from-[#0B0614]/35 via-transparent to-[#0B0614]/55'
-                : 'bg-gradient-to-b from-[#12071D]/70 via-[#12071D]/30 to-[#0B0614]/92'
-            }`}
-          />
-
-          {/* Top Bar inside Sanctuary: Eyebrow + Full Art Toggle */}
-          <div className="relative z-10 flex items-center justify-between gap-2 px-4 pt-3.5">
-            <span className="rounded-full border border-[#FDE68A]/30 bg-black/45 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#FDE68A] backdrop-blur-xs">
-              {copy.sanctuaryEyebrow}
-            </span>
-
+          {/* Tactile Cream-Parchment Envelope with Pressed Flower Sprig & Crimson Wax Seal */}
+          <div className="wy-float-slow relative my-7 w-full max-w-[308px]" style={{ perspective: '900px' }}>
             <button
               type="button"
-              onClick={() => setFullArt((prev) => !prev)}
-              aria-pressed={fullArt}
-              className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-full border px-3.5 text-xs font-bold backdrop-blur-sm transition active:scale-95 ${
-                fullArt
-                  ? 'border-[#F43F5E]/70 bg-[#F43F5E]/85 text-white shadow-[0_0_18px_rgba(244,63,94,0.5)]'
-                  : 'border-white/20 bg-black/50 text-white/90 hover:bg-black/70'
+              onClick={handleUnfoldEnvelope}
+              disabled={stage === 'opening'}
+              aria-label={copy.tapSealHint}
+              className={`group relative block w-full cursor-pointer overflow-visible rounded-[22px] border border-[#F5E6D3]/75 bg-gradient-to-br from-[#FAF3E8] via-[#F2E5D3] to-[#E7D4BC] px-6 pb-7 pt-16 text-center text-[#3B1D2B] shadow-[0_30px_60px_-14px_rgba(0,0,0,0.82),0_0_32px_-8px_rgba(253,230,138,0.28)] transition-all duration-500 hover:scale-[1.02] active:scale-[0.98] ${
+                stage === 'opening' ? 'scale-105 opacity-0' : 'opacity-100'
               }`}
             >
-              <svg viewBox="0 0 20 20" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+              {/* Delicate gold-foil inner border */}
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-2.5 rounded-[16px] border border-[#C69C6D]/45"
+              />
+
+              {/* Top Triangular Envelope Flap (flips open on unfold) */}
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-x-0 top-0 h-20 origin-top rounded-t-[22px] border-b border-[#D6BA9E]/70 bg-gradient-to-b from-[#FFFBF4] to-[#EBD8C2] transition-transform duration-500"
+                style={{
+                  clipPath: 'polygon(0 0, 100% 0, 50% 96%)',
+                  transform: stage === 'opening' ? 'rotateX(165deg)' : 'rotateX(0deg)',
+                }}
+              />
+
+              {/* Pressed Botanical Flower Sprig tucked under the wax seal */}
+              <svg
+                viewBox="0 0 110 64"
+                className="pointer-events-none absolute left-1/2 top-7 h-16 w-28 -translate-x-1/2 -rotate-6"
+                fill="none"
+                aria-hidden="true"
+              >
                 <path
+                  d="M18 46 C38 36 62 28 92 16"
+                  stroke="#3F6212"
+                  strokeWidth="1.8"
                   strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M2.5 10s3-5.5 7.5-5.5S17.5 10 17.5 10s-3 5.5-7.5 5.5S2.5 10 2.5 10Z"
                 />
-                <circle cx="10" cy="10" r="2.2" />
+                <ellipse cx="36" cy="36" rx="7" ry="3.2" transform="rotate(-32 36 36)" fill="#4D7C0F" fillOpacity="0.82" />
+                <ellipse cx="74" cy="24" rx="7.5" ry="3.4" transform="rotate(12 74 24)" fill="#4D7C0F" fillOpacity="0.82" />
+                <ellipse cx="86" cy="14" rx="5.5" ry="2.6" transform="rotate(-24 86 14)" fill="#65A30D" fillOpacity="0.85" />
+                {/* Tiny dried lavender & rosebud dots */}
+                <circle cx="94" cy="15" r="3.4" fill="#FB7185" />
+                <circle cx="88" cy="22" r="2.6" fill="#FDA4AF" />
+                <circle cx="23" cy="43" r="2.5" fill="#FDE68A" />
               </svg>
-              <span>{fullArt ? copy.fullArtHide : copy.fullArtShow}</span>
+
+              {/* Scalloped Crimson Botanical Wax Seal */}
+              <div
+                aria-hidden="true"
+                className={`relative z-10 mx-auto -mt-5 mb-3.5 flex h-14 w-14 items-center justify-center rounded-full border-2 border-[#FDA4AF]/55 bg-gradient-to-br from-[#E11D48] via-[#BE123C] to-[#881337] text-[#FFF1F2] shadow-[0_8px_20px_rgba(136,19,55,0.55),inset_0_2px_4px_rgba(255,255,255,0.28)] transition-transform duration-300 group-hover:scale-110 ${
+                  stage === 'opening' ? 'scale-125 opacity-0' : ''
+                }`}
+              >
+                <span className="font-heading text-xs font-bold tracking-wider">
+                  {senderInitial}&amp;{receiverInitial}
+                </span>
+              </div>
+
+              <p
+                className={`break-words font-heading text-2xl font-bold text-[#2B1424] ${
+                  hasDevanagari(receiverDisplay) || isHindi ? 'not-italic tracking-normal' : 'italic'
+                }`}
+              >
+                {copy.forPrefix} {receiverDisplay}
+              </p>
+              <p className="mt-1.5 break-words text-xs font-medium text-[#6B4253]">
+                {copy.fromPrefix} <span className="font-bold text-[#4A2033]">{senderDisplay}</span>
+              </p>
             </button>
           </div>
 
-          {/* Interactive Sky Canvas with 3 Glowing Heart Orbs */}
-          <div className="relative z-10 h-[210px] w-full sm:h-[235px]">
-            {whispers.map((item, idx) => {
-              const coord = HOTSPOT_COORDS[idx] ?? HOTSPOT_COORDS[0];
-              const isSelected = activeWhisperIdx === idx && !fullArt;
-              const isVisited = Boolean(visitedWhispers[idx]);
-              return (
-                <button
-                  key={`whisper-orb-${idx}`}
-                  type="button"
-                  onClick={() => handleSelectWhisper(idx)}
-                  aria-pressed={isSelected}
-                  aria-label={`${copy.whisperCounter(idx, whispers.length)}: ${item.title}`}
-                  style={{ top: coord.top, left: coord.left }}
-                  className={`group absolute flex min-h-[44px] min-w-[44px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full transition-all duration-300 active:scale-90 ${
-                    fullArt ? 'opacity-45 hover:opacity-100' : 'opacity-100'
-                  }`}
-                >
-                  <span
-                    aria-hidden="true"
-                    className={`absolute inset-0 rounded-full blur-md transition-all duration-500 ${
-                      isSelected
-                        ? 'scale-125 bg-[#F43F5E]/80'
-                        : isVisited
-                          ? 'bg-[#FB7185]/45'
-                          : 'animate-pulse bg-[#FDE68A]/55'
-                    }`}
-                  />
-                  <span
-                    className={`relative flex h-11 w-11 items-center justify-center rounded-full border text-base font-bold transition-transform duration-300 group-hover:scale-110 ${
-                      isSelected
-                        ? 'scale-110 border-[#FFF1F2] bg-[#F43F5E] text-white shadow-[0_0_24px_rgba(244,63,94,0.85)]'
-                        : 'border-[#FDE68A]/60 bg-[#1B0B2B]/80 text-[#FDA4AF] backdrop-blur-xs'
-                    }`}
-                  >
-                    <svg viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current stroke-[1.9]" aria-hidden="true">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
-                    </svg>
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Whisper Reveal Card (fades cleanly out in Full Art mode) */}
-          <div
-            className={`relative z-10 px-3.5 pb-4 transition-all duration-300 ${
-              fullArt ? 'pointer-events-none translate-y-2 opacity-0' : 'translate-y-0 opacity-100'
-            }`}
+          <button
+            type="button"
+            onClick={handleUnfoldEnvelope}
+            disabled={stage === 'opening'}
+            className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-[#FDE68A]/35 bg-[#1C0D30]/80 px-5 py-2 text-xs font-semibold text-[#FDE68A] backdrop-blur-sm transition hover:bg-[#2A1447] active:scale-95"
           >
-            <div className="rounded-2xl border border-white/15 bg-[#0E0718]/82 p-4 backdrop-blur-md">
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-[#FDA4AF]">
-                  {copy.whisperCounter(activeWhisperIdx, whispers.length)}
-                </span>
-                <div className="flex items-center">
-                  {whispers.map((_, idx) => (
-                    <button
-                      key={`dot-${idx}`}
-                      type="button"
-                      onClick={() => handleSelectWhisper(idx)}
-                      aria-label={copy.whisperCounter(idx, whispers.length)}
-                      className="flex min-h-[44px] min-w-[44px] items-center justify-center"
-                    >
-                      <span
-                        className={`block h-2 rounded-full transition-all ${
-                          activeWhisperIdx === idx
-                            ? 'w-5 bg-[#F43F5E]'
-                            : visitedWhispers[idx]
-                              ? 'w-2 bg-[#FDA4AF]/70'
-                              : 'w-2 bg-white/30'
-                        }`}
-                      />
-                    </button>
-                  ))}
-                </div>
-              </div>
+            <HeartPinSvg className="h-3.5 w-3.5 text-[#FDA4AF]" />
+            <span>{stage === 'opening' ? copy.openingLabel : copy.tapSealHint}</span>
+          </button>
+        </main>
+      ) : null}
 
-              <h2 className="mt-1 break-words font-heading text-lg font-bold text-[#FFF1F2]">
-                {activeWhisper.title}
-              </h2>
-              <p className="mt-1 break-words text-xs leading-relaxed text-[#FBCFE8]/90 sm:text-sm">
-                {activeWhisper.detail}
-              </p>
-              <p className="mt-2 font-mono text-[10px] tracking-wide text-white/55">
-                {copy.sanctuaryHint}
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* ACT 2B: Interactive 3D Particle Laser Heart Centerpiece */}
-        <section aria-label={copy.laserEyebrow} className="space-y-2">
-          <div className="flex items-center justify-between px-1">
-            <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[#22D3EE]/85">
-              {copy.laserEyebrow}
+      {/* =====================================================================
+          STAGE 2 & STAGE 3 HEADER BAR
+         ===================================================================== */}
+      {stage === 'question' || stage === 'accepted' ? (
+        <header className="relative z-20 flex items-center justify-between gap-2 border-b border-white/10 bg-[#120822]/75 px-4 py-2.5 backdrop-blur-md">
+          <span className="inline-flex min-h-[34px] max-w-[62%] items-center gap-1.5 truncate rounded-full border border-[#FDA4AF]/30 bg-[#24103A]/85 px-3 py-1 text-xs font-medium text-[#FBCFE8]">
+            <HeartPinSvg className="h-3 w-3 shrink-0 text-[#FB7185]" />
+            <span className="truncate">
+              {senderDisplay} &amp; {receiverDisplay}
             </span>
-            <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#F472B6]/85">
-              {copy.laserSubtitle}
-            </span>
-          </div>
-          <LaserHeartCanvas
-            accentHue="cyan-pink"
-            heightClass="h-64 sm:h-72"
-            interactiveLabel={copy.laserTapPrompt}
-            subtitle={`${senderDisplay} · ${receiverDisplay}`}
-          />
-        </section>
+          </span>
 
-        {/* ACT 3A: The Heartfelt Letter (Word-by-Word Fade Reveal) */}
-        <section className="relative overflow-hidden rounded-3xl border border-[#F43F5E]/25 bg-gradient-to-b from-[#1A0C28] via-[#13081E] to-[#0D0616] p-5 shadow-xl sm:p-6">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full bg-[#F43F5E]/15 blur-3xl"
-          />
+          <button
+            type="button"
+            onClick={handleReplayCover}
+            className="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/10 px-3.5 text-xs font-semibold text-[#FFF7F5] transition hover:bg-white/15 active:scale-95"
+          >
+            {getReplayLabel(language)}
+          </button>
+        </header>
+      ) : null}
 
-          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[#FDA4AF]">
-            {copy.letterEyebrow}
-          </p>
-          <h2 className="mt-2 break-words font-heading text-2xl font-bold leading-snug text-[#FFF1F2]">
-            {headlineText}
-          </h2>
-
-          <div className="my-3.5 h-px w-16 bg-gradient-to-r from-[#F43F5E] to-transparent" aria-hidden="true" />
-
-          <WordByWordFadeLine
-            text={messageText}
-            active={opened}
-            delayStepMs={55}
-            className="break-words text-sm leading-relaxed text-[#FFE4E8]/90 sm:text-base"
-          />
-
-          <p className="mt-4 break-words font-heading text-sm italic text-[#FDE68A]/90">
-            {copy.signedPrefix} {senderDisplay}
-          </p>
-        </section>
-
-        {/* ACT 3B: Curved Vinyl Soundtrack Sanctuary */}
-        <CurvedTrackSanctuary
-          tracks={tracks}
-          mood="romantic"
-          accentColor="#F43F5E"
-          dark
-          heading={copy.soundtrackHeading}
-        />
-
-        {/* ACT 3C: Adaptive Photo Memory Gallery */}
-        {data.photos && data.photos.length > 0 ? (
-          <section className="rounded-3xl border border-white/10 bg-[#12091D]/90 p-4 shadow-lg">
-            <p className="px-1 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[#FDA4AF]">
-              {copy.galleryEyebrow}
-            </p>
-            <OccasionAdaptiveGallery
-              photos={data.photos}
-              accentColor="#F43F5E"
-              dark
-              captionPrefix={copy.photoCaption}
-            />
-          </section>
-        ) : null}
-
-        {/* ACT 3D: Date Plan Chooser */}
-        <section className="rounded-3xl border border-[#F43F5E]/25 bg-[#160A24]/95 p-4 shadow-xl sm:p-5">
-          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[#FDE68A]">
-            {copy.datePickerEyebrow}
-          </p>
-          <h3 className="mt-1 font-heading text-lg font-bold text-[#FFF1F2]">
-            {copy.datePickerHeading}
-          </h3>
-
-          <div className="mt-3.5 space-y-2.5">
-            {DATE_OPTIONS.map((opt) => {
-              const isSelected = selectedDateId === opt.id;
-              return (
-                <button
-                  key={opt.id}
-                  type="button"
-                  aria-pressed={isSelected}
-                  onClick={() => setSelectedDateId(opt.id)}
-                  className={`flex min-h-[56px] w-full items-start gap-3 rounded-2xl border p-3.5 text-left transition-all active:scale-[0.99] ${
-                    isSelected
-                      ? 'border-[#F43F5E] bg-[#F43F5E]/18 text-white shadow-[0_0_24px_-10px_rgba(244,63,94,0.75)]'
-                      : 'border-white/12 bg-white/5 text-[#FFF1F2]/85 hover:border-white/25 hover:bg-white/10'
-                  }`}
-                >
-                  <span
-                    className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border transition-colors ${
-                      isSelected
-                        ? 'border-[#FDA4AF]/50 bg-[#F43F5E] text-white'
-                        : 'border-white/15 bg-black/30 text-[#FDA4AF]'
-                    }`}
-                  >
-                    <DateOptionIcon id={opt.id} />
-                  </span>
-
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center justify-between gap-1.5">
-                      <span className="break-words text-sm font-bold">{opt.title[coreLang]}</span>
-                      <span className="font-mono text-[9.5px] font-bold uppercase tracking-[0.14em] text-[#FDE68A]/85">
-                        {opt.timeHint[coreLang]}
-                      </span>
-                    </div>
-                    <p className="mt-0.5 break-words text-xs leading-relaxed text-[#E8B4B8]/85">
-                      {opt.subtitle[coreLang]}
-                    </p>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* ACT 3E: The Glowing "Yes" / Dodging "Think Again" Ask OR Unlocked Stargazing Date Pass */}
-        {!accepted ? (
-          <section className="relative overflow-hidden rounded-3xl border border-[#F43F5E]/40 bg-gradient-to-b from-[#230E32] to-[#12071C] p-5 text-center shadow-2xl sm:p-6">
-            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[#FDA4AF]">
-              {copy.askEyebrow}
-            </p>
-
-            <span className="mt-2.5 inline-flex items-center rounded-full border border-[#FDE68A]/35 bg-white/5 px-3 py-1 text-[11px] font-semibold text-[#FDE68A]">
-              {activeOptionLabel}
-            </span>
-
-            <h3 className="mt-3 break-words font-heading text-2xl font-bold text-[#FFF1F2]">
-              {copy.askTitle}
-            </h3>
-
-            <p
-              key={nudgeCount}
-              className="mt-2 min-h-[36px] break-words text-xs leading-relaxed text-[#FDA4AF] animate-fade-in"
+      {/* =====================================================================
+          STAGE 2: MOONLIT GARDEN — POETIC NOTE, POLAROIDS & CAT MEME ASK
+         ===================================================================== */}
+      {stage === 'question' ? (
+        <main className="wy-fade-up relative z-10 mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-4 pb-6 pt-5">
+          {/* Minimal Poetic Headline & Heartfelt Note */}
+          <section className="relative overflow-hidden rounded-[26px] border border-[#FDE68A]/25 bg-[#160B2A]/75 px-5 py-5 text-center shadow-[0_20px_50px_-18px_rgba(0,0,0,0.75)] backdrop-blur-md">
+            <h1
+              className={`break-words font-heading text-2xl font-bold leading-snug text-[#FFF7ED] sm:text-[26px] ${
+                hasDevanagari(headlineText) || isHindi ? 'not-italic tracking-normal' : 'italic'
+              }`}
             >
-              {nudgeCount > 0 ? copy.nudges[(nudgeCount - 1) % copy.nudges.length] : copy.askIdlePrompt}
+              {headlineText}
+            </h1>
+            <div
+              className="mx-auto my-3 h-px w-16 bg-gradient-to-r from-transparent via-[#FDA4AF]/75 to-transparent"
+              aria-hidden="true"
+            />
+            <p className="break-words text-sm leading-relaxed text-[#FDE8EF]/90">
+              {messageText}
             </p>
+          </section>
 
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+          {/* Interactive Proposal Card with Expressive Cat Meme Companion */}
+          <section className="relative overflow-hidden rounded-[28px] border border-[#FDA4AF]/35 bg-gradient-to-b from-[#230F3A]/88 via-[#180B2C]/90 to-[#110722]/92 px-4 py-6 text-center shadow-[0_24px_56px_-16px_rgba(244,63,94,0.35)] backdrop-blur-md">
+            <p className={`text-[#FDE68A]/90 ${eyebrowClass}`}>{copy.questionEyebrow}</p>
+
+            {/* Expressive Illustrated Cat Meme Companion */}
+            <div className="my-4">
+              <CatMemeSticker mood={catMood} caption={catCaption} />
+            </div>
+
+            <h2
+              className={`break-words font-heading text-xl font-bold text-[#FFF7ED] sm:text-2xl ${
+                isHindi ? 'not-italic tracking-normal' : ''
+              }`}
+            >
+              {copy.questionTitle}
+            </h2>
+
+            {/* Interactive Yes / Runaway No Stage */}
+            <div className="relative mt-5 flex min-h-[104px] flex-wrap items-center justify-center gap-3.5 px-2 py-3">
               <button
                 type="button"
-                onClick={handleAccept}
+                onClick={handleSayYes}
                 style={{
                   transform: `scale(${yesScale})`,
-                  boxShadow: `0 0 ${glowSpread}px rgba(244, 63, 94, 0.78)`,
+                  boxShadow: `0 0 ${yesGlow}px rgba(244, 63, 94, 0.72)`,
                 }}
-                className="inline-flex min-h-[48px] items-center justify-center rounded-full bg-[#F43F5E] px-7 py-2.5 text-sm font-bold text-white transition-all duration-300 hover:brightness-110 active:scale-95"
+                className="relative z-10 inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#F43F5E] via-[#E11D48] to-[#FB7185] px-7 py-2.5 text-sm font-bold text-white transition-all duration-300 hover:brightness-110 active:scale-95"
               >
-                {copy.yesCta}
+                <HeartPinSvg className="h-4 w-4 text-[#FFF1F2]" />
+                <span>{copy.yesLabel}</span>
               </button>
 
               <button
                 type="button"
-                onClick={() => setNudgeCount((prev) => prev + 1)}
+                onClick={handleDodgeNo}
+                onMouseEnter={handleDodgeNo}
                 style={{
-                  transform: `translate(${currentDodge.x}px, ${currentDodge.y}px)`,
+                  transform: `translate(${dodgeSpot.x}px, ${dodgeSpot.y}px)`,
                 }}
-                className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-[#E8B4B8]/35 bg-white/5 px-4 py-2 text-xs font-semibold text-[#FFF1F2]/85 transition-all duration-300 hover:bg-white/10"
+                className="relative z-10 inline-flex min-h-[44px] min-w-[78px] items-center justify-center rounded-full border border-[#FBCFE8]/35 bg-white/10 px-4 py-2 text-xs font-semibold text-[#FDE8EF]/90 backdrop-blur-xs transition-transform duration-300 ease-out hover:bg-white/15"
               >
-                {copy.noCta}
+                {copy.noLabel}
               </button>
             </div>
           </section>
-        ) : (
+
+          {/* 3-Polaroid Keepsake Strip with Washi Tape & Tiny Heart Pins */}
+          <section aria-label={copy.polaroidEyebrow} className="space-y-2.5 pt-1">
+            <p className={`text-center text-[#FDA4AF]/85 ${eyebrowClass}`}>
+              {copy.polaroidEyebrow}
+            </p>
+
+            <div className="grid grid-cols-3 gap-2.5 px-0.5">
+              {polaroids.map((item, idx) => {
+                const isFailed = Boolean(failedPhotos[item.src]);
+                return (
+                  <button
+                    key={`polaroid-${idx}`}
+                    type="button"
+                    onClick={() => !isFailed && setZoomIdx(idx)}
+                    aria-label={`${item.caption}`}
+                    className={`group relative flex flex-col rounded-xl bg-[#FFFDF8] p-1.5 pb-3 text-left shadow-[0_14px_28px_-10px_rgba(0,0,0,0.72)] transition-all duration-300 hover:z-10 hover:rotate-0 hover:scale-105 active:scale-95 ${polaroidTilts[idx % polaroidTilts.length]}`}
+                  >
+                    {/* Translucent Pastel Washi Tape Strip */}
+                    <span
+                      aria-hidden="true"
+                      className={`pointer-events-none absolute -top-2 left-1/2 h-3.5 w-10 -translate-x-1/2 rounded-[2px] backdrop-blur-[1px] ${washiTints[idx % washiTints.length]}`}
+                    />
+                    {/* Tiny Heart Pin */}
+                    <span
+                      aria-hidden="true"
+                      className="pointer-events-none absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#FFF1F2] text-[#E11D48] shadow-xs"
+                    >
+                      <HeartPinSvg className="h-3 w-3" />
+                    </span>
+
+                    <div className="aspect-square w-full overflow-hidden rounded-lg bg-[#241036]">
+                      {isFailed ? (
+                        <PolaroidBotanicalFallback index={idx} />
+                      ) : (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img
+                          src={item.src}
+                          alt={item.caption}
+                          loading="lazy"
+                          decoding="async"
+                          onError={() =>
+                            setFailedPhotos((prev) => ({ ...prev, [item.src]: true }))
+                          }
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                      )}
+                    </div>
+
+                    <span
+                      className={`mt-1.5 block truncate text-center text-[10px] font-semibold text-[#4A2535] ${
+                        hasDevanagari(item.caption) ? 'tracking-normal' : 'italic'
+                      }`}
+                    >
+                      {item.caption}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        </main>
+      ) : null}
+
+      {/* =====================================================================
+          STAGE 3: "YES!" GRAND STARLIGHT BLOOM & CONSTELLATION KEEPSAKE TICKET
+         ===================================================================== */}
+      {stage === 'accepted' ? (
+        <main className="wy-fade-up relative z-10 mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-5 px-4 pb-6 pt-5">
+          {/* Celebratory Purring Cat with Flower Crown */}
+          <div className="wy-float-slow">
+            <CatMemeSticker mood={5} caption={copy.yesLabel} />
+          </div>
+
+          {/* Constellation Promise Keepsake Ticket */}
           <section
-            ref={passRef}
-            aria-label={copy.passEyebrow}
-            className="relative overflow-hidden rounded-3xl border border-[#FDE68A]/45 bg-gradient-to-br from-[#230E35] via-[#150822] to-[#0C0514] p-5 text-[#FFF1F2] shadow-[0_24px_60px_-14px_rgba(244,63,94,0.5)] animate-pop-bounce"
+            aria-label={copy.ticketEyebrow}
+            className="relative w-full overflow-hidden rounded-[28px] border border-[#FDE68A]/50 bg-gradient-to-br from-[#261142]/92 via-[#180B2D]/94 to-[#0E071D]/96 p-5 text-[#FFF7ED] shadow-[0_28px_64px_-14px_rgba(244,63,94,0.48),0_0_32px_-10px_rgba(253,230,138,0.3)] backdrop-blur-md"
           >
-            <AmbientRainCanvas fireflies density="light" tint="rgba(253, 224, 71, 0.78)" />
+            {/* Header row with stamp */}
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className={`inline-flex items-center gap-1.5 text-[#FDE68A] ${eyebrowClass}`}>
+                <span className="h-2 w-2 rounded-full bg-[#FB7185]" aria-hidden="true" />
+                {copy.ticketEyebrow}
+              </span>
 
-            <div className="relative z-10">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="inline-flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[#FDE68A]">
-                  <span className="inline-block h-2 w-2 rounded-full bg-[#F43F5E]" aria-hidden="true" />
-                  {copy.passEyebrow}
-                </span>
+              <span
+                className={`inline-block -rotate-2 rounded-md border border-[#FDA4AF]/65 bg-[#F43F5E]/20 px-2.5 py-0.5 text-[#FBCFE8] ${
+                  isHindi ? 'text-[10px] font-bold tracking-normal' : 'font-mono text-[9.5px] font-bold tracking-[0.14em]'
+                }`}
+              >
+                {copy.ticketStamp}
+              </span>
+            </div>
 
-                <span className="inline-block -rotate-3 rounded-md border border-[#F43F5E]/75 bg-[#F43F5E]/15 px-2.5 py-1 font-mono text-[10px] font-bold tracking-[0.14em] text-[#FDA4AF]">
-                  {copy.stampText}
+            <h2
+              className={`mt-3 break-words font-heading text-2xl font-bold leading-snug text-[#FFF7ED] ${
+                hasDevanagari(receiverDisplay) || isHindi ? 'not-italic tracking-normal' : 'italic'
+              }`}
+            >
+              {copy.ticketTitle(receiverDisplay)}
+            </h2>
+            <p className="mt-1 break-words text-xs leading-relaxed text-[#FBCFE8]/90 sm:text-sm">
+              {copy.ticketSubtitle(senderDisplay)}
+            </p>
+
+            {/* Constellation Connection Art with Both Names */}
+            <div className="mt-4 rounded-2xl border border-[#FDE68A]/25 bg-black/30 px-4 py-4">
+              <svg viewBox="0 0 260 66" className="mx-auto h-14 w-full" aria-hidden="true">
+                <path
+                  d="M42 42 Q130 6 218 42"
+                  fill="none"
+                  stroke="#FDE68A"
+                  strokeOpacity="0.45"
+                  strokeWidth="1.2"
+                  strokeDasharray="3 4"
+                />
+                <circle cx="90" cy="24" r="2" fill="#FDE68A" fillOpacity="0.7" />
+                <circle cx="130" cy="18" r="3" fill="#FDA4AF" />
+                <circle cx="170" cy="24" r="2" fill="#FDE68A" fillOpacity="0.7" />
+                {/* Star nodes for sender & receiver */}
+                <circle cx="42" cy="42" r="14" fill="#2A1245" stroke="#FDE68A" strokeWidth="1.4" />
+                <text
+                  x="42"
+                  y="46"
+                  textAnchor="middle"
+                  fontSize="11"
+                  fontWeight="700"
+                  fill="#FFF7ED"
+                >
+                  {senderInitial}
+                </text>
+                <circle cx="218" cy="42" r="14" fill="#2A1245" stroke="#FDA4AF" strokeWidth="1.4" />
+                <text
+                  x="218"
+                  y="46"
+                  textAnchor="middle"
+                  fontSize="11"
+                  fontWeight="700"
+                  fill="#FFF7ED"
+                >
+                  {receiverInitial}
+                </text>
+              </svg>
+
+              <div className="mt-1 flex items-center justify-between gap-2 text-xs font-bold">
+                <span className="max-w-[44%] truncate text-[#FDE68A]">{senderDisplay}</span>
+                <HeartPinSvg className="h-3.5 w-3.5 shrink-0 text-[#FB7185]" />
+                <span className="max-w-[44%] truncate text-right text-[#FDA4AF]">
+                  {receiverDisplay}
                 </span>
               </div>
+            </div>
 
-              <h3 className="mt-3 break-words font-heading text-2xl font-bold leading-snug text-[#FFF1F2]">
-                {copy.acceptedHeading(receiverDisplay)}
-              </h3>
-              <p className="mt-1 break-words text-xs leading-relaxed text-[#FBCFE8]/90 sm:text-sm">
-                {copy.acceptedSubtext(senderDisplay)}
+            {/* Perforated Ticket Tear Line */}
+            <div className="relative my-4 flex items-center" aria-hidden="true">
+              <span className="-ml-8 h-6 w-6 shrink-0 rounded-full bg-[#0D071D]" />
+              <span className="w-full border-t-2 border-dashed border-[#FDE68A]/35" />
+              <span className="-mr-8 h-6 w-6 shrink-0 rounded-full bg-[#0D071D]" />
+            </div>
+
+            {/* Promise Footer & Actions */}
+            <div className="text-center">
+              <p className={`text-[#FDE68A]/80 ${eyebrowClass}`}>{copy.promiseLabel}</p>
+              <p className="mt-1 break-words text-xs font-medium text-[#FFF1F2]/90">
+                {copy.promiseValue}
               </p>
 
-              {/* Embossed Itinerary Details */}
-              <div className="mt-4 space-y-2.5 rounded-2xl border border-white/15 bg-black/35 p-3.5 text-xs backdrop-blur-xs">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-mono text-[10px] uppercase tracking-wider text-white/60">
-                    {copy.guestLabel}
-                  </span>
-                  <span className="break-words text-right font-bold text-[#FFF1F2]">{receiverDisplay}</span>
-                </div>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-mono text-[10px] uppercase tracking-wider text-white/60">
-                    {copy.hostLabel}
-                  </span>
-                  <span className="break-words text-right font-bold text-[#FFF1F2]">{senderDisplay}</span>
-                </div>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-mono text-[10px] uppercase tracking-wider text-white/60">
-                    {copy.planLabel}
-                  </span>
-                  <span className="text-right font-bold text-[#FDA4AF]">{activeOptionLabel}</span>
-                </div>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-mono text-[10px] uppercase tracking-wider text-white/60">
-                    {copy.timeLabel}
-                  </span>
-                  <span className="font-mono text-right font-bold text-[#FDE68A]">
-                    {chosenDateObj.timeHint[coreLang]}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-mono text-[10px] uppercase tracking-wider text-white/60">
-                    {copy.passLabel}
-                  </span>
-                  <span className="font-mono font-bold tracking-wider text-white">{passSerial}</span>
-                </div>
-              </div>
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={triggerPetalBurst}
+                  className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#F43F5E] to-[#FB7185] px-5 py-2 text-xs font-bold text-white shadow-[0_0_22px_rgba(244,63,94,0.5)] transition hover:brightness-110 active:scale-95"
+                >
+                  <svg viewBox="0 0 20 20" className="h-3.5 w-3.5" fill="currentColor" aria-hidden="true">
+                    <path d="M10 2 C15 4.5 17 11 10 18 C3 11 5 4.5 10 2 Z" />
+                  </svg>
+                  <span>{copy.petalShowerCta}</span>
+                </button>
 
-              {/* Ticket Tear Line */}
-              <div className="relative my-4 flex items-center" aria-hidden="true">
-                <span className="-ml-8 h-6 w-6 shrink-0 rounded-full bg-[#0B0614]" />
-                <span className="w-full border-t-2 border-dashed border-[#FDE68A]/35" />
-                <span className="-mr-8 h-6 w-6 shrink-0 rounded-full bg-[#0B0614]" />
-              </div>
-
-              <div className="flex flex-col items-center gap-3 pt-1">
-                <BarcodeStub />
                 <button
                   type="button"
                   onClick={() => {
-                    setAccepted(false);
                     setNudgeCount(0);
+                    setStage('question');
                   }}
-                  className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-[#F43F5E]/45 bg-white/10 px-5 py-2 text-xs font-bold text-[#FFF1F2] transition hover:bg-white/15 active:scale-95"
+                  className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold text-[#FFF7ED] transition hover:bg-white/15 active:scale-95"
                 >
-                  {copy.replayQuestionCta}
+                  {copy.askAgainCta}
                 </button>
               </div>
             </div>
           </section>
-        )}
-      </main>
+        </main>
+      ) : null}
 
-      <footer className="relative z-10 border-t border-white/10 px-4 py-3 text-center text-[11px] text-[#E8B4B8]/75">
+      {/* Polaroid Lightbox Modal */}
+      {zoomIdx !== null && polaroids[zoomIdx] ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={polaroids[zoomIdx].caption}
+          onClick={() => setZoomIdx(null)}
+          className="fixed inset-0 z-[120] flex items-center justify-center bg-black/85 p-4 backdrop-blur-xs"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="wy-fade-up w-full max-w-sm rounded-2xl bg-[#FFFDF8] p-3 text-[#2B1424] shadow-2xl"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={polaroids[zoomIdx].src}
+              alt={polaroids[zoomIdx].caption}
+              className="max-h-[65dvh] w-full rounded-xl bg-[#1A0D2E] object-cover"
+            />
+            <div className="mt-2.5 flex items-center justify-between gap-2 px-1">
+              <span
+                className={`truncate text-xs font-bold text-[#4A2535] ${
+                  hasDevanagari(polaroids[zoomIdx].caption) ? 'tracking-normal' : 'italic'
+                }`}
+              >
+                {polaroids[zoomIdx].caption}
+              </span>
+              <button
+                type="button"
+                onClick={() => setZoomIdx(null)}
+                className="min-h-[44px] rounded-full bg-[#E11D48] px-4 text-xs font-bold text-white transition hover:brightness-110 active:scale-95"
+              >
+                {copy.closeLabel}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Footer */}
+      <footer className="relative z-10 border-t border-white/10 bg-[#0B0617]/60 px-4 py-3 text-center text-[11px] text-[#FBCFE8]/75 backdrop-blur-xs">
         {getWebzyFooterLabel(language)}
       </footer>
     </div>

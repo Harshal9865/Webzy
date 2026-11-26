@@ -42,6 +42,8 @@ export function OrdersCountProvider({ children }: { children: React.ReactNode })
   const { isAuthenticated, loading: authLoading } = useAuth();
   const [ordersCount, setOrdersCount] = useState<number>(0);
   const mountedRef = useRef<boolean>(true);
+  const inFlightRef = useRef<Promise<void> | null>(null);
+  const lastFetchedAtRef = useRef<number>(0);
 
   const refreshOrdersCount = useCallback(async () => {
     // Guests do not have saved paid orders; skip remote network call for instant storefront load
@@ -52,36 +54,48 @@ export function OrdersCountProvider({ children }: { children: React.ReactNode })
       return;
     }
 
-    try {
-      const res = await fetch('/api/orders/count', {
-        method: 'GET',
-        cache: 'no-store',
-        headers: { Accept: 'application/json' },
-      });
+    if (inFlightRef.current) {
+      return inFlightRef.current;
+    }
 
-      if (!mountedRef.current) return;
+    const request = (async () => {
+      try {
+        const res = await fetch('/api/orders/count', {
+          method: 'GET',
+          cache: 'no-store',
+          headers: { Accept: 'application/json' },
+        });
 
-      if (res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { count?: number };
-        if (typeof data.count === 'number' && Number.isFinite(data.count)) {
-          setOrdersCount(Math.max(0, Math.floor(data.count)));
+        if (!mountedRef.current) return;
+        lastFetchedAtRef.current = Date.now();
+
+        if (res.ok) {
+          const data = (await res.json().catch(() => ({}))) as { count?: number };
+          if (typeof data.count === 'number' && Number.isFinite(data.count)) {
+            setOrdersCount(Math.max(0, Math.floor(data.count)));
+            return;
+          }
+        }
+
+        if (res.status === 401 || res.status === 403) {
+          setOrdersCount(readLocalDraftCartCount());
           return;
         }
+      } catch {
+        // Fallback gracefully on network error
+      } finally {
+        inFlightRef.current = null;
       }
 
-      if (res.status === 401 || res.status === 403) {
-        setOrdersCount(readLocalDraftCartCount());
-        return;
+      if (!mountedRef.current) return;
+      const localCount = readLocalDraftCartCount();
+      if (localCount > 0) {
+        setOrdersCount(localCount);
       }
-    } catch {
-      // Fallback gracefully on network error
-    }
+    })();
 
-    if (!mountedRef.current) return;
-    const localCount = readLocalDraftCartCount();
-    if (localCount > 0) {
-      setOrdersCount(localCount);
-    }
+    inFlightRef.current = request;
+    return request;
   }, [isAuthenticated]);
 
   useEffect(() => {
@@ -93,13 +107,18 @@ export function OrdersCountProvider({ children }: { children: React.ReactNode })
     const handleUpdate = () => {
       void refreshOrdersCount();
     };
+    const handleFocus = () => {
+      // Avoid hammering /api/orders/count on every tab switch; refresh at most once per 60s on focus
+      if (Date.now() - lastFetchedAtRef.current < 60_000) return;
+      void refreshOrdersCount();
+    };
     window.addEventListener('webzy_orders_updated', handleUpdate);
-    window.addEventListener('focus', handleUpdate);
+    window.addEventListener('focus', handleFocus);
 
     return () => {
       mountedRef.current = false;
       window.removeEventListener('webzy_orders_updated', handleUpdate);
-      window.removeEventListener('focus', handleUpdate);
+      window.removeEventListener('focus', handleFocus);
     };
   }, [authLoading, refreshOrdersCount]);
 

@@ -39,10 +39,6 @@ function findScrollParent(el: HTMLElement | null): HTMLElement | null {
   return null;
 }
 
-/**
- * Tracks scroll progress (0 -> 1) inside either PhoneFrame's internal overflow-y-auto container
- * or full-screen window scroll, throttled via requestAnimationFrame.
- */
 function useContainerScrollProgress(
   rootRef: React.RefObject<HTMLDivElement | null>,
   disabled: boolean,
@@ -119,80 +115,164 @@ interface PrismCardItem {
   id: string;
   code: string;
   title: string;
-  detail: string;
   price: number;
   accent: string;
 }
 
+const SAMPLE_PHOTOS: readonly string[] = [
+  'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=900&q=80',
+  'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=900&q=80',
+  'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=900&q=80',
+  'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=900&q=80',
+  'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=900&q=80',
+  'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=900&q=80',
+];
+
 const DEFAULT_PRISM_ITEMS: readonly PrismCardItem[] = [
   {
     id: 'p3d-1',
-    code: 'FACET 01',
-    title: 'Prism Chrono Edition',
-    detail: 'Anodized titanium chassis with sapphire dome',
+    code: 'F-01',
+    title: 'Prism Chrono',
     price: 4299,
     accent: '#818CF8',
   },
   {
     id: 'p3d-2',
-    code: 'FACET 02',
-    title: 'Kinetic Studio Lamp',
-    detail: 'Orbital magnetic dimmer in brushed obsidian',
+    code: 'F-02',
+    title: 'Orbital Halo Lamp',
     price: 2899,
     accent: '#22D3EE',
   },
   {
     id: 'p3d-3',
-    code: 'FACET 03',
-    title: 'Monolith Desk Dock',
-    detail: 'CNC billet aluminum dock with gold pins',
+    code: 'F-03',
+    title: 'Monolith Dock',
     price: 1999,
     accent: '#F59E0B',
   },
   {
     id: 'p3d-4',
-    code: 'FACET 04',
-    title: 'Aura Carbon Sleeve',
-    detail: 'Ultra-slim woven aramid protective folio',
+    code: 'F-04',
+    title: 'Aramid Folio',
     price: 1499,
-    accent: '#A78BFA',
+    accent: '#C084FC',
   },
 ];
 
-function FacetWireframeSvg({ idx, accent }: { idx: number; accent: string }) {
-  const gradId = `facet-g-${useId().replace(/:/g, '')}-${idx}`;
+/** Centerpiece floating Holographic Prism Sculpture for the 3D Hero stage. */
+function HeroPrismSculptureSvg({ uid }: { uid: string }) {
   return (
-    <svg viewBox="0 0 120 90" className="h-full w-full" aria-hidden="true">
+    <svg viewBox="0 0 240 160" className="h-32 w-48 sm:h-40 sm:w-60" aria-hidden="true">
       <defs>
-        <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor={accent} stopOpacity="0.9" />
-          <stop offset="100%" stopColor="#F4F4F5" stopOpacity="0.3" />
+        <linearGradient id={`prism-a-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#22D3EE" stopOpacity="0.85" />
+          <stop offset="50%" stopColor="#818CF8" stopOpacity="0.55" />
+          <stop offset="100%" stopColor="#0E111D" stopOpacity="0.9" />
+        </linearGradient>
+        <linearGradient id={`prism-b-${uid}`} x1="100%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#F59E0B" stopOpacity="0.7" />
+          <stop offset="100%" stopColor="#818CF8" stopOpacity="0.2" />
+        </linearGradient>
+        <radialGradient id={`prism-core-${uid}`} cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.9" />
+          <stop offset="35%" stopColor="#22D3EE" stopOpacity="0.5" />
+          <stop offset="100%" stopColor="#22D3EE" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+
+      {/* Volumetric light beam */}
+      <circle cx="120" cy="80" r="64" fill={`url(#prism-core-${uid})`} />
+
+      {/* Faceted floating crystal octahedron */}
+      <polygon points="120,14 176,78 120,104 64,78" fill={`url(#prism-a-${uid})`} stroke="#E0E7FF" strokeOpacity="0.7" strokeWidth="1.1" />
+      <polygon points="120,14 176,78 120,66" fill="#22D3EE" fillOpacity="0.28" />
+      <polygon points="120,14 64,78 120,66" fill="#818CF8" fillOpacity="0.32" />
+      <polygon points="64,78 120,104 120,146" fill={`url(#prism-b-${uid})`} stroke="#818CF8" strokeOpacity="0.6" strokeWidth="1" />
+      <polygon points="176,78 120,104 120,146" fill="#0F172A" fillOpacity="0.75" stroke="#22D3EE" strokeOpacity="0.5" strokeWidth="1" />
+      {/* Refractive inner highlight */}
+      <line x1="120" y1="14" x2="120" y2="146" stroke="#FFFFFF" strokeOpacity="0.65" strokeWidth="1" />
+      <ellipse cx="120" cy="78" rx="88" ry="18" fill="none" stroke="#22D3EE" strokeOpacity="0.4" strokeWidth="1" strokeDasharray="4 4" />
+      {/* Starlight glints */}
+      <circle cx="52" cy="44" r="1.6" fill="#22D3EE" />
+      <circle cx="192" cy="52" r="1.8" fill="#F59E0B" />
+      <circle cx="182" cy="118" r="1.4" fill="#818CF8" />
+    </svg>
+  );
+}
+
+/** Detailed Iridescent Sculpture Art Plates for each 3D facet & deck card. */
+function FacetSculpturePlateSvg({
+  idx,
+  accent,
+  uid,
+}: {
+  idx: number;
+  accent: string;
+  uid: string;
+}) {
+  return (
+    <svg viewBox="0 0 160 112" className="h-full w-full" aria-hidden="true">
+      <defs>
+        <radialGradient id={`glow-${uid}-${idx}`} cx="50%" cy="46%" r="58%">
+          <stop offset="0%" stopColor={accent} stopOpacity="0.38" />
+          <stop offset="100%" stopColor="#06070B" stopOpacity="0" />
+        </radialGradient>
+        <linearGradient id={`metal-${uid}-${idx}`} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#F4F4F5" stopOpacity="0.9" />
+          <stop offset="45%" stopColor={accent} stopOpacity="0.85" />
+          <stop offset="100%" stopColor="#0B0E17" stopOpacity="0.95" />
         </linearGradient>
       </defs>
+
+      {/* Perspective grid floor + atmospheric radial glow */}
+      <rect x="0" y="0" width="160" height="112" fill="#080A14" />
+      <circle cx="80" cy="52" r="54" fill={`url(#glow-${uid}-${idx})`} />
+      <g stroke={accent} strokeOpacity="0.16" strokeWidth="0.7">
+        <line x1="0" y1="88" x2="160" y2="88" />
+        <line x1="0" y1="98" x2="160" y2="98" />
+        <line x1="40" y1="88" x2="18" y2="112" />
+        <line x1="80" y1="88" x2="80" y2="112" />
+        <line x1="120" y1="88" x2="142" y2="112" />
+      </g>
+
       {idx === 0 ? (
-        <g fill="none" stroke={`url(#${gradId})`} strokeWidth="1.6">
-          <polygon points="60,12 96,34 96,68 60,82 24,68 24,34" />
-          <line x1="60" y1="12" x2="60" y2="82" />
-          <line x1="24" y1="34" x2="96" y2="68" />
-          <circle cx="60" cy="48" r="10" stroke={accent} />
+        <g>
+          {/* Faceted Sapphire Chronometer Monolith */}
+          <polygon points="80,14 116,36 116,74 80,94 44,74 44,36" fill={`url(#metal-${uid}-${idx})`} fillOpacity="0.35" stroke={accent} strokeWidth="1.4" />
+          <polygon points="80,24 106,40 106,70 80,84 54,70 54,40" fill="#0B0E17" stroke="#FFFFFF" strokeOpacity="0.45" strokeWidth="1" />
+          <circle cx="80" cy="54" r="18" fill="none" stroke={accent} strokeWidth="1.6" />
+          <circle cx="80" cy="54" r="12" fill="none" stroke="#FFFFFF" strokeOpacity="0.4" strokeWidth="0.9" strokeDasharray="2 3" />
+          <line x1="80" y1="54" x2="80" y2="41" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="80" y1="54" x2="90" y2="58" stroke={accent} strokeWidth="1.5" strokeLinecap="round" />
+          <circle cx="80" cy="54" r="2.2" fill="#FFFFFF" />
         </g>
       ) : idx === 1 ? (
-        <g fill="none" stroke={`url(#${gradId})`} strokeWidth="1.6">
-          <circle cx="60" cy="45" r="28" />
-          <ellipse cx="60" cy="45" rx="28" ry="11" />
-          <ellipse cx="60" cy="45" rx="11" ry="28" />
+        <g>
+          {/* Orbital Levitation Halo Lamp */}
+          <ellipse cx="80" cy="92" rx="28" ry="6" fill="#1E293B" stroke={accent} strokeOpacity="0.5" strokeWidth="1" />
+          <circle cx="80" cy="50" r="30" fill="none" stroke={`url(#metal-${uid}-${idx})`} strokeWidth="4.5" />
+          <ellipse cx="80" cy="50" rx="36" ry="12" fill="none" stroke={accent} strokeWidth="1.3" strokeOpacity="0.8" />
+          <circle cx="80" cy="50" r="9" fill={accent} fillOpacity="0.85" />
+          <circle cx="77" cy="47" r="3" fill="#FFFFFF" fillOpacity="0.75" />
         </g>
       ) : idx === 2 ? (
-        <g fill="none" stroke={`url(#${gradId})`} strokeWidth="1.6">
-          <rect x="30" y="20" width="60" height="50" rx="6" />
-          <rect x="42" y="30" width="36" height="30" rx="3" stroke={accent} />
-          <line x1="30" y1="20" x2="42" y2="30" />
-          <line x1="90" y1="20" x2="78" y2="30" />
+        <g>
+          {/* CNC Billet Monolith Dock with Gold Pins */}
+          <polygon points="38,76 58,34 122,34 102,76" fill={`url(#metal-${uid}-${idx})`} fillOpacity="0.4" stroke={accent} strokeWidth="1.3" />
+          <polygon points="38,76 102,76 102,88 38,88" fill="#111827" stroke={accent} strokeWidth="1.2" />
+          <polygon points="102,76 122,34 122,46 102,88" fill="#1F2937" stroke={accent} strokeOpacity="0.6" strokeWidth="1" />
+          {/* Precision gold contact pins */}
+          {[56, 66, 76, 86].map((x) => (
+            <circle key={x} cx={x} cy="62" r="2.2" fill="#F59E0B" />
+          ))}
         </g>
       ) : (
-        <g fill="none" stroke={`url(#${gradId})`} strokeWidth="1.6">
-          <polygon points="60,14 94,70 26,70" />
-          <polygon points="60,28 80,62 40,62" stroke={accent} />
+        <g>
+          {/* Woven Carbon-Aramid Prism Folio */}
+          <polygon points="80,16 124,84 36,84" fill={`url(#metal-${uid}-${idx})`} fillOpacity="0.32" stroke={accent} strokeWidth="1.4" />
+          <polygon points="80,32 108,76 52,76" fill="#0F172A" stroke="#FFFFFF" strokeOpacity="0.5" strokeWidth="1" />
+          <line x1="80" y1="16" x2="80" y2="84" stroke={accent} strokeWidth="1.2" />
+          <circle cx="80" cy="58" r="7" fill={accent} fillOpacity="0.7" />
         </g>
       )}
     </svg>
@@ -200,9 +280,9 @@ function FacetWireframeSvg({ idx, accent }: { idx: number; accent: string }) {
 }
 
 /**
- * Small Business Theme 4: "Prism 3D Scroll Universe" (Kinetic 3D Spatial Storefront).
- * Deep obsidian #06070B, scroll-progress + pointer-tilt driven 3D Monolith Hero,
- * pure-CSS 6-face 3D holographic product cube, layered perspective deck, velocity marquee & neon booking bar.
+ * Small Business Theme 4: "Prism 3D Scroll Universe" (Kinetic Obsidian Gallery).
+ * Deep obsidian #06070B, sculptural 3D Monolith Hero, 6-face holographic sculpture cube,
+ * velocity marquee & 2-up perspective gallery deck.
  */
 export function SmallBusiness3DScrollTheme({
   data,
@@ -261,10 +341,11 @@ export function SmallBusiness3DScrollTheme({
   const storeName = deriveStoreName(data, copy.defaultStore);
   const monogram = extractStoreMonogram(storeName);
   const headline = pickLocalizedText(data.headline, language).trim() || storeName;
-  const brandNote = pickLocalizedText(data.message, language).trim() || copy.heroSub;
   const offerTag = data.offerTag ? pickLocalizedText(data.offerTag, language).trim() : '';
 
   const photos = getValidPhotos(data.photos);
+  const hasUserPhotos = photos.length > 0;
+  const effectivePhotos = hasUserPhotos ? photos : SAMPLE_PHOTOS;
   const [failedUrls, setFailedUrls] = useState<Record<string, boolean>>({});
   const customHighlights = deriveHighlights(data, language);
 
@@ -276,12 +357,13 @@ export function SmallBusiness3DScrollTheme({
       return {
         ...item,
         title: h.title || item.title,
-        detail: h.detail || item.detail,
       };
     });
   }, [customHighlights]);
 
   const activeItem = items[activeCardIdx] ?? items[0];
+  const heroPhoto =
+    effectivePhotos[0] && !failedUrls[effectivePhotos[0]] ? effectivePhotos[0] : null;
   const validWa = sanitizeWhatsappPhone(data.whatsappPhone);
 
   function handlePointerMove(e: React.PointerEvent<HTMLDivElement>) {
@@ -332,7 +414,6 @@ export function SmallBusiness3DScrollTheme({
     flashToast(sharedCopy.copiedToast);
   }
 
-  // Computed 3D motion values (collapsed safely to 0 when prefers-reduced-motion is active)
   const heroRotateX = reducedMotion ? 0 : -tilt.y * 9 + scrollProgress * 12;
   const heroRotateY = reducedMotion ? 0 : tilt.x * 11 - scrollProgress * 10;
   const headlineScale = reducedMotion ? 1 : 1 + scrollProgress * 0.08;
@@ -344,7 +425,6 @@ export function SmallBusiness3DScrollTheme({
     : -manualFace * 90 + scrollProgress * 240 + spinDeg + tilt.x * 16;
   const cubePitch = reducedMotion ? 0 : -12 + Math.sin(scrollProgress * Math.PI) * 10 - tilt.y * 10;
 
-  // Marquee translations
   const marqueeOffsetA = reducedMotion
     ? 0
     : -((scrollProgress * 180 + velocity * 30) % 120);
@@ -361,12 +441,9 @@ export function SmallBusiness3DScrollTheme({
       style={hiSafeStyle(language)}
     >
       {/* Ambient Radial Space Glow */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 overflow-hidden"
-      >
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
         <div
-          className="absolute -left-20 top-10 h-64 w-64 rounded-full bg-[#818CF8]/20 blur-3xl"
+          className="absolute -left-20 top-10 h-64 w-64 rounded-full bg-[#818CF8]/22 blur-3xl"
           style={
             reducedMotion
               ? undefined
@@ -374,7 +451,7 @@ export function SmallBusiness3DScrollTheme({
           }
         />
         <div
-          className="absolute -right-20 top-72 h-64 w-64 rounded-full bg-[#22D3EE]/15 blur-3xl"
+          className="absolute -right-20 top-72 h-64 w-64 rounded-full bg-[#22D3EE]/18 blur-3xl"
           style={
             reducedMotion
               ? undefined
@@ -383,35 +460,52 @@ export function SmallBusiness3DScrollTheme({
         />
       </div>
 
-      {/* Top Depth HUD Telemetry Bar */}
-      <header className="sticky top-0 z-30 flex items-center justify-between gap-2 border-b border-white/10 bg-[#06070B]/85 px-3.5 py-2.5 backdrop-blur-md sm:px-6">
+      {/* Minimal Depth HUD Bar */}
+      <header className="sticky top-0 z-30 flex items-center justify-between gap-2 border-b border-white/10 bg-[#06070B]/85 px-3.5 py-2 backdrop-blur-md sm:px-6">
         <div className="flex min-w-0 items-center gap-2">
           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[#818CF8]/50 bg-[#818CF8]/20 font-mono text-[10px] font-bold text-[#22D3EE]">
             {monogram}
           </span>
-          <span className="truncate font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-[#F4F4F5]">
+          <span className="truncate font-mono text-[10.5px] font-bold uppercase tracking-[0.14em] text-[#F4F4F5]">
             {storeName}
           </span>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2 font-mono text-[9.5px] font-bold">
-          <span className="hidden rounded-full border border-[#22D3EE]/30 bg-[#22D3EE]/10 px-2 py-0.5 text-[#22D3EE] sm:inline-block">
-            FPS 60 · 3D SPACE
-          </span>
-          <span className="rounded-full border border-white/15 bg-white/5 px-2.5 py-0.5 text-[#F59E0B]">
-            DEPTH {Math.round(scrollProgress * 100)}%
-          </span>
-        </div>
+        <span className="rounded-full border border-white/15 bg-white/5 px-2.5 py-0.5 font-mono text-[9.5px] font-bold text-[#F59E0B]">
+          Z · {Math.round(scrollProgress * 100)}%
+        </span>
       </header>
 
-      <main className="relative z-10 mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-3.5 pb-8 pt-5 sm:px-6">
-        {/* 1. Interactive 3D Monolith Hero */}
+      <main className="relative z-10 mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-3.5 pb-8 pt-4 sm:px-6">
+        {/* 1. Sculptural 3D Monolith Hero */}
         <section
           aria-labelledby={`prism-hero-${uid}`}
-          className="relative flex flex-col items-center justify-center overflow-hidden rounded-3xl border border-white/15 bg-gradient-to-b from-[#0E111D] via-[#090B13] to-[#06070B] px-4 py-8 text-center shadow-[0_24px_60px_-20px_rgba(34,211,238,0.22)] sm:py-12"
+          className="relative flex flex-col items-center justify-center overflow-hidden rounded-3xl border border-white/15 bg-gradient-to-b from-[#0E1222] via-[#090B14] to-[#06070B] px-4 py-6 text-center shadow-[0_24px_60px_-20px_rgba(34,211,238,0.28)] sm:py-9"
           style={{ perspective: '1100px' }}
         >
-          {/* Rotating 3D Wireframe Orbital Rings */}
+          {/* Depth-layered Glassmorphic Editorial Backdrop */}
+          {heroPhoto ? (
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-3 overflow-hidden rounded-2xl border border-white/10 opacity-30"
+              style={{
+                transform: `translateZ(-24px) scale(${reducedMotion ? 1 : 1.04 - scrollProgress * 0.04})`,
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={heroPhoto}
+                alt=""
+                onError={() =>
+                  setFailedUrls((prev) => ({ ...prev, [heroPhoto]: true }))
+                }
+                className="h-full w-full object-cover mix-blend-luminosity"
+              />
+              <div className="absolute inset-0 bg-gradient-to-b from-[#090B14]/70 via-[#090B14]/55 to-[#06070B]" />
+            </div>
+          ) : null}
+
+          {/* Rotating Orbital Rings */}
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 flex items-center justify-center"
@@ -431,7 +525,6 @@ export function SmallBusiness3DScrollTheme({
             />
           </div>
 
-          {/* 3D Parallax Spatial Monolith Card */}
           <div
             className="relative z-10 flex max-w-lg flex-col items-center transition-transform duration-150 ease-out"
             style={{
@@ -440,16 +533,22 @@ export function SmallBusiness3DScrollTheme({
             }}
           >
             <span
-              className="inline-flex items-center gap-1.5 rounded-full border border-[#22D3EE]/40 bg-[#22D3EE]/10 px-3 py-1 font-mono text-[9.5px] font-bold uppercase tracking-[0.18em] text-[#22D3EE]"
+              className="inline-flex items-center gap-1.5 rounded-full border border-[#22D3EE]/40 bg-[#22D3EE]/10 px-3 py-0.5 font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-[#22D3EE]"
               style={{ transform: `translateZ(${18 + splitDepthPx * 0.4}px)` }}
             >
-              <span className="h-1.5 w-1.5 rounded-full bg-[#22D3EE]" aria-hidden="true" />
               {offerTag || copy.hudBadge}
             </span>
 
+            <div
+              className="my-1 drop-shadow-[0_0_24px_rgba(34,211,238,0.3)]"
+              style={{ transform: `translateZ(${24 + splitDepthPx * 0.5}px)` }}
+            >
+              <HeroPrismSculptureSvg uid={uid} />
+            </div>
+
             <h1
               id={`prism-hero-${uid}`}
-              className="mt-4 break-words bg-gradient-to-r from-[#F4F4F5] via-[#818CF8] to-[#22D3EE] bg-clip-text font-zine text-3xl font-black uppercase leading-none tracking-tight text-transparent sm:text-5xl"
+              className="break-words bg-gradient-to-r from-[#F4F4F5] via-[#818CF8] to-[#22D3EE] bg-clip-text font-zine text-3xl font-black uppercase leading-none tracking-tight text-transparent sm:text-5xl"
               style={{
                 ...hiSafeStyle(language),
                 transform: `translateZ(${28 + splitDepthPx}px) scale(${headlineScale})`,
@@ -457,47 +556,34 @@ export function SmallBusiness3DScrollTheme({
             >
               {headline}
             </h1>
-
-            <p
-              className="mt-3 max-w-md break-words text-xs leading-relaxed text-[#F4F4F5]/75 sm:text-sm"
-              style={{ transform: `translateZ(${12}px)` }}
-            >
-              {brandNote}
-            </p>
           </div>
         </section>
 
-        {/* 2. Rotating 6-Face 3D Holographic Product Cube */}
+        {/* 2. 6-Face Holographic Sculpture Cube */}
         <section
           aria-labelledby={`cube-heading-${uid}`}
-          className="rounded-3xl border border-white/10 bg-[#0B0D16]/90 p-4 sm:p-6"
+          className="rounded-3xl border border-white/10 bg-[#0B0D16]/90 p-4 sm:p-5"
         >
-          <div className="flex flex-col items-center justify-between gap-2 text-center sm:flex-row sm:text-left">
-            <div>
-              <p className="font-mono text-[9.5px] font-bold uppercase tracking-[0.2em] text-[#818CF8]">
-                {copy.cubeEyebrow}
-              </p>
-              <h2
-                id={`cube-heading-${uid}`}
-                className="mt-0.5 font-heading text-lg font-bold text-white sm:text-xl"
-              >
-                {copy.cubeTitle}
-              </h2>
-            </div>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2
+              id={`cube-heading-${uid}`}
+              className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[#818CF8]"
+            >
+              {copy.cubeTitle}
+            </h2>
 
-            {/* Interactive Cube Rotation Controls */}
-            <div className="flex flex-wrap items-center justify-center gap-1.5">
+            <div className="flex items-center gap-1.5">
               <button
                 type="button"
                 onClick={() => setManualFace((f) => (f - 1 + 4) % 4)}
-                className="min-h-[38px] rounded-full border border-white/20 bg-white/5 px-3 font-mono text-[10.5px] font-bold text-white hover:bg-white/10"
+                className="min-h-[34px] rounded-full border border-white/20 bg-white/5 px-3 font-mono text-[10px] font-bold text-white hover:bg-white/10"
               >
                 {copy.prevFace}
               </button>
               <button
                 type="button"
                 onClick={() => setManualFace((f) => (f + 1) % 4)}
-                className="min-h-[38px] rounded-full border border-white/20 bg-white/5 px-3 font-mono text-[10.5px] font-bold text-white hover:bg-white/10"
+                className="min-h-[34px] rounded-full border border-white/20 bg-white/5 px-3 font-mono text-[10px] font-bold text-white hover:bg-white/10"
               >
                 {copy.nextFace}
               </button>
@@ -506,7 +592,7 @@ export function SmallBusiness3DScrollTheme({
                   type="button"
                   onClick={() => setAutoSpin((s) => !s)}
                   aria-pressed={autoSpin}
-                  className={`min-h-[38px] rounded-full px-3 font-mono text-[10.5px] font-bold transition ${
+                  className={`min-h-[34px] rounded-full px-3 font-mono text-[10px] font-bold transition ${
                     autoSpin
                       ? 'bg-[#22D3EE] text-[#06070B]'
                       : 'border border-white/20 bg-white/5 text-white'
@@ -518,13 +604,12 @@ export function SmallBusiness3DScrollTheme({
             </div>
           </div>
 
-          {/* True Pure-CSS 6-Face 3D Cube Viewport */}
           <div
-            className="my-7 flex items-center justify-center py-3"
+            className="my-6 flex items-center justify-center py-2"
             style={{ perspective: '900px', perspectiveOrigin: '50% 50%' }}
           >
             <div
-              className="relative h-[144px] w-[144px] transition-transform duration-500 ease-out sm:h-[180px] sm:w-[180px]"
+              className="relative h-[148px] w-[148px] transition-transform duration-500 ease-out sm:h-[184px] sm:w-[184px]"
               style={{
                 transformStyle: 'preserve-3d',
                 transform: `rotateX(${cubePitch}deg) rotateY(${cubeYaw}deg)`,
@@ -532,7 +617,7 @@ export function SmallBusiness3DScrollTheme({
             >
               {items.slice(0, 4).map((item, faceIdx) => {
                 const faceDeg = faceIdx * 90;
-                const photoUrl = photos[faceIdx];
+                const photoUrl = effectivePhotos[faceIdx % effectivePhotos.length];
                 const showPhoto = Boolean(photoUrl && !failedUrls[photoUrl]);
 
                 return (
@@ -541,10 +626,12 @@ export function SmallBusiness3DScrollTheme({
                     type="button"
                     onClick={() => {
                       setActiveCardIdx(faceIdx);
-                      if (showPhoto) onOpenPhoto?.(faceIdx);
+                      if (hasUserPhotos && showPhoto && faceIdx < photos.length) {
+                        onOpenPhoto?.(faceIdx);
+                      }
                     }}
                     aria-label={`Cube face ${faceIdx + 1}: ${item.title}`}
-                    className="absolute inset-0 flex flex-col justify-between overflow-hidden rounded-xl border border-[#818CF8]/45 bg-[#111526]/95 p-2.5 text-left shadow-[0_0_24px_rgba(129,140,248,0.2)] [--cube-z:72px] sm:[--cube-z:90px]"
+                    className="group absolute inset-0 flex flex-col justify-between overflow-hidden rounded-xl border border-[#818CF8]/45 bg-[#0C1020]/95 p-2 text-left shadow-[0_0_24px_rgba(129,140,248,0.22)] [--cube-z:74px] sm:[--cube-z:92px]"
                     style={{
                       transform: `rotateY(${faceDeg}deg) translateZ(var(--cube-z))`,
                       backfaceVisibility: 'hidden',
@@ -563,48 +650,48 @@ export function SmallBusiness3DScrollTheme({
                       </span>
                     </div>
 
-                    <div className="my-1 flex-1 overflow-hidden rounded-lg bg-black/35">
+                    <div className="relative my-1 flex-1 overflow-hidden rounded-lg ring-1 ring-inset ring-white/15">
                       {showPhoto ? (
-                        /* eslint-disable-next-line @next/next/no-img-element */
-                        <img
-                          src={photoUrl}
-                          alt={item.title}
-                          onError={() =>
-                            setFailedUrls((prev) => ({ ...prev, [photoUrl]: true }))
-                          }
-                          className="h-full w-full object-cover"
-                        />
+                        <>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={photoUrl}
+                            alt={item.title}
+                            onError={() =>
+                              setFailedUrls((prev) => ({ ...prev, [photoUrl]: true }))
+                            }
+                            className="h-full w-full object-cover transition duration-700 ease-out group-hover:scale-[1.06]"
+                          />
+                          <span
+                            aria-hidden="true"
+                            className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#06070B]/65 via-transparent to-white/10"
+                          />
+                        </>
                       ) : (
-                        <FacetWireframeSvg idx={faceIdx} accent={item.accent} />
+                        <FacetSculpturePlateSvg idx={faceIdx} accent={item.accent} uid={`cube-${uid}`} />
                       )}
                     </div>
 
-                    <p className="truncate text-[10.5px] font-bold text-white">
+                    <p className="truncate text-[10px] font-bold text-white">
                       {item.title}
                     </p>
                   </button>
                 );
               })}
 
-              {/* Top & Bottom Translucent Cube Caps (completing all 6 faces) */}
               <div
                 aria-hidden="true"
-                className="pointer-events-none absolute inset-0 rounded-xl border border-[#22D3EE]/35 bg-[#818CF8]/15 [--cube-z:72px] sm:[--cube-z:90px]"
-                style={{
-                  transform: 'rotateX(90deg) translateZ(var(--cube-z))',
-                }}
+                className="pointer-events-none absolute inset-0 rounded-xl border border-[#22D3EE]/35 bg-[#818CF8]/15 [--cube-z:74px] sm:[--cube-z:92px]"
+                style={{ transform: 'rotateX(90deg) translateZ(var(--cube-z))' }}
               />
               <div
                 aria-hidden="true"
-                className="pointer-events-none absolute inset-0 rounded-xl border border-[#818CF8]/35 bg-[#22D3EE]/10 [--cube-z:72px] sm:[--cube-z:90px]"
-                style={{
-                  transform: 'rotateX(-90deg) translateZ(var(--cube-z))',
-                }}
+                className="pointer-events-none absolute inset-0 rounded-xl border border-[#818CF8]/35 bg-[#22D3EE]/10 [--cube-z:74px] sm:[--cube-z:92px]"
+                style={{ transform: 'rotateX(-90deg) translateZ(var(--cube-z))' }}
               />
             </div>
           </div>
 
-          {/* Cube Face Indicator Pills */}
           <div className="flex flex-wrap justify-center gap-1.5">
             {items.map((item, idx) => {
               const isFocused = activeCardIdx === idx;
@@ -616,13 +703,13 @@ export function SmallBusiness3DScrollTheme({
                     setManualFace(idx);
                     setActiveCardIdx(idx);
                   }}
-                  className={`min-h-[34px] rounded-full px-3 font-mono text-[10px] font-bold transition ${
+                  className={`min-h-[32px] rounded-full px-2.5 font-mono text-[9.5px] font-bold transition ${
                     isFocused
                       ? 'bg-[#818CF8] text-[#06070B]'
                       : 'border border-white/15 bg-white/5 text-white/75 hover:text-white'
                   }`}
                 >
-                  0{idx + 1} · {item.title}
+                  {item.code} · {item.title}
                 </button>
               );
             })}
@@ -632,10 +719,10 @@ export function SmallBusiness3DScrollTheme({
         {/* 3. Dual Counter-Scrolling Velocity Marquee */}
         <section
           aria-hidden="true"
-          className="space-y-1.5 overflow-hidden rounded-2xl border border-white/10 bg-[#0B0D16] py-2.5"
+          className="space-y-1 overflow-hidden rounded-2xl border border-white/10 bg-[#0B0D16] py-2"
         >
           <div
-            className="flex whitespace-nowrap font-mono text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#22D3EE]/85 transition-transform duration-100 ease-linear"
+            className="flex whitespace-nowrap font-mono text-[9.5px] font-extrabold uppercase tracking-[0.2em] text-[#22D3EE]/85 transition-transform duration-100 ease-linear"
             style={{ transform: `translate3d(${marqueeOffsetA}px, 0, 0)` }}
           >
             <span className="pr-6">{copy.marqueeTop}</span>
@@ -643,7 +730,7 @@ export function SmallBusiness3DScrollTheme({
             <span className="pr-6">{copy.marqueeTop}</span>
           </div>
           <div
-            className="flex whitespace-nowrap font-mono text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#F59E0B]/85 transition-transform duration-100 ease-linear"
+            className="flex whitespace-nowrap font-mono text-[9.5px] font-extrabold uppercase tracking-[0.2em] text-[#F59E0B]/85 transition-transform duration-100 ease-linear"
             style={{ transform: `translate3d(${marqueeOffsetB}px, 0, 0)` }}
           >
             <span className="pr-6">{copy.marqueeBottom}</span>
@@ -652,45 +739,40 @@ export function SmallBusiness3DScrollTheme({
           </div>
         </section>
 
-        {/* 4. 3D Perspective Layered Showcase Deck */}
+        {/* 4. 2-up Perspective Sculpture Gallery Deck */}
         <section aria-labelledby={`deck-heading-${uid}`}>
-          <div className="mb-3 flex items-end justify-between gap-2">
-            <div>
-              <p className="font-mono text-[9.5px] font-bold uppercase tracking-[0.2em] text-[#22D3EE]">
-                {copy.deckEyebrow}
-              </p>
-              <h2
-                id={`deck-heading-${uid}`}
-                className="mt-0.5 font-heading text-lg font-bold text-white sm:text-xl"
-              >
-                {copy.deckTitle}
-              </h2>
-            </div>
-            <span className="font-mono text-[9.5px] text-white/60">
+          <div className="mb-2.5 flex items-center justify-between gap-2">
+            <h2
+              id={`deck-heading-${uid}`}
+              className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[#22D3EE]"
+            >
+              {copy.deckTitle}
+            </h2>
+            <span className="font-mono text-[9px] text-white/55">
               {copy.tapSpotlight}
             </span>
           </div>
 
           <div
-            className="grid grid-cols-1 gap-3 sm:grid-cols-2"
+            className="grid grid-cols-2 gap-2.5 sm:gap-3.5"
             style={{ perspective: '1000px' }}
           >
             {items.map((item, idx) => {
               const isSelected = activeCardIdx === idx;
               const fanShift = reducedMotion
                 ? 0
-                : (idx % 2 === 0 ? -1 : 1) * (1 - scrollProgress) * 6;
+                : (idx % 2 === 0 ? -1 : 1) * (1 - scrollProgress) * 5;
               const cardTiltX = reducedMotion
                 ? 0
                 : isSelected
                   ? 0
-                  : (scrollProgress - 0.5) * 10 - tilt.y * 5;
+                  : (scrollProgress - 0.5) * 9 - tilt.y * 5;
               const cardTiltY = reducedMotion
                 ? 0
                 : isSelected
                   ? 0
-                  : (idx % 2 === 0 ? 5 : -5) + tilt.x * 6;
-              const photoSrc = photos[idx];
+                  : (idx % 2 === 0 ? 4 : -4) + tilt.x * 5;
+              const photoSrc = effectivePhotos[idx % effectivePhotos.length];
               const showPhoto = Boolean(photoSrc && !failedUrls[photoSrc]);
 
               return (
@@ -702,49 +784,56 @@ export function SmallBusiness3DScrollTheme({
                     setManualFace(idx);
                   }}
                   aria-pressed={isSelected}
-                  className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border p-3.5 text-left transition-all duration-300 ${
+                  className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border text-left transition-all duration-300 ${
                     isSelected
-                      ? 'border-[#22D3EE] bg-[#12172B] shadow-[0_0_28px_-6px_rgba(34,211,238,0.45)]'
+                      ? 'border-[#22D3EE] bg-[#12172B] shadow-[0_0_26px_-6px_rgba(34,211,238,0.45)]'
                       : 'border-white/15 bg-[#0C0F1C]/90 hover:border-[#818CF8]/60'
                   }`}
                   style={{
                     transformStyle: 'preserve-3d',
-                    transform: `translate3d(${fanShift}px, 0, ${isSelected && !reducedMotion ? 16 : 0}px) rotateX(${cardTiltX}deg) rotateY(${cardTiltY}deg)`,
+                    transform: `translate3d(${fanShift}px, 0, ${isSelected && !reducedMotion ? 14 : 0}px) rotateX(${cardTiltX}deg) rotateY(${cardTiltY}deg)`,
                   }}
                 >
-                  <div className="flex items-center justify-between gap-2">
+                  <div className="relative h-28 w-full overflow-hidden border-b border-white/10 sm:h-32">
+                    {showPhoto ? (
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={photoSrc}
+                          alt={item.title}
+                          onError={() =>
+                            setFailedUrls((prev) => ({ ...prev, [photoSrc]: true }))
+                          }
+                          className="h-full w-full object-cover transition duration-700 ease-out group-hover:scale-[1.07]"
+                        />
+                        {/* Glassmorphic 3D depth frame & iridescent rim */}
+                        <span
+                          aria-hidden="true"
+                          className="pointer-events-none absolute inset-1.5 rounded-xl border border-white/20 ring-1 ring-inset ring-[#22D3EE]/20"
+                        />
+                        <span
+                          aria-hidden="true"
+                          className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#06070B]/70 via-transparent to-white/10"
+                        />
+                      </>
+                    ) : (
+                      <FacetSculpturePlateSvg idx={idx} accent={item.accent} uid={`deck-${uid}`} />
+                    )}
                     <span
-                      className="rounded-full border border-white/15 px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-widest"
+                      className="pointer-events-none absolute left-2 top-2 rounded-full border border-white/15 bg-black/65 px-2 py-0.5 font-mono text-[8.5px] font-bold uppercase tracking-widest backdrop-blur-xs"
                       style={{ color: item.accent }}
                     >
                       {item.code}
                     </span>
-                    <span className="font-tabular font-mono text-xs font-extrabold text-[#F59E0B]">
+                  </div>
+
+                  <div className="flex items-center justify-between gap-1.5 p-2.5 sm:p-3">
+                    <h3 className="truncate text-xs font-bold text-white sm:text-sm">
+                      {item.title}
+                    </h3>
+                    <span className="font-tabular shrink-0 font-mono text-[11px] font-extrabold text-[#F59E0B]">
                       ₹{item.price}
                     </span>
-                  </div>
-
-                  <div className="my-2.5 h-24 w-full overflow-hidden rounded-xl border border-white/10 bg-black/40">
-                    {showPhoto ? (
-                      /* eslint-disable-next-line @next/next/no-img-element */
-                      <img
-                        src={photoSrc}
-                        alt={item.title}
-                        onError={() =>
-                          setFailedUrls((prev) => ({ ...prev, [photoSrc]: true }))
-                        }
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <FacetWireframeSvg idx={idx} accent={item.accent} />
-                    )}
-                  </div>
-
-                  <div>
-                    <h3 className="text-sm font-bold text-white">{item.title}</h3>
-                    <p className="mt-0.5 text-[11px] leading-snug text-white/70">
-                      {item.detail}
-                    </p>
                   </div>
                 </button>
               );
@@ -755,8 +844,8 @@ export function SmallBusiness3DScrollTheme({
         {/* 5. Glassmorphic Neon Order Capsule */}
         <div className="sticky bottom-14 z-20 flex items-center justify-between gap-2 rounded-2xl border border-[#818CF8]/40 bg-[#0B0E17]/85 p-3 shadow-[0_14px_34px_-10px_rgba(129,140,248,0.45)] backdrop-blur-xl">
           <div className="min-w-0">
-            <p className="font-mono text-[9px] font-bold uppercase tracking-widest text-[#22D3EE]">
-              {copy.selectedFocus}
+            <p className="font-mono text-[8.5px] font-bold uppercase tracking-widest text-[#22D3EE]">
+              {activeItem.code}
             </p>
             <p className="truncate text-xs font-bold text-white">
               {activeItem.title} · ₹{activeItem.price}
@@ -765,7 +854,7 @@ export function SmallBusiness3DScrollTheme({
           <button
             type="button"
             onClick={handleWhatsAppBooking}
-            className="min-h-[42px] shrink-0 rounded-full bg-gradient-to-r from-[#818CF8] to-[#22D3EE] px-4 py-2 text-xs font-extrabold text-[#06070B] shadow-md transition hover:brightness-110 active:scale-95"
+            className="min-h-[40px] shrink-0 rounded-full bg-gradient-to-r from-[#818CF8] to-[#22D3EE] px-4 text-xs font-extrabold text-[#06070B] shadow-md transition hover:brightness-110 active:scale-95"
           >
             {copy.sendInquiryBtn}
           </button>
@@ -799,7 +888,7 @@ export function SmallBusiness3DScrollTheme({
               <button
                 type="button"
                 onClick={() => setInquiryPreview(null)}
-                className="min-h-[44px] px-2 text-xs font-bold text-white/75 hover:text-white"
+                className="min-h-[40px] px-2 text-xs font-bold text-white/75 hover:text-white"
               >
                 {sharedCopy.closeBtn}
               </button>
@@ -810,7 +899,7 @@ export function SmallBusiness3DScrollTheme({
             <button
               type="button"
               onClick={handleCopyInquiry}
-              className="mt-3 min-h-[44px] w-full rounded-full bg-gradient-to-r from-[#818CF8] to-[#22D3EE] text-xs font-extrabold text-[#06070B]"
+              className="mt-3 min-h-[42px] w-full rounded-full bg-gradient-to-r from-[#818CF8] to-[#22D3EE] text-xs font-extrabold text-[#06070B]"
             >
               {sharedCopy.copyOrderBtn}
             </button>

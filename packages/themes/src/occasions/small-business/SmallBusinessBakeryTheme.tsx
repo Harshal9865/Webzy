@@ -27,12 +27,21 @@ interface BakeryProduct {
   artVariant: 'truffle' | 'berry' | 'caramel' | 'hamper' | 'pistachio' | 'espresso';
 }
 
+const SAMPLE_PHOTOS: readonly string[] = [
+  'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=900&q=80',
+  'https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=900&q=80',
+  'https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=900&q=80',
+  'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=900&q=80',
+  'https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=900&q=80',
+  'https://images.unsplash.com/photo-1517433670267-08bbd4be890f?auto=format&fit=crop&w=900&q=80',
+];
+
 const DEFAULT_PRODUCTS: readonly BakeryProduct[] = [
   {
     id: 'bk-1',
     category: 'classic',
     name: 'Belgian Dark Truffle',
-    flavorTag: '70% Cocoa · Eggless',
+    flavorTag: '70% Cocoa',
     price: 649,
     compareAt: 799,
     artVariant: 'truffle',
@@ -40,8 +49,8 @@ const DEFAULT_PRODUCTS: readonly BakeryProduct[] = [
   {
     id: 'bk-2',
     category: 'gourmet',
-    name: 'Roasted Hazelnut Praline',
-    flavorTag: 'Nut Crunch · Layered',
+    name: 'Hazelnut Praline Gateau',
+    flavorTag: 'Roasted Nut',
     price: 789,
     compareAt: 949,
     artVariant: 'caramel',
@@ -50,7 +59,7 @@ const DEFAULT_PRODUCTS: readonly BakeryProduct[] = [
     id: 'bk-3',
     category: 'desserts',
     name: 'Raspberry Velvet Tart',
-    flavorTag: 'Berry Compote · Silky',
+    flavorTag: 'Berry Glaze',
     price: 399,
     compareAt: 499,
     artVariant: 'berry',
@@ -58,8 +67,8 @@ const DEFAULT_PRODUCTS: readonly BakeryProduct[] = [
   {
     id: 'bk-4',
     category: 'hampers',
-    name: 'Signature Pastry Box (6)',
-    flavorTag: 'Ribbon Gift Pack',
+    name: 'Ribbon Pastry Box (6)',
+    flavorTag: 'Gift Edition',
     price: 899,
     compareAt: 1099,
     artVariant: 'hamper',
@@ -68,7 +77,7 @@ const DEFAULT_PRODUCTS: readonly BakeryProduct[] = [
     id: 'bk-5',
     category: 'gourmet',
     name: 'Pistachio Rose Tres Leches',
-    flavorTag: 'Saffron Cream · Soft',
+    flavorTag: 'Saffron Milk',
     price: 549,
     compareAt: 699,
     artVariant: 'pistachio',
@@ -77,182 +86,280 @@ const DEFAULT_PRODUCTS: readonly BakeryProduct[] = [
     id: 'bk-6',
     category: 'desserts',
     name: 'Salted Espresso Brioche',
-    flavorTag: 'Caramel Glaze · Warm',
+    flavorTag: 'Warm Caramel',
     price: 329,
     compareAt: 399,
     artVariant: 'espresso',
   },
 ];
 
-function HeroChocolateTruffleCakeSvg({ uid }: { uid: string }) {
+/** Editorial Patisserie Still-Life: Arched gilt vignette, marble cake stand, tiered Belgian ganache cake, gold leaf & cocoa botanicals. */
+function HeroPatisserieStillLifeSvg({ uid }: { uid: string }) {
   return (
-    <svg viewBox="0 0 220 220" className="h-full w-full" aria-hidden="true">
+    <svg viewBox="0 0 260 260" className="h-full w-full" aria-hidden="true">
       <defs>
-        <radialGradient id={`plate-${uid}`} cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#FFFDF9" />
-          <stop offset="78%" stopColor="#F5E6D3" />
-          <stop offset="100%" stopColor="#DFC2A2" />
+        <radialGradient id={`arch-glow-${uid}`} cx="50%" cy="38%" r="58%">
+          <stop offset="0%" stopColor="#FFF7E8" stopOpacity="0.95" />
+          <stop offset="65%" stopColor="#F4DFC1" stopOpacity="0.88" />
+          <stop offset="100%" stopColor="#C99866" stopOpacity="0.45" />
         </radialGradient>
-        <linearGradient id={`ganache-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#5C2A1E" />
-          <stop offset="48%" stopColor="#3B1811" />
-          <stop offset="100%" stopColor="#240D08" />
+        <linearGradient id={`ganache-hero-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#652E20" />
+          <stop offset="45%" stopColor="#3E1810" />
+          <stop offset="100%" stopColor="#210B07" />
         </linearGradient>
-        <linearGradient id={`drip-${uid}`} x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#4A1F15" />
-          <stop offset="100%" stopColor="#1E0A06" />
+        <linearGradient id={`drip-hero-${uid}`} x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#4A1D13" />
+          <stop offset="100%" stopColor="#1B0805" />
         </linearGradient>
-        <radialGradient id={`berry-${uid}`} cx="35%" cy="30%" r="70%">
-          <stop offset="0%" stopColor="#F43F5E" />
-          <stop offset="70%" stopColor="#9F1239" />
+        <linearGradient id={`marble-${uid}`} x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#EFE5D8" />
+          <stop offset="50%" stopColor="#FFFDF9" />
+          <stop offset="100%" stopColor="#D9C5AE" />
+        </linearGradient>
+        <radialGradient id={`berry-hero-${uid}`} cx="35%" cy="30%" r="70%">
+          <stop offset="0%" stopColor="#FB7185" />
+          <stop offset="58%" stopColor="#BE123C" />
           <stop offset="100%" stopColor="#58091E" />
         </radialGradient>
+        <linearGradient id={`gold-foil-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#FEF08A" />
+          <stop offset="50%" stopColor="#F59E0B" />
+          <stop offset="100%" stopColor="#B45309" />
+        </linearGradient>
       </defs>
 
-      {/* Ceramic dessert plate */}
-      <circle cx="110" cy="112" r="98" fill={`url(#plate-${uid})`} stroke="#D97706" strokeWidth="1.5" strokeOpacity="0.4" />
-      <circle cx="110" cy="112" r="84" fill="none" stroke="#8E2027" strokeWidth="1" strokeDasharray="3 5" strokeOpacity="0.25" />
-
-      {/* Cake drop shadow */}
-      <ellipse cx="110" cy="166" rx="68" ry="15" fill="#2C1618" fillOpacity="0.22" />
-
-      {/* Lower cake tier */}
-      <path d="M48 118v34c0 12 28 21 62 21s62-9 62-21v-34H48Z" fill="#4E2116" />
-      {/* Cream filling ribbon */}
-      <path d="M48 134c18 8 42 11 62 11s44-3 62-11v6c-18 8-42 11-62 11s-44-3-62-11v-6Z" fill="#FDE6C4" />
-
-      {/* Upper ganache body */}
-      <path d="M52 86v34c0 11 26 19 58 19s58-8 58-19V86H52Z" fill={`url(#ganache-${uid})`} />
-
-      {/* Glossy chocolate drips */}
+      {/* Arched patisserie window frame */}
       <path
-        d="M52 90c0 14 7 25 11 25s6-12 11-12 7 20 12 20 6-15 11-15 7 14 13 14 6-18 11-18 7 24 12 24 6-14 11-14 6 12 11 12 9-11 9-25c-15 10-37 14-54 14s-41-4-58-15Z"
-        fill={`url(#drip-${uid})`}
+        d="M28 242 V122 C28 58 74 16 130 16 C186 16 232 58 232 122 V242 Z"
+        fill={`url(#arch-glow-${uid})`}
+        stroke="#FDE6C4"
+        strokeWidth="1.8"
       />
-
-      {/* Top cake surface */}
-      <ellipse cx="110" cy="86" rx="58" ry="20" fill="#3D170F" stroke="#78350F" strokeWidth="1.2" />
-
-      {/* Specular ganache gloss highlight */}
       <path
-        d="M66 84c12-10 38-13 62-9"
+        d="M38 234 V124 C38 66 79 26 130 26 C181 26 222 66 222 124 V234 Z"
         fill="none"
-        stroke="#FFFFFF"
-        strokeWidth="3.5"
-        strokeLinecap="round"
-        strokeOpacity="0.32"
+        stroke="#8E2027"
+        strokeOpacity="0.22"
+        strokeWidth="1"
+        strokeDasharray="3 4"
       />
 
-      {/* Piped whipped rosette swirls */}
+      {/* Botanical cocoa & wheat sprigs flanking arch */}
+      <g stroke="#8E2027" strokeOpacity="0.32" fill="none" strokeWidth="1.2" strokeLinecap="round">
+        <path d="M52 178 C46 146 52 108 72 78" />
+        <path d="M56 144 C44 136 42 126 48 120" />
+        <path d="M60 116 C49 108 50 98 56 93" />
+        <path d="M208 178 C214 146 208 108 188 78" />
+        <path d="M204 144 C216 136 218 126 212 120" />
+        <path d="M200 116 C211 108 210 98 204 93" />
+      </g>
+
+      {/* Subtle sunburst rays behind cake */}
+      <g stroke="#D97706" strokeOpacity="0.22" strokeWidth="1">
+        <line x1="130" y1="36" x2="130" y2="56" />
+        <line x1="94" y1="48" x2="103" y2="64" />
+        <line x1="166" y1="48" x2="157" y2="64" />
+        <line x1="68" y1="74" x2="82" y2="85" />
+        <line x1="192" y1="74" x2="178" y2="85" />
+      </g>
+
+      {/* Pedestal cake stand shadow */}
+      <ellipse cx="130" cy="224" rx="64" ry="10" fill="#2C1618" fillOpacity="0.2" />
+
+      {/* Marble pedestal stem & base */}
+      <path d="M114 196 H146 L154 220 C142 225 118 225 106 220 Z" fill={`url(#marble-${uid})`} stroke="#B89B7C" strokeWidth="1" />
+      <ellipse cx="130" cy="192" rx="74" ry="15" fill={`url(#marble-${uid})`} stroke="#C9A87C" strokeWidth="1.3" />
+      <ellipse cx="130" cy="190" rx="66" ry="11" fill="none" stroke="#8E2027" strokeOpacity="0.18" strokeWidth="0.9" />
+
+      {/* Cake contact shadow */}
+      <ellipse cx="130" cy="186" rx="56" ry="10" fill="#2C1618" fillOpacity="0.24" />
+
+      {/* Lower sponge tier */}
+      <path d="M78 134 V178 C78 188 101 194 130 194 C159 194 182 188 182 178 V134 Z" fill="#4C1F14" />
+      {/* Chantilly & berry compote ribbon */}
+      <path d="M78 152 C94 159 112 162 130 162 C148 162 166 159 182 152 V159 C166 166 148 169 130 169 C112 169 94 166 78 159 Z" fill="#FDE6C4" />
+      <path d="M78 159 C94 166 112 169 130 169 C148 169 166 166 182 159 V162 C166 169 148 172 130 172 C112 172 94 169 78 162 Z" fill="#9F1239" />
+
+      {/* Upper ganache tier */}
+      <path d="M84 96 V136 C84 145 104 151 130 151 C156 151 176 145 176 136 V96 Z" fill={`url(#ganache-hero-${uid})`} />
+
+      {/* Glossy artisanal chocolate drips */}
+      <path
+        d="M84 100 C84 114 90 124 94 124 C98 124 99 112 104 112 C109 112 110 132 115 132 C120 132 121 116 126 116 C131 116 133 130 138 130 C143 130 144 114 149 114 C154 114 156 134 161 134 C166 134 167 118 171 118 C174 118 176 112 176 100 C162 108 145 112 130 112 C113 112 97 108 84 100 Z"
+        fill={`url(#drip-hero-${uid})`}
+      />
+
+      {/* Top glossy surface */}
+      <ellipse cx="130" cy="96" rx="46" ry="16" fill="#36130C" stroke="#78350F" strokeWidth="1.2" />
+      <path d="M96 95 C106 87 128 84 148 87" fill="none" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" strokeOpacity="0.28" />
+
+      {/* Piped buttercream rosettes */}
       {[
-        { cx: 74, cy: 84 },
-        { cx: 90, cy: 74 },
-        { cx: 110, cy: 71 },
-        { cx: 130, cy: 74 },
-        { cx: 146, cy: 84 },
-        { cx: 92, cy: 96 },
-        { cx: 128, cy: 96 },
+        { cx: 97, cy: 96 },
+        { cx: 112, cy: 86 },
+        { cx: 130, cy: 83 },
+        { cx: 148, cy: 86 },
+        { cx: 163, cy: 96 },
+        { cx: 114, cy: 105 },
+        { cx: 146, cy: 105 },
       ].map((swirl, i) => (
-        <g key={`swirl-${i}`}>
-          <circle cx={swirl.cx} cy={swirl.cy} r="7.5" fill="#F7E4CA" />
+        <g key={`rosette-${i}`}>
+          <circle cx={swirl.cx} cy={swirl.cy} r="6.8" fill="#FAF0E2" />
           <path
-            d={`M${swirl.cx - 4} ${swirl.cy}c1-3 5-4 7-1 1 3-2 5-4 4`}
+            d={`M${swirl.cx - 3.5} ${swirl.cy} c1-2.8 4.6-3.4 6.2-0.8 1 2.4-1.6 4.2-3.4 3.4`}
             fill="none"
-            stroke="#C8935A"
-            strokeWidth="1.2"
+            stroke="#C79259"
+            strokeWidth="1.1"
             strokeLinecap="round"
           />
         </g>
       ))}
 
-      {/* Artisanal berries & gold leaf center */}
-      <circle cx="110" cy="85" r="9" fill={`url(#berry-${uid})`} />
-      <circle cx="99" cy="88" r="6.5" fill={`url(#berry-${uid})`} />
-      <circle cx="121" cy="88" r="6.5" fill={`url(#berry-${uid})`} />
-      <circle cx="107" cy="81" r="2" fill="#FFFFFF" fillOpacity="0.55" />
-      <path d="M112 76c5-5 12-5 15-1-4 4-10 5-15 1Z" fill="#2E7D32" />
-      <path d="M106 77c-5-5-11-4-14 0 4 4 9 4 14 0Z" fill="#388E3C" />
-      {/* Gold dust specks */}
-      <circle cx="84" cy="88" r="1.4" fill="#F59E0B" />
-      <circle cx="137" cy="87" r="1.6" fill="#F59E0B" />
-      <circle cx="114" cy="95" r="1.3" fill="#FBBF24" />
+      {/* Sculptural chocolate shards + edible gold leaf */}
+      <polygon points="118,86 124,58 136,84" fill="#2A0F0A" stroke="#78350F" strokeWidth="0.9" />
+      <polygon points="132,85 144,62 149,87" fill="#431A12" stroke="#92400E" strokeWidth="0.9" />
+      <polygon points="124,72 131,67 134,76 126,79" fill={`url(#gold-foil-${uid})`} />
+
+      {/* Center berries & mint leaves */}
+      <circle cx="130" cy="95" r="8.5" fill={`url(#berry-hero-${uid})`} />
+      <circle cx="119" cy="97" r="6" fill={`url(#berry-hero-${uid})`} />
+      <circle cx="141" cy="97" r="6" fill={`url(#berry-hero-${uid})`} />
+      <circle cx="127" cy="91" r="2" fill="#FFFFFF" fillOpacity="0.6" />
+      <path d="M134 88 C139 82 146 82 149 86 C145 90 139 91 134 88 Z" fill="#2E7D32" />
+      <path d="M126 88 C121 82 114 82 111 86 C115 90 121 91 126 88 Z" fill="#388E3C" />
+
+      {/* Sparkling gold dust */}
+      <circle cx="102" cy="70" r="1.5" fill="#F59E0B" />
+      <circle cx="160" cy="72" r="1.8" fill="#FBBF24" />
+      <circle cx="130" cy="48" r="1.6" fill="#F59E0B" />
+      <circle cx="174" cy="112" r="1.3" fill="#FDE68A" />
     </svg>
   );
 }
 
-function ProductArtSvg({ variant }: { variant: BakeryProduct['artVariant'] }) {
-  if (variant === 'truffle') {
-    return (
-      <svg viewBox="0 0 120 96" className="h-full w-full" aria-hidden="true">
-        <ellipse cx="60" cy="76" rx="40" ry="8" fill="#E8D8C5" />
-        <path d="M28 42v24c0 7 14 12 32 12s32-5 32-12V42H28Z" fill="#3F1A12" />
-        <ellipse cx="60" cy="42" rx="32" ry="11" fill="#5B281B" />
-        <path d="M36 42c6-5 20-7 34-5" stroke="#FFFFFF" strokeOpacity="0.3" strokeWidth="2.5" strokeLinecap="round" fill="none" />
-        <circle cx="60" cy="39" r="6" fill="#9F1239" />
-        <circle cx="52" cy="41" r="4.5" fill="#FDE6C4" />
-        <circle cx="68" cy="41" r="4.5" fill="#FDE6C4" />
-      </svg>
-    );
-  }
-  if (variant === 'berry') {
-    return (
-      <svg viewBox="0 0 120 96" className="h-full w-full" aria-hidden="true">
-        <ellipse cx="60" cy="76" rx="40" ry="8" fill="#E8D8C5" />
-        <path d="M30 50l6 20c2 5 12 8 24 8s22-3 24-8l6-20H30Z" fill="#D4A373" />
-        <ellipse cx="60" cy="50" rx="30" ry="9" fill="#9F1239" />
-        <circle cx="52" cy="47" r="5" fill="#E11D48" />
-        <circle cx="62" cy="45" r="5.5" fill="#BE123C" />
-        <circle cx="69" cy="49" r="4.5" fill="#F43F5E" />
-      </svg>
-    );
-  }
-  if (variant === 'caramel') {
-    return (
-      <svg viewBox="0 0 120 96" className="h-full w-full" aria-hidden="true">
-        <ellipse cx="60" cy="76" rx="40" ry="8" fill="#E8D8C5" />
-        <rect x="30" y="38" width="60" height="32" rx="8" fill="#78350F" />
-        <path d="M30 46c8 7 14-2 20 5s12-4 18 4 14-5 22 2v-15c0-3-3-6-6-6H36c-3 0-6 3-6 6v4Z" fill="#D97706" />
-        <circle cx="48" cy="35" r="5" fill="#B45309" />
-        <circle cx="60" cy="33" r="5.5" fill="#F59E0B" />
-        <circle cx="72" cy="35" r="5" fill="#B45309" />
-      </svg>
-    );
-  }
-  if (variant === 'hamper') {
-    return (
-      <svg viewBox="0 0 120 96" className="h-full w-full" aria-hidden="true">
-        <rect x="26" y="34" width="68" height="44" rx="6" fill="#8E2027" />
-        <rect x="22" y="28" width="76" height="12" rx="4" fill="#A62B33" />
-        <rect x="55" y="28" width="10" height="50" fill="#F59E0B" />
-        <path d="M60 28c-8-10-18-6-14 0 3 4 14 0 14 0Zm0 0c8-10 18-6 14 0-3 4-14 0-14 0Z" fill="#FBBF24" />
-      </svg>
-    );
-  }
-  if (variant === 'pistachio') {
-    return (
-      <svg viewBox="0 0 120 96" className="h-full w-full" aria-hidden="true">
-        <ellipse cx="60" cy="76" rx="40" ry="8" fill="#E8D8C5" />
-        <rect x="30" y="42" width="60" height="28" rx="8" fill="#FEF3C7" stroke="#D97706" strokeWidth="1.2" />
-        <path d="M30 48h60v6H30z" fill="#A7F3D0" />
-        <circle cx="52" cy="39" r="4" fill="#059669" />
-        <circle cx="62" cy="38" r="4.5" fill="#F43F5E" />
-        <circle cx="70" cy="40" r="3.5" fill="#10B981" />
-      </svg>
-    );
-  }
+/** Richly shaded Patisserie Art Plates for each catalog item. */
+function ProductArtPlateSvg({
+  variant,
+  uid,
+}: {
+  variant: BakeryProduct['artVariant'];
+  uid: string;
+}) {
   return (
-    <svg viewBox="0 0 120 96" className="h-full w-full" aria-hidden="true">
-      <ellipse cx="60" cy="76" rx="38" ry="8" fill="#E8D8C5" />
-      <path d="M34 52c0-15 12-24 26-24s26 9 26 24v16c0 4-12 7-26 7s-26-3-26-7V52Z" fill="#92400E" />
-      <path d="M38 46c8 6 16-2 22 4s14-5 22 1c-2-13-11-21-22-21s-20 7-22 16Z" fill="#F59E0B" fillOpacity="0.8" />
+    <svg viewBox="0 0 160 128" className="h-full w-full" aria-hidden="true">
+      <defs>
+        <radialGradient id={`bg-${variant}-${uid}`} cx="50%" cy="42%" r="60%">
+          <stop offset="0%" stopColor="#FFFBF4" />
+          <stop offset="100%" stopColor="#F3E5D3" />
+        </radialGradient>
+        <linearGradient id={`gold-${variant}-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#FEF08A" />
+          <stop offset="100%" stopColor="#D97706" />
+        </linearGradient>
+      </defs>
+
+      {/* Warm art plate backdrop & delicate arched hairline */}
+      <rect x="0" y="0" width="160" height="128" fill={`url(#bg-${variant}-${uid})`} />
+      <path
+        d="M16 118 V56 C16 24 44 10 80 10 C116 10 144 24 144 56 V118"
+        fill="none"
+        stroke="#8E2027"
+        strokeOpacity="0.14"
+        strokeWidth="1"
+      />
+
+      {/* Ceramic dessert dish */}
+      <ellipse cx="80" cy="100" rx="52" ry="12" fill="#E6D2BC" />
+      <ellipse cx="80" cy="98" rx="48" ry="10" fill="#FFFDF9" stroke="#D4B896" strokeWidth="1" />
+      <ellipse cx="80" cy="97" rx="38" ry="7" fill="#2C1618" fillOpacity="0.12" />
+
+      {variant === 'truffle' ? (
+        <g>
+          <path d="M44 54 V88 C44 96 60 101 80 101 C100 101 116 96 116 88 V54 Z" fill="#3D170F" />
+          <path d="M44 72 C56 77 68 79 80 79 C92 79 104 77 116 72 V76 C104 81 92 83 80 83 C68 83 56 81 44 76 Z" fill="#FDE6C4" />
+          <ellipse cx="80" cy="54" rx="36" ry="12" fill="#5C281B" />
+          <path d="M54 53 C64 47 82 46 98 49" fill="none" stroke="#FFFFFF" strokeOpacity="0.32" strokeWidth="2.5" strokeLinecap="round" />
+          <polygon points="72,49 79,30 87,49" fill="#290F09" />
+          <polygon points="77,38 82,35 84,42 78,43" fill={`url(#gold-${variant}-${uid})`} />
+          <circle cx="80" cy="52" r="6.5" fill="#BE123C" />
+          <circle cx="70" cy="54" r="5" fill="#FAF0E2" />
+          <circle cx="90" cy="54" r="5" fill="#FAF0E2" />
+        </g>
+      ) : variant === 'berry' ? (
+        <g>
+          {/* Scalloped pastry crust */}
+          <path d="M42 66 L50 92 C53 98 65 101 80 101 C95 101 107 98 110 92 L118 66 Z" fill="#D4A373" stroke="#B07D4F" strokeWidth="1" />
+          <ellipse cx="80" cy="66" rx="38" ry="11" fill="#FDE6C4" />
+          <ellipse cx="80" cy="65" rx="33" ry="9" fill="#9F1239" />
+          {/* Cluster of glazed berries */}
+          <circle cx="67" cy="61" r="6" fill="#E11D48" />
+          <circle cx="80" cy="58" r="7" fill="#BE123C" />
+          <circle cx="92" cy="62" r="5.5" fill="#F43F5E" />
+          <circle cx="75" cy="66" r="5" fill="#9F1239" />
+          <circle cx="86" cy="66" r="5" fill="#E11D48" />
+          <circle cx="78" cy="55" r="1.8" fill="#FFFFFF" fillOpacity="0.65" />
+          <path d="M84 53 C89 47 96 48 98 52 C94 55 89 56 84 53 Z" fill="#2E7D32" />
+        </g>
+      ) : variant === 'caramel' ? (
+        <g>
+          {/* Layered praline gateau */}
+          <rect x="44" y="48" width="72" height="46" rx="8" fill="#78350F" />
+          <rect x="44" y="65" width="72" height="6" fill="#FDE6C4" />
+          <rect x="44" y="76" width="72" height="5" fill="#451A03" />
+          {/* Caramel drip glaze */}
+          <path d="M44 56 C52 65 60 52 68 62 C76 70 84 54 92 63 C100 71 108 55 116 61 V52 C116 48 112 45 108 45 H52 C48 45 44 48 44 52 Z" fill="#D97706" />
+          <circle cx="66" cy="43" r="6" fill="#92400E" stroke="#F59E0B" strokeWidth="1" />
+          <circle cx="80" cy="40" r="7" fill="#B45309" stroke="#FDE68A" strokeWidth="1" />
+          <circle cx="94" cy="43" r="6" fill="#92400E" stroke="#F59E0B" strokeWidth="1" />
+          <polygon points="76,34 83,24 88,36" fill={`url(#gold-${variant}-${uid})`} />
+        </g>
+      ) : variant === 'hamper' ? (
+        <g>
+          {/* Couture ribbon gift box */}
+          <rect x="38" y="46" width="84" height="52" rx="6" fill="#8E2027" />
+          <rect x="34" y="38" width="92" height="14" rx="4" fill="#A62B33" stroke="#73181E" strokeWidth="0.9" />
+          <rect x="74" y="38" width="12" height="60" fill={`url(#gold-${variant}-${uid})`} />
+          <path d="M80 38 C68 24 54 30 61 38 C65 42 80 38 80 38 Z" fill="#FBBF24" />
+          <path d="M80 38 C92 24 106 30 99 38 C95 42 80 38 80 38 Z" fill="#F59E0B" />
+          <circle cx="80" cy="38" r="4" fill="#FEF08A" />
+          <rect x="46" y="64" width="20" height="14" rx="2" fill="#FDF9F3" fillOpacity="0.9" />
+          <line x1="50" y1="69" x2="62" y2="69" stroke="#8E2027" strokeWidth="1.2" />
+          <line x1="50" y1="73" x2="59" y2="73" stroke="#8E2027" strokeWidth="1" strokeOpacity="0.6" />
+        </g>
+      ) : variant === 'pistachio' ? (
+        <g>
+          {/* Tres leches milk pool & rose-pistachio cake */}
+          <ellipse cx="80" cy="93" rx="42" ry="8" fill="#FEF3C7" />
+          <rect x="46" y="54" width="68" height="38" rx="9" fill="#FFFBEB" stroke="#E5C48B" strokeWidth="1.2" />
+          <path d="M46 62 H114 V70 H46 Z" fill="#A7F3D0" />
+          <path d="M46 56 C56 50 70 50 80 54 C90 50 104 50 114 56 V62 H46 Z" fill="#FFFDF9" />
+          {/* Crushed pistachios & rose petals */}
+          <ellipse cx="66" cy="51" rx="5" ry="3" fill="#059669" transform="rotate(-15 66 51)" />
+          <ellipse cx="80" cy="49" rx="6" ry="3.5" fill="#F43F5E" />
+          <ellipse cx="93" cy="51" rx="5" ry="3" fill="#10B981" transform="rotate(18 93 51)" />
+          <circle cx="73" cy="54" r="2" fill="#D97706" />
+          <circle cx="87" cy="54" r="2" fill="#D97706" />
+        </g>
+      ) : (
+        <g>
+          {/* Glazed Espresso Brioche */}
+          <path d="M48 66 C48 46 62 36 80 36 C98 36 112 46 112 66 V86 C112 94 98 98 80 98 C62 98 48 94 48 86 Z" fill="#92400E" />
+          <path d="M52 58 C62 66 72 54 80 62 C88 70 98 54 108 60 C105 44 94 36 80 36 C66 36 55 44 52 58 Z" fill="#D97706" />
+          <path d="M62 48 C70 43 84 42 94 46" fill="none" stroke="#FEF3C7" strokeWidth="2.5" strokeLinecap="round" strokeOpacity="0.55" />
+          {/* Coffee bean crown */}
+          <ellipse cx="80" cy="36" rx="6" ry="4" fill="#3B1811" />
+          <path d="M76 36 C79 34 81 38 84 36" stroke="#D97706" strokeWidth="1" fill="none" />
+        </g>
+      )}
     </svg>
   );
 }
 
-function PromiseIcon({ idx }: { idx: number }) {
+function PromiseMedallionIcon({ idx }: { idx: number }) {
   if (idx === 0) {
     return (
-      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.9} aria-hidden="true">
+      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.7} aria-hidden="true">
         <circle cx="12" cy="12" r="9" />
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 7v5l3.5 2" />
       </svg>
@@ -260,29 +367,30 @@ function PromiseIcon({ idx }: { idx: number }) {
   }
   if (idx === 1) {
     return (
-      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.9} aria-hidden="true">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 3l2.4 5.2 5.6.8-4 4 .9 5.6L12 16l-4.9 2.6.9-5.6-4-4 5.6-.8L12 3Z" />
+      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.7} aria-hidden="true">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 3l2.2 5 5.3.7-3.9 3.8.9 5.3L12 15.3 7.5 17.8l.9-5.3-3.9-3.8 5.3-.7L12 3Z" />
       </svg>
     );
   }
   if (idx === 2) {
     return (
-      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.9} aria-hidden="true">
+      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.7} aria-hidden="true">
         <rect x="4" y="8" width="16" height="12" rx="2" />
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v12M4 12h16M12 8c-2 0-3.5-1.2-3.5-2.6 0-1.3 1.4-2 3.5.1 2.1-2.1 3.5-1.4 3.5-.1C15.5 6.8 14 8 12 8Z" />
       </svg>
     );
   }
   return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.9} aria-hidden="true">
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.7} aria-hidden="true">
       <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16v10H8l-4 4V6Z" />
     </svg>
   );
 }
 
 /**
- * Small Business Theme 1: "Artisan Bakehouse" (Dakingo-inspired).
- * Warm vanilla cream, berry-cocoa rounded hero, wavy discount pill, filtering categories & live WhatsApp Order Bag.
+ * Small Business Theme 1: "Artisan Bakehouse" (Patisserie Art Folio).
+ * Warm vanilla cream, arched gilt still-life hero, rich illustrated dessert plates,
+ * scalloped pastry privilege ticket & live WhatsApp Order Bag.
  */
 export function SmallBusinessBakeryTheme({
   data,
@@ -298,10 +406,11 @@ export function SmallBusinessBakeryTheme({
   const storeName = deriveStoreName(data, copy.defaultStore);
   const monogram = extractStoreMonogram(storeName);
   const headline = pickLocalizedText(data.headline, language).trim() || storeName;
-  const message = pickLocalizedText(data.message, language).trim() || copy.heroTag;
   const offerText = data.offerTag ? pickLocalizedText(data.offerTag, language).trim() : '';
 
   const photos = getValidPhotos(data.photos);
+  const hasUserPhotos = photos.length > 0;
+  const effectivePhotos = hasUserPhotos ? photos : SAMPLE_PHOTOS;
   const [failedUrls, setFailedUrls] = useState<Record<string, boolean>>({});
   const [activeCategory, setActiveCategory] = useState<BakeryCategoryKey>('all');
   const [favorites, setFavorites] = useState<Record<string, boolean>>({ 'bk-1': true });
@@ -396,7 +505,7 @@ export function SmallBusinessBakeryTheme({
     try {
       await navigator.clipboard?.writeText(itemizedOrderText);
     } catch {
-      // Clipboard restricted in embedded contexts; feedback still renders.
+      // Safe fallback
     }
     flashToast(sharedCopy.copiedToast);
   }
@@ -409,20 +518,21 @@ export function SmallBusinessBakeryTheme({
     'hampers',
   ];
 
-  const heroPhoto = photos[0] && !failedUrls[photos[0]] ? photos[0] : null;
+  const heroPhoto =
+    effectivePhotos[0] && !failedUrls[effectivePhotos[0]] ? effectivePhotos[0] : null;
 
   return (
     <div
       className="relative flex min-h-full w-full flex-col overflow-x-clip bg-[#FDF9F3] text-[#2C1618]"
       style={hiSafeStyle(language)}
     >
-      {/* Top Sticky Brand Bar */}
-      <header className="sticky top-0 z-30 flex items-center justify-between gap-2 border-b border-[#8E2027]/10 bg-[#FDF9F3]/95 px-3.5 py-2 backdrop-blur-md sm:px-6">
+      {/* Minimal Patisserie Top Bar */}
+      <header className="sticky top-0 z-30 flex items-center justify-between gap-2 border-b border-[#8E2027]/12 bg-[#FDF9F3]/95 px-3.5 py-2 backdrop-blur-md sm:px-6">
         <div className="flex min-w-0 items-center gap-2">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#8E2027] font-heading text-xs font-bold text-[#FDF9F3] shadow-xs">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#D97706]/40 bg-[#8E2027] font-editorial text-xs font-bold text-[#FDE6C4]">
             {monogram}
           </span>
-          <span className="truncate font-heading text-sm font-bold tracking-tight text-[#2C1618] sm:text-base">
+          <span className="truncate font-editorial text-sm font-semibold tracking-tight text-[#2C1618] sm:text-base">
             {storeName}
           </span>
         </div>
@@ -430,92 +540,90 @@ export function SmallBusinessBakeryTheme({
         <button
           type="button"
           onClick={() => setShowOrderSheet(true)}
-          className="inline-flex min-h-[36px] shrink-0 items-center gap-1.5 rounded-full border border-[#8E2027]/20 bg-white px-3 py-1 text-[11px] font-bold text-[#8E2027] shadow-2xs transition active:scale-95"
+          className="inline-flex min-h-[34px] shrink-0 items-center gap-1.5 rounded-full border border-[#8E2027]/20 bg-white px-3 py-1 text-[10.5px] font-bold text-[#8E2027] shadow-2xs transition active:scale-95"
         >
           <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 7h12l-1 13H7L6 7Zm3 0V5a3 3 0 0 1 6 0v2" />
           </svg>
-          <span>
-            {copy.bagLabel} ({totalCount})
-          </span>
+          <span>{totalCount}</span>
         </button>
       </header>
 
-      {/* Festive Berry-Cocoa Rounded Promo Hero */}
-      <section className="relative overflow-hidden rounded-b-[32px] bg-[#8E2027] px-4 pb-7 pt-5 text-[#FDF9F3] shadow-[0_18px_36px_-18px_rgba(142,32,39,0.55)] sm:px-8 sm:py-8">
-        <AtmosphericGrainOverlay opacity={0.07} />
-        <div className="relative z-10 mx-auto flex max-w-5xl flex-col items-center gap-5 md:flex-row md:justify-between">
-          <div className="flex max-w-md flex-col items-center text-center md:items-start md:text-left">
-            {/* Wavy Save 20% Badge */}
-            <button
-              type="button"
-              onClick={() => {
-                setOfferApplied(true);
-                flashToast(copy.offerApplied);
-              }}
-              className="group relative inline-flex items-center gap-1.5 rounded-full border border-[#FBBF24]/60 bg-[#B45309] px-3.5 py-1 text-[10.5px] font-extrabold uppercase tracking-[0.14em] text-white shadow-sm transition hover:scale-105 active:scale-95"
-            >
-              <svg viewBox="0 0 16 16" className="h-3 w-3" fill="currentColor" aria-hidden="true">
-                <path d="M8 1l1.9 3.6L14 5.3l-2.9 2.9.6 4.1L8 10.4l-3.7 1.9.6-4.1L2 5.3l4.1-.7L8 1Z" />
-              </svg>
-              <span>{offerText || copy.saveBadge}</span>
-            </button>
-
-            <p className="mt-2.5 font-mono text-[9.5px] font-bold uppercase tracking-[0.2em] text-[#FDE6C4]/80">
-              {copy.eyebrow}
-            </p>
-            <h1 className="mt-1 break-words font-heading text-2xl font-bold leading-tight text-[#FFFDF9] sm:text-3xl md:text-4xl">
-              {headline}
-            </h1>
-            <p className="mt-2 break-words text-xs leading-relaxed text-[#FDF9F3]/85 sm:text-sm">
-              {message}
-            </p>
-
-            {/* Floating mini flavor medallions */}
-            <div className="mt-3.5 flex flex-wrap justify-center gap-1.5 md:justify-start">
-              {['70% Dark', 'Fresh Cream', 'Eggless'].map((medallion) => (
-                <span
-                  key={medallion}
-                  className="rounded-full border border-white/20 bg-white/10 px-2.5 py-0.5 text-[10px] font-semibold text-[#FDE6C4]"
-                >
-                  {medallion}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Centerpiece Artisanal Truffle Cake Medallion or Buyer Photo */}
-          <div className="relative flex h-44 w-44 shrink-0 items-center justify-center sm:h-52 sm:w-52">
-            <div
-              aria-hidden="true"
-              className="absolute inset-0 rounded-full bg-[#D97706]/25 blur-xl"
-            />
+      {/* Art-Forward Patisserie Arch Hero */}
+      <section className="relative overflow-hidden rounded-b-[32px] bg-gradient-to-b from-[#7E1B22] via-[#66141A] to-[#4A0D12] px-4 pb-6 pt-5 text-[#FDF9F3] shadow-[0_20px_42px_-18px_rgba(74,13,18,0.6)] sm:px-8 sm:py-7">
+        <AtmosphericGrainOverlay opacity={0.08} />
+        <div className="relative z-10 mx-auto grid max-w-5xl grid-cols-1 items-center gap-4 md:grid-cols-12">
+          {/* Centerpiece Patisserie Still-Life Art */}
+          <div className="order-1 flex justify-center md:order-2 md:col-span-5 md:justify-end">
             {heroPhoto ? (
               <button
                 type="button"
-                onClick={() => onOpenPhoto?.(0)}
+                onClick={() => {
+                  if (hasUserPhotos) onOpenPhoto?.(0);
+                }}
                 aria-label="Inspect featured bakery photo"
-                className="relative h-40 w-40 overflow-hidden rounded-full border-4 border-[#FDE6C4] bg-[#FDF9F3] shadow-xl transition hover:scale-[1.03] sm:h-48 sm:w-48"
+                className="group relative h-52 w-44 overflow-hidden rounded-t-full rounded-b-2xl border-2 border-[#FDE6C4]/75 bg-[#3D1510] shadow-[0_24px_48px_-16px_rgba(24,6,8,0.72)] transition duration-500 hover:-translate-y-0.5 hover:border-[#FDE68A] sm:h-60 sm:w-48"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={heroPhoto}
                   alt={storeName}
                   onError={() => setFailedUrls((prev) => ({ ...prev, [heroPhoto]: true }))}
-                  className="h-full w-full object-cover"
+                  className="h-full w-full object-cover transition duration-700 ease-out group-hover:scale-[1.06]"
                 />
+                {/* Arched gilt double-hairline patisserie frame */}
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-1.5 rounded-t-full rounded-b-xl border border-[#FDE6C4]/45"
+                />
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#2C0B0E]/85 via-[#2C0B0E]/25 to-transparent"
+                />
+                <span className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-[#FDE6C4]/35 bg-[#2C0B0E]/70 px-2.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-[0.2em] text-[#FDE6C4] backdrop-blur-xs">
+                  ATELIER · NO. 01
+                </span>
               </button>
             ) : (
-              <div className="relative h-44 w-44 sm:h-52 sm:w-52">
-                <HeroChocolateTruffleCakeSvg uid={uid} />
+              <div className="h-48 w-48 drop-shadow-[0_18px_28px_rgba(0,0,0,0.35)] sm:h-56 sm:w-56">
+                <HeroPatisserieStillLifeSvg uid={uid} />
               </div>
             )}
+          </div>
+
+          {/* Crisp Editorial Title + Interactive Offer Seal */}
+          <div className="order-2 flex flex-col items-center text-center md:order-1 md:col-span-7 md:items-start md:text-left">
+            <button
+              type="button"
+              onClick={() => {
+                setOfferApplied(true);
+                flashToast(copy.offerApplied);
+              }}
+              className="inline-flex items-center gap-1.5 rounded-full border border-[#FDE68A]/50 bg-[#B45309]/90 px-3 py-1 font-mono text-[9.5px] font-bold uppercase tracking-[0.18em] text-[#FFFDF9] shadow-sm transition hover:scale-105 active:scale-95"
+            >
+              <span>{offerText || copy.saveBadge}</span>
+            </button>
+
+            <h1 className="mt-2.5 break-words font-editorial text-2xl font-normal leading-[1.08] text-[#FFFDF9] sm:text-4xl">
+              {headline}
+            </h1>
+
+            <div className="mt-3 flex flex-wrap justify-center gap-1.5 md:justify-start">
+              {['70% Dark', 'Eggless', 'Small-Batch'].map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-full border border-[#FDE6C4]/25 bg-white/10 px-2.5 py-0.5 text-[10px] font-medium tracking-wide text-[#FDE6C4]"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Sticky Category Filter Pills */}
-      <div className="sticky top-[53px] z-20 border-b border-[#8E2027]/10 bg-[#FDF9F3]/95 px-3.5 py-2.5 backdrop-blur-md sm:px-6">
+      {/* Sticky Category Filter Bar */}
+      <div className="sticky top-[51px] z-20 border-b border-[#8E2027]/10 bg-[#FDF9F3]/95 px-3.5 py-2 backdrop-blur-md sm:px-6">
         <div
           role="tablist"
           aria-label="Bakery categories"
@@ -530,10 +638,10 @@ export function SmallBusinessBakeryTheme({
                 role="tab"
                 aria-selected={isSelected}
                 onClick={() => setActiveCategory(catKey)}
-                className={`min-h-[36px] shrink-0 rounded-full px-3.5 py-1 text-[11px] font-bold transition active:scale-95 ${
+                className={`min-h-[34px] shrink-0 rounded-full px-3 py-1 text-[10.5px] font-bold transition active:scale-95 ${
                   isSelected
-                    ? 'bg-[#8E2027] text-[#FDF9F3] shadow-xs'
-                    : 'border border-[#8E2027]/20 bg-white text-[#2C1618]/80 hover:bg-[#8E2027]/5'
+                    ? 'bg-[#8E2027] text-[#FDF9F3]'
+                    : 'border border-[#8E2027]/18 bg-white text-[#2C1618]/75 hover:bg-[#8E2027]/5'
                 }`}
               >
                 {copy.categories[idx]}
@@ -543,43 +651,46 @@ export function SmallBusinessBakeryTheme({
         </div>
       </div>
 
-      {/* Main Content */}
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-3.5 pb-8 pt-5 sm:px-6">
-        {/* Bestsellers Grid (2-up mobile, 4-up desktop) */}
+      {/* Main Art-Led Catalog */}
+      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-5 px-3.5 pb-8 pt-4 sm:px-6">
         <section aria-labelledby={`bakery-best-${uid}`}>
-          <div className="mb-3 flex flex-col gap-0.5 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h2
-                id={`bakery-best-${uid}`}
-                className="font-heading text-lg font-bold text-[#2C1618] sm:text-xl"
-              >
-                {copy.bestsellerHeading}
-              </h2>
-              <p className="text-[11px] text-[#2C1618]/70 sm:text-xs">{copy.bestsellerSub}</p>
-            </div>
+          <div className="mb-2.5 flex items-center justify-between">
+            <h2
+              id={`bakery-best-${uid}`}
+              className="font-editorial text-lg font-semibold text-[#2C1618] sm:text-xl"
+            >
+              {copy.bestsellerHeading}
+            </h2>
+            <span className="font-mono text-[9.5px] font-bold uppercase tracking-[0.16em] text-[#8E2027]/70">
+              {filteredProducts.length} PLATES
+            </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-2.5 sm:gap-3.5 md:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-2.5 sm:gap-3.5 md:grid-cols-3">
             {filteredProducts.map((product) => {
               const origIdx = catalog.findIndex((c) => c.id === product.id);
               const photoIdx = origIdx >= 0 ? origIdx : 0;
               const qty = cart[product.id] ?? 0;
               const isFav = Boolean(favorites[product.id]);
-              const photoUrl = photos[photoIdx];
+              const photoUrl = effectivePhotos[photoIdx % effectivePhotos.length];
               const showPhoto = Boolean(photoUrl && !failedUrls[photoUrl]);
 
               return (
                 <article
                   key={product.id}
-                  className="flex flex-col justify-between overflow-hidden rounded-2xl border border-[#8E2027]/12 bg-white p-2 shadow-2xs transition hover:shadow-md sm:p-3"
+                  className="group flex flex-col justify-between overflow-hidden rounded-2xl border border-[#8E2027]/12 bg-white shadow-2xs transition duration-300 hover:-translate-y-0.5 hover:border-[#8E2027]/28 hover:shadow-[0_14px_28px_-14px_rgba(142,32,39,0.28)]"
                 >
                   <div>
-                    <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl bg-[#FDF5EA]">
+                    <div className="relative aspect-[5/4] w-full overflow-hidden bg-[#FDF5EA]">
                       {showPhoto ? (
                         <button
                           type="button"
-                          onClick={() => onOpenPhoto?.(photoIdx)}
-                          className="h-full w-full"
+                          onClick={() => {
+                            if (hasUserPhotos && photoIdx < photos.length) {
+                              onOpenPhoto?.(photoIdx);
+                            }
+                          }}
+                          className="relative h-full w-full"
                           aria-label={`View ${product.name}`}
                         >
                           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -589,14 +700,25 @@ export function SmallBusinessBakeryTheme({
                             onError={() =>
                               setFailedUrls((prev) => ({ ...prev, [photoUrl]: true }))
                             }
-                            className="h-full w-full object-cover"
+                            className="h-full w-full object-cover transition duration-700 ease-out group-hover:scale-[1.07]"
+                          />
+                          {/* Arched patisserie gilt hairline overlay */}
+                          <span
+                            aria-hidden="true"
+                            className="pointer-events-none absolute inset-1.5 rounded-t-[36px] rounded-b-lg border border-[#FDE6C4]/45 transition-opacity duration-300 group-hover:border-[#FDE68A]/70"
+                          />
+                          <span
+                            aria-hidden="true"
+                            className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-[#2C1618]/45 to-transparent"
                           />
                         </button>
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center p-2">
-                          <ProductArtSvg variant={product.artVariant} />
-                        </div>
+                        <ProductArtPlateSvg variant={product.artVariant} uid={uid} />
                       )}
+
+                      <span className="pointer-events-none absolute left-2 top-2 rounded-full border border-[#8E2027]/15 bg-white/92 px-2 py-0.5 font-mono text-[8.5px] font-bold uppercase tracking-wider text-[#8E2027] shadow-2xs backdrop-blur-xs">
+                        {product.flavorTag}
+                      </span>
 
                       <button
                         type="button"
@@ -605,7 +727,7 @@ export function SmallBusinessBakeryTheme({
                         }
                         aria-label={`Favorite ${product.name}`}
                         aria-pressed={isFav}
-                        className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-[#8E2027] shadow-xs transition active:scale-90"
+                        className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-[#8E2027] shadow-2xs transition active:scale-90"
                       >
                         <svg
                           viewBox="0 0 24 24"
@@ -624,20 +746,19 @@ export function SmallBusinessBakeryTheme({
                       </button>
                     </div>
 
-                    <p className="mt-2 truncate text-[9.5px] font-bold uppercase tracking-wider text-[#B45309]">
-                      {product.flavorTag}
-                    </p>
-                    <h3 className="mt-0.5 line-clamp-2 text-xs font-bold leading-snug text-[#2C1618] sm:text-sm">
-                      {product.name}
-                    </h3>
+                    <div className="px-2.5 pt-2 sm:px-3">
+                      <h3 className="line-clamp-1 font-editorial text-xs font-semibold text-[#2C1618] sm:text-sm">
+                        {product.name}
+                      </h3>
+                    </div>
                   </div>
 
-                  <div className="mt-2.5 flex flex-wrap items-center justify-between gap-1.5 border-t border-[#8E2027]/10 pt-2">
-                    <div className="flex flex-col leading-tight">
+                  <div className="mt-2 flex items-center justify-between gap-1 px-2.5 pb-2.5 sm:px-3 sm:pb-3">
+                    <div className="flex items-baseline gap-1.5">
                       <span className="font-tabular text-xs font-extrabold text-[#2C1618] sm:text-sm">
                         ₹{product.price}
                       </span>
-                      <span className="font-tabular text-[10px] text-[#2C1618]/60 line-through">
+                      <span className="font-tabular text-[9.5px] text-[#2C1618]/45 line-through">
                         ₹{product.compareAt}
                       </span>
                     </div>
@@ -646,28 +767,28 @@ export function SmallBusinessBakeryTheme({
                       <button
                         type="button"
                         onClick={() => updateQty(product.id, 1)}
-                        className="min-h-[34px] rounded-full bg-[#8E2027] px-2.5 py-1 text-[10.5px] font-bold text-[#FDF9F3] transition hover:bg-[#73181E] active:scale-95"
+                        className="min-h-[30px] rounded-full bg-[#8E2027] px-2.5 text-[10px] font-bold text-[#FDF9F3] transition hover:bg-[#73181E] active:scale-95"
                       >
                         {copy.addBag}
                       </button>
                     ) : (
-                      <div className="inline-flex min-h-[34px] items-center rounded-full border border-[#8E2027]/25 bg-[#FDF9F3] px-0.5">
+                      <div className="inline-flex min-h-[30px] items-center rounded-full border border-[#8E2027]/25 bg-[#FDF9F3] px-0.5">
                         <button
                           type="button"
                           onClick={() => updateQty(product.id, -1)}
                           aria-label={`Remove one ${product.name}`}
-                          className="flex h-6 w-5 items-center justify-center rounded-full text-xs font-bold text-[#8E2027] hover:bg-white sm:w-6"
+                          className="flex h-6 w-5 items-center justify-center rounded-full text-xs font-bold text-[#8E2027] hover:bg-white"
                         >
                           -
                         </button>
-                        <span className="font-tabular px-1 text-[11px] font-extrabold text-[#2C1618] sm:px-1.5">
+                        <span className="font-tabular px-1 text-[10.5px] font-extrabold text-[#2C1618]">
                           {qty}
                         </span>
                         <button
                           type="button"
                           onClick={() => updateQty(product.id, 1)}
                           aria-label={`Add one ${product.name}`}
-                          className="flex h-6 w-5 items-center justify-center rounded-full text-xs font-bold text-[#8E2027] hover:bg-white sm:w-6"
+                          className="flex h-6 w-5 items-center justify-center rounded-full text-xs font-bold text-[#8E2027] hover:bg-white"
                         >
                           +
                         </button>
@@ -680,50 +801,48 @@ export function SmallBusinessBakeryTheme({
           </div>
         </section>
 
-        {/* Our Promise 4-Icon Strip */}
+        {/* Compact Embossed Medallion Seal Strip */}
         <section
-          aria-labelledby={`bakery-promise-${uid}`}
-          className="rounded-2xl border border-[#D97706]/25 bg-white p-3.5 shadow-2xs sm:p-5"
+          aria-label={copy.promiseHeading}
+          className="grid grid-cols-2 gap-2 sm:grid-cols-4"
         >
-          <h2
-            id={`bakery-promise-${uid}`}
-            className="text-center font-heading text-sm font-bold text-[#2C1618] sm:text-base"
-          >
-            {copy.promiseHeading}
-          </h2>
-          <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-            {copy.promises.map((label, idx) => (
-              <div
-                key={label}
-                className="flex items-center gap-2 rounded-xl bg-[#FDF9F3] p-2.5 text-[#8E2027]"
-              >
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#8E2027]/10 text-[#8E2027]">
-                  <PromiseIcon idx={idx} />
-                </span>
-                <span className="text-[11px] font-bold leading-tight text-[#2C1618]">
-                  {label}
-                </span>
-              </div>
-            ))}
-          </div>
+          {copy.promises.map((label, idx) => (
+            <div
+              key={label}
+              className="flex items-center gap-2 rounded-xl border border-[#D97706]/25 bg-white px-2.5 py-2"
+            >
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#D97706]/35 bg-[#FDF5EA] text-[#8E2027]">
+                <PromiseMedallionIcon idx={idx} />
+              </span>
+              <span className="text-[10.5px] font-bold leading-tight text-[#2C1618]">
+                {label}
+              </span>
+            </div>
+          ))}
         </section>
 
-        {/* Golden Celebration Ticket Promo Card */}
+        {/* Gilt-Foil Scalloped Patisserie Privilege Ticket */}
         <section
           aria-label={copy.ticketTitle}
-          className="relative overflow-hidden rounded-2xl border border-[#D97706]/50 bg-gradient-to-br from-[#FEF3C7] via-[#FDE68A] to-[#F59E0B]/55 p-4 text-[#2C1618] shadow-sm sm:p-5"
+          className="relative overflow-hidden rounded-2xl border border-[#D97706]/60 bg-gradient-to-r from-[#FFF7DF] via-[#FDE8B0] to-[#F6CF75] p-3.5 text-[#2C1618] shadow-sm sm:p-4"
         >
-          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-            <div>
-              <p className="font-mono text-[9.5px] font-bold uppercase tracking-[0.2em] text-[#92400E]">
-                {copy.ticketEyebrow}
-              </p>
-              <h3 className="mt-0.5 font-heading text-base font-bold text-[#2C1618] sm:text-lg">
-                {copy.ticketTitle}
-              </h3>
-              <p className="mt-1 text-xs leading-relaxed text-[#2C1618]/85">
-                {offerText || copy.ticketDefaultOffer}
-              </p>
+          {/* Decorative ticket notches */}
+          <span aria-hidden="true" className="absolute -left-2.5 top-1/2 h-5 w-5 -translate-y-1/2 rounded-full bg-[#FDF9F3]" />
+          <span aria-hidden="true" className="absolute -right-2.5 top-1/2 h-5 w-5 -translate-y-1/2 rounded-full bg-[#FDF9F3]" />
+
+          <div className="flex flex-col items-start justify-between gap-2.5 px-2 sm:flex-row sm:items-center">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#8E2027]/30 bg-[#8E2027] font-editorial text-xs font-bold text-[#FDE68A]">
+                20%
+              </div>
+              <div>
+                <h3 className="font-editorial text-base font-semibold leading-tight text-[#2C1618]">
+                  {offerText || copy.ticketTitle}
+                </h3>
+                <p className="font-mono text-[9.5px] font-bold uppercase tracking-[0.14em] text-[#92400E]">
+                  {copy.ticketEyebrow}
+                </p>
+              </div>
             </div>
 
             <button
@@ -732,10 +851,10 @@ export function SmallBusinessBakeryTheme({
                 setOfferApplied((prev) => !prev);
                 flashToast(!offerApplied ? copy.offerApplied : copy.claimOffer);
               }}
-              className={`min-h-[42px] shrink-0 rounded-full px-4 py-2 text-xs font-extrabold transition active:scale-95 ${
+              className={`min-h-[38px] shrink-0 rounded-full px-4 text-[11px] font-extrabold transition active:scale-95 ${
                 offerApplied
                   ? 'bg-[#2C1618] text-[#FDE68A]'
-                  : 'bg-[#8E2027] text-white shadow-sm hover:bg-[#73181E]'
+                  : 'bg-[#8E2027] text-white hover:bg-[#73181E]'
               }`}
             >
               {offerApplied ? copy.offerApplied : copy.claimOffer}
@@ -743,8 +862,8 @@ export function SmallBusinessBakeryTheme({
           </div>
         </section>
 
-        {/* Sticky Order Bag Bar */}
-        <div className="sticky bottom-14 z-20 rounded-2xl border border-[#8E2027]/20 bg-[#2C1618] p-3 text-[#FDF9F3] shadow-[0_14px_32px_-12px_rgba(44,22,24,0.65)] sm:p-3.5">
+        {/* Sticky Order Bag Capsule */}
+        <div className="sticky bottom-14 z-20 rounded-2xl border border-[#D97706]/30 bg-[#2C1618] p-3 text-[#FDF9F3] shadow-[0_14px_32px_-12px_rgba(44,22,24,0.65)]">
           {totalCount > 0 ? (
             <div className="flex items-center justify-between gap-2">
               <button
@@ -752,9 +871,9 @@ export function SmallBusinessBakeryTheme({
                 onClick={() => setShowOrderSheet(true)}
                 className="min-w-0 text-left"
               >
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-[#FDE6C4]/80">
-                  {totalCount} {totalCount === 1 ? 'item' : 'items'}
-                  {offerApplied ? ' · 20% OFF' : ''}
+                <p className="font-mono text-[9.5px] font-semibold uppercase tracking-wider text-[#FDE6C4]/80">
+                  {totalCount} {totalCount === 1 ? 'PLATE' : 'PLATES'}
+                  {offerApplied ? ' · -20%' : ''}
                 </p>
                 <p className="font-tabular truncate text-sm font-extrabold text-white">
                   ₹{finalTotal}
@@ -764,9 +883,9 @@ export function SmallBusinessBakeryTheme({
               <button
                 type="button"
                 onClick={handleWhatsAppCheckout}
-                className="inline-flex min-h-[42px] shrink-0 items-center gap-1.5 rounded-full bg-[#F59E0B] px-4 py-2 text-xs font-extrabold text-[#2C1618] shadow-sm transition hover:bg-[#FBBF24] active:scale-95"
+                className="inline-flex min-h-[40px] shrink-0 items-center rounded-full bg-[#F59E0B] px-4 text-xs font-extrabold text-[#2C1618] shadow-sm transition hover:bg-[#FBBF24] active:scale-95"
               >
-                <span>{copy.orderWhatsapp}</span>
+                {copy.orderWhatsapp}
               </button>
             </div>
           ) : (
@@ -777,7 +896,6 @@ export function SmallBusinessBakeryTheme({
         </div>
       </main>
 
-      {/* Toast Feedback */}
       {toastMsg ? (
         <div
           role="status"
@@ -787,7 +905,6 @@ export function SmallBusinessBakeryTheme({
         </div>
       ) : null}
 
-      {/* Itemized Order Preview Sheet (for demo fallback or bag review) */}
       {showOrderSheet ? (
         <div
           role="dialog"
@@ -801,13 +918,13 @@ export function SmallBusinessBakeryTheme({
             className="max-h-[85dvh] w-full max-w-md overflow-y-auto rounded-2xl bg-[#FDF9F3] p-4 text-[#2C1618] shadow-2xl"
           >
             <div className="flex items-center justify-between border-b border-[#8E2027]/15 pb-2.5">
-              <h3 className="font-heading text-base font-bold text-[#8E2027]">
+              <h3 className="font-editorial text-base font-semibold text-[#8E2027]">
                 {storeName} · {copy.bagLabel}
               </h3>
               <button
                 type="button"
                 onClick={() => setShowOrderSheet(false)}
-                className="min-h-[44px] rounded-full px-3 text-xs font-bold text-[#2C1618]/75 hover:bg-black/5"
+                className="min-h-[40px] rounded-full px-3 text-xs font-bold text-[#2C1618]/75 hover:bg-black/5"
               >
                 {sharedCopy.closeBtn}
               </button>
@@ -849,7 +966,7 @@ export function SmallBusinessBakeryTheme({
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={() => onOpened?.()}
-                      className="flex min-h-[44px] flex-1 items-center justify-center rounded-full bg-[#8E2027] px-4 text-xs font-bold text-white"
+                      className="flex min-h-[42px] flex-1 items-center justify-center rounded-full bg-[#8E2027] px-4 text-xs font-bold text-white"
                     >
                       {copy.orderWhatsapp}
                     </a>
@@ -857,7 +974,7 @@ export function SmallBusinessBakeryTheme({
                   <button
                     type="button"
                     onClick={handleCopyOrder}
-                    className="flex min-h-[44px] flex-1 items-center justify-center rounded-full border border-[#8E2027]/25 bg-white px-4 text-xs font-bold text-[#8E2027]"
+                    className="flex min-h-[42px] flex-1 items-center justify-center rounded-full border border-[#8E2027]/25 bg-white px-4 text-xs font-bold text-[#8E2027]"
                   >
                     {sharedCopy.copyOrderBtn}
                   </button>
