@@ -20,6 +20,7 @@ import { AuthModal } from './AuthModal';
 export interface AuthUser {
   id: string;
   email: string;
+  avatarUrl?: string | null;
 }
 
 export interface OpenAuthModalOptions {

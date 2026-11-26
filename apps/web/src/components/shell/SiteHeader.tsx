@@ -302,12 +302,21 @@ export function SiteHeader({ config: _config }: SiteHeaderProps) {
                     aria-haspopup="menu"
                     aria-label={`Account menu for ${displayName}`}
                     title={`${displayName} (${user.email})`}
-                    className={`btn-spring relative flex h-11 w-11 lg:h-10 lg:w-10 items-center justify-center rounded-full border text-xs font-bold tracking-tight transition ${isProfileActive || profileMenuOpen
+                    className={`btn-spring relative flex h-11 w-11 lg:h-10 lg:w-10 items-center justify-center overflow-hidden rounded-full border text-xs font-bold tracking-tight transition ${isProfileActive || profileMenuOpen
                       ? 'border-webzy-primary bg-webzy-primary text-white shadow-sm'
                       : 'border-webzy-ink/15 bg-webzy-ink text-white hover:opacity-90'
                       }`}
                   >
-                    <span>{initials}</span>
+                    {user.avatarUrl ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img
+                        src={user.avatarUrl}
+                        alt={displayName}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span>{initials}</span>
+                    )}
                   </button>
 
                   {profileMenuOpen ? (

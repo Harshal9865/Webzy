@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { formatInr, getSiteCopy } from '@webzy/core';
 import { useLanguage } from '../shell/LanguageProvider';
 
@@ -244,6 +245,7 @@ export function OrdersClient({ orders, webUrl, userEmail }: OrdersClientProps) {
   const closeEditTimerRef = useRef<number | null>(null);
 
   // Modals
+  const [mounted, setMounted] = useState(false);
   const [selectedReceiptOrder, setSelectedReceiptOrder] = useState<OrderItem | null>(null);
   const [shareOrder, setShareOrder] = useState<OrderItem | null>(null);
   const [editingOrder, setEditingOrder] = useState<OrderItem | null>(null);
@@ -257,6 +259,10 @@ export function OrdersClient({ orders, webUrl, userEmail }: OrdersClientProps) {
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [restoringOrderId, setRestoringOrderId] = useState<string | null>(null);
   const [restoreErrors, setRestoreErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     setOrderList(orders);
@@ -561,7 +567,7 @@ export function OrdersClient({ orders, webUrl, userEmail }: OrdersClientProps) {
 
   return (
     <div className="min-h-[84vh] bg-[#F4F5F7] font-sans text-slate-900">
-      <div className="mx-auto max-w-5xl px-3 py-5 sm:px-6 lg:py-9 animate-fade-in">
+      <div className="mx-auto max-w-5xl px-3 py-5 sm:px-6 lg:py-9">
         {/* Clean Amazon / Flipkart Breadcrumb + Page Title + Prominent Order Search */}
         <div className="flex flex-col gap-3.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <div>
@@ -1182,11 +1188,16 @@ export function OrdersClient({ orders, webUrl, userEmail }: OrdersClientProps) {
             })
           )}
         </div>
+      </div>
 
-        {/* 1. GST Tax Invoice Modal */}
-        {selectedReceiptOrder ? (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm animate-fade-in"
+      {/* Portal all Orders modals to document.body so fixed positioning never clips inside page containers */}
+      {mounted
+        ? createPortal(
+            <>
+              {/* 1. GST Tax Invoice Modal */}
+              {selectedReceiptOrder ? (
+                <div
+                  className="fixed inset-0 z-[110] flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm animate-fade-in"
             onClick={(e) => {
               if (e.target === e.currentTarget) setSelectedReceiptOrder(null);
             }}
@@ -1497,7 +1508,7 @@ export function OrdersClient({ orders, webUrl, userEmail }: OrdersClientProps) {
         {/* 4. Soft-Delete Confirmation Modal (7-Day Grace Recovery) */}
         {deleteConfirmOrder ? (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm animate-fade-in"
+            className="fixed inset-0 z-[110] flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm animate-fade-in"
             onClick={(e) => {
               if (e.target === e.currentTarget && !deletingSite) {
                 setDeleteConfirmOrder(null);
@@ -1584,7 +1595,10 @@ export function OrdersClient({ orders, webUrl, userEmail }: OrdersClientProps) {
             </div>
           </div>
         ) : null}
-      </div>
+            </>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

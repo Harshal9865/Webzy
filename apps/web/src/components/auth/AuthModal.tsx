@@ -143,8 +143,13 @@ export function AuthModal({
       if (!mountedRef.current) return;
 
       if (error) {
+        const lower = (error.message || '').toLowerCase();
         setStatus('error');
-        setErrorMessage(error.message || 'Unable to send verification code. Please retry.');
+        setErrorMessage(
+          lower.includes('rate limit') || lower.includes('too many')
+            ? 'Email sending limit reached for this hour. If you already have a code in your inbox, click "Already have a code?" below.'
+            : error.message || 'Unable to send verification code. Please retry.',
+        );
         return;
       }
 
@@ -199,17 +204,27 @@ export function AuthModal({
 
     try {
       const supabase = getSupabaseBrowserClient();
-      const { error } = await supabase.auth.verifyOtp({
-        email: cleanEmail,
-        token: cleanCode,
-        type: 'email',
-      });
+      const attemptTypes = ['email', 'magiclink', 'signup'] as const;
+      let verified = false;
+      let lastErrMsg = '';
+      for (const otpType of attemptTypes) {
+        const { data: verifyData, error } = await supabase.auth.verifyOtp({
+          email: cleanEmail,
+          token: cleanCode,
+          type: otpType,
+        });
+        if (!error && verifyData.session) {
+          verified = true;
+          break;
+        }
+        lastErrMsg = error?.message || lastErrMsg;
+      }
 
       if (!mountedRef.current) return;
 
-      if (error) {
+      if (!verified) {
         setStatus('sent');
-        setErrorMessage(error.message || 'Invalid or expired code. Please check or resend.');
+        setErrorMessage(lastErrMsg || 'Invalid or expired code. Please check or resend.');
         return;
       }
 
@@ -414,6 +429,23 @@ export function AuthModal({
                 className="btn-spring inline-flex min-h-[46px] w-full items-center justify-center rounded-full bg-webzy-primary px-6 py-2.5 text-sm font-bold text-white shadow-btn-primary hover:opacity-95 disabled:opacity-50"
               >
                 {status === 'sending' ? 'Sending 6-digit code...' : 'Send 6-digit login code'}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const clean = email.trim().toLowerCase();
+                  if (!clean || !clean.includes('@')) {
+                    setStatus('error');
+                    setErrorMessage('Enter your email address first.');
+                    return;
+                  }
+                  setErrorMessage('');
+                  setStatus('sent');
+                }}
+                className="inline-flex min-h-[38px] w-full items-center justify-center rounded-full border border-webzy-tint bg-webzy-surface/60 px-4 text-xs font-bold text-webzy-ink/80 transition hover:border-webzy-primary/40 hover:text-webzy-primary"
+              >
+                Already have a code? Enter it here
               </button>
             </form>
           )}

@@ -178,7 +178,7 @@ export async function POST(request: NextRequest) {
         .maybeSingle(),
     ]);
 
-    if (existingOrder) {
+    if (existingOrder && existingOrder.status !== 'failed') {
       const nextUrl =
         existingOrder.status === 'published' || existingOrder.status === 'paid'
           ? `/success/${existingOrder.id}`
@@ -191,6 +191,11 @@ export async function POST(request: NextRequest) {
         idempotent: true,
       });
     }
+
+    const effectiveIdempotencyKey =
+      existingOrder && existingOrder.status === 'failed'
+        ? `${idempotencyKey}_r${Date.now().toString(36)}`
+        : idempotencyKey;
 
     const consentRecords = validateCheckoutConsent({
       ageOrParentConfirmed: Boolean(body.consent?.ageOrParentConfirmed),
@@ -255,7 +260,7 @@ export async function POST(request: NextRequest) {
       theme_version_id: draft.theme_version_id,
       fee_estimate_paise: pricing.feeEstimatePaise,
       is_test: cfg.isMockPaymentMode,
-      idempotency_key: idempotencyKey,
+      idempotency_key: effectiveIdempotencyKey,
       buyer_name: cleanedProfile.fullName,
       buyer_email: session.user.email || session.profile?.email || '',
       buyer_phone: cleanedProfile.phone,

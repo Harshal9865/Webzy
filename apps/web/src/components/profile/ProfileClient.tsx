@@ -10,6 +10,7 @@ import {
 } from '@webzy/core';
 import { useAuth } from '../auth/AuthProvider';
 import { useLanguage } from '../shell/LanguageProvider';
+import { compressImageForMobileUpload } from '../../lib/compressImage';
 
 interface ProfileClientProps {
   profile: UserProfileRecord;
@@ -51,7 +52,7 @@ export function ProfileClient({ profile, consentRecordsCount }: ProfileClientPro
   const router = useRouter();
   const { language, setLanguage } = useLanguage();
   const site = getSiteCopy(language);
-  const { signOut } = useAuth();
+  const { user, signOut, refreshAuth } = useAuth();
 
   const [fullName, setFullName] = useState(profile.full_name || '');
   const [phone, setPhone] = useState(profile.phone || '');
@@ -60,6 +61,97 @@ export function ProfileClient({ profile, consentRecordsCount }: ProfileClientPro
   const [profileNotice, setProfileNotice] = useState<string | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
   const noticeTimerRef = useRef<number | null>(null);
+
+  // Profile Avatar Photo Upload State
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [removingAvatar, setRemovingAvatar] = useState(false);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
+  const [avatarNotice, setAvatarNotice] = useState<string | null>(null);
+  const avatarAbortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    if (user?.avatarUrl !== undefined) {
+      setAvatarUrl(user.avatarUrl ?? null);
+    }
+  }, [user?.avatarUrl]);
+
+  async function handleAvatarChange(file: File | null) {
+    if (!file) return;
+    setAvatarError(null);
+    setAvatarNotice(null);
+    setUploadingAvatar(true);
+
+    const controller = new AbortController();
+    avatarAbortRef.current = controller;
+
+    try {
+      const compressed = await compressImageForMobileUpload(file);
+      if (controller.signal.aborted) return;
+
+      const formData = new FormData();
+      formData.append('file', compressed);
+
+      const res = await fetch('/api/profile/avatar', {
+        method: 'POST',
+        body: formData,
+        signal: controller.signal,
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        avatarUrl?: string;
+        error?: string;
+      };
+      if (!res.ok || !data.avatarUrl) {
+        throw new Error(data.error || 'Could not upload profile photo.');
+      }
+
+      setAvatarUrl(data.avatarUrl);
+      setAvatarNotice('Profile photo updated.');
+      await refreshAuth();
+      window.dispatchEvent(new Event('webzy_auth_updated'));
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        setAvatarNotice('Photo upload cancelled.');
+      } else {
+        setAvatarError(err instanceof Error ? err.message : 'Could not upload profile photo.');
+      }
+    } finally {
+      avatarAbortRef.current = null;
+      setUploadingAvatar(false);
+    }
+  }
+
+  function handleCancelAvatarUpload() {
+    avatarAbortRef.current?.abort();
+  }
+
+  async function handleRemoveAvatar() {
+    setRemovingAvatar(true);
+    setAvatarError(null);
+    setAvatarNotice(null);
+    try {
+      const res = await fetch('/api/profile/avatar', { method: 'DELETE' });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) throw new Error(data.error || 'Could not remove photo.');
+      setAvatarUrl(null);
+      setAvatarNotice('Profile photo removed.');
+      await refreshAuth();
+      window.dispatchEvent(new Event('webzy_auth_updated'));
+    } catch (err) {
+      setAvatarError(err instanceof Error ? err.message : 'Could not remove photo.');
+    } finally {
+      setRemovingAvatar(false);
+    }
+  }
+
+  const initials = (() => {
+    const cleaned = (fullName || profile.email || 'W').trim();
+    const parts = cleaned.split(/\s+/).filter(Boolean);
+    return parts.length >= 2
+      ? `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase()
+      : cleaned.slice(0, 2).toUpperCase();
+  })();
 
   // Photo Vault & DPDP Purge State
   const [isPurging, setIsPurging] = useState(false);
@@ -261,6 +353,80 @@ export function ProfileClient({ profile, consentRecordsCount }: ProfileClientPro
                 {profileError}
               </div>
             ) : null}
+
+            {/* Profile Avatar Upload Block */}
+            <div className="mt-5 flex flex-wrap items-center gap-4 rounded-2xl border border-webzy-tint bg-webzy-surface/50 p-4">
+              <div className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-webzy-ink text-lg font-bold text-white shadow-sm">
+                {avatarUrl ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={avatarUrl}
+                    alt={fullName || 'Profile avatar'}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span>{initials}</span>
+                )}
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-bold text-webzy-ink">Profile Photo</p>
+                <p className="mt-0.5 text-[11px] text-webzy-ink/65">
+                  JPG, PNG or WebP (auto-optimized, private &amp; EXIF-stripped).
+                </p>
+
+                <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                  <label className="btn-spring inline-flex min-h-[36px] cursor-pointer items-center rounded-full bg-webzy-ink px-3.5 text-[11px] font-bold text-white hover:bg-webzy-ink/90">
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      disabled={uploadingAvatar || removingAvatar}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] ?? null;
+                        e.target.value = '';
+                        void handleAvatarChange(file);
+                      }}
+                      className="sr-only"
+                    />
+                    <span>
+                      {uploadingAvatar
+                        ? 'Uploading...'
+                        : avatarUrl
+                          ? 'Change Photo'
+                          : 'Upload Photo'}
+                    </span>
+                  </label>
+
+                  {uploadingAvatar ? (
+                    <button
+                      type="button"
+                      onClick={handleCancelAvatarUpload}
+                      className="inline-flex min-h-[36px] items-center rounded-full border border-slate-300 bg-white px-3 text-[11px] font-bold text-slate-700 hover:bg-slate-50"
+                    >
+                      Cancel
+                    </button>
+                  ) : null}
+
+                  {avatarUrl && !uploadingAvatar ? (
+                    <button
+                      type="button"
+                      disabled={removingAvatar}
+                      onClick={() => void handleRemoveAvatar()}
+                      className="inline-flex min-h-[36px] items-center rounded-full border border-red-200 bg-white px-3 text-[11px] font-bold text-red-700 hover:bg-red-50 disabled:opacity-50"
+                    >
+                      {removingAvatar ? 'Removing...' : 'Remove'}
+                    </button>
+                  ) : null}
+                </div>
+
+                {avatarNotice ? (
+                  <p className="mt-2 text-[11px] font-semibold text-emerald-800">{avatarNotice}</p>
+                ) : null}
+                {avatarError ? (
+                  <p className="mt-2 text-[11px] font-semibold text-red-700">{avatarError}</p>
+                ) : null}
+              </div>
+            </div>
 
             <form onSubmit={handleSaveProfile} className="mt-5 space-y-4 text-xs">
               <div>

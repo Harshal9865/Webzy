@@ -116,8 +116,8 @@ export function CreateWizardClient({
   const [senderName, setSenderName] = useState(initialContent?.senderName || '');
   const [relation, setRelation] = useState(
     initialContent?.relation ||
-      theme.fields.find((f) => f.key === 'relation')?.options?.[0]?.value ||
-      '',
+    theme.fields.find((f) => f.key === 'relation')?.options?.[0]?.value ||
+    '',
   );
   const [message, setMessage] = useState(initialContent?.message || '');
   const [whatsappPhone, setWhatsappPhone] = useState(initialContent?.whatsappPhone || '');
@@ -153,6 +153,15 @@ export function CreateWizardClient({
   const [aiCreditsLeft, setAiCreditsLeft] = useState(5);
   const [uploading, setUploading] = useState(false);
   const [uploadStatusText, setUploadStatusText] = useState('');
+  const [removingAssetId, setRemovingAssetId] = useState<string | null>(null);
+  const uploadAbortRef = useRef<AbortController | null>(null);
+  const draftTokenRef = useRef<string | null>(initialDraftToken ?? null);
+
+  useEffect(() => {
+    if (draftToken) {
+      draftTokenRef.current = draftToken;
+    }
+  }, [draftToken]);
   const [copiedLink, setCopiedLink] = useState(false);
 
   const hasPhotosField = theme.fields.some((f) => f.type === 'images' || f.type === 'image');
@@ -460,7 +469,7 @@ export function CreateWizardClient({
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ draftToken }),
-        }).catch(() => {});
+        }).catch(() => { });
       }
 
       setAuthModalOpen(false);
@@ -509,6 +518,10 @@ export function CreateWizardClient({
     }
   }
 
+  function handleCancelUpload() {
+    uploadAbortRef.current?.abort();
+  }
+
   async function handlePhotoFiles(files: FileList | null) {
     if (!files || files.length === 0) return;
     setErrorMsg('');
@@ -519,13 +532,18 @@ export function CreateWizardClient({
     }
 
     const queue = Array.from(files).slice(0, slotsLeft);
+    const controller = new AbortController();
+    uploadAbortRef.current = controller;
     setUploading(true);
 
+    let addedCount = 0;
     try {
       for (let i = 0; i < queue.length; i++) {
+        if (controller.signal.aborted) break;
         const rawFile = queue[i];
         setUploadStatusText(`Compressing photo ${i + 1} of ${queue.length}...`);
         const compressed = await compressImageForMobileUpload(rawFile);
+        if (controller.signal.aborted) break;
 
         if (!supabaseConfigured) {
           const objectUrl = URL.createObjectURL(compressed);
@@ -533,11 +551,14 @@ export function CreateWizardClient({
             ...prev,
             { assetId: `local-${Date.now()}-${i}`, signedUrl: objectUrl, localObjectUrl: objectUrl },
           ]);
+          addedCount += 1;
           continue;
         }
 
-        const token = await ensureServerDraft();
+        const token = draftTokenRef.current || (await ensureServerDraft());
+        if (controller.signal.aborted) break;
         if (!token) throw new Error('Unable to create draft session for upload.');
+        draftTokenRef.current = token;
 
         setUploadStatusText(`Uploading photo ${i + 1} of ${queue.length}...`);
         const formData = new FormData();
@@ -547,8 +568,9 @@ export function CreateWizardClient({
         const res = await fetch('/api/uploads', {
           method: 'POST',
           body: formData,
+          signal: controller.signal,
         });
-        const data = (await res.json()) as {
+        const data = (await res.json().catch(() => ({}))) as {
           assetId?: string;
           signedUrl?: string;
           error?: string;
@@ -558,32 +580,61 @@ export function CreateWizardClient({
         }
 
         setPhotos((prev) => [...prev, { assetId: data.assetId!, signedUrl: data.signedUrl! }]);
+        addedCount += 1;
       }
-      setUploadStatusText('All photos added successfully.');
+
+      if (controller.signal.aborted) {
+        setUploadStatusText(
+          addedCount > 0 ? `Upload cancelled (${addedCount} photo kept).` : 'Upload cancelled.',
+        );
+      } else {
+        setUploadStatusText('All photos added successfully.');
+      }
     } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : 'Photo upload failed. Retry.');
-      setUploadStatusText('');
+      if (err instanceof Error && err.name === 'AbortError') {
+        setUploadStatusText(
+          addedCount > 0 ? `Upload cancelled (${addedCount} photo kept).` : 'Upload cancelled.',
+        );
+      } else {
+        setErrorMsg(err instanceof Error ? err.message : 'Photo upload failed. Retry.');
+        setUploadStatusText('');
+      }
     } finally {
+      uploadAbortRef.current = null;
       setUploading(false);
     }
   }
 
   async function handleRemovePhoto(assetId: string) {
     setErrorMsg('');
-    if (assetId.startsWith('local-') || !supabaseConfigured || !draftToken) {
+    const target = photos.find((p) => p.assetId === assetId);
+    const activeToken = draftTokenRef.current || draftToken;
+
+    if (assetId.startsWith('local-') || !supabaseConfigured || !activeToken) {
+      if (target?.localObjectUrl) {
+        URL.revokeObjectURL(target.localObjectUrl);
+      }
       setPhotos((prev) => prev.filter((p) => p.assetId !== assetId));
+      setUploadStatusText('');
       return;
     }
 
+    setRemovingAssetId(assetId);
     try {
       const res = await fetch(
-        `/api/uploads?assetId=${encodeURIComponent(assetId)}&draftToken=${encodeURIComponent(draftToken)}`,
+        `/api/uploads?assetId=${encodeURIComponent(assetId)}&draftToken=${encodeURIComponent(activeToken)}`,
         { method: 'DELETE' },
       );
-      if (!res.ok) throw new Error('Could not delete photo.');
+      if (!res.ok && res.status !== 404) {
+        const errData = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(errData.error || 'Could not delete photo.');
+      }
       setPhotos((prev) => prev.filter((p) => p.assetId !== assetId));
-    } catch {
-      setErrorMsg('Failed to remove photo. Retry.');
+      setUploadStatusText('');
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'Failed to remove photo. Retry.');
+    } finally {
+      setRemovingAssetId(null);
     }
   }
 
@@ -592,7 +643,7 @@ export function CreateWizardClient({
     const targetUrl = token
       ? `${window.location.origin}/create/${theme.id}?draft=${encodeURIComponent(token)}`
       : window.location.href;
-    await navigator.clipboard.writeText(targetUrl).catch(() => {});
+    await navigator.clipboard.writeText(targetUrl).catch(() => { });
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2500);
   }
@@ -630,13 +681,12 @@ export function CreateWizardClient({
             key={num}
             type="button"
             onClick={() => void handleStepSelect(num)}
-            className={`min-h-[44px] rounded-2xl border px-2 text-xs font-bold transition ${
-              step === num
+            className={`min-h-[44px] rounded-2xl border px-2 text-xs font-bold transition ${step === num
                 ? 'border-webzy-primary bg-webzy-primary text-white shadow-sm'
                 : num < step
                   ? 'border-webzy-tint bg-webzy-tint text-webzy-primary'
                   : 'border-webzy-tint bg-white text-webzy-ink/60'
-            }`}
+              }`}
           >
             Step {num}
           </button>
@@ -724,11 +774,10 @@ export function CreateWizardClient({
                         key={opt.value}
                         type="button"
                         onClick={() => setRelation(opt.value)}
-                        className={`min-h-[44px] rounded-full px-4 text-xs font-bold ${
-                          relation === opt.value
+                        className={`min-h-[44px] rounded-full px-4 text-xs font-bold ${relation === opt.value
                             ? 'bg-webzy-ink text-white'
                             : 'border border-webzy-tint bg-white text-webzy-ink'
-                        }`}
+                          }`}
                       >
                         {pickLocalizedText(opt.label, draftLang)}
                       </button>
@@ -834,21 +883,36 @@ export function CreateWizardClient({
                   <p className="text-xs font-bold text-webzy-ink">
                     Upload up to {maxPhotos} photos (auto-optimized for fast mobile loading)
                   </p>
-                  <label className="mt-3 flex min-h-[48px] cursor-pointer items-center justify-center rounded-xl border border-dashed border-webzy-primary bg-webzy-surface px-4 text-xs font-bold text-webzy-primary">
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      multiple
-                      disabled={uploading || photos.length >= maxPhotos}
-                      onChange={(e) => handlePhotoFiles(e.target.files)}
-                      className="sr-only"
-                    />
-                    {uploading
-                      ? uploadStatusText
-                      : photos.length >= maxPhotos
-                        ? `All ${maxPhotos} photos added`
-                        : '+ Choose photos'}
-                  </label>
+                  <div className="mt-3 flex items-center gap-2">
+                    <label className="flex min-h-[48px] flex-1 cursor-pointer items-center justify-center rounded-xl border border-dashed border-webzy-primary bg-webzy-surface px-4 text-xs font-bold text-webzy-primary">
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        multiple
+                        disabled={uploading || photos.length >= maxPhotos}
+                        onChange={(e) => {
+                          const selected = e.target.files;
+                          e.target.value = '';
+                          void handlePhotoFiles(selected);
+                        }}
+                        className="sr-only"
+                      />
+                      {uploading
+                        ? uploadStatusText
+                        : photos.length >= maxPhotos
+                          ? `All ${maxPhotos} photos added`
+                          : '+ Choose photos'}
+                    </label>
+                    {uploading ? (
+                      <button
+                        type="button"
+                        onClick={handleCancelUpload}
+                        className="inline-flex min-h-[48px] shrink-0 items-center justify-center rounded-xl border border-red-200 bg-red-50 px-3.5 text-xs font-bold text-red-700 hover:bg-red-100"
+                      >
+                        Cancel
+                      </button>
+                    ) : null}
+                  </div>
 
                   {uploadStatusText && !uploading ? (
                     <p className="mt-2 text-xs font-semibold text-emerald-800">{uploadStatusText}</p>
@@ -866,11 +930,12 @@ export function CreateWizardClient({
                           />
                           <button
                             type="button"
-                            onClick={() => handleRemovePhoto(p.assetId)}
+                            disabled={removingAssetId === p.assetId}
+                            onClick={() => void handleRemovePhoto(p.assetId)}
                             aria-label={`Remove upload ${idx + 1}`}
-                            className="absolute right-1.5 top-1.5 flex h-10 w-10 items-center justify-center rounded-full bg-black/75 text-xs font-bold text-white"
+                            className="absolute right-1.5 top-1.5 flex h-9 w-9 items-center justify-center rounded-full bg-black/75 text-xs font-bold text-white transition hover:bg-red-600 disabled:opacity-50"
                           >
-                            ✕
+                            {removingAssetId === p.assetId ? '...' : '✕'}
                           </button>
                         </div>
                       ))}
@@ -899,11 +964,10 @@ export function CreateWizardClient({
                   <button
                     type="button"
                     onClick={() => handleRevealModeChange('instant')}
-                    className={`min-h-[44px] rounded-xl border px-3 text-xs font-bold transition ${
-                      revealMode === 'instant'
+                    className={`min-h-[44px] rounded-xl border px-3 text-xs font-bold transition ${revealMode === 'instant'
                         ? 'border-webzy-primary bg-webzy-surface text-webzy-primary shadow-xs'
                         : 'border-webzy-tint bg-white text-webzy-ink hover:bg-webzy-surface/50'
-                    }`}
+                      }`}
                   >
                     Open Immediately
                   </button>
@@ -911,11 +975,10 @@ export function CreateWizardClient({
                   <button
                     type="button"
                     onClick={() => handleRevealModeChange('midnight')}
-                    className={`min-h-[44px] rounded-xl border px-3 text-xs font-bold transition ${
-                      revealMode === 'midnight'
+                    className={`min-h-[44px] rounded-xl border px-3 text-xs font-bold transition ${revealMode === 'midnight'
                         ? 'border-webzy-primary bg-webzy-surface text-webzy-primary shadow-xs'
                         : 'border-webzy-tint bg-white text-webzy-ink hover:bg-webzy-surface/50'
-                    }`}
+                      }`}
                   >
                     12:00 AM Midnight
                   </button>
@@ -923,11 +986,10 @@ export function CreateWizardClient({
                   <button
                     type="button"
                     onClick={() => handleRevealModeChange('morning')}
-                    className={`min-h-[44px] rounded-xl border px-3 text-xs font-bold transition ${
-                      revealMode === 'morning'
+                    className={`min-h-[44px] rounded-xl border px-3 text-xs font-bold transition ${revealMode === 'morning'
                         ? 'border-webzy-primary bg-webzy-surface text-webzy-primary shadow-xs'
                         : 'border-webzy-tint bg-white text-webzy-ink hover:bg-webzy-surface/50'
-                    }`}
+                      }`}
                   >
                     8:00 AM Morning
                   </button>
@@ -935,11 +997,10 @@ export function CreateWizardClient({
                   <button
                     type="button"
                     onClick={() => handleRevealModeChange('custom')}
-                    className={`min-h-[44px] rounded-xl border px-3 text-xs font-bold transition ${
-                      revealMode === 'custom'
+                    className={`min-h-[44px] rounded-xl border px-3 text-xs font-bold transition ${revealMode === 'custom'
                         ? 'border-webzy-primary bg-webzy-surface text-webzy-primary shadow-xs'
                         : 'border-webzy-tint bg-white text-webzy-ink hover:bg-webzy-surface/50'
-                    }`}
+                      }`}
                   >
                     Custom Time
                   </button>

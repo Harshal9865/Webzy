@@ -247,13 +247,23 @@ export function CheckoutClient({
     setAuthError('');
     try {
       const supabase = getSupabaseBrowserClient();
-      const { error } = await supabase.auth.verifyOtp({
-        email: cleanEmail,
-        token: cleanCode,
-        type: 'email',
-      });
-      if (error) {
-        setAuthError(error.message || 'Invalid or expired code. Please retry.');
+      const attemptTypes = ['email', 'magiclink', 'signup'] as const;
+      let verified = false;
+      let lastErrMsg = '';
+      for (const otpType of attemptTypes) {
+        const { data: verifyData, error } = await supabase.auth.verifyOtp({
+          email: cleanEmail,
+          token: cleanCode,
+          type: otpType,
+        });
+        if (!error && verifyData.session) {
+          verified = true;
+          break;
+        }
+        lastErrMsg = error?.message || lastErrMsg;
+      }
+      if (!verified) {
+        setAuthError(lastErrMsg || 'Invalid or expired code. Please retry.');
         return;
       }
       await fetch('/api/auth/attach-draft', {
@@ -310,6 +320,15 @@ export function CheckoutClient({
       return;
     }
 
+    if (fullName.trim().length < 2) {
+      setErrorMsg('Please enter your full name (at least 2 characters).');
+      return;
+    }
+    if (!ageConfirmed || !termsAccepted || (hasPhotos && !photoPermConfirmed)) {
+      setErrorMsg('Please tick all required confirmations below before paying.');
+      return;
+    }
+
     const pinSelected = selectedAddons.includes('pin');
     const cleanPin = secretPin.replace(/\D/g, '').slice(0, 4);
     if (pinSelected && cleanPin.length !== 4) {
@@ -318,6 +337,7 @@ export function CheckoutClient({
     }
 
     setSubmitting(true);
+    let redirecting = false;
     try {
       const res = await fetch('/api/orders', {
         method: 'POST',
@@ -326,8 +346,8 @@ export function CheckoutClient({
           draftToken,
           addons: selectedAddons,
           secretPin: pinSelected ? cleanPin : undefined,
-          fullName,
-          phone,
+          fullName: fullName.trim(),
+          phone: phone.trim(),
           consent: {
             ageOrParentConfirmed: ageConfirmed,
             termsAndRefundAccepted: termsAccepted,
@@ -338,16 +358,25 @@ export function CheckoutClient({
       const data = (await res.json().catch(() => ({}))) as {
         redirectUrl?: string;
         error?: string;
+        code?: string;
       };
+      if (res.status === 401 || data.code === 'AUTH_REQUIRED') {
+        await refreshAuth();
+        setErrorMsg('Your session expired. Please verify your email code above to continue.');
+        return;
+      }
       if (!res.ok || !data.redirectUrl) {
         throw new Error(data.error || 'Could not start payment. Please retry.');
       }
+      redirecting = true;
       window.dispatchEvent(new Event('webzy_orders_updated'));
       router.push(data.redirectUrl);
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : 'Checkout error. Please retry.');
     } finally {
-      setSubmitting(false);
+      if (!redirecting) {
+        setSubmitting(false);
+      }
     }
   }
 
@@ -413,6 +442,22 @@ export function CheckoutClient({
                   className="inline-flex min-h-[48px] items-center justify-center rounded-full bg-webzy-primary px-6 text-sm font-bold text-white shadow-sm disabled:opacity-50"
                 >
                   {authBusy ? 'Sending code...' : 'Send 6-Digit Code →'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const clean = authEmail.trim().toLowerCase();
+                    if (!clean || !clean.includes('@')) {
+                      setAuthError('Enter your email address first.');
+                      return;
+                    }
+                    setAuthError('');
+                    setAuthNotice(`Enter the verification code sent to ${clean}.`);
+                    setAuthSent(true);
+                  }}
+                  className="text-xs font-bold text-webzy-primary hover:underline"
+                >
+                  Already have a code?
                 </button>
                 <Link
                   href={`/login?next=${encodeURIComponent(`/checkout?draft=${draftToken}`)}&draftToken=${encodeURIComponent(draftToken)}`}

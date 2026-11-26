@@ -106,6 +106,7 @@ export function MockPayClient({
           : 'Updating payment status...',
     );
 
+    let redirecting = false;
     try {
       if (delayMs > 0) {
         await new Promise((resolve) => setTimeout(resolve, delayMs));
@@ -115,7 +116,7 @@ export function MockPayClient({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action }),
       });
-      const data = (await res.json()) as {
+      const data = (await res.json().catch(() => ({}))) as {
         redirectUrl?: string;
         message?: string;
         error?: string;
@@ -126,6 +127,8 @@ export function MockPayClient({
       }
 
       if (data.redirectUrl) {
+        redirecting = true;
+        setStageText('Payment confirmed! Opening your live link...');
         window.dispatchEvent(new Event('webzy_orders_updated'));
         window.dispatchEvent(new Event('webzy_admin_mutated'));
         router.push(data.redirectUrl);
@@ -139,8 +142,10 @@ export function MockPayClient({
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : 'Payment error. Please retry.');
     } finally {
-      setStageText('');
-      setBusy(false);
+      if (!redirecting) {
+        setStageText('');
+        setBusy(false);
+      }
     }
   }
 

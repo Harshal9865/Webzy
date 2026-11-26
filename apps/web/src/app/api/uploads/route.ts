@@ -68,7 +68,9 @@ export async function POST(request: NextRequest) {
     const maxPhotosForDraft =
       typeof draft.theme_id === 'string' && draft.theme_id.startsWith('wedding-')
         ? 6
-        : MAX_PHOTOS_PER_DRAFT;
+        : draft.theme_id === 'small-business-01' || draft.theme_id === 'portfolio-01'
+          ? 5
+          : MAX_PHOTOS_PER_DRAFT;
 
     const { count: existingCount } = await admin
       .from('assets')
@@ -90,12 +92,26 @@ export async function POST(request: NextRequest) {
     const assetId = crypto.randomUUID();
     const storageKey = `drafts/${draft.id}/${assetId}.${clean.extension}`;
 
-    const { error: uploadErr } = await admin.storage
+    let { error: uploadErr } = await admin.storage
       .from('webzy-media')
       .upload(storageKey, clean.buffer, {
         contentType: clean.mimeType,
         upsert: false,
       });
+
+    if (uploadErr && uploadErr.message?.toLowerCase().includes('bucket')) {
+      await admin.storage.createBucket('webzy-media', {
+        public: false,
+        fileSizeLimit: 5 * 1024 * 1024,
+      });
+      const retry = await admin.storage
+        .from('webzy-media')
+        .upload(storageKey, clean.buffer, {
+          contentType: clean.mimeType,
+          upsert: false,
+        });
+      uploadErr = retry.error;
+    }
 
     if (uploadErr) {
       logEvent('error', 'web.uploads.storage_failed', { reason: uploadErr.message.slice(0, 80) });
