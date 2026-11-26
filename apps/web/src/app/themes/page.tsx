@@ -11,7 +11,9 @@ export default async function ThemesPage({
 }) {
   const config = getWebzyPublicConfig();
   const params = await searchParams;
-  const themes = getActiveThemes({ includeMaanJao: config.flags.maanJaoTheme });
+  const themes = getActiveThemes({ includeMaanJao: config.flags.maanJaoTheme }).filter(
+    (t) => t.occasion !== 'wedding',
+  );
 
   return <ThemesCatalogueClient themes={themes} initialOccasion={params.occasion} />;
 }

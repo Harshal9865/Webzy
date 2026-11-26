@@ -63,9 +63,9 @@ export function WeddingDemoClient({ edition }: WeddingDemoClientProps) {
         style={{ backgroundImage: PAPER_GRAIN_SVG }}
       />
 
-      <div className="relative mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:py-12">
+      <div className="relative mx-auto max-w-6xl px-3.5 py-5 sm:px-6 lg:py-12">
         {/* Atelier Top Bar */}
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b border-[#C9A243]/25 pb-5">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-4 border-b border-[#C9A243]/25 pb-4 sm:mb-8 sm:pb-5">
           <Link
             href="/weddings"
             className="inline-flex min-h-[42px] items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8C6B22] transition hover:text-[#1F1419]"
@@ -98,7 +98,7 @@ export function WeddingDemoClient({ edition }: WeddingDemoClientProps) {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-12">
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12 lg:gap-10">
           {/* Left: Illuminated Obsidian Gallery Plinth */}
           <div className="w-full lg:sticky lg:top-8 lg:col-span-6">
             <div className="relative overflow-hidden rounded-[24px] border border-[#C9A243]/35 bg-[#FFFDF9] p-3.5 shadow-[0_24px_60px_-28px_rgba(31,20,25,0.2)] sm:p-5 lg:rounded-[28px] lg:border-[#C9A243]/40 lg:bg-[#161013] lg:p-8 lg:shadow-[0_38px_84px_-24px_rgba(16,9,13,0.68)]">
@@ -208,8 +208,8 @@ export function WeddingDemoClient({ edition }: WeddingDemoClientProps) {
           </div>
 
           {/* Right: Archival Edition Folio, Guest Tester, Pricing Sheet & Included Chapters */}
-          <aside className="rounded-[24px] border border-[#C9A243]/35 bg-[#FFFDF9] p-2.5 shadow-[0_24px_60px_-28px_rgba(31,20,25,0.18)] sm:p-3 lg:col-span-6">
-            <div className="rounded-[18px] border border-[#C9A243]/20 p-6 sm:p-8">
+          <aside className="rounded-2xl border border-[#C9A243]/35 bg-[#FFFDF9] p-2 shadow-[0_24px_60px_-28px_rgba(31,20,25,0.18)] sm:rounded-3xl sm:p-3 lg:col-span-6">
+            <div className="rounded-xl border border-[#C9A243]/20 p-4 sm:rounded-2xl sm:p-6 lg:p-8">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#8C6B22]">
                   {edition.moodLabel}
@@ -228,7 +228,7 @@ export function WeddingDemoClient({ edition }: WeddingDemoClientProps) {
               <p className="mt-4 text-sm leading-[1.75] text-[#4E3E43]">{edition.storyLead}</p>
 
               {/* Dignified Obsidian GST Pricing Sheet */}
-              <div className="mt-6 rounded-[18px] border border-[#C9A243]/40 bg-[#1A1317] p-5 text-[#FAF6EE]">
+              <div className="mt-5 rounded-[18px] border border-[#C9A243]/40 bg-[#1A1317] p-4 text-[#FAF6EE] sm:mt-6 sm:p-5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#E4C77B]">
                     One-Time GST-Inclusive Tariff
@@ -255,7 +255,7 @@ export function WeddingDemoClient({ edition }: WeddingDemoClientProps) {
               </div>
 
               {/* Live Calligrapher's Guest Name Tester */}
-              <div className="mt-5 rounded-[18px] border border-[#C9A243]/35 bg-[#FAF6EE]/80 p-5">
+              <div className="mt-4 rounded-[18px] border border-[#C9A243]/35 bg-[#FAF6EE]/80 p-4 sm:mt-5 sm:p-5">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <label
                     htmlFor="demo-guest-tester"

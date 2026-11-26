@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useId, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { type CoreLanguageCode, pickLocalizedText, toCoreLanguageCode } from '@webzy/core';
 import {
   AmbientRainCanvas,
@@ -8,6 +8,11 @@ import {
   CurvedTrackSanctuary,
   WordByWordFadeLine,
 } from './shared/OccasionCinematicFX';
+import {
+  AtmosphericGrainOverlay,
+  playRaindropPluck,
+  ReadingProgressHairline,
+} from './shared/OccasionCraftPrimitives';
 import {
   getReplayLabel,
   getWebzyFooterLabel,
@@ -119,6 +124,10 @@ interface LocalizedMaanJaoCopy {
   coverSubtitle: string;
   coverFromPrefix: string;
   coverCta: string;
+  marginNote: string;
+  rainAudioOn: string;
+  rainAudioOff: string;
+  rainAudioAriaLabel: string;
   storyHint: string;
   slideTags: [string, string, string];
   slideOneZeroExcuse: string;
@@ -167,6 +176,10 @@ const MAAN_JAO_COPY: Record<CoreLanguageCode, LocalizedMaanJaoCopy> = {
     coverSubtitle: 'Take your time. No pressure.',
     coverFromPrefix: 'Quietly from',
     coverCta: 'Read when ready',
+    marginNote: '2:14 AM · no excuses',
+    rainAudioOn: 'Rain · On',
+    rainAudioOff: 'Rain · Off',
+    rainAudioAriaLabel: 'Toggle ambient midnight rain audio',
     storyHint: 'Swipe or tap next to read at your own pace',
     slideTags: ['01 · NO EXCUSES', '02 · LATE NIGHT CALL', '03 · WHAT CHANGES'],
     slideOneZeroExcuse:
@@ -243,6 +256,10 @@ const MAAN_JAO_COPY: Record<CoreLanguageCode, LocalizedMaanJaoCopy> = {
     coverSubtitle: 'Take your time. No pressure.',
     coverFromPrefix: 'Dil se,',
     coverCta: 'Read when ready',
+    marginNote: '2:14 AM · koi bahana nahi',
+    rainAudioOn: 'Rain · On',
+    rainAudioOff: 'Rain · Off',
+    rainAudioAriaLabel: 'Midnight rain sound chalayein ya band karein',
     storyHint: 'Aaram se padhne ke liye swipe ya next tap karein',
     slideTags: ['01 · KOI BAHANA NAHI', '02 · LATE NIGHT CALL', '03 · SACHCHE VAADE'],
     slideOneZeroExcuse:
@@ -319,6 +336,10 @@ const MAAN_JAO_COPY: Record<CoreLanguageCode, LocalizedMaanJaoCopy> = {
     coverSubtitle: 'अपना पूरा समय लें। कोई दबाव नहीं है।',
     coverFromPrefix: 'दिल से,',
     coverCta: 'तैयार हों तो पढ़ें',
+    marginNote: 'रात 2:14 · कोई बहाना नहीं',
+    rainAudioOn: 'बारिश · चालू',
+    rainAudioOff: 'बारिश · बंद',
+    rainAudioAriaLabel: 'आधी रात की बारिश की आवाज़ चालू या बंद करें',
     storyHint: 'आगे पढ़ने के लिए स्वाइप करें या अगला बटन दबाएं',
     slideTags: ['01 · कोई बहाना नहीं', '02 · देर रात की बात', '03 · सच्चे वादे'],
     slideOneZeroExcuse:
@@ -486,6 +507,75 @@ function GestureLineIcon({ id, active }: { id: GestureId; active: boolean }) {
   );
 }
 
+/** Soft out-of-focus raindrop glass bokeh orbs evoking a 2:14 AM rain-beaded windowpane. */
+function WindowpaneRainBokeh({ warmth }: { warmth: number }) {
+  const clampedWarmth = Math.max(0, Math.min(1, warmth));
+  return (
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+      <div
+        className="absolute -left-10 top-16 h-44 w-44 rounded-full blur-3xl transition-opacity duration-700 motion-reduce:transition-none"
+        style={{
+          background: 'radial-gradient(circle, rgba(147,197,253,0.16) 0%, transparent 72%)',
+          opacity: 1 - clampedWarmth * 0.25,
+        }}
+      />
+      <div
+        className="absolute -right-8 top-44 h-52 w-52 rounded-full blur-3xl transition-opacity duration-700 motion-reduce:transition-none"
+        style={{
+          background: 'radial-gradient(circle, rgba(251,191,36,0.16) 0%, transparent 72%)',
+          opacity: 0.35 + clampedWarmth * 0.55,
+        }}
+      />
+      <div
+        className="absolute bottom-24 left-1/4 h-40 w-40 rounded-full blur-3xl transition-opacity duration-700 motion-reduce:transition-none"
+        style={{
+          background: 'radial-gradient(circle, rgba(191,219,254,0.12) 0%, transparent 70%)',
+          opacity: 0.65,
+        }}
+      />
+      {/* Delicate windowpane glass droplets */}
+      <span className="absolute left-[14%] top-[19%] h-2.5 w-2.5 rounded-full border border-blue-200/20 bg-blue-100/[0.06] blur-[0.5px]" />
+      <span className="absolute right-[18%] top-[28%] h-3.5 w-3.5 rounded-full border border-amber-100/20 bg-amber-100/[0.05] blur-[0.6px]" />
+      <span className="absolute left-[78%] top-[62%] h-2 w-2 rounded-full border border-blue-200/20 bg-blue-100/[0.07]" />
+      <span className="absolute left-[10%] bottom-[22%] h-3 w-3 rounded-full border border-amber-200/15 bg-amber-100/[0.04] blur-[0.5px]" />
+    </div>
+  );
+}
+
+function RainAudioIcon({ active }: { active: boolean }) {
+  return (
+    <svg viewBox="0 0 20 20" className="h-3.5 w-3.5 shrink-0" fill="none" aria-hidden="true">
+      <path
+        d="M10 3.2c0 0-3.8 4.4-3.8 7.1a3.8 3.8 0 0 0 7.6 0c0-2.7-3.8-7.1-3.8-7.1Z"
+        fill={active ? 'rgba(147, 197, 253, 0.28)' : 'none'}
+        stroke={active ? '#93C5FD' : '#94A3B8'}
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+      {active ? (
+        <path
+          d="M15.4 7.8a4.8 4.8 0 0 1 0 5.4M4.6 7.8a4.8 4.8 0 0 0 0 5.4"
+          stroke="#FDE68A"
+          strokeOpacity="0.85"
+          strokeWidth="1.3"
+          strokeLinecap="round"
+        />
+      ) : (
+        <line
+          x1="4"
+          y1="16"
+          x2="16"
+          y2="4"
+          stroke="#94A3B8"
+          strokeOpacity="0.75"
+          strokeWidth="1.3"
+          strokeLinecap="round"
+        />
+      )}
+    </svg>
+  );
+}
+
 /**
  * Split-Screen Late Night Call / Two Windows Scene:
  * Custom diagonal neon-amber divider separating two warm lit bedroom windows
@@ -505,7 +595,7 @@ function TwoWindowsCallScene({
   const rightName = receiverName.trim() || 'You';
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#050814]">
+    <div className="relative overflow-hidden rounded-2xl border border-white/12 bg-[#050814]/90 shadow-[0_18px_42px_-20px_rgba(0,0,0,0.85)]">
       <svg
         viewBox="0 0 360 176"
         className="block w-full"
@@ -815,8 +905,14 @@ export function MaanJaoSite({
   const [selectedGestures, setSelectedGestures] = useState<GestureId[]>([]);
   const [nudgeCount, setNudgeCount] = useState(0);
   const [finaleState, setFinaleState] = useState<FinaleState>('open');
+  const [rainAudioOn, setRainAudioOn] = useState(false);
 
   const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
+  const rainAudioRef = useRef<{
+    ctx: AudioContext;
+    source: AudioBufferSourceNode;
+    masterGain: GainNode;
+  } | null>(null);
 
   const coreLang = toCoreLanguageCode(language);
   const copy = MAAN_JAO_COPY[coreLang] ?? MAAN_JAO_COPY.en;
@@ -845,6 +941,107 @@ export function MaanJaoSite({
 
   // Starts gently at 10%, each simple gesture adds +30% up to 100%
   const calmScore = Math.min(100, 10 + selectedGestures.length * 30);
+  const skyWarmth = finaleState === 'forgiven' ? 1 : (calmScore - 10) / 90;
+
+  const stopRainAudio = useCallback(() => {
+    const active = rainAudioRef.current;
+    rainAudioRef.current = null;
+    if (!active) return;
+    try {
+      active.source.stop();
+    } catch {
+      // Ignore if already stopped
+    }
+    try {
+      active.source.disconnect();
+      active.masterGain.disconnect();
+    } catch {
+      // Ignore disconnect errors
+    }
+    void active.ctx.close().catch(() => {});
+  }, []);
+
+  const startRainAudio = useCallback(() => {
+    if (typeof window === 'undefined') return false;
+    stopRainAudio();
+    const AudioCtx =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioCtx) return false;
+    try {
+      const ctx = new AudioCtx();
+      if (ctx.state === 'suspended') {
+        void ctx.resume().catch(() => {});
+      }
+
+      // 3-second seamless pink-noise buffer (Paul Kellet's filter) for soft midnight rain
+      const durationSec = 3;
+      const bufferSize = Math.floor(ctx.sampleRate * durationSec);
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const channelData = buffer.getChannelData(0);
+      let b0 = 0;
+      let b1 = 0;
+      let b2 = 0;
+      let b3 = 0;
+      let b4 = 0;
+      let b5 = 0;
+      let b6 = 0;
+      for (let i = 0; i < bufferSize; i += 1) {
+        const white = Math.random() * 2 - 1;
+        b0 = 0.99886 * b0 + white * 0.0555179;
+        b1 = 0.99332 * b1 + white * 0.0750759;
+        b2 = 0.96900 * b2 + white * 0.1538520;
+        b3 = 0.86650 * b3 + white * 0.3104856;
+        b4 = 0.55000 * b4 + white * 0.5329522;
+        b5 = -0.7616 * b5 - white * 0.0168980;
+        const pink = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+        b6 = white * 0.115926;
+        channelData[i] = Math.max(-1, Math.min(1, pink * 0.08));
+      }
+
+      const fadeSamples = Math.min(2048, Math.floor(bufferSize / 8));
+      for (let i = 0; i < fadeSamples; i += 1) {
+        const t = i / fadeSamples;
+        const endIdx = bufferSize - fadeSamples + i;
+        channelData[i] = channelData[i] * t + channelData[endIdx] * (1 - t);
+      }
+
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      source.loop = true;
+
+      const bandpass = ctx.createBiquadFilter();
+      bandpass.type = 'bandpass';
+      bandpass.frequency.setValueAtTime(1050, ctx.currentTime);
+      bandpass.Q.setValueAtTime(0.55, ctx.currentTime);
+
+      const lowpass = ctx.createBiquadFilter();
+      lowpass.type = 'lowpass';
+      lowpass.frequency.setValueAtTime(2400, ctx.currentTime);
+      lowpass.Q.setValueAtTime(0.7, ctx.currentTime);
+
+      const masterGain = ctx.createGain();
+      masterGain.gain.setValueAtTime(0.0001, ctx.currentTime);
+      masterGain.gain.linearRampToValueAtTime(0.16, ctx.currentTime + 0.6);
+
+      source.connect(bandpass);
+      bandpass.connect(lowpass);
+      lowpass.connect(masterGain);
+      masterGain.connect(ctx.destination);
+      source.start();
+
+      rainAudioRef.current = { ctx, source, masterGain };
+      return true;
+    } catch {
+      return false;
+    }
+  }, [stopRainAudio]);
+
+  useEffect(() => {
+    return () => {
+      stopRainAudio();
+    };
+  }, [stopRainAudio]);
 
   useEffect(() => {
     if (!opened) {
@@ -862,26 +1059,75 @@ export function MaanJaoSite({
     };
   }, [opened, activeSlide]);
 
+  const goToSlide = useCallback(
+    (index: number) => {
+      const next = Math.max(0, Math.min(2, index));
+      if (next === activeSlide) return;
+      setActiveSlide(next);
+      playRaindropPluck(next);
+    },
+    [activeSlide],
+  );
+
+  useEffect(() => {
+    if (!opened) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      const target = event.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT' ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+      if (typeof document !== 'undefined' && document.querySelector('[role="dialog"]')) {
+        return;
+      }
+      if (event.key === 'ArrowRight' && activeSlide < 2) {
+        event.preventDefault();
+        goToSlide(activeSlide + 1);
+      } else if (event.key === 'ArrowLeft' && activeSlide > 0) {
+        event.preventDefault();
+        goToSlide(activeSlide - 1);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [opened, activeSlide, goToSlide]);
+
   function handleOpen() {
     setOpened(true);
     onOpened?.();
   }
 
   function handleReplayCover() {
+    stopRainAudio();
+    setRainAudioOn(false);
     setFinaleState('open');
     setActiveSlide(0);
     setNudgeCount(0);
     setOpened(false);
   }
 
+  function toggleRainAudio() {
+    if (rainAudioOn) {
+      stopRainAudio();
+      setRainAudioOn(false);
+    } else {
+      const started = startRainAudio();
+      setRainAudioOn(started);
+    }
+  }
+
   function toggleGesture(id: GestureId) {
+    const step = CALM_GESTURES.findIndex((g) => g.id === id);
+    playRaindropPluck(step >= 0 ? step + 1 : 0);
     setSelectedGestures((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
     );
-  }
-
-  function goToSlide(index: number) {
-    setActiveSlide(Math.max(0, Math.min(2, index)));
   }
 
   function handleSwipeStart(e: React.PointerEvent<HTMLDivElement>) {
@@ -930,6 +1176,7 @@ export function MaanJaoSite({
       aria-label={copy.ariaLabel}
       className="relative flex h-full min-h-full w-full flex-col justify-between overflow-hidden rounded-[28px] bg-[#060913] text-slate-100"
     >
+      <AtmosphericGrainOverlay opacity={0.055} className="z-[2]" />
       <WatermarkBanner visible={watermarked} label={copy.previewBanner} />
 
       {!opened ? (
@@ -947,22 +1194,26 @@ export function MaanJaoSite({
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#050814]/80 via-[#070B18]/65 to-[#050814]/95"
           />
+          <WindowpaneRainBokeh warmth={0.15} />
           <AmbientRainCanvas density="medium" tint="#93C5FD" />
 
-          <div className="relative z-10 mt-2">
+          <div className="relative z-10 mt-2 flex flex-col items-center gap-1">
             <span className="inline-block font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-blue-200/65">
               {copy.coverEyebrow}
+            </span>
+            <span className="font-handwritten text-base text-amber-200/75">
+              {copy.marginNote}
             </span>
           </div>
 
           <div className="relative z-10 my-auto flex max-w-sm flex-col items-center py-6">
             <RaindropMoonEmblem />
 
-            <h1 className="mt-5 break-words font-heading text-2xl font-semibold leading-snug tracking-tight text-slate-50 sm:text-3xl">
+            <h1 className="mt-5 break-words font-editorial text-3xl font-normal leading-[1.15] tracking-tight text-slate-50 sm:text-[34px]">
               {copy.coverGreeting(receiver)}
             </h1>
 
-            <p className="mt-2.5 max-w-xs break-words text-sm leading-relaxed text-slate-300/85">
+            <p className="mt-3 max-w-xs break-words font-literary text-sm italic leading-relaxed text-slate-300/85">
               {copy.coverSubtitle}
             </p>
 
@@ -977,86 +1228,139 @@ export function MaanJaoSite({
           </div>
 
           <div className="relative z-10 flex flex-col items-center gap-1">
-            <p className="text-xs text-slate-400/85">
-              {copy.coverFromPrefix} <span className="font-medium text-amber-100/90">{sender}</span>
+            <p className="break-words font-handwritten text-xl text-amber-200/85">
+              {copy.coverFromPrefix} {sender}
             </p>
           </div>
         </section>
       ) : (
         /* ACT 2 & ACT 3 — Continuous Midnight Rain Story + Lower Sanctuary */
         <div className="relative flex flex-1 flex-col">
+          {/* Base cold midnight slate */}
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#060913] via-[#091022] to-[#060913]"
           />
+          {/* Dynamic midnight -> pre-dawn indigo & horizon amber warming layer */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 transition-opacity duration-700 ease-out motion-reduce:transition-none"
+            style={{
+              opacity: skyWarmth,
+              background:
+                'linear-gradient(180deg, rgba(16, 25, 56, 0.85) 0%, rgba(28, 35, 74, 0.72) 52%, rgba(180, 108, 42, 0.24) 86%, rgba(251, 191, 36, 0.16) 100%)',
+            }}
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-80 transition-opacity duration-700 ease-out motion-reduce:transition-none"
+            style={{
+              opacity: skyWarmth,
+              background:
+                'radial-gradient(ellipse 85% 55% at 50% 100%, rgba(251, 191, 36, 0.22), rgba(99, 102, 241, 0.08) 55%, transparent 100%)',
+            }}
+          />
+
+          <WindowpaneRainBokeh warmth={skyWarmth} />
           <AmbientRainCanvas density="light" tint="#93C5FD" />
 
           <div className="relative z-10 mx-auto flex w-full max-w-md flex-1 flex-col gap-7 px-4 pb-6 pt-4 sm:px-5">
             {/* Minimalist Top Bar */}
-            <header className="flex items-center justify-between gap-2">
+            <header className="flex flex-wrap items-center justify-between gap-2">
               <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-blue-200/70">
                 0{activeSlide + 1} / 03
               </span>
-              <button
-                type="button"
-                onClick={handleReplayCover}
-                className="inline-flex min-h-[44px] items-center rounded-full border border-white/10 bg-white/[0.04] px-3.5 text-xs font-medium text-slate-200 transition hover:border-white/25 hover:bg-white/[0.08] active:scale-95"
-              >
-                {getReplayLabel(language)}
-              </button>
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={toggleRainAudio}
+                  aria-pressed={rainAudioOn}
+                  aria-label={copy.rainAudioAriaLabel}
+                  className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition active:scale-95 ${
+                    rainAudioOn
+                      ? 'border-blue-300/40 bg-blue-300/[0.14] text-blue-100 shadow-[0_0_18px_-6px_rgba(147,197,253,0.45)]'
+                      : 'border-white/10 bg-white/[0.04] text-slate-300 hover:border-white/25 hover:bg-white/[0.08]'
+                  }`}
+                >
+                  <RainAudioIcon active={rainAudioOn} />
+                  <span>{rainAudioOn ? copy.rainAudioOn : copy.rainAudioOff}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleReplayCover}
+                  className="inline-flex min-h-[44px] items-center rounded-full border border-white/10 bg-white/[0.04] px-3.5 text-xs font-medium text-slate-200 transition hover:border-white/25 hover:bg-white/[0.08] active:scale-95"
+                >
+                  {getReplayLabel(language)}
+                </button>
+              </div>
             </header>
 
-            {/* ACT 2 — Swipeable Editorial Rain Story Slides */}
+            {/* ACT 2 — Seamless Un-Boxed Editorial Rain Story Slides */}
             <section aria-label={copy.storyHint} className="space-y-3.5">
+              <ReadingProgressHairline
+                progressPct={((activeSlide + 1) / 3) * 100}
+                color={skyWarmth >= 0.7 ? '#FDE68A' : '#93C5FD'}
+                trackClassName="bg-white/10"
+              />
+
               <div
                 onPointerDown={handleSwipeStart}
                 onPointerUp={handleSwipeEnd}
-                className="relative min-h-[310px] touch-pan-y rounded-3xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-sm sm:p-6"
+                className="relative min-h-[300px] touch-pan-y border-b border-white/10 py-3 sm:py-4"
               >
-                <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-blue-300/80">
-                  {copy.slideTags[activeSlide]}
-                </p>
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-blue-300/80">
+                    {copy.slideTags[activeSlide]}
+                  </p>
+                  <span className="font-handwritten text-base text-amber-200/75">
+                    {copy.marginNote}
+                  </span>
+                </div>
 
                 {activeSlide === 0 ? (
-                  <div className="mt-5 flex min-h-[220px] flex-col justify-between gap-5">
-                    <div className="space-y-4">
+                  <div className="mt-6 flex min-h-[225px] flex-col justify-between gap-6">
+                    <div className="space-y-5">
                       <WordByWordFadeLine
                         key={`headline-${coreLang}`}
                         text={headlineText}
                         active={slideRevealed && activeSlide === 0}
                         delayStepMs={65}
-                        className="break-words font-heading text-2xl font-semibold leading-snug tracking-tight text-slate-50 sm:text-[26px]"
+                        className="break-words font-editorial text-2xl font-normal leading-[1.2] tracking-tight text-slate-50 sm:text-[28px]"
+                      />
+                      <div
+                        aria-hidden="true"
+                        className="h-px w-24 bg-gradient-to-r from-blue-300/60 via-amber-200/45 to-transparent shadow-[0_0_12px_rgba(147,197,253,0.45)]"
                       />
                       <WordByWordFadeLine
                         key={`zero-${coreLang}`}
                         text={copy.slideOneZeroExcuse}
                         active={slideRevealed && activeSlide === 0}
                         delayStepMs={35}
-                        className="break-words text-sm leading-relaxed text-slate-300/85"
+                        className="break-words font-literary text-[15px] leading-relaxed text-slate-200/90 sm:text-base"
                       />
                     </div>
-                    <p className="text-xs italic text-amber-200/75">
+                    <p className="font-handwritten text-xl text-amber-200/85">
                       — {sender}
                     </p>
                   </div>
                 ) : null}
 
                 {activeSlide === 1 ? (
-                  <div className="mt-4 flex flex-col gap-4">
+                  <div className="mt-4 flex flex-col gap-5">
                     <TwoWindowsCallScene
                       senderName={sender}
                       receiverName={receiver}
                       badgeLabel={copy.slideTwoCallBadge}
                     />
-                    <div className="space-y-2.5 pt-1">
+                    <div className="space-y-3 border-l border-amber-200/35 pl-4">
                       <WordByWordFadeLine
                         key={`msg-${coreLang}`}
                         text={messageText}
                         active={slideRevealed && activeSlide === 1}
                         delayStepMs={45}
-                        className="break-words text-sm leading-relaxed text-slate-100/95 sm:text-[15px]"
+                        className="break-words font-literary text-base leading-relaxed text-slate-100/95"
                       />
-                      <p className="text-right text-xs font-medium text-amber-200/80">
+                      <p className="text-right font-handwritten text-xl text-amber-200/85">
                         {copy.slideTwoSigned} {sender}
                       </p>
                     </div>
@@ -1070,25 +1374,24 @@ export function MaanJaoSite({
                       text={copy.slideThreeIntro}
                       active={slideRevealed && activeSlide === 2}
                       delayStepMs={45}
-                      className="break-words text-xs leading-relaxed text-slate-300/80"
+                      className="break-words font-literary text-sm italic leading-relaxed text-slate-300/85"
                     />
-                    <div className="space-y-2.5 pt-1">
+                    <div className="divide-y divide-white/10 pt-1">
                       {promiseNotes.map((note, idx) => (
-                        <div
-                          key={`promise-${idx}`}
-                          className="rounded-2xl border border-white/[0.07] bg-white/[0.025] px-4 py-3"
-                        >
-                          <div className="flex items-baseline gap-2.5">
-                            <span className="font-mono text-[10px] font-semibold text-blue-300/75">
+                        <div key={`promise-${idx}`} className="py-3.5 first:pt-2 last:pb-1">
+                          <div className="flex items-baseline gap-3.5">
+                            <span className="shrink-0 font-editorial text-xl italic text-blue-200/80">
                               0{idx + 1}
                             </span>
-                            <h2 className="min-w-0 break-words font-heading text-sm font-semibold text-slate-100">
-                              {note.title}
-                            </h2>
+                            <div className="min-w-0 flex-1">
+                              <h2 className="break-words font-literary text-[15px] font-medium leading-snug text-slate-100 sm:text-base">
+                                {note.title}
+                              </h2>
+                              <p className="mt-1 break-words font-literary text-[13px] leading-relaxed text-slate-300/80">
+                                {note.detail}
+                              </p>
+                            </div>
                           </div>
-                          <p className="mt-1 pl-6 break-words text-xs leading-relaxed text-slate-300/80">
-                            {note.detail}
-                          </p>
                         </div>
                       ))}
                     </div>
@@ -1140,7 +1443,7 @@ export function MaanJaoSite({
                 </button>
               </div>
 
-              <p className="text-center text-[11px] text-slate-400/75">
+              <p className="text-center font-literary text-xs italic text-slate-400/80">
                 {activeSlide === 2 ? copy.scrollSanctuaryHint : copy.storyHint}
               </p>
             </section>
@@ -1158,7 +1461,7 @@ export function MaanJaoSite({
                 <p className="text-center font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-blue-200/70">
                   {copy.sanctuaryEyebrow}
                 </p>
-                <h2 className="mt-1.5 text-center font-heading text-lg font-semibold text-slate-50">
+                <h2 className="mt-1.5 text-center font-editorial text-2xl font-normal text-slate-50">
                   {copy.calmGaugeTitle}
                 </h2>
 
@@ -1168,7 +1471,7 @@ export function MaanJaoSite({
                     tensionLabel={copy.calmGaugeTension}
                     peaceLabel={copy.calmGaugePeace}
                   />
-                  <p className="mt-2.5 max-w-xs text-center text-xs leading-relaxed text-slate-300/80">
+                  <p className="mt-2.5 max-w-xs text-center font-literary text-[13px] leading-relaxed text-slate-300/85">
                     {selectedGestures.length === 0
                       ? copy.calmGaugeSubIdle
                       : selectedGestures.length === CALM_GESTURES.length
@@ -1178,7 +1481,7 @@ export function MaanJaoSite({
                 </div>
 
                 <div className="mt-5 space-y-2">
-                  <p className="text-xs font-medium text-slate-300/85">
+                  <p className="font-literary text-xs italic text-slate-300/85">
                     {copy.gesturesPrompt}
                   </p>
                   <div className="flex flex-col gap-2">
@@ -1205,7 +1508,7 @@ export function MaanJaoSite({
                             >
                               {gesture.label[coreLang]}
                             </span>
-                            <span className="mt-0.5 block break-words text-[11px] leading-snug text-slate-400">
+                            <span className="mt-0.5 block break-words font-literary text-[11.5px] leading-snug text-slate-400">
                               {gesture.detail[coreLang]}
                             </span>
                           </div>
@@ -1244,6 +1547,7 @@ export function MaanJaoSite({
                     accentColor="#60A5FA"
                     dark
                     captionPrefix={copy.photoPrefix}
+                    captionFont="editorial"
                   />
                 </section>
               ) : null}
@@ -1251,7 +1555,11 @@ export function MaanJaoSite({
               {/* 4. Respectful Human Finale */}
               <section
                 aria-label={copy.finaleEyebrow}
-                className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-sm"
+                className={`overflow-hidden rounded-3xl border p-5 backdrop-blur-sm transition-colors duration-700 motion-reduce:transition-none sm:p-6 ${
+                  finaleState === 'forgiven'
+                    ? 'border-amber-200/30 bg-amber-200/[0.06]'
+                    : 'border-white/10 bg-white/[0.03]'
+                }`}
               >
                 {finaleState === 'open' ? (
                   <div className="space-y-4 text-center">
@@ -1261,7 +1569,7 @@ export function MaanJaoSite({
 
                     <p
                       key={`reaction-${nudgeCount}`}
-                      className="min-h-[36px] break-words text-xs leading-relaxed text-slate-200/90 animate-fade-in motion-reduce:animate-none sm:text-[13px]"
+                      className="min-h-[36px] break-words font-literary text-sm leading-relaxed text-slate-200/90 animate-fade-in motion-reduce:animate-none"
                     >
                       {upsetReaction}
                     </p>
@@ -1302,38 +1610,45 @@ export function MaanJaoSite({
                 {finaleState === 'forgiven' ? (
                   <div className="space-y-4 text-center animate-fade-in motion-reduce:animate-none">
                     <DawnHorizonIllustration />
-                    <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-200/85">
+                    <div aria-hidden="true" className="mx-auto flex max-w-[180px] items-center gap-2.5">
+                      <span className="h-px flex-1 bg-gradient-to-r from-transparent to-amber-200/60" />
+                      <span className="h-1.5 w-1.5 rotate-45 bg-amber-200/85" />
+                      <span className="h-px flex-1 bg-gradient-to-l from-transparent to-amber-200/60" />
+                    </div>
+                    <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-200/90">
                       {copy.forgivenEyebrow}
                     </p>
-                    <h2 className="break-words font-heading text-xl font-semibold leading-snug text-amber-50">
+                    <h2 className="break-words font-editorial text-2xl font-normal italic leading-snug text-amber-50 sm:text-[26px]">
                       {copy.forgivenTitle(receiver)}
                     </h2>
-                    <p className="break-words text-xs leading-relaxed text-slate-300/90 sm:text-[13px]">
+                    <p className="break-words font-literary text-sm leading-relaxed text-amber-50/85">
                       {copy.forgivenBody(sender)}
                     </p>
 
-                    <div className="rounded-2xl border border-amber-200/20 bg-amber-200/[0.05] px-4 py-3 text-left">
-                      <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-200/80">
+                    <div className="rounded-2xl border border-amber-200/25 bg-gradient-to-b from-amber-200/[0.09] to-amber-300/[0.03] px-4 py-3.5 text-left">
+                      <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-200/85">
                         {copy.forgivenGesturesLabel}
                       </p>
                       {selectedGestures.length > 0 ? (
-                        <ul className="mt-1.5 space-y-1 text-xs text-slate-200">
+                        <ul className="mt-2 space-y-1.5 font-literary text-[13px] text-amber-50/90">
                           {CALM_GESTURES.filter((g) => selectedGestures.includes(g.id)).map((g) => (
                             <li key={g.id} className="flex items-center gap-2">
-                              <span className="h-1.5 w-1.5 rounded-full bg-amber-300" aria-hidden="true" />
-                              <span>{g.label[coreLang]}</span>
+                              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-300" aria-hidden="true" />
+                              <span className="min-w-0 break-words">{g.label[coreLang]}</span>
                             </li>
                           ))}
                         </ul>
                       ) : (
-                        <p className="mt-1 text-xs text-slate-300/85">{copy.forgivenNoGestures}</p>
+                        <p className="mt-1.5 font-literary text-[13px] italic text-amber-50/80">
+                          {copy.forgivenNoGestures}
+                        </p>
                       )}
                     </div>
 
                     <button
                       type="button"
                       onClick={() => setFinaleState('open')}
-                      className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-white/15 bg-white/[0.04] px-5 text-xs font-medium text-slate-200 transition hover:bg-white/[0.09] active:scale-95"
+                      className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-amber-200/25 bg-white/[0.05] px-5 text-xs font-medium text-amber-50 transition hover:bg-white/[0.1] active:scale-95"
                     >
                       {copy.revisitNoteCta}
                     </button>
@@ -1348,10 +1663,10 @@ export function MaanJaoSite({
                     <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-blue-200/80">
                       {copy.needsTimeEyebrow}
                     </p>
-                    <h2 className="break-words font-heading text-xl font-semibold leading-snug text-slate-50">
+                    <h2 className="break-words font-editorial text-2xl font-normal leading-snug text-slate-50 sm:text-[26px]">
                       {copy.needsTimeTitle(receiver)}
                     </h2>
-                    <p className="break-words text-xs leading-relaxed text-slate-300/85 sm:text-[13px]">
+                    <p className="break-words font-literary text-sm leading-relaxed text-slate-300/85">
                       {copy.needsTimeBody}
                     </p>
                     <button

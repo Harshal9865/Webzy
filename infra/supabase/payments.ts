@@ -1,6 +1,12 @@
 import crypto from 'node:crypto';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { formatPaiseAsInr, getWebzyPublicConfig, logEvent, WebzyError } from '@webzy/core';
+import {
+  formatPaiseAsInr,
+  getWebzyPublicConfig,
+  logEvent,
+  VALIDITY_TARGET_DAYS,
+  WebzyError,
+} from '@webzy/core';
 import { type MockStatusStore, resolvePaymentProviderInstance } from '@webzy/core/server';
 import { sendTransactionalEmail } from '../email/resend';
 
@@ -138,20 +144,27 @@ export async function settleOrderAndPublish(params: {
   const cfg = getWebzyPublicConfig();
   const slug = crypto.randomBytes(9).toString('base64url'); // 12 random URL-safe chars
 
-  // Respect server-computed validityDays from the order's pricing_breakdown (e.g. 7d default, 14d, 21d, or 90d/3m extended)
+  // Respect server-computed validityDays & isLifetime from the order's pricing_breakdown
   let orderValidityDays = cfg.defaultValidityDays;
+  let isLifetime = false;
   try {
     const { data: ordMeta } = await params.admin
       .from('orders')
       .select('pricing_breakdown')
       .eq('id', params.orderId)
       .maybeSingle();
-    const breakdown = ordMeta?.pricing_breakdown as { validityDays?: number } | null | undefined;
-    if (
+    const breakdown = ordMeta?.pricing_breakdown as
+      | { validityDays?: number; isLifetime?: boolean }
+      | null
+      | undefined;
+    if (breakdown?.isLifetime === true) {
+      isLifetime = true;
+      orderValidityDays = VALIDITY_TARGET_DAYS.lifetime;
+    } else if (
       breakdown &&
       typeof breakdown.validityDays === 'number' &&
       breakdown.validityDays >= 1 &&
-      breakdown.validityDays <= 365
+      breakdown.validityDays <= 36500
     ) {
       orderValidityDays = breakdown.validityDays;
     }
@@ -159,7 +172,7 @@ export async function settleOrderAndPublish(params: {
     // Fall back to default validity days
   }
 
-  const { data, error } = await params.admin.rpc('settle_order_payment_tx', {
+  let { data, error } = await params.admin.rpc('settle_order_payment_tx', {
     p_order_id: params.orderId,
     p_provider_payment_id: params.providerPaymentId,
     p_event_id: params.eventId,
@@ -169,7 +182,30 @@ export async function settleOrderAndPublish(params: {
     p_fy: getCurrentIndianFiscalYear(),
     p_validity_days: orderValidityDays,
     p_auto_publish: params.autoPublish ?? true,
+    p_is_lifetime: isLifetime,
   });
+
+  // Fallback retry without p_is_lifetime if pre-0012 RPC signature is still deployed
+  if (
+    error &&
+    (error.message?.includes('p_is_lifetime') ||
+      error.message?.includes('function public.settle_order_payment_tx') ||
+      error.code === 'PGRST202')
+  ) {
+    const fallbackRes = await params.admin.rpc('settle_order_payment_tx', {
+      p_order_id: params.orderId,
+      p_provider_payment_id: params.providerPaymentId,
+      p_event_id: params.eventId,
+      p_amount_paise: params.amountPaise ?? null,
+      p_raw_event: params.rawEvent ?? {},
+      p_slug: slug,
+      p_fy: getCurrentIndianFiscalYear(),
+      p_validity_days: orderValidityDays,
+      p_auto_publish: params.autoPublish ?? true,
+    });
+    data = fallbackRes.data;
+    error = fallbackRes.error;
+  }
 
   if (error || !Array.isArray(data) || data.length === 0) {
     logEvent('error', 'payments.settle_rpc_failed', {

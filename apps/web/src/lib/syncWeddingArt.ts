@@ -107,7 +107,7 @@ const ARTWORK_MAP: Array<{ src: string; dest: string[] }> = [
     dest: ['weddings', 'art', 'atelier-palace-hero.jpg'],
   },
   {
-    src: 'birthday_confetti_keepsake_flatlay_final_1795524093976.jpg',
+    src: 'birthday_redesign_cover_v2_1795683876488.jpg',
     dest: ['occasions', 'birthday-confetti', 'cover.jpg'],
   },
   {
@@ -139,12 +139,32 @@ const ARTWORK_MAP: Array<{ src: string; dest: string[] }> = [
     dest: ['occasions', 'our-year', 'cover.jpg'],
   },
   {
+    src: 'portfolio_editorial_cover_v1_1795684448710.jpg',
+    dest: ['occasions', 'portfolio', 'cover.jpg'],
+  },
+  {
     src: 'harvest_festival_greeting_final_1795524085413.jpg',
     dest: ['occasions', 'harvest-greeting', 'cover.jpg'],
   },
   {
+    src: 'small_business_boutique_cover_v1_1795684460411.jpg',
+    dest: ['occasions', 'small-business', 'cover.jpg'],
+  },
+  {
     src: 'business_greeting_luxury_artwork_1795523999390.jpg',
     dest: ['occasions', 'business-greeting', 'cover.jpg'],
+  },
+  {
+    src: 'pricing_occasions_art_v1_1795693712913.jpg',
+    dest: ['pricing', 'occasions-art.jpg'],
+  },
+  {
+    src: 'pricing_weddings_art_v1_1795693759014.jpg',
+    dest: ['pricing', 'weddings-art.jpg'],
+  },
+  {
+    src: 'portfolio_editorial_cover_v1_1795684448710.jpg',
+    dest: ['pricing', 'custom-made-art.jpg'],
   },
 ];
 

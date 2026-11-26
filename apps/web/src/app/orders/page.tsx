@@ -26,11 +26,11 @@ export default async function OrdersPage() {
       const admin = createSupabaseAdminClient();
       const { data: rawOrders } = await admin
         .from('orders')
-        .select('id, amount_paise, status, invoice_no, provider_order_id, addons_json, is_test, created_at, sites(id, slug, status, hidden, views_count, first_opened_at, free_edit_until, expires_at, content_json, theme_versions(theme_id))')
+        .select('id, amount_paise, status, invoice_no, provider_order_id, addons_json, is_test, created_at, sites(id, slug, status, hidden, views_count, first_opened_at, free_edit_until, expires_at, is_lifetime, deleted_at, delete_grace_until, content_json, theme_versions(theme_id))')
         .eq('user_id', session.user.id)
         .is('deleted_at', null)
         .order('created_at', { ascending: false })
-        .limit(50);
+        .limit(100);
 
       if (rawOrders) {
         const nowMs = Date.now();
@@ -43,6 +43,9 @@ export default async function OrdersPage() {
             first_opened_at?: string;
             free_edit_until?: string;
             expires_at?: string;
+            is_lifetime?: boolean | null;
+            deleted_at?: string | null;
+            delete_grace_until?: string | null;
             content_json?: Record<string, unknown>;
             theme_versions?: { theme_id?: string } | Array<{ theme_id?: string }> | null;
           } | Array<{
@@ -53,6 +56,9 @@ export default async function OrdersPage() {
             first_opened_at?: string;
             free_edit_until?: string;
             expires_at?: string;
+            is_lifetime?: boolean | null;
+            deleted_at?: string | null;
+            delete_grace_until?: string | null;
             content_json?: Record<string, unknown>;
             theme_versions?: { theme_id?: string } | Array<{ theme_id?: string }> | null;
           }> | null;
@@ -83,6 +89,7 @@ export default async function OrdersPage() {
           const canFreeEdit =
             !Number.isNaN(freeEditUntilMs) &&
             freeEditUntilMs > nowMs &&
+            !site?.deleted_at &&
             site?.status !== 'removed' &&
             site?.status !== 'expired';
 
@@ -116,6 +123,9 @@ export default async function OrdersPage() {
             canFreeEdit,
             freeEditUntil: site?.free_edit_until || null,
             expiresAt: site?.expires_at || null,
+            isLifetime: Boolean(site?.is_lifetime),
+            deletedAt: site?.deleted_at || null,
+            deleteGraceUntil: site?.delete_grace_until || null,
           });
         }
       }

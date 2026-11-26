@@ -1,6 +1,7 @@
 export * from './schema';
 export * from './data/launchThemes';
 export * from './data/payloadBuilder';
+export * from './catalogPricing';
 export * from './components/TapToOpenCover';
 export * from './components/ThemeCardArt';
 export * from './components/ThemeRenderer';
@@ -14,6 +15,8 @@ export * from './occasions/MakeThemSmileSite';
 export * from './occasions/OurYearWrappedSite';
 export * from './occasions/HarvestGreetingSite';
 export * from './occasions/BusinessGreetingSite';
+export * from './occasions/PortfolioSite';
+export * from './occasions/SmallBusinessSite';
 export * from './weddings';
 
 export function getThemesRegistrySummary(): {

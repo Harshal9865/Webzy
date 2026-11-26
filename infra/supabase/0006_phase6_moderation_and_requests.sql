@@ -2,6 +2,16 @@
 -- Webzy Migration 0006: Phase 6 Custom Requests, Takedowns & Moderation Indexes
 -- =============================================================================
 
+CREATE OR REPLACE FUNCTION public.touch_updated_at()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  NEW.updated_at := now();
+  RETURN NEW;
+END;
+$$;
+
 -- 1. Custom & Semi-Custom Requests (stored briefs & admin quotes)
 CREATE TABLE IF NOT EXISTS public.custom_requests (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -31,7 +41,7 @@ DROP TRIGGER IF EXISTS trg_custom_requests_updated_at ON public.custom_requests;
 CREATE TRIGGER trg_custom_requests_updated_at
   BEFORE UPDATE ON public.custom_requests
   FOR EACH ROW
-  EXECUTE FUNCTION public.set_updated_at();
+  EXECUTE FUNCTION public.touch_updated_at();
 
 ALTER TABLE public.custom_requests ENABLE ROW LEVEL SECURITY;
 
@@ -70,7 +80,7 @@ DROP TRIGGER IF EXISTS trg_takedown_requests_updated_at ON public.takedown_reque
 CREATE TRIGGER trg_takedown_requests_updated_at
   BEFORE UPDATE ON public.takedown_requests
   FOR EACH ROW
-  EXECUTE FUNCTION public.set_updated_at();
+  EXECUTE FUNCTION public.touch_updated_at();
 
 ALTER TABLE public.takedown_requests ENABLE ROW LEVEL SECURITY;
 

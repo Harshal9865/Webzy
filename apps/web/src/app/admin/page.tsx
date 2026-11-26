@@ -152,6 +152,7 @@ export default async function WebAdminConsolePage() {
       waitlistItems={snapshot.waitlistItems}
       recentModLogs={snapshot.recentModLogs}
       recentAudits={snapshot.recentAudits}
+      capacity={snapshot.capacity}
       statsLoadError={snapshot.statsLoadError}
       signOutRedirect="/"
     />

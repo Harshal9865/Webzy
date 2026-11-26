@@ -1,11 +1,19 @@
 import type { Metadata } from 'next';
 import {
+  Bebas_Neue,
+  Bricolage_Grotesque,
+  Caveat,
   Cormorant_Garamond,
   Fraunces,
+  Fredoka,
+  Instrument_Serif,
+  Newsreader,
   Noto_Sans_Devanagari,
   Noto_Serif_Gujarati,
   Pinyon_Script,
+  Playfair_Display,
   Plus_Jakarta_Sans,
+  Silkscreen,
 } from 'next/font/google';
 import { getWebzyPublicConfig } from '@webzy/core';
 import { AuthProvider } from '../components/auth/AuthProvider';
@@ -35,7 +43,6 @@ const notoSansDevanagari = Noto_Sans_Devanagari({
 
 const cormorantGaramond = Cormorant_Garamond({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
   style: ['normal', 'italic'],
   variable: '--font-cormorant',
   display: 'swap',
@@ -50,8 +57,61 @@ const pinyonScript = Pinyon_Script({
 
 const notoSerifGujarati = Noto_Serif_Gujarati({
   subsets: ['gujarati'],
-  weight: ['400', '500', '600', '700'],
   variable: '--font-gujarati',
+  display: 'swap',
+});
+
+const bricolageGrotesque = Bricolage_Grotesque({
+  subsets: ['latin'],
+  variable: '--font-bricolage',
+  display: 'swap',
+});
+
+const caveat = Caveat({
+  subsets: ['latin'],
+  variable: '--font-caveat',
+  display: 'swap',
+});
+
+const fredoka = Fredoka({
+  subsets: ['latin'],
+  variable: '--font-fredoka',
+  display: 'swap',
+});
+
+const instrumentSerif = Instrument_Serif({
+  subsets: ['latin'],
+  weight: '400',
+  style: ['normal', 'italic'],
+  variable: '--font-instrument-serif',
+  display: 'swap',
+});
+
+const newsreader = Newsreader({
+  subsets: ['latin'],
+  style: ['normal', 'italic'],
+  variable: '--font-newsreader',
+  display: 'swap',
+});
+
+const silkscreen = Silkscreen({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  variable: '--font-pixel',
+  display: 'swap',
+});
+
+const playfairDisplay = Playfair_Display({
+  subsets: ['latin'],
+  style: ['normal', 'italic'],
+  variable: '--font-playfair',
+  display: 'swap',
+});
+
+const bebasNeue = Bebas_Neue({
+  subsets: ['latin'],
+  weight: '400',
+  variable: '--font-bebas',
   display: 'swap',
 });
 
@@ -75,7 +135,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${fraunces.variable} ${plusJakartaSans.variable} ${notoSansDevanagari.variable} ${cormorantGaramond.variable} ${pinyonScript.variable} ${notoSerifGujarati.variable}`}
+      className={`${fraunces.variable} ${plusJakartaSans.variable} ${notoSansDevanagari.variable} ${cormorantGaramond.variable} ${pinyonScript.variable} ${notoSerifGujarati.variable} ${bricolageGrotesque.variable} ${caveat.variable} ${fredoka.variable} ${instrumentSerif.variable} ${newsreader.variable} ${silkscreen.variable} ${playfairDisplay.variable} ${bebasNeue.variable}`}
     >
       <body suppressHydrationWarning className="flex min-h-screen flex-col bg-white text-webzy-ink antialiased">
         <LanguageProvider>

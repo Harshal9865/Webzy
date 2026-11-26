@@ -9,6 +9,7 @@ export type OccasionBucket =
   | 'anniversary'
   | 'family'
   | 'festival'
+  | 'portfolio'
   | 'business';
 
 const FALLBACK_MATRIX: Record<
@@ -145,6 +146,28 @@ const FALLBACK_MATRIX: Record<
       hinglish: (n) => `${n}, aapko aur aapke parivaar ko shubh avsar ki hardik shubhkamnayein.`,
       hi: (n) => `${n}, आपको एवं आपके समस्त परिवार को इस शुभ अवसर की हार्दिक शुभकामनाएँ।`,
       en: (n) => `Warm festive greetings to ${n} and your family. Wishing you peace and prosperity.`,
+    },
+  },
+  portfolio: {
+    cute: {
+      hinglish: (n) => `Hi, main ${n} — clean design, smooth motion aur thoughtful digital products banata hoon.`,
+      hi: (n) => `नमस्ते, मैं ${n} — सरल डिज़ाइन, स्पष्ट सोच और सुंदर डिजिटल अनुभव तैयार करता हूँ।`,
+      en: (n) => `Hi, I am ${n} — crafting calm, human-centered digital products, brands, and web stories.`,
+    },
+    emotional: {
+      hinglish: (n) => `${n}: har project mein chhoti details, imaandar craft aur real user feeling par dhyan.`,
+      hi: (n) => `${n} — हर प्रोजेक्ट में सूक्ष्म विवरण, ईमानदार शिल्प और सार्थक अनुभव पर केंद्रित कार्य।`,
+      en: (n) => `${n}: dedicated to quiet craftsmanship, clear typography, and work that genuinely connects.`,
+    },
+    funny: {
+      hinglish: (n) => `${n} — messy ideas ko pixel-clean websites mein badalta hoon (extra chai ke saath).`,
+      hi: (n) => `${n} — उलझे विचारों को साफ़, तेज़ और आकर्षक वेबसाइट में बदलने का विशेषज्ञ।`,
+      en: (n) => `${n} — turning rough napkin sketches and late-night coffee into sharp, working websites.`,
+    },
+    formal: {
+      hinglish: (n) => `${n} | Independent Designer & Developer. Naye projects aur consultations ke liye available.`,
+      hi: (n) => `${n} | स्वतंत्र डिज़ाइनर एवं डेवलपर। नए प्रोजेक्ट्स और परामर्श के लिए संपर्क करें।`,
+      en: (n) => `${n} — Independent designer and builder accepting select brand and web commissions.`,
     },
   },
   business: {

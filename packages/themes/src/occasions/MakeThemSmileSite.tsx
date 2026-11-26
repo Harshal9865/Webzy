@@ -22,8 +22,22 @@ import {
   HyperspeedWarpFlash,
   WordByWordFadeLine,
 } from './shared/OccasionCinematicFX';
+import {
+  AirmailPostageStamp,
+  AtmosphericGrainOverlay,
+  playPaperUnsealSfx,
+  ReadingProgressHairline,
+} from './shared/OccasionCraftPrimitives';
 
 type SmileAct = 'cover' | 'kitty' | 'arcade' | 'clouds' | 'letter';
+
+const ACT_PROGRESS_PCT: Record<SmileAct, number> = {
+  cover: 15,
+  kitty: 40,
+  arcade: 65,
+  clouds: 85,
+  letter: 100,
+};
 
 interface EnvelopeItem {
   title: LocalizedText;
@@ -34,7 +48,8 @@ interface SparkleBurst {
   id: number;
   xPct: number;
   yPct: number;
-  kind: 'star' | 'heart';
+  kind: 'star' | 'heart' | 'whisper';
+  text?: string;
 }
 
 interface SmileMicrositeCopy {
@@ -43,6 +58,8 @@ interface SmileMicrositeCopy {
   coverSubtitle: (sender: string) => string;
   tapToStart: string;
   coverWhisper: string;
+  stampLabel: string;
+  stampCode: string;
   actLabels: {
     kitty: string;
     arcade: string;
@@ -52,6 +69,7 @@ interface SmileMicrositeCopy {
   kittyEyebrow: string;
   kittyTitle: string;
   kittyPrompts: readonly [string, string, string, string, string];
+  kittyCheerWhispers: readonly [string, string, string, string];
   purrMeterLabel: string;
   kittyTapBtn: string;
   kittyUnlockedBtn: string;
@@ -65,7 +83,9 @@ interface SmileMicrositeCopy {
   holdCloudsLabel: string;
   holdChargingLabel: string;
   holdCompleteLabel: string;
+  cloudsGentleTapLabel: string;
   letterTag: string;
+  letterSalutation: (receiver: string) => string;
   signedWarmth: (sender: string) => string;
   openWhenHeading: string;
   openWhenSub: string;
@@ -79,6 +99,7 @@ interface SmileMicrositeCopy {
   jarHeading: string;
   jarSub: string;
   jarJarLabel: string;
+  jarReadyStamp: string;
   jarTapButton: string;
   jarCounterLabel: (count: number) => string;
   jarInitialTicket: string;
@@ -138,6 +159,8 @@ const COPY: Record<CoreLanguageCode, SmileMicrositeCopy> = {
       `No birthday, no occasion — just a small surprise from ${sender} to make you smile`,
     tapToStart: 'Tap to Start',
     coverWhisper: 'A tiny kitty cheer-up, a moonlit pixel ride & a pinned note inside',
+    stampLabel: 'JUST BECAUSE',
+    stampCode: 'SMILE',
     actLabels: {
       kitty: 'Act I · Cheer-Up',
       arcade: 'Act II · Night Ride',
@@ -153,6 +176,12 @@ const COPY: Record<CoreLanguageCode, SmileMicrositeCopy> = {
       'Almost full — one more tap to unlock your night ride!',
       '100% Purr Power unlocked! Your pixel adventure is ready.',
     ],
+    kittyCheerWhispers: [
+      'warmth rising!',
+      'soft purrs!',
+      'petals opening!',
+      'full sunshine!',
+    ],
     purrMeterLabel: 'Purr Cheer Meter',
     kittyTapBtn: 'Tap Kitty to Cheer Up',
     kittyUnlockedBtn: 'Launch Pixel Night Ride',
@@ -166,12 +195,14 @@ const COPY: Record<CoreLanguageCode, SmileMicrositeCopy> = {
     holdCloudsLabel: 'Hold button to break through the clouds',
     holdChargingLabel: 'Parting the clouds...',
     holdCompleteLabel: 'Breaking through!',
+    cloudsGentleTapLabel: 'Tap to part clouds gently',
     letterTag: 'NO OCCASION · JUST A SURPRISE',
+    letterSalutation: (receiver) => `Dear ${receiver},`,
     signedWarmth: (sender) => `— With warmth, ${sender}`,
     openWhenHeading: 'Open-When Envelopes',
     openWhenSub: 'Tap any seal to unfold a pocket note',
     envelopesUnsealed: 'opened',
-    allUnsealed: 'All envelopes opened',
+    allUnsealed: 'All Notes Unsealed',
     tapToUnseal: 'Tap wax seal to open',
     tapToReseal: 'Tap to fold back',
     sealedLabel: 'Sealed',
@@ -180,6 +211,7 @@ const COPY: Record<CoreLanguageCode, SmileMicrositeCopy> = {
     jarHeading: 'Jar of Little Wins',
     jarSub: 'Tap the jar whenever you want a fresh feel-good ticket',
     jarJarLabel: 'LITTLE WINS',
+    jarReadyStamp: 'READY',
     jarTapButton: 'Pull a Little Win',
     jarCounterLabel: (count) => `${count} ${count === 1 ? 'win' : 'wins'} pulled`,
     jarInitialTicket: 'Tap the glass jar above to draw your first folded feel-good ticket.',
@@ -227,6 +259,8 @@ const COPY: Record<CoreLanguageCode, SmileMicrositeCopy> = {
       `Na koi birthday, na koi occasion — bas ${sender} ki taraf se ek chhota sa surprise tumhe muskurane ke liye`,
     tapToStart: 'Tap to Start',
     coverWhisper: 'Andar ek cute kitty cheer-up, pixel night ride aur pinned letter hai',
+    stampLabel: 'JUST BECAUSE',
+    stampCode: 'SMILE',
     actLabels: {
       kitty: 'Act I · Cheer-Up',
       arcade: 'Act II · Night Ride',
@@ -242,6 +276,12 @@ const COPY: Record<CoreLanguageCode, SmileMicrositeCopy> = {
       'Bas ek aur tap — pixel night ride unlock hone wali hai!',
       '100% Purr Power unlock! Chalo night ride par chalte hain.',
     ],
+    kittyCheerWhispers: [
+      'muskaan badhi!',
+      'pyaari purr!',
+      'phool khile!',
+      'poori sunshine!',
+    ],
     purrMeterLabel: 'Purr Cheer Meter',
     kittyTapBtn: 'Kitty Ko Tap Karein',
     kittyUnlockedBtn: 'Pixel Night Ride Kholo',
@@ -255,12 +295,14 @@ const COPY: Record<CoreLanguageCode, SmileMicrositeCopy> = {
     holdCloudsLabel: 'Baadal hatane ke liye button dabaye rakhein',
     holdChargingLabel: 'Baadal hat rahe hain...',
     holdCompleteLabel: 'Rasta khul gaya!',
+    cloudsGentleTapLabel: 'Dheere se baadal hatane ke liye tap karein',
     letterTag: 'NO OCCASION · BAS EK SURPRISE',
+    letterSalutation: (receiver) => `Dear ${receiver},`,
     signedWarmth: (sender) => `— Pyaar aur warmth ke saath, ${sender}`,
     openWhenHeading: 'Open-When Envelopes',
     openWhenSub: 'Chhota note padhne ke liye kisi bhi seal par tap karo',
     envelopesUnsealed: 'khule',
-    allUnsealed: 'Saare envelopes khul gaye',
+    allUnsealed: 'Saare Notes Khul Gaye',
     tapToUnseal: 'Kholne ke liye seal tap karo',
     tapToReseal: 'Wapas band karne ke liye tap karo',
     sealedLabel: 'Sealed',
@@ -269,6 +311,7 @@ const COPY: Record<CoreLanguageCode, SmileMicrositeCopy> = {
     jarHeading: 'Little Wins Ka Jar',
     jarSub: 'Jab bhi mood fresh karna ho, jar par tap karke ek note nikalo',
     jarJarLabel: 'LITTLE WINS',
+    jarReadyStamp: 'READY',
     jarTapButton: 'Ek Little Win Nikalo',
     jarCounterLabel: (count) => `${count} ${count === 1 ? 'parchi' : 'parchiyan'} nikali`,
     jarInitialTicket: 'Pehli feel-good parchi nikalne ke liye upar glass jar par tap karo.',
@@ -316,6 +359,8 @@ const COPY: Record<CoreLanguageCode, SmileMicrositeCopy> = {
       `न कोई जन्मदिन, न कोई ख़ास अवसर — बस ${sender} की ओर से आपके चेहरे पर मुस्कान लाने का एक छोटा सा सरप्राइज़`,
     tapToStart: 'शुरू करने के लिए टैप करें',
     coverWhisper: 'अंदर एक प्यारी बिल्ली का सरप्राइज़, पिक्सेल नाइट राइड और एक सहेजा हुआ पत्र है',
+    stampLabel: 'बस यूँ ही',
+    stampCode: 'SMILE',
     actLabels: {
       kitty: 'भाग 1 · मुस्कान',
       arcade: 'भाग 2 · नाइट राइड',
@@ -331,6 +376,12 @@ const COPY: Record<CoreLanguageCode, SmileMicrositeCopy> = {
       'बस एक और टैप — आपकी नाइट राइड खुलने वाली है!',
       '100% मुस्कान तैयार! अब पिक्सेल सफ़र शुरू करने के लिए तैयार हैं।',
     ],
+    kittyCheerWhispers: [
+      'गर्माहट बढ़ी!',
+      'प्यारा दुलार!',
+      'फूल खिल रहे हैं!',
+      'मुस्कान तैयार!',
+    ],
     purrMeterLabel: 'मुस्कान मीटर',
     kittyTapBtn: 'बिल्ली पर टैप करें',
     kittyUnlockedBtn: 'पिक्सेल नाइट राइड शुरू करें',
@@ -344,12 +395,14 @@ const COPY: Record<CoreLanguageCode, SmileMicrositeCopy> = {
     holdCloudsLabel: 'बादल हटाने के लिए बटन दबाए रखें',
     holdChargingLabel: 'बादल छँट रहे हैं...',
     holdCompleteLabel: 'रास्ता खुल गया!',
+    cloudsGentleTapLabel: 'धीरे से बादल हटाने के लिए टैप करें',
     letterTag: 'बिना किसी अवसर · बस एक सरप्राइज़',
+    letterSalutation: (receiver) => `प्रिय ${receiver},`,
     signedWarmth: (sender) => `— स्नेह सहित, ${sender}`,
     openWhenHeading: 'जब मन करे तब खोलें',
     openWhenSub: 'संदेश पढ़ने के लिए किसी भी मोहर पर टैप करें',
     envelopesUnsealed: 'खुले',
-    allUnsealed: 'सभी लिफ़ाफ़े खुल गए',
+    allUnsealed: 'सभी नोट्स खुल गए',
     tapToUnseal: 'खोलने के लिए टैप करें',
     tapToReseal: 'वापस मोड़ने के लिए टैप करें',
     sealedLabel: 'बंद',
@@ -358,6 +411,7 @@ const COPY: Record<CoreLanguageCode, SmileMicrositeCopy> = {
     jarHeading: 'छोटी खुशियों का जार',
     jarSub: 'जब भी मन हल्का करना हो, जार से एक नई पर्ची निकालें',
     jarJarLabel: 'LITTLE WINS',
+    jarReadyStamp: 'तैयार',
     jarTapButton: 'एक खुशी की पर्ची निकालें',
     jarCounterLabel: (count) => `${count} पर्ची निकाली गईं`,
     jarInitialTicket: 'अपनी पहली सकारात्मक पर्ची पढ़ने के लिए ऊपर जार पर टैप करें।',
@@ -435,6 +489,13 @@ function formatOptionalDate(revealAt: string | undefined, language: LanguageCode
     month: 'short',
     year: 'numeric',
   }).format(parsed);
+}
+
+function getReceiverInitials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return 'W';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0] ?? ''}${parts[1][0] ?? ''}`.toUpperCase();
 }
 
 /** Gently drifting vector hearts & crescent moons across the blush/plum sky. */
@@ -731,6 +792,7 @@ export function MakeThemSmileSite({
   const coreLang = toCoreLanguageCode(language);
   const copy = COPY[coreLang] ?? COPY.en;
   const formattedDate = formatOptionalDate(data.revealAt, language);
+  const receiverInitials = useMemo(() => getReceiverInitials(data.receiverName), [data.receiverName]);
   const musicLabel = manifest.music[0]?.label;
 
   const envelopes: EnvelopeItem[] = useMemo(() => {
@@ -798,18 +860,26 @@ export function MakeThemSmileSite({
     setKittyBouncing(true);
 
     const burstIdBase = nextSparkleIdRef.current;
-    nextSparkleIdRef.current += 3;
+    nextSparkleIdRef.current += 4;
+    const whisperText = copy.kittyCheerWhispers[stepIndex] ?? copy.kittyCheerWhispers[0];
     const newSparkles: SparkleBurst[] = [
-      { id: burstIdBase, xPct: 18 + ((burstIdBase * 17) % 24), yPct: 24 + ((burstIdBase * 13) % 24), kind: 'heart' },
-      { id: burstIdBase + 1, xPct: 58 + ((burstIdBase * 11) % 24), yPct: 18 + ((burstIdBase * 19) % 26), kind: 'star' },
-      { id: burstIdBase + 2, xPct: 38 + ((burstIdBase * 23) % 26), yPct: 12 + ((burstIdBase * 7) % 20), kind: 'star' },
+      { id: burstIdBase, xPct: 16 + ((burstIdBase * 17) % 20), yPct: 26 + ((burstIdBase * 13) % 22), kind: 'heart' },
+      { id: burstIdBase + 1, xPct: 62 + ((burstIdBase * 11) % 20), yPct: 20 + ((burstIdBase * 19) % 22), kind: 'star' },
+      { id: burstIdBase + 2, xPct: 40 + ((burstIdBase * 23) % 20), yPct: 12 + ((burstIdBase * 7) % 18), kind: 'star' },
+      {
+        id: burstIdBase + 3,
+        xPct: 50,
+        yPct: 12 + ((burstIdBase * 5) % 12),
+        kind: 'whisper',
+        text: whisperText,
+      },
     ];
-    setSparkles((prev) => [...prev.slice(-6), ...newSparkles]);
+    setSparkles((prev) => [...prev.slice(-8), ...newSparkles]);
 
     const tBounce = window.setTimeout(() => setKittyBouncing(false), 260);
     const tSparkle = window.setTimeout(() => {
-      setSparkles((prev) => prev.filter((item) => item.id >= burstIdBase + 3));
-    }, 750);
+      setSparkles((prev) => prev.filter((item) => item.id >= burstIdBase + 4));
+    }, 820);
     timersRef.current.push(tBounce, tSparkle);
   };
 
@@ -820,13 +890,19 @@ export function MakeThemSmileSite({
   }, []);
 
   const toggleEnvelope = (idx: number) => {
+    const isCurrentlyOpen = unsealed.includes(idx);
+    if (!isCurrentlyOpen) {
+      playPaperUnsealSfx(idx);
+    }
     setUnsealed((prev) =>
       prev.includes(idx) ? prev.filter((item) => item !== idx) : [...prev, idx],
     );
   };
 
   const handlePullJarTicket = () => {
-    setJarCount((prev) => prev + 1);
+    const nextCount = jarCount + 1;
+    playPaperUnsealSfx(nextCount);
+    setJarCount(nextCount);
     setJarPopping(true);
     const timer = window.setTimeout(() => setJarPopping(false), 320);
     timersRef.current.push(timer);
@@ -882,68 +958,95 @@ export function MakeThemSmileSite({
         </div>
       ) : null}
 
+      <div className="relative z-20 mx-auto w-full max-w-lg px-4 pt-2 sm:px-5">
+        <ReadingProgressHairline
+          progressPct={ACT_PROGRESS_PCT[act]}
+          color={isDarkStage ? '#FB7185' : '#E11D63'}
+          trackClassName={isDarkStage ? 'bg-white/15' : 'bg-[#4A153B]/10'}
+        />
+      </div>
+
       {/* ACT 1A: BLUSH UNIVERSE COVER GATE */}
       {act === 'cover' ? (
         <div className="relative z-10 mx-auto flex w-full max-w-lg flex-1 flex-col items-center justify-center px-4 py-6 sm:px-6 animate-fade-in motion-reduce:animate-none">
-          <div className="relative w-full overflow-hidden rounded-[28px] border border-white/75 bg-white/80 p-6 text-center shadow-[0_24px_52px_-18px_rgba(74,21,59,0.42)] backdrop-blur-md sm:p-7">
-            {/* Crescent moon & heart crest */}
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-[#FB7185]/35 bg-gradient-to-br from-[#FFF1F5] to-[#FCE4EE] shadow-xs">
-              <svg viewBox="0 0 36 36" className="h-8 w-8" fill="none" aria-hidden="true">
-                <path d="M21 6.5A10.5 10.5 0 1 0 28.5 23.2A8.2 8.2 0 1 1 21 6.5Z" fill="#F59E0B" />
-                <path
-                  d="M23.5 17.5C23.5 17.5 19.5 14.9 19.5 12.1C19.5 10.7 20.6 9.6 21.9 9.6C22.7 9.6 23.2 10.1 23.5 10.7C23.8 10.1 24.3 9.6 25.1 9.6C26.4 9.6 27.5 10.7 27.5 12.1C27.5 14.9 23.5 17.5 23.5 17.5Z"
-                  fill="#E11D63"
-                />
-              </svg>
-            </div>
+          <div className="relative w-full">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 -rotate-2 rounded-[28px] border border-[#E11D63]/15 bg-[#FFF6EB]/95 shadow-[0_18px_40px_-20px_rgba(74,21,59,0.28)]"
+            />
+            <div className="occasion-dot-grid relative w-full overflow-hidden rounded-[28px] border border-white/85 p-5 text-center shadow-[0_24px_52px_-18px_rgba(74,21,59,0.42)] sm:p-7">
+              <AtmosphericGrainOverlay opacity={0.045} />
 
-            <div className="mt-4 inline-flex max-w-full items-center justify-center rounded-full border border-[#E11D63]/25 bg-[#FFF1F5] px-3.5 py-1.5 font-mono text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#9D174D]">
-              <span className="truncate">{copy.justBecauseBadge(data.receiverName)}</span>
-            </div>
+              <div className="relative z-10">
+                {/* Crescent moon & heart crest + perforated airmail stamp */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-[#FB7185]/35 bg-gradient-to-br from-[#FFF1F5] to-[#FCE4EE] shadow-xs">
+                    <svg viewBox="0 0 36 36" className="h-8 w-8" fill="none" aria-hidden="true">
+                      <path d="M21 6.5A10.5 10.5 0 1 0 28.5 23.2A8.2 8.2 0 1 1 21 6.5Z" fill="#F59E0B" />
+                      <path
+                        d="M23.5 17.5C23.5 17.5 19.5 14.9 19.5 12.1C19.5 10.7 20.6 9.6 21.9 9.6C22.7 9.6 23.2 10.1 23.5 10.7C23.8 10.1 24.3 9.6 25.1 9.6C26.4 9.6 27.5 10.7 27.5 12.1C27.5 14.9 23.5 17.5 23.5 17.5Z"
+                        fill="#E11D63"
+                      />
+                    </svg>
+                  </div>
 
-            <h1 className="mt-4 break-words font-heading text-3xl font-extrabold leading-tight text-[#3E1330] sm:text-4xl">
-              {data.receiverName}
-            </h1>
+                  <AirmailPostageStamp
+                    label={copy.stampLabel}
+                    code={copy.stampCode}
+                    initials={receiverInitials}
+                    accentColor="#E11D63"
+                  />
+                </div>
 
-            <p className="mx-auto mt-3 max-w-sm break-words text-sm leading-relaxed text-[#5B2148]/90">
-              {copy.coverSubtitle(data.senderName)}
-            </p>
+                <div className="mt-4 inline-flex max-w-full items-center justify-center rounded-full border border-[#E11D63]/25 bg-[#FFF1F5] px-3.5 py-1.5 font-mono text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#9D174D]">
+                  <span className="truncate">{copy.justBecauseBadge(data.receiverName)}</span>
+                </div>
 
-            {data.relation || formattedDate ? (
-              <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-                {data.relation ? (
-                  <span className="rounded-full bg-[#FCE7F1] px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-[#831843]">
-                    {data.relation}
-                  </span>
+                <h1 className="mt-4 break-words font-playful text-3xl font-bold leading-tight text-[#3E1330] sm:text-4xl">
+                  {data.receiverName}
+                </h1>
+
+                <p className="mx-auto mt-3 max-w-sm break-words text-sm leading-relaxed text-[#5B2148]/90">
+                  {copy.coverSubtitle(data.senderName)}
+                </p>
+
+                {data.relation || formattedDate ? (
+                  <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+                    {data.relation ? (
+                      <span className="rounded-full bg-[#FCE7F1] px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-[#831843]">
+                        {data.relation}
+                      </span>
+                    ) : null}
+                    {formattedDate ? (
+                      <span className="rounded-full bg-[#FEF3C7] px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-[#92400E]">
+                        {formattedDate}
+                      </span>
+                    ) : null}
+                  </div>
                 ) : null}
-                {formattedDate ? (
-                  <span className="rounded-full bg-[#FEF3C7] px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-[#92400E]">
-                    {formattedDate}
-                  </span>
-                ) : null}
+
+                <button
+                  type="button"
+                  onClick={handleStartGate}
+                  className="mt-6 inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#E11D63] via-[#EC4899] to-[#FB7185] px-6 py-3 text-sm font-bold text-white shadow-[0_12px_28px_-8px_rgba(225,29,99,0.62)] ring-2 ring-white/70 transition hover:brightness-105 active:scale-[0.98] motion-reduce:transition-none"
+                >
+                  <span>{copy.tapToStart}</span>
+                  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" className="h-4 w-4">
+                    <path
+                      d="M4 10h12m-4.5-4.5L16 10l-4.5 4.5"
+                      stroke="currentColor"
+                      strokeWidth="2.2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+
+                <p className="mt-3 break-words font-handwritten text-lg leading-snug text-[#6B2D55]/85">
+                  {copy.coverWhisper}
+                </p>
               </div>
-            ) : null}
-
-            <button
-              type="button"
-              onClick={handleStartGate}
-              className="mt-6 inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#E11D63] via-[#EC4899] to-[#FB7185] px-6 py-3 text-sm font-bold text-white shadow-[0_12px_28px_-8px_rgba(225,29,99,0.62)] ring-2 ring-white/70 transition hover:brightness-105 active:scale-[0.98] motion-reduce:transition-none"
-            >
-              <span>{copy.tapToStart}</span>
-              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" className="h-4 w-4">
-                <path
-                  d="M4 10h12m-4.5-4.5L16 10l-4.5 4.5"
-                  stroke="currentColor"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-
-            <p className="mt-3 text-[11px] font-medium text-[#6B2D55]/75">
-              {copy.coverWhisper}
-            </p>
+            </div>
           </div>
         </div>
       ) : null}
@@ -968,103 +1071,115 @@ export function MakeThemSmileSite({
 
           <section
             aria-label={copy.kittyTitle}
-            className="relative my-auto overflow-hidden rounded-[26px] border border-white/80 bg-white/90 p-5 text-center shadow-[0_22px_44px_-18px_rgba(74,21,59,0.38)] backdrop-blur-md"
+            className="occasion-dot-grid relative my-auto overflow-hidden rounded-[26px] border border-white/85 p-5 text-center shadow-[0_22px_44px_-18px_rgba(74,21,59,0.38)]"
           >
-            <span className="inline-block rounded-full bg-[#FCE7F1] px-3 py-1 font-mono text-[10px] font-extrabold uppercase tracking-[0.16em] text-[#9D174D]">
-              {copy.kittyEyebrow}
-            </span>
+            <AtmosphericGrainOverlay opacity={0.045} />
 
-            <h2 className="mt-2 font-heading text-xl font-bold text-[#3E1330] sm:text-2xl">
-              {copy.kittyTitle}
-            </h2>
+            <div className="relative z-10">
+              <span className="inline-block rounded-full bg-[#FCE7F1] px-3 py-1 font-mono text-[10px] font-extrabold uppercase tracking-[0.16em] text-[#9D174D]">
+                {copy.kittyEyebrow}
+              </span>
 
-            {/* Interactive Kitty Tap Canvas */}
-            <div className="relative mt-2">
-              <button
-                type="button"
-                onClick={handleTapKitty}
-                aria-label={copy.kittyTapBtn}
-                className="relative mx-auto block min-h-[48px] w-full rounded-2xl p-1 transition focus-visible:outline-2 focus-visible:outline-[#E11D63] active:scale-[0.98]"
-              >
-                <KittyBouquetSvg purrPct={purrPct} bouncing={kittyBouncing} />
-              </button>
+              <h2 className="mt-2 font-playful text-2xl font-bold text-[#3E1330] sm:text-[26px]">
+                {copy.kittyTitle}
+              </h2>
 
-              {sparkles.map((sp) => (
-                <span
-                  key={sp.id}
-                  aria-hidden="true"
-                  className="mts-sparkle-pop pointer-events-none absolute"
-                  style={{ left: `${sp.xPct}%`, top: `${sp.yPct}%` }}
+              {/* Interactive Kitty Tap Canvas */}
+              <div className="relative mt-2">
+                <button
+                  type="button"
+                  onClick={handleTapKitty}
+                  aria-label={copy.kittyTapBtn}
+                  className="relative mx-auto block min-h-[48px] w-full rounded-2xl p-1 transition focus-visible:outline-2 focus-visible:outline-[#E11D63] active:scale-[0.98] motion-reduce:transition-none"
                 >
-                  {sp.kind === 'heart' ? (
-                    <svg viewBox="0 0 20 20" fill="#E11D63" className="h-5 w-5">
-                      <path d="M10 17s-6-4-6-8.4A3.6 3.6 0 0 1 10 6a3.6 3.6 0 0 1 6 2.6C16 13 10 17 10 17Z" />
-                    </svg>
-                  ) : (
-                    <svg viewBox="0 0 20 20" fill="#F59E0B" className="h-5 w-5">
-                      <path d="M10 1l2.2 6.8L19 10l-6.8 2.2L10 19l-2.2-6.8L1 10l6.8-2.2L10 1z" />
-                    </svg>
-                  )}
-                </span>
-              ))}
-            </div>
+                  <KittyBouquetSvg purrPct={purrPct} bouncing={kittyBouncing} />
+                </button>
 
-            <p className="mt-1 min-h-[2.5rem] text-xs font-medium leading-relaxed text-[#5B2148]/90">
-              {copy.kittyPrompts[purrStepIdx]}
-            </p>
-
-            {/* Cheerful Purr Progress Bar 0% -> 100% */}
-            <div className="mt-3 rounded-2xl border border-[#FB7185]/25 bg-[#FFF5F8] p-3">
-              <div className="flex items-center justify-between font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-[#831843]">
-                <span>{copy.purrMeterLabel}</span>
-                <span>{purrPct}%</span>
+                {sparkles.map((sp) => (
+                  <span
+                    key={sp.id}
+                    aria-hidden="true"
+                    className={`pointer-events-none absolute ${
+                      sp.kind === 'whisper' ? '-translate-x-1/2' : ''
+                    }`}
+                    style={{ left: `${sp.xPct}%`, top: `${sp.yPct}%` }}
+                  >
+                    <span className="mts-sparkle-pop block">
+                      {sp.kind === 'whisper' ? (
+                        <span className="inline-block whitespace-nowrap rounded-full border border-[#FB7185]/40 bg-[#FFFBF5]/95 px-2.5 py-0.5 font-handwritten text-lg font-bold leading-none text-[#9D174D] shadow-xs">
+                          {sp.text}
+                        </span>
+                      ) : sp.kind === 'heart' ? (
+                        <svg viewBox="0 0 20 20" fill="#E11D63" className="h-5 w-5">
+                          <path d="M10 17s-6-4-6-8.4A3.6 3.6 0 0 1 10 6a3.6 3.6 0 0 1 6 2.6C16 13 10 17 10 17Z" />
+                        </svg>
+                      ) : (
+                        <svg viewBox="0 0 20 20" fill="#F59E0B" className="h-5 w-5">
+                          <path d="M10 1l2.2 6.8L19 10l-6.8 2.2L10 19l-2.2-6.8L1 10l6.8-2.2L10 1z" />
+                        </svg>
+                      )}
+                    </span>
+                  </span>
+                ))}
               </div>
-              <div
-                role="progressbar"
-                aria-valuenow={purrPct}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-label={copy.purrMeterLabel}
-                className="mt-2 h-3 w-full overflow-hidden rounded-full bg-[#FCE7F1]"
-              >
+
+              <p className="mt-1 min-h-[2.5rem] text-xs font-medium leading-relaxed text-[#5B2148]/90">
+                {copy.kittyPrompts[purrStepIdx]}
+              </p>
+
+              {/* Cheerful Purr Progress Bar 0% -> 100% */}
+              <div className="mt-3 rounded-2xl border border-[#FB7185]/25 bg-[#FFF5F8] p-3">
+                <div className="flex items-center justify-between font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-[#831843]">
+                  <span>{copy.purrMeterLabel}</span>
+                  <span>{purrPct}%</span>
+                </div>
                 <div
-                  className="h-full rounded-full transition-all duration-300 motion-reduce:transition-none"
-                  style={{
-                    width: `${purrPct}%`,
-                    background: 'linear-gradient(90deg, #FB7185 0%, #E11D63 60%, #F59E0B 100%)',
-                  }}
-                />
+                  role="progressbar"
+                  aria-valuenow={purrPct}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label={copy.purrMeterLabel}
+                  className="mt-2 h-3 w-full overflow-hidden rounded-full bg-[#FCE7F1]"
+                >
+                  <div
+                    className="h-full rounded-full transition-all duration-300 motion-reduce:transition-none"
+                    style={{
+                      width: `${purrPct}%`,
+                      background: 'linear-gradient(90deg, #FB7185 0%, #E11D63 60%, #F59E0B 100%)',
+                    }}
+                  />
+                </div>
               </div>
+
+              {purrPct < 100 ? (
+                <button
+                  type="button"
+                  onClick={handleTapKitty}
+                  className="mt-4 inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-[#4A153B] px-5 text-sm font-bold text-white shadow-md transition hover:brightness-110 active:scale-[0.98] motion-reduce:transition-none"
+                >
+                  <span>{copy.kittyTapBtn}</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setAct('arcade')}
+                  className="mt-4 inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#E11D63] to-[#FB7185] px-5 text-sm font-bold text-white shadow-[0_10px_24px_-8px_rgba(225,29,99,0.65)] transition hover:brightness-105 active:scale-[0.98] motion-reduce:transition-none"
+                >
+                  <span>{copy.kittyUnlockedBtn}</span>
+                  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" className="h-4 w-4">
+                    <path d="M4 10h12m-4.5-4.5L16 10l-4.5 4.5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={handleSkipToLetter}
+                className="mt-2 inline-flex min-h-[44px] w-full items-center justify-center rounded-full px-4 text-xs font-semibold text-[#831843]/80 underline decoration-[#831843]/35 underline-offset-4 transition hover:text-[#4A153B]"
+              >
+                {copy.skipToLetter}
+              </button>
             </div>
-
-            {purrPct < 100 ? (
-              <button
-                type="button"
-                onClick={handleTapKitty}
-                className="mt-4 inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-[#4A153B] px-5 text-sm font-bold text-white shadow-md transition hover:brightness-110 active:scale-[0.98]"
-              >
-                <span>{copy.kittyTapBtn}</span>
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setAct('arcade')}
-                className="mt-4 inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#E11D63] to-[#FB7185] px-5 text-sm font-bold text-white shadow-[0_10px_24px_-8px_rgba(225,29,99,0.65)] transition hover:brightness-105 active:scale-[0.98]"
-              >
-                <span>{copy.kittyUnlockedBtn}</span>
-                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" className="h-4 w-4">
-                  <path d="M4 10h12m-4.5-4.5L16 10l-4.5 4.5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-            )}
-
-            <button
-              type="button"
-              onClick={handleSkipToLetter}
-              className="mt-2 inline-flex min-h-[44px] w-full items-center justify-center rounded-full px-4 text-xs font-semibold text-[#831843]/80 underline decoration-[#831843]/35 underline-offset-4 transition hover:text-[#4A153B]"
-            >
-              {copy.skipToLetter}
-            </button>
           </section>
 
           <footer className="pt-1 text-center text-[11px] font-medium text-white/85">
@@ -1104,20 +1219,22 @@ export function MakeThemSmileSite({
             {copy.arcadeIntro}
           </p>
 
-          <OccasionPixelNightRide
-            receiverName={data.receiverName}
-            senderName={data.senderName}
-            storyLines={highlightsAsStrings}
-            language={coreLang}
-            accentColor="#FB7185"
-            onComplete={() => setRideFinished(true)}
-          />
+          <div className="rounded-[22px] border-2 border-[#3C2B73]/70 bg-[#0A0718]/90 p-1.5 shadow-[0_18px_42px_-16px_rgba(10,7,24,0.85)]">
+            <OccasionPixelNightRide
+              receiverName={data.receiverName}
+              senderName={data.senderName}
+              storyLines={highlightsAsStrings}
+              language={coreLang}
+              accentColor="#FB7185"
+              onComplete={() => setRideFinished(true)}
+            />
+          </div>
 
           {rideFinished ? (
             <button
               type="button"
               onClick={() => setAct('clouds')}
-              className="inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#FB7185] via-[#E11D63] to-[#F59E0B] px-6 text-sm font-bold text-white shadow-[0_12px_28px_-8px_rgba(251,113,133,0.65)] ring-2 ring-white/40 transition hover:brightness-105 active:scale-[0.98]"
+              className="inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#FB7185] via-[#E11D63] to-[#F59E0B] px-6 text-sm font-bold text-white shadow-[0_0_28px_rgba(251,113,133,0.7)] ring-2 ring-white/50 transition hover:brightness-105 active:scale-[0.98] motion-reduce:transition-none"
             >
               <span>{copy.arcadeCompleteCta}</span>
               <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" className="h-4 w-4">
@@ -1158,7 +1275,7 @@ export function MakeThemSmileSite({
               {copy.cloudsEyebrow}
             </span>
 
-            <h2 className="relative mt-3 font-heading text-2xl font-bold text-white">
+            <h2 className="relative mt-3 font-playful text-2xl font-bold text-white sm:text-[26px]">
               {copy.cloudsTitle}
             </h2>
 
@@ -1166,7 +1283,7 @@ export function MakeThemSmileSite({
               {copy.cloudsSub}
             </p>
 
-            <div className="relative mt-6 flex justify-center">
+            <div className="relative mt-6 flex flex-col items-center gap-3">
               <HoldToChargeRing
                 label={copy.holdCloudsLabel}
                 chargingLabel={copy.holdChargingLabel}
@@ -1175,6 +1292,14 @@ export function MakeThemSmileSite({
                 durationMs={1400}
                 onComplete={() => setWarpActive(true)}
               />
+
+              <button
+                type="button"
+                onClick={() => setWarpActive(true)}
+                className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-white/25 bg-white/10 px-4 py-2 text-xs font-semibold text-[#FFE4EA] transition hover:bg-white/20 active:scale-95 motion-reduce:transition-none"
+              >
+                {copy.cloudsGentleTapLabel}
+              </button>
             </div>
           </div>
 
@@ -1221,38 +1346,55 @@ export function MakeThemSmileSite({
               <PinnedEnvelopePinSvg />
             </div>
 
-            <div className="relative overflow-hidden rounded-[26px] border border-[#E11D63]/20 bg-[#FFFBF5] px-5 pb-6 pt-7 shadow-[0_20px_44px_-18px_rgba(74,21,59,0.34)]">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="rounded-full bg-[#FCE7F1] px-3 py-1 font-mono text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#9D174D]">
-                  {copy.letterTag}
-                </span>
-                {data.relation ? (
-                  <span className="rounded-full border border-[#FB7185]/35 bg-[#FFF1F5] px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.1em] text-[#831843]">
-                    {data.relation}
+            <div className="occasion-dot-grid relative overflow-hidden rounded-[26px] border border-[#E11D63]/20 px-5 pb-6 pt-6 shadow-[0_20px_44px_-18px_rgba(74,21,59,0.34)]">
+              <AtmosphericGrainOverlay opacity={0.045} />
+
+              <div className="relative z-10">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="rounded-full bg-[#FCE7F1] px-3 py-1 font-mono text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#9D174D]">
+                      {copy.letterTag}
+                    </span>
+                    {data.relation ? (
+                      <span className="rounded-full border border-[#FB7185]/35 bg-[#FFF1F5] px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.1em] text-[#831843]">
+                        {data.relation}
+                      </span>
+                    ) : null}
+                  </div>
+
+                  <AirmailPostageStamp
+                    label={copy.stampLabel}
+                    code={copy.stampCode}
+                    initials={receiverInitials}
+                    accentColor="#E11D63"
+                  />
+                </div>
+
+                <p className="mt-3 break-words font-handwritten text-2xl font-bold text-[#9D174D]">
+                  {copy.letterSalutation(data.receiverName)}
+                </p>
+
+                <WordByWordFadeLine
+                  text={pickLocalizedText(data.headline, language)}
+                  active={cloudsParted}
+                  className="mt-1.5 break-words font-playful text-xl font-bold leading-snug text-[#3E1330] sm:text-2xl"
+                  delayStepMs={70}
+                />
+
+                <p className="mt-3.5 break-words rounded-2xl border-l-4 border-[#FB7185] bg-[#FFF2F6]/90 px-4 py-3.5 text-sm leading-relaxed text-[#3E1330]/95">
+                  {pickLocalizedText(data.message, language)}
+                </p>
+
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-dashed border-[#4A153B]/15 pt-3">
+                  <span className="break-words font-handwritten text-xl font-bold text-[#831843] sm:text-2xl">
+                    {copy.signedWarmth(data.senderName)}
                   </span>
-                ) : null}
-              </div>
-
-              <WordByWordFadeLine
-                text={pickLocalizedText(data.headline, language)}
-                active={cloudsParted}
-                className="mt-4 break-words font-heading text-xl font-extrabold leading-snug text-[#3E1330] sm:text-2xl"
-                delayStepMs={70}
-              />
-
-              <p className="mt-3.5 break-words rounded-2xl border-l-4 border-[#FB7185] bg-[#FFF2F6] px-4 py-3.5 text-sm leading-relaxed text-[#3E1330]/95">
-                {pickLocalizedText(data.message, language)}
-              </p>
-
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-dashed border-[#4A153B]/15 pt-3 text-xs">
-                <span className="font-semibold text-[#831843]">
-                  {copy.signedWarmth(data.senderName)}
-                </span>
-                {formattedDate ? (
-                  <span className="font-mono text-[10px] font-bold text-[#9D174D]/80">
-                    {formattedDate}
-                  </span>
-                ) : null}
+                  {formattedDate ? (
+                    <span className="font-mono text-[10px] font-bold text-[#9D174D]/80">
+                      {formattedDate}
+                    </span>
+                  ) : null}
+                </div>
               </div>
             </div>
           </section>
@@ -1264,7 +1406,7 @@ export function MakeThemSmileSite({
           >
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
-                <h2 className="font-heading text-base font-bold text-[#3E1330]">
+                <h2 className="font-playful text-lg font-bold text-[#3E1330]">
                   {copy.openWhenHeading}
                 </h2>
                 <p className="text-[11px] text-[#6B2D55]/80">{copy.openWhenSub}</p>
@@ -1306,7 +1448,7 @@ export function MakeThemSmileSite({
                 return (
                   <div
                     key={`${pickLocalizedText(card.title, 'en', 'env')}-${idx}`}
-                    className={`overflow-hidden rounded-2xl border transition-all duration-300 ${
+                    className={`overflow-hidden rounded-2xl border transition-all duration-300 motion-reduce:transition-none ${
                       isOpen
                         ? 'border-[#E11D63]/35 bg-[#FFFBF5] shadow-sm'
                         : 'border-[#4A153B]/12 bg-[#FFF5F8] hover:border-[#E11D63]/35'
@@ -1317,7 +1459,7 @@ export function MakeThemSmileSite({
                       onClick={() => toggleEnvelope(idx)}
                       aria-expanded={isOpen}
                       aria-controls={panelId}
-                      className="flex min-h-[56px] w-full items-center justify-between gap-3 px-3.5 py-2.5 text-left transition active:scale-[0.99]"
+                      className="flex min-h-[56px] w-full items-center justify-between gap-3 px-3.5 py-2.5 text-left transition active:scale-[0.99] motion-reduce:transition-none"
                     >
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
@@ -1352,8 +1494,19 @@ export function MakeThemSmileSite({
                       }`}
                     >
                       <div className="overflow-hidden">
-                        <div className="border-t border-dashed border-[#4A153B]/15 bg-[#FFFBF5] px-3.5 pb-3.5 pt-2.5">
-                          <p className="break-words text-sm leading-relaxed text-[#3E1330]/95">
+                        <div className="border-t border-dashed border-[#4A153B]/15 bg-[#FFFBF5] px-3.5 pb-3.5 pt-0">
+                          {/* Delicate triangular folded envelope flap crease accent */}
+                          <svg
+                            viewBox="0 0 320 18"
+                            preserveAspectRatio="none"
+                            className="-mx-3.5 mb-2 block h-4 w-[calc(100%+1.75rem)] text-[#E11D63]/25"
+                            fill="none"
+                            aria-hidden="true"
+                          >
+                            <path d="M0 0L160 16L320 0Z" fill="#FCE7F1" fillOpacity="0.55" />
+                            <path d="M0 0L160 16L320 0" stroke="currentColor" strokeWidth="1.2" strokeDasharray="4 3" />
+                          </svg>
+                          <p className="break-words font-handwritten text-xl leading-snug text-[#3E1330]/95">
                             {pickLocalizedText(card.detail, language)}
                           </p>
                           <p className="mt-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-[#9D174D]">
@@ -1374,10 +1527,10 @@ export function MakeThemSmileSite({
             className="rounded-[24px] border border-white/75 bg-white/90 p-4 text-center shadow-md backdrop-blur-md"
           >
             <div className="flex items-center justify-between gap-2">
-              <span className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-[#3E1330]">
+              <h2 className="font-playful text-lg font-bold text-[#3E1330]">
                 {copy.jarHeading}
-              </span>
-              <span className="rounded-full bg-[#FCE7F1] px-2.5 py-0.5 font-mono text-[10px] font-bold text-[#9D174D]">
+              </h2>
+              <span className="shrink-0 rounded-full bg-[#FCE7F1] px-2.5 py-0.5 font-mono text-[10px] font-bold text-[#9D174D]">
                 {copy.jarCounterLabel(jarCount)}
               </span>
             </div>
@@ -1388,7 +1541,7 @@ export function MakeThemSmileSite({
               type="button"
               onClick={handlePullJarTicket}
               aria-label={copy.jarTapButton}
-              className="mt-2.5 inline-flex min-h-[48px] w-full flex-col items-center justify-center rounded-2xl border border-dashed border-[#E11D63]/25 bg-[#FFF5F8] py-2 transition hover:bg-[#FCE7F1]/55 active:scale-[0.99]"
+              className="mt-2.5 inline-flex min-h-[48px] w-full flex-col items-center justify-center rounded-2xl border border-dashed border-[#E11D63]/25 bg-[#FFF5F8] py-2 transition hover:bg-[#FCE7F1]/55 active:scale-[0.99] motion-reduce:transition-none"
             >
               <SmileJarIllustration
                 label={copy.jarJarLabel}
@@ -1397,18 +1550,39 @@ export function MakeThemSmileSite({
               />
             </button>
 
+            {/* Notched / perforated pastel raffle ticket card */}
             <div
               role="status"
               aria-live="polite"
-              className="mt-3 rounded-xl border border-[#F59E0B]/35 bg-[#FFFBEB] px-3.5 py-3 text-sm font-medium leading-relaxed text-[#3E1330]"
+              className="relative mt-3 overflow-hidden rounded-xl border border-[#F59E0B]/40 bg-[#FFF7DF] px-5 py-3 text-left shadow-xs"
             >
-              {activeJarTicket}
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute top-1/2 -left-2.5 h-5 w-5 -translate-y-1/2 rounded-full border border-[#F59E0B]/40 bg-white"
+              />
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute top-1/2 -right-2.5 h-5 w-5 -translate-y-1/2 rounded-full border border-[#F59E0B]/40 bg-white"
+              />
+              <div className="rounded-lg border border-dashed border-[#E11D63]/30 bg-[#FFFDF7]/85 px-3 py-2.5">
+                <div className="mb-1 flex items-center justify-between gap-2">
+                  <span className="font-mono text-[9.5px] font-bold uppercase tracking-[0.14em] text-[#9D174D]">
+                    {copy.jarJarLabel}
+                  </span>
+                  <span className="rounded-full bg-[#FCE7F1] px-2 py-0.5 font-mono text-[10px] font-extrabold tracking-[0.1em] text-[#9D174D]">
+                    {jarCount > 0 ? `#${String(jarCount).padStart(2, '0')}` : copy.jarReadyStamp}
+                  </span>
+                </div>
+                <p className="break-words font-handwritten text-xl leading-snug text-[#3E1330]">
+                  {activeJarTicket}
+                </p>
+              </div>
             </div>
 
             <button
               type="button"
               onClick={handlePullJarTicket}
-              className="mt-3 inline-flex min-h-[48px] w-full items-center justify-center rounded-full bg-[#4A153B] px-5 text-xs font-bold text-white shadow-sm transition hover:brightness-110 active:scale-[0.98]"
+              className="mt-3 inline-flex min-h-[48px] w-full items-center justify-center rounded-full bg-[#4A153B] px-5 text-xs font-bold text-white shadow-sm transition hover:brightness-110 active:scale-[0.98] motion-reduce:transition-none"
             >
               {copy.jarTapButton}
             </button>
@@ -1436,6 +1610,7 @@ export function MakeThemSmileSite({
                 photos={data.photos}
                 accentColor="#E11D63"
                 captionPrefix={copy.photoPrefix}
+                captionFont="handwritten"
               />
             </section>
           ) : null}

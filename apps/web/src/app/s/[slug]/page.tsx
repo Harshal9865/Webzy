@@ -71,7 +71,7 @@ export default async function ReceiverSitePage({
   const { data: site } = await admin
     .from('sites')
     .select(
-      'id, slug, content_json, status, hidden, reveal_at, expires_at, deleted_at, reply_text, theme_versions(theme_id)',
+      'id, slug, content_json, status, hidden, reveal_at, expires_at, is_lifetime, deleted_at, reply_text, theme_versions(theme_id)',
     )
     .eq('slug', slug)
     .maybeSingle();
@@ -84,7 +84,10 @@ export default async function ReceiverSitePage({
     return <ReceiverClient slug={slug} state="hidden" serverNowMs={serverNowMs} />;
   }
 
-  if (site.status === 'expired' || (site.expires_at && Date.parse(site.expires_at) <= serverNowMs)) {
+  if (
+    !site.is_lifetime &&
+    (site.status === 'expired' || (site.expires_at && Date.parse(site.expires_at) <= serverNowMs))
+  ) {
     return <ReceiverClient slug={slug} state="expired" serverNowMs={serverNowMs} />;
   }
 

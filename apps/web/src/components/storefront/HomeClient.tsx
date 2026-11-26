@@ -93,30 +93,30 @@ export function HomeClient({ themes }: HomeClientProps) {
         </div>
 
         {/* 4 Distinct Hubs - Clean Editorial Cards */}
-        <div className="mt-6 grid grid-cols-1 gap-3 xs:grid-cols-2 sm:gap-4 lg:grid-cols-4">
+        <div className="mt-6 grid grid-cols-2 gap-2.5 sm:gap-4 lg:grid-cols-4">
           {/* Card 1: Weddings */}
           <Link
             href="/weddings"
-            className="group relative flex flex-col justify-between rounded-2xl border border-webzy-ink/[0.08] bg-white p-4 sm:p-5 transition hover:border-webzy-primary/40 hover:shadow-md active:scale-[0.99]"
+            className="group relative flex flex-col justify-between rounded-2xl border border-webzy-ink/[0.08] bg-white p-3 sm:p-5 transition hover:border-webzy-primary/40 hover:shadow-md active:scale-[0.99]"
           >
             <div>
               <p className="text-[11px] font-semibold text-webzy-ink/50">{site.home.hubs.weddings.tag}</p>
-              <h3 className="mt-2 font-heading text-base font-bold text-webzy-ink sm:text-lg group-hover:text-webzy-primary transition-colors">
+              <h3 className="mt-1.5 sm:mt-2 font-heading text-sm leading-snug font-bold text-webzy-ink sm:text-lg group-hover:text-webzy-primary transition-colors">
                 {site.home.hubs.weddings.title}
               </h3>
-              <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-webzy-ink/70">
+              <p className="mt-1 sm:mt-1.5 line-clamp-2 text-[11px] sm:text-xs leading-relaxed text-webzy-ink/70">
                 {site.home.hubs.weddings.subtitle}
               </p>
             </div>
 
-            <div className="mt-4 flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1 border-t border-webzy-ink/[0.07] pt-3">
+            <div className="mt-3 sm:mt-4 flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1 border-t border-webzy-ink/[0.07] pt-2.5 sm:pt-3">
               <div className="flex items-baseline gap-1.5 font-tabular">
                 <span className="font-heading text-sm font-bold text-webzy-ink sm:text-base">
                   ₹499
                 </span>
                 <span className="text-[11px] text-webzy-ink/40 line-through">₹1,499</span>
               </div>
-              <span className="text-xs font-semibold text-webzy-primary group-hover:translate-x-0.5 transition-transform">
+              <span className="text-[11px] sm:text-xs font-semibold text-webzy-primary group-hover:translate-x-0.5 transition-transform">
                 {site.common.explore} →
               </span>
             </div>
@@ -125,26 +125,26 @@ export function HomeClient({ themes }: HomeClientProps) {
           {/* Card 2: Birthdays */}
           <Link
             href="/themes?occasion=birthday"
-            className="group relative flex flex-col justify-between rounded-2xl border border-webzy-ink/[0.08] bg-white p-4 sm:p-5 transition hover:border-webzy-primary/40 hover:shadow-md active:scale-[0.99]"
+            className="group relative flex flex-col justify-between rounded-2xl border border-webzy-ink/[0.08] bg-white p-3 sm:p-5 transition hover:border-webzy-primary/40 hover:shadow-md active:scale-[0.99]"
           >
             <div>
               <p className="text-[11px] font-semibold text-webzy-ink/50">{site.home.hubs.birthdays.tag}</p>
-              <h3 className="mt-2 font-heading text-base font-bold text-webzy-ink sm:text-lg group-hover:text-webzy-primary transition-colors">
+              <h3 className="mt-1.5 sm:mt-2 font-heading text-sm leading-snug font-bold text-webzy-ink sm:text-lg group-hover:text-webzy-primary transition-colors">
                 {site.home.hubs.birthdays.title}
               </h3>
-              <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-webzy-ink/70">
+              <p className="mt-1 sm:mt-1.5 line-clamp-2 text-[11px] sm:text-xs leading-relaxed text-webzy-ink/70">
                 {site.home.hubs.birthdays.subtitle}
               </p>
             </div>
 
-            <div className="mt-4 flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1 border-t border-webzy-ink/[0.07] pt-3">
+            <div className="mt-3 sm:mt-4 flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1 border-t border-webzy-ink/[0.07] pt-2.5 sm:pt-3">
               <div className="flex items-baseline gap-1.5 font-tabular">
                 <span className="font-heading text-sm font-bold text-webzy-ink sm:text-base">
                   ₹49
                 </span>
                 <span className="text-[11px] text-webzy-ink/40 line-through">₹149</span>
               </div>
-              <span className="text-xs font-semibold text-webzy-primary group-hover:translate-x-0.5 transition-transform">
+              <span className="text-[11px] sm:text-xs font-semibold text-webzy-primary group-hover:translate-x-0.5 transition-transform">
                 {site.common.explore} →
               </span>
             </div>
@@ -153,61 +153,80 @@ export function HomeClient({ themes }: HomeClientProps) {
           {/* Card 3: Romance */}
           <Link
             href="/themes?occasion=love"
-            className="group relative flex flex-col justify-between rounded-2xl border border-webzy-ink/[0.08] bg-white p-4 sm:p-5 transition hover:border-webzy-primary/40 hover:shadow-md active:scale-[0.99]"
+            className="group relative flex flex-col justify-between rounded-2xl border border-webzy-ink/[0.08] bg-white p-3 sm:p-5 transition hover:border-webzy-primary/40 hover:shadow-md active:scale-[0.99]"
           >
             <div>
               <p className="text-[11px] font-semibold text-webzy-ink/50">{site.home.hubs.romance.tag}</p>
-              <h3 className="mt-2 font-heading text-base font-bold text-webzy-ink sm:text-lg group-hover:text-webzy-primary transition-colors">
+              <h3 className="mt-1.5 sm:mt-2 font-heading text-sm leading-snug font-bold text-webzy-ink sm:text-lg group-hover:text-webzy-primary transition-colors">
                 {site.home.hubs.romance.title}
               </h3>
-              <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-webzy-ink/70">
+              <p className="mt-1 sm:mt-1.5 line-clamp-2 text-[11px] sm:text-xs leading-relaxed text-webzy-ink/70">
                 {site.home.hubs.romance.subtitle}
               </p>
             </div>
 
-            <div className="mt-4 flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1 border-t border-webzy-ink/[0.07] pt-3">
+            <div className="mt-3 sm:mt-4 flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1 border-t border-webzy-ink/[0.07] pt-2.5 sm:pt-3">
               <div className="flex items-baseline gap-1.5 font-tabular">
                 <span className="font-heading text-sm font-bold text-webzy-ink sm:text-base">
                   ₹29
                 </span>
                 <span className="text-[11px] text-webzy-ink/40 line-through">₹99</span>
               </div>
-              <span className="text-xs font-semibold text-webzy-primary group-hover:translate-x-0.5 transition-transform">
+              <span className="text-[11px] sm:text-xs font-semibold text-webzy-primary group-hover:translate-x-0.5 transition-transform">
                 {site.common.explore} →
               </span>
             </div>
           </Link>
 
-          {/* Card 4: Festivals & Family */}
+          {/* Card 4: Portfolio & Creative Showcase */}
           <Link
-            href="/themes?occasion=festival"
-            className="group relative flex flex-col justify-between rounded-2xl border border-webzy-ink/[0.08] bg-white p-4 sm:p-5 transition hover:border-webzy-primary/40 hover:shadow-md active:scale-[0.99]"
+            href="/themes?occasion=portfolio"
+            className="group relative flex flex-col justify-between rounded-2xl border border-webzy-ink/[0.08] bg-white p-3 sm:p-5 transition hover:border-webzy-primary/40 hover:shadow-md active:scale-[0.99]"
           >
             <div>
-              <p className="text-[11px] font-semibold text-webzy-ink/50">{site.home.hubs.festivals.tag}</p>
-              <h3 className="mt-2 font-heading text-base font-bold text-webzy-ink sm:text-lg group-hover:text-webzy-primary transition-colors">
-                {site.home.hubs.festivals.title}
+              <p className="text-[11px] font-semibold text-webzy-ink/50">
+                {pickLocalizedText(
+                  { hinglish: 'Portfolio', hi: 'पोर्टफोलियो', en: 'Portfolio' },
+                  language,
+                )}
+              </p>
+              <h3 className="mt-1.5 sm:mt-2 font-heading text-sm leading-snug font-bold text-webzy-ink sm:text-lg group-hover:text-webzy-primary transition-colors">
+                {pickLocalizedText(
+                  {
+                    hinglish: 'Portfolio & Resume',
+                    hi: 'पोर्टफोलियो और रेज़्यूमे',
+                    en: 'Portfolio & Creative Showcase',
+                  },
+                  language,
+                )}
               </h3>
-              <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-webzy-ink/70">
-                {site.home.hubs.festivals.subtitle}
+              <p className="mt-1 sm:mt-1.5 line-clamp-2 text-[11px] sm:text-xs leading-relaxed text-webzy-ink/70">
+                {pickLocalizedText(
+                  {
+                    hinglish: 'Designers, developers aur creators ke liye 3 showcase styles.',
+                    hi: 'डिज़ाइनर्स, डेवलपर्स और क्रिएटर्स के लिए 3 ख़ास पोर्टफोलियो स्टाइल।',
+                    en: 'Three bespoke portfolio styles for designers, developers & creators.',
+                  },
+                  language,
+                )}
               </p>
             </div>
 
-            <div className="mt-4 flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1 border-t border-webzy-ink/[0.07] pt-3">
+            <div className="mt-3 sm:mt-4 flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1 border-t border-webzy-ink/[0.07] pt-2.5 sm:pt-3">
               <div className="flex items-baseline gap-1.5 font-tabular">
                 <span className="font-heading text-sm font-bold text-webzy-ink sm:text-base">
-                  ₹49
+                  ₹79
                 </span>
-                <span className="text-[11px] text-webzy-ink/40 line-through">₹149</span>
+                <span className="text-[11px] text-webzy-ink/40 line-through">₹199</span>
               </div>
-              <span className="text-xs font-semibold text-webzy-primary group-hover:translate-x-0.5 transition-transform">
+              <span className="text-[11px] sm:text-xs font-semibold text-webzy-primary group-hover:translate-x-0.5 transition-transform">
                 {site.common.explore} →
               </span>
             </div>
           </Link>
         </div>
 
-        {/* Studio Waitlist Strip */}
+        {/* Custom Made Waitlist Strip */}
         <div className="mt-6 flex flex-col justify-between gap-4 rounded-2xl bg-webzy-ink p-5 text-white sm:flex-row sm:items-center sm:p-6">
           <div>
             <p className="font-heading text-base font-bold text-white sm:text-lg">
@@ -233,7 +252,7 @@ export function HomeClient({ themes }: HomeClientProps) {
         </h2>
         <p className="mt-1 text-sm text-webzy-ink/75">{copy.featuredSubtitle}</p>
 
-        <div className="mt-6 grid grid-cols-1 gap-3.5 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 lg:gap-5">
+        <div className="mt-6 grid grid-cols-2 gap-2.5 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-5">
           {themes.map((theme) => (
             <ThemeCard key={theme.id} theme={theme} />
           ))}
@@ -242,15 +261,15 @@ export function HomeClient({ themes }: HomeClientProps) {
 
       {/* 4. How It Works */}
       <section id="how-it-works" className="border-y border-webzy-tint bg-webzy-surface/50">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:py-12 sm:px-6">
           <h2 className="font-heading text-2xl font-bold text-webzy-ink sm:text-3xl">
             {copy.stepsTitle}
           </h2>
-          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="mt-5 sm:mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
             {copy.steps.map((item) => (
               <div
                 key={item.step}
-                className="interactive-card rounded-3xl border border-webzy-tint bg-white p-5 shadow-sm"
+                className="interactive-card rounded-2xl sm:rounded-3xl border border-webzy-tint bg-white p-4 sm:p-5 shadow-sm"
               >
                 <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-webzy-primary text-sm font-bold text-white">
                   {item.step}
@@ -266,28 +285,28 @@ export function HomeClient({ themes }: HomeClientProps) {
       </section>
 
       {/* 5. Honest Pricing Strip */}
-      <section id="pricing" className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
+      <section id="pricing" className="mx-auto max-w-7xl px-4 py-8 sm:py-12 sm:px-6">
         <h2 className="font-heading text-2xl font-bold text-webzy-ink sm:text-3xl">
           {copy.pricingTitle}
         </h2>
         <p className="mt-1 text-sm text-webzy-ink/75">{copy.pricingSubtitle}</p>
 
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-5 sm:mt-6 grid grid-cols-2 gap-2.5 sm:gap-4 lg:grid-cols-4">
           {BUSINESS_PRICE_TIERS.map((tier) => (
             <div
               key={tier.id}
-              className="interactive-card rounded-3xl border border-webzy-tint bg-webzy-surface/70 p-5"
+              className="interactive-card rounded-2xl sm:rounded-3xl border border-webzy-tint bg-webzy-surface/70 p-3 sm:p-5"
             >
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-xs font-bold uppercase tracking-wide text-webzy-primary">
+              <div className="flex flex-wrap items-center justify-between gap-1 sm:gap-2">
+                <p className="text-[11px] sm:text-xs font-bold uppercase tracking-wide text-webzy-primary">
                   {pickLocalizedText(tier.title, language)}
                 </p>
                 <span className="text-[10px] font-medium text-webzy-ink/50">
                   {tier.validityDays} {site.common.daysLink}
                 </span>
               </div>
-              <div className="mt-2 flex items-baseline gap-2">
-                <p className="font-heading text-2xl font-extrabold text-emerald-700">
+              <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                <p className="font-heading text-xl sm:text-2xl font-extrabold text-emerald-700">
                   {tier.rangeLabel}
                 </p>
                 {tier.compareRangeLabel ? (
@@ -296,7 +315,7 @@ export function HomeClient({ themes }: HomeClientProps) {
                   </span>
                 ) : null}
               </div>
-              <p className="mt-2 text-sm leading-relaxed text-webzy-ink/75">
+              <p className="mt-1.5 sm:mt-2 text-[11px] sm:text-xs leading-relaxed text-webzy-ink/75 line-clamp-3 sm:line-clamp-none">
                 {pickLocalizedText(tier.summary, language)}
               </p>
             </div>
@@ -321,7 +340,7 @@ export function HomeClient({ themes }: HomeClientProps) {
       </section>
 
       {/* 7. Accessible FAQ */}
-      <section id="faq" className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
+      <section id="faq" className="mx-auto max-w-4xl px-4 py-8 sm:py-12 sm:px-6">
         <h2 className="font-heading text-2xl font-bold text-webzy-ink sm:text-3xl">
           {copy.faqTitle}
         </h2>

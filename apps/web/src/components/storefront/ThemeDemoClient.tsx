@@ -36,8 +36,8 @@ export function ThemeDemoClient({ theme, defaultValidityDays }: ThemeDemoClientP
   }, [siteLanguage, theme.languages]);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:py-12">
-      <div className="mb-6">
+    <div className="mx-auto max-w-6xl px-3.5 py-5 sm:px-6 lg:py-12">
+      <div className="mb-4 sm:mb-6">
         <Link
           href="/themes"
           className="inline-flex min-h-[44px] items-center text-sm font-bold text-webzy-primary hover:underline"
@@ -46,7 +46,7 @@ export function ThemeDemoClient({ theme, defaultValidityDays }: ThemeDemoClientP
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-12">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12 lg:gap-10">
         {/* Left: Adaptive Interactive Preview Stage */}
         <div className="lg:col-span-6">
           <AdaptivePreviewStage
@@ -95,7 +95,7 @@ export function ThemeDemoClient({ theme, defaultValidityDays }: ThemeDemoClientP
         </div>
 
         {/* Right: Side Panel with Price, Inputs Needed & Languages (Section 5) */}
-        <aside className="rounded-2xl border border-webzy-ink/[0.09] bg-white p-6 lg:col-span-6 lg:p-8">
+        <aside className="rounded-2xl border border-webzy-ink/[0.09] bg-white p-4 sm:p-6 lg:col-span-6 lg:p-8">
           <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
             <span className="font-semibold text-webzy-primary">
               {pickLocalizedText(OCCASION_LABELS[theme.occasion], siteLanguage)}
@@ -105,14 +105,14 @@ export function ThemeDemoClient({ theme, defaultValidityDays }: ThemeDemoClientP
             </span>
           </div>
 
-          <h1 className="mt-4 font-heading text-3xl font-bold text-webzy-ink">
+          <h1 className="mt-3 font-heading text-2xl font-bold text-webzy-ink sm:mt-4 sm:text-3xl">
             {pickLocalizedText(theme.name, siteLanguage)}
           </h1>
           <p className="mt-2 text-sm leading-relaxed text-webzy-ink/80">
             {pickLocalizedText(theme.audience, siteLanguage)}
           </p>
 
-          <div className="mt-5 rounded-2xl bg-white p-4 shadow-sm">
+          <div className="mt-4 sm:mt-5 rounded-2xl bg-white p-3.5 sm:p-4 shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="text-xs font-semibold text-webzy-ink/60">Final GST-inclusive price</p>
               {theme.price.compareAt && theme.price.compareAt > theme.price.base ? (
@@ -122,7 +122,7 @@ export function ThemeDemoClient({ theme, defaultValidityDays }: ThemeDemoClientP
               ) : null}
             </div>
             <div className="mt-1.5 flex items-baseline gap-2.5">
-              <p className="font-heading text-3xl font-extrabold text-emerald-700">
+              <p className="font-heading text-2xl sm:text-3xl font-extrabold text-emerald-700">
                 {formatInr(theme.price.base)}
               </p>
               {theme.price.compareAt && theme.price.compareAt > theme.price.base ? (
@@ -139,7 +139,7 @@ export function ThemeDemoClient({ theme, defaultValidityDays }: ThemeDemoClientP
             ) : null}
           </div>
 
-          <div className="mt-6">
+          <div className="mt-5 sm:mt-6">
             <h2 className="text-sm font-bold text-webzy-ink">
               Inputs needed ({theme.fields.length} quick steps)
             </h2>
@@ -161,14 +161,14 @@ export function ThemeDemoClient({ theme, defaultValidityDays }: ThemeDemoClientP
             </ul>
           </div>
 
-          <div className="mt-6">
+          <div className="mt-5 sm:mt-6">
             <h2 className="text-sm font-bold text-webzy-ink">Languages included</h2>
             <p className="mt-1 text-sm text-webzy-ink/75">
               {theme.languages.map((l) => getLanguageMeta(l).nativeLabel).join(' · ')}
             </p>
           </div>
 
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-6 sm:mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
               href={
                 theme.occasion === 'wedding'

@@ -26,6 +26,9 @@ export interface OrderItem {
   canFreeEdit?: boolean;
   freeEditUntil?: string | null;
   expiresAt?: string | null;
+  isLifetime?: boolean;
+  deletedAt?: string | null;
+  deleteGraceUntil?: string | null;
 }
 
 interface OrdersClientProps {
@@ -34,7 +37,7 @@ interface OrdersClientProps {
   userEmail: string;
 }
 
-type OrderFilter = 'all' | 'live' | 'wedding' | 'other';
+type OrderFilter = 'all' | 'live' | 'wedding' | 'deleted' | 'other';
 type OrderSort = 'newest' | 'views' | 'amount';
 
 interface ThemeVisualMeta {
@@ -136,6 +139,20 @@ const THEME_META: Record<string, ThemeVisualMeta> = {
     gradient: 'from-[#C2410C] to-[#EA580C]',
     accentHex: '#FFEDD5',
   },
+  'portfolio-01': {
+    title: 'Creator & Designer Portfolio',
+    category: 'Portfolio & Showcase',
+    imageUrl: '/templates/occasions/portfolio/cover.jpg?v=1',
+    gradient: 'from-[#9C422B] to-[#C85A3F]',
+    accentHex: '#F6F2EA',
+  },
+  'small-business-01': {
+    title: 'Small Business & Storefront',
+    category: 'Storefront & Catalog',
+    imageUrl: '/templates/occasions/small-business/cover.jpg?v=1',
+    gradient: 'from-[#8E2027] to-[#1A1715]',
+    accentHex: '#FDF9F3',
+  },
   'business-greeting-01': {
     title: 'Business Greeting',
     category: 'Festival Business Card',
@@ -153,6 +170,7 @@ const ADDON_READABLE: Record<string, string> = {
   extend_21d: '21d Validity',
   extend: '3m (90d) Validity',
   extendValidity90d: '3m (90d) Validity',
+  lifetime: 'Lifetime Hosting',
 };
 
 function formatDateShort(isoString: string): string {
@@ -204,6 +222,7 @@ function getThemeMeta(themeId?: string | null): ThemeVisualMeta {
 }
 
 function isOrderLive(ord: OrderItem): boolean {
+  if (ord.deletedAt) return false;
   const isSettled = ord.status === 'paid' || ord.status === 'published';
   const isSiteActive =
     ord.siteStatus !== 'removed' &&
@@ -233,6 +252,11 @@ export function OrdersClient({ orders, webUrl, userEmail }: OrdersClientProps) {
   const [savingEdit, setSavingEdit] = useState(false);
   const [editNotice, setEditNotice] = useState<string | null>(null);
   const [editError, setEditError] = useState<string | null>(null);
+  const [deleteConfirmOrder, setDeleteConfirmOrder] = useState<OrderItem | null>(null);
+  const [deletingSite, setDeletingSite] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [restoringOrderId, setRestoringOrderId] = useState<string | null>(null);
+  const [restoreErrors, setRestoreErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     setOrderList(orders);
@@ -245,7 +269,9 @@ export function OrdersClient({ orders, webUrl, userEmail }: OrdersClientProps) {
     };
   }, []);
 
-  const hasModalOpen = Boolean(selectedReceiptOrder || editingOrder || shareOrder);
+  const hasModalOpen = Boolean(
+    selectedReceiptOrder || editingOrder || shareOrder || deleteConfirmOrder,
+  );
   useEffect(() => {
     if (!hasModalOpen) return;
     const prevOverflow = document.body.style.overflow;
@@ -257,6 +283,10 @@ export function OrdersClient({ orders, webUrl, userEmail }: OrdersClientProps) {
         setSelectedReceiptOrder(null);
         setShareOrder(null);
         setEditingOrder(null);
+        if (!deletingSite) {
+          setDeleteConfirmOrder(null);
+          setDeleteError(null);
+        }
       }
     };
     window.addEventListener('keydown', onKeyDown);
@@ -264,28 +294,47 @@ export function OrdersClient({ orders, webUrl, userEmail }: OrdersClientProps) {
       document.body.style.overflow = prevOverflow;
       window.removeEventListener('keydown', onKeyDown);
     };
-  }, [hasModalOpen]);
+  }, [hasModalOpen, deletingSite]);
 
   const cleanBase = webUrl.replace(/\/+$/, '');
 
   const counts = useMemo(() => {
     const live = orderList.filter((o) => isOrderLive(o)).length;
-    const wedding = orderList.filter((o) => o.themeId?.startsWith('wedding-')).length;
+    const wedding = orderList.filter(
+      (o) => !o.deletedAt && o.themeId?.startsWith('wedding-'),
+    ).length;
+    const deleted = orderList.filter((o) => Boolean(o.deletedAt)).length;
     const other = orderList.filter(
-      (o) => !isOrderLive(o) && o.status !== 'paid' && o.status !== 'published',
+      (o) =>
+        !o.deletedAt &&
+        !isOrderLive(o) &&
+        o.status !== 'paid' &&
+        o.status !== 'published',
     ).length;
     const totalViews = orderList.reduce((sum, o) => sum + (o.viewsCount || 0), 0);
-    return { total: orderList.length, live, wedding, other, totalViews };
+    return { total: orderList.length, live, wedding, deleted, other, totalViews };
   }, [orderList]);
+
+  useEffect(() => {
+    if (filter === 'deleted' && counts.deleted === 0) {
+      setFilter('all');
+    }
+  }, [filter, counts.deleted]);
 
   const filteredOrders = useMemo(() => {
     const q = search.trim().toLowerCase();
     const list = orderList.filter((ord) => {
       if (filter === 'live' && !isOrderLive(ord)) return false;
-      if (filter === 'wedding' && !ord.themeId?.startsWith('wedding-')) return false;
+      if (filter === 'wedding' && (Boolean(ord.deletedAt) || !ord.themeId?.startsWith('wedding-'))) {
+        return false;
+      }
+      if (filter === 'deleted' && !ord.deletedAt) return false;
       if (
         filter === 'other' &&
-        (isOrderLive(ord) || ord.status === 'paid' || ord.status === 'published')
+        (Boolean(ord.deletedAt) ||
+          isOrderLive(ord) ||
+          ord.status === 'paid' ||
+          ord.status === 'published')
       ) {
         return false;
       }
@@ -398,11 +447,123 @@ export function OrdersClient({ orders, webUrl, userEmail }: OrdersClientProps) {
     }
   }
 
+  function openDeleteModal(order: OrderItem) {
+    setDeleteConfirmOrder(order);
+    setDeleteError(null);
+  }
+
+  async function handleConfirmSoftDelete() {
+    if (!deleteConfirmOrder || !deleteConfirmOrder.siteId) return;
+    const targetOrder = deleteConfirmOrder;
+    setDeletingSite(true);
+    setDeleteError(null);
+
+    try {
+      const res = await fetch('/api/sites/manage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          siteId: targetOrder.siteId,
+          action: 'soft_delete',
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        action?: string;
+        deletedAt?: string;
+        deleteGraceUntil?: string;
+        error?: string;
+      };
+      if (!res.ok) {
+        throw new Error(data.error || 'Could not delete website.');
+      }
+
+      const deletedAtIso = data.deletedAt || new Date().toISOString();
+      const graceUntilIso =
+        data.deleteGraceUntil ||
+        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+      setOrderList((prev) =>
+        prev.map((o) =>
+          o.id === targetOrder.id
+            ? {
+                ...o,
+                deletedAt: deletedAtIso,
+                deleteGraceUntil: graceUntilIso,
+                siteStatus: 'hidden',
+                canFreeEdit: false,
+              }
+            : o,
+        ),
+      );
+      setDeleteConfirmOrder(null);
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Could not delete website.');
+    } finally {
+      setDeletingSite(false);
+    }
+  }
+
+  async function handleRestoreSite(order: OrderItem) {
+    if (!order.siteId) return;
+    setRestoringOrderId(order.id);
+    setRestoreErrors((prev) => {
+      const next = { ...prev };
+      delete next[order.id];
+      return next;
+    });
+
+    try {
+      const res = await fetch('/api/sites/manage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          siteId: order.siteId,
+          action: 'restore',
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        action?: string;
+        status?: string;
+        error?: string;
+      };
+      if (!res.ok) {
+        throw new Error(data.error || 'Could not restore website.');
+      }
+
+      const nextStatus = data.status || 'live';
+      setOrderList((prev) =>
+        prev.map((o) => {
+          if (o.id !== order.id) return o;
+          const freeEditMs = o.freeEditUntil ? Date.parse(o.freeEditUntil) : NaN;
+          const restoredCanEdit =
+            !Number.isNaN(freeEditMs) &&
+            freeEditMs > Date.now() &&
+            nextStatus !== 'removed' &&
+            nextStatus !== 'expired';
+          return {
+            ...o,
+            deletedAt: null,
+            deleteGraceUntil: null,
+            siteStatus: nextStatus,
+            canFreeEdit: restoredCanEdit,
+          };
+        }),
+      );
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Could not restore website.';
+      setRestoreErrors((prev) => ({ ...prev, [order.id]: message }));
+    } finally {
+      setRestoringOrderId(null);
+    }
+  }
+
   return (
     <div className="min-h-[84vh] bg-[#F4F5F7] font-sans text-slate-900">
-      <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:py-9 animate-fade-in">
+      <div className="mx-auto max-w-5xl px-3 py-5 sm:px-6 lg:py-9 animate-fade-in">
         {/* Clean Amazon / Flipkart Breadcrumb + Page Title + Prominent Order Search */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <div>
             <nav aria-label="Breadcrumb" className="mb-1 text-xs font-medium text-slate-500">
               <Link href="/" className="hover:text-webzy-primary hover:underline">
@@ -434,8 +595,8 @@ export function OrdersClient({ orders, webUrl, userEmail }: OrdersClientProps) {
         </div>
 
         {/* Sticky Amazon/Flipkart-Style Search & Filter Bar */}
-        <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-2xs">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="mt-4 sm:mt-5 rounded-2xl border border-slate-200 bg-white p-3 sm:p-3.5 shadow-2xs">
+          <div className="flex flex-col gap-2.5 sm:gap-3 md:flex-row md:items-center md:justify-between">
             {/* Search Input (Amazon style prominent search) */}
             <div className="relative flex-1">
               <svg
@@ -462,7 +623,7 @@ export function OrdersClient({ orders, webUrl, userEmail }: OrdersClientProps) {
                 aria-label="Sort orders"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as OrderSort)}
-                className="min-h-[42px] rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-medium text-slate-700 outline-none focus:border-webzy-primary"
+                className="min-h-[42px] w-full sm:w-auto rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-medium text-slate-700 outline-none focus:border-webzy-primary"
               >
                 <option value="newest">Recent First</option>
                 <option value="views">Most Viewed</option>
@@ -472,13 +633,16 @@ export function OrdersClient({ orders, webUrl, userEmail }: OrdersClientProps) {
           </div>
 
           {/* Meesho / Flipkart Clean Filter Pills */}
-          <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
+          <div className="mt-2.5 sm:mt-3 flex flex-wrap items-center gap-1.5 sm:gap-2 border-t border-slate-100 pt-2.5 sm:pt-3">
             {(
               [
                 { id: 'all', label: `All Orders (${counts.total})` },
                 { id: 'live', label: `Active & Live (${counts.live})` },
                 ...(counts.wedding > 0
                   ? [{ id: 'wedding' as const, label: `Weddings (${counts.wedding})` }]
+                  : []),
+                ...(counts.deleted > 0
+                  ? [{ id: 'deleted' as const, label: `Deleted (${counts.deleted})` }]
                   : []),
                 ...(counts.other > 0
                   ? [{ id: 'other' as const, label: `Refunded / Pending (${counts.other})` }]
@@ -491,7 +655,7 @@ export function OrdersClient({ orders, webUrl, userEmail }: OrdersClientProps) {
                   key={tab.id}
                   type="button"
                   onClick={() => setFilter(tab.id)}
-                  className={`min-h-[34px] rounded-full px-3.5 text-xs font-semibold transition active:scale-95 ${
+                  className={`min-h-[34px] rounded-full px-3 sm:px-3.5 text-xs font-semibold transition active:scale-95 ${
                     active
                       ? 'bg-slate-900 text-white'
                       : 'border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
@@ -505,9 +669,9 @@ export function OrdersClient({ orders, webUrl, userEmail }: OrdersClientProps) {
         </div>
 
         {/* Orders List (Amazon Top Metadata Strip + Meesho Visual Card + Flipkart Tracker) */}
-        <div className="mt-5 space-y-4">
+        <div className="mt-4 sm:mt-5 space-y-3.5 sm:space-y-4">
           {filteredOrders.length === 0 ? (
-            <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-2xs animate-fade-in">
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-10 text-center shadow-2xs animate-fade-in">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
                 <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
@@ -544,6 +708,15 @@ export function OrdersClient({ orders, webUrl, userEmail }: OrdersClientProps) {
             </div>
           ) : (
             filteredOrders.map((ord) => {
+              const isSoftDeleted = Boolean(ord.deletedAt);
+              const graceUntilMs = ord.deleteGraceUntil ? Date.parse(ord.deleteGraceUntil) : NaN;
+              const isGraceExpired = !Number.isNaN(graceUntilMs) && graceUntilMs <= Date.now();
+              const isModeratedRemoved = ord.siteStatus === 'removed';
+              const canRestore =
+                isSoftDeleted && Boolean(ord.siteId) && !isGraceExpired && !isModeratedRemoved;
+              const canSoftDelete =
+                !isSoftDeleted && Boolean(ord.siteId) && ord.siteStatus !== 'removed';
+
               const isLive = isOrderLive(ord);
               const isPaid = ord.status === 'paid' || ord.status === 'published';
               const isRefunded =
@@ -568,36 +741,46 @@ export function OrdersClient({ orders, webUrl, userEmail }: OrdersClientProps) {
                   )}`
                 : null;
 
-              const statusHeadline = isLive
-                ? ord.firstOpenedAt
-                  ? `Opened by recipient on ${formatDateTimeIst(ord.firstOpenedAt)}`
-                  : 'Live & ready to share on WhatsApp'
-                : isRefunded
-                  ? 'Order refunded · Link deactivated'
-                  : isFailed
-                    ? 'Payment failed · No amount charged'
-                    : isPending
-                      ? 'Payment pending completion'
-                      : ord.siteStatus === 'expired'
-                        ? 'Validity period completed'
-                        : 'Order settled';
+              const statusHeadline = isSoftDeleted
+                ? isModeratedRemoved
+                  ? 'Removed by safety moderation'
+                  : isGraceExpired
+                    ? 'Deleted · Recovery window ended'
+                    : 'Website taken down · Recoverable for 7 days'
+                : isLive
+                  ? ord.firstOpenedAt
+                    ? `Opened by recipient on ${formatDateTimeIst(ord.firstOpenedAt)}`
+                    : 'Live & ready to share on WhatsApp'
+                  : isRefunded
+                    ? 'Order refunded · Link deactivated'
+                    : isFailed
+                      ? 'Payment failed · No amount charged'
+                      : isPending
+                        ? 'Payment pending completion'
+                        : ord.siteStatus === 'expired'
+                          ? 'Validity period completed'
+                          : ord.siteStatus === 'hidden'
+                            ? 'Hidden by creator'
+                            : 'Order settled';
 
-              const statusToneClass = isLive
-                ? 'text-emerald-700'
-                : isRefunded || isFailed
-                  ? 'text-red-700'
-                  : 'text-amber-700';
+              const statusToneClass = isSoftDeleted
+                ? 'text-slate-700'
+                : isLive
+                  ? 'text-emerald-700'
+                  : isRefunded || isFailed
+                    ? 'text-red-700'
+                    : 'text-amber-700';
 
               const showArtThumb = Boolean(meta.imageUrl && !failedThumbs[ord.id]);
 
               return (
                 <article
                   key={ord.id}
-                  className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xs transition-all duration-200 hover:border-slate-300 hover:shadow-md"
+                  className="overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-200 bg-white shadow-2xs transition-all duration-200 hover:border-slate-300 hover:shadow-md"
                 >
                   {/* ZONE 1: Amazon-Style Structured Order Metadata Bar */}
-                  <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 bg-[#F8F9FB] px-4 py-3 text-xs sm:px-6">
-                    <div className="flex flex-wrap items-center gap-6 sm:gap-8">
+                  <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-4 border-b border-slate-200 bg-[#F8F9FB] px-3.5 py-2.5 text-xs sm:px-6 sm:py-3">
+                    <div className="flex flex-wrap items-center gap-4 sm:gap-8">
                       <div>
                         <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500">
                           Order Placed
@@ -633,7 +816,7 @@ export function OrdersClient({ orders, webUrl, userEmail }: OrdersClientProps) {
                       ) : null}
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3 text-right">
+                    <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 text-right">
                       <div>
                         <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500">
                           Order #
@@ -659,17 +842,19 @@ export function OrdersClient({ orders, webUrl, userEmail }: OrdersClientProps) {
                   </div>
 
                   {/* ZONE 2: Meesho Thumbnail + Readable Content + Amazon Right Action Stack */}
-                  <div className="p-4 sm:p-6">
+                  <div className="p-3.5 sm:p-5">
                     {/* Clear Level-1 Status Anchor */}
-                    <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                    <div className="mb-3 sm:mb-4 flex flex-wrap items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
                         <span
-                          className={`inline-block h-2.5 w-2.5 rounded-full ${
-                            isLive
-                              ? 'bg-emerald-600'
-                              : isRefunded || isFailed
-                                ? 'bg-red-600'
-                                : 'bg-amber-500'
+                          className={`inline-block h-2.5 w-2.5 shrink-0 rounded-full ${
+                            isSoftDeleted
+                              ? 'bg-slate-400'
+                              : isLive
+                                ? 'bg-emerald-600'
+                                : isRefunded || isFailed
+                                  ? 'bg-red-600'
+                                  : 'bg-amber-500'
                           }`}
                           aria-hidden="true"
                         />
@@ -678,52 +863,86 @@ export function OrdersClient({ orders, webUrl, userEmail }: OrdersClientProps) {
                         </h2>
                       </div>
 
-                      {daysLeft !== null && isLive ? (
+                      {!isSoftDeleted && ord.isLifetime && ord.siteStatus !== 'removed' ? (
+                        <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
+                          Lifetime Hosting (Permanent)
+                        </span>
+                      ) : !isSoftDeleted && daysLeft !== null && isLive ? (
                         <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700 font-tabular">
                           Valid for {daysLeft} more day{daysLeft === 1 ? '' : 's'}
                         </span>
                       ) : null}
                     </div>
 
-                    <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+                    <div className="flex flex-col gap-4 sm:gap-5 md:flex-row md:items-start md:justify-between">
                       {/* Left: Visual Product Thumbnail + Product Info */}
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-start gap-3.5 sm:gap-4">
+                        <div className="flex items-start gap-3 sm:gap-4">
                           {/* Visual Thumbnail Anchor */}
-                          <Link
-                            href={liveHref || '/themes'}
-                            target={liveHref ? '_blank' : undefined}
-                            className={`relative h-24 w-20 sm:h-28 sm:w-24 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br ${meta.gradient} shadow-xs transition-transform duration-200 hover:scale-[1.03]`}
-                          >
-                            {showArtThumb ? (
-                              /* eslint-disable-next-line @next/next/no-img-element */
-                              <img
-                                src={meta.imageUrl}
-                                alt={meta.title}
-                                onError={() =>
-                                  setFailedThumbs((prev) => ({ ...prev, [ord.id]: true }))
-                                }
-                                className="h-full w-full object-cover"
-                              />
-                            ) : (
-                              <div className="flex h-full w-full flex-col items-center justify-center p-2 text-center text-white">
-                                <span
-                                  className="mb-1 flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-xs font-bold"
-                                  style={{ color: meta.accentHex }}
-                                >
-                                  w
-                                </span>
-                                <span className="line-clamp-2 text-[10px] font-bold leading-tight text-white/95">
-                                  {meta.title}
-                                </span>
-                              </div>
-                            )}
-                          </Link>
+                          {isSoftDeleted || !liveHref ? (
+                            <div
+                              className={`relative h-20 w-[68px] sm:h-28 sm:w-24 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br ${meta.gradient} shadow-xs ${isSoftDeleted ? 'opacity-70' : ''}`}
+                            >
+                              {showArtThumb ? (
+                                /* eslint-disable-next-line @next/next/no-img-element */
+                                <img
+                                  src={meta.imageUrl}
+                                  alt={meta.title}
+                                  onError={() =>
+                                    setFailedThumbs((prev) => ({ ...prev, [ord.id]: true }))
+                                  }
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <div className="flex h-full w-full flex-col items-center justify-center p-2 text-center text-white">
+                                  <span
+                                    className="mb-1 flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-xs font-bold"
+                                    style={{ color: meta.accentHex }}
+                                  >
+                                    w
+                                  </span>
+                                  <span className="line-clamp-2 text-[10px] font-bold leading-tight text-white/95">
+                                    {meta.title}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <Link
+                              href={liveHref}
+                              target="_blank"
+                              className={`relative h-20 w-[68px] sm:h-28 sm:w-24 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br ${meta.gradient} shadow-xs transition-transform duration-200 hover:scale-[1.03]`}
+                            >
+                              {showArtThumb ? (
+                                /* eslint-disable-next-line @next/next/no-img-element */
+                                <img
+                                  src={meta.imageUrl}
+                                  alt={meta.title}
+                                  onError={() =>
+                                    setFailedThumbs((prev) => ({ ...prev, [ord.id]: true }))
+                                  }
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <div className="flex h-full w-full flex-col items-center justify-center p-2 text-center text-white">
+                                  <span
+                                    className="mb-1 flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-xs font-bold"
+                                    style={{ color: meta.accentHex }}
+                                  >
+                                    w
+                                  </span>
+                                  <span className="line-clamp-2 text-[10px] font-bold leading-tight text-white/95">
+                                    {meta.title}
+                                  </span>
+                                </div>
+                              )}
+                            </Link>
+                          )}
 
                           {/* Readable Plain-English Order Info */}
-                          <div className="min-w-0 flex-1 space-y-1.5">
+                          <div className="min-w-0 flex-1 space-y-1 sm:space-y-1.5">
                             <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                              <span className="text-base font-bold text-slate-900">
+                              <span className="text-sm sm:text-base font-bold text-slate-900">
                                 {meta.title}
                               </span>
                               <span className="text-xs font-medium text-slate-500">
@@ -732,7 +951,7 @@ export function OrdersClient({ orders, webUrl, userEmail }: OrdersClientProps) {
                             </div>
 
                             {ord.receiverName ? (
-                              <p className="text-sm font-medium text-slate-800">
+                              <p className="text-xs sm:text-sm font-medium text-slate-800">
                                 Recipient: <span className="font-semibold">{ord.receiverName}</span>
                               </p>
                             ) : null}
@@ -743,7 +962,7 @@ export function OrdersClient({ orders, webUrl, userEmail }: OrdersClientProps) {
                               </p>
                             ) : null}
 
-                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-0.5 text-xs text-slate-600 font-tabular">
+                            <div className="flex flex-wrap items-center gap-x-2.5 sm:gap-x-3 gap-y-1 pt-0.5 text-xs text-slate-600 font-tabular">
                               <span>
                                 <strong className="text-slate-900">{ord.viewsCount ?? 0}</strong> guest
                                 views
@@ -759,8 +978,48 @@ export function OrdersClient({ orders, webUrl, userEmail }: OrdersClientProps) {
                           </div>
                         </div>
 
+                        {/* Soft-Deleted Grace Recovery Banner */}
+                        {isSoftDeleted ? (
+                          <div className="mt-3.5 sm:mt-4 rounded-xl border border-amber-200/80 bg-amber-50/60 p-3.5 sm:p-4">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                              <div className="space-y-1">
+                                <p className="text-sm font-bold text-slate-900">
+                                  {isModeratedRemoved
+                                    ? 'Deleted — Removed by safety moderation'
+                                    : isGraceExpired
+                                      ? 'Deleted — 7-day recovery window expired'
+                                      : ord.deleteGraceUntil
+                                        ? `Deleted — Recoverable until ${formatDateTimeIst(ord.deleteGraceUntil)} IST`
+                                        : 'Deleted — Recoverable for 7 days'}
+                                </p>
+                                <p className="text-xs leading-relaxed text-slate-600">
+                                  {isModeratedRemoved
+                                    ? 'This website was removed for a policy violation and cannot be restored.'
+                                    : isGraceExpired
+                                      ? 'The 7-day recovery period has ended. Photos and message data are scheduled for permanent erasure.'
+                                      : 'Your link currently shows unavailable to visitors. Restore it anytime before the deadline above.'}
+                                </p>
+                                {restoreErrors[ord.id] ? (
+                                  <p className="text-xs font-semibold text-red-700">
+                                    {restoreErrors[ord.id]}
+                                  </p>
+                                ) : null}
+                              </div>
+
+                              <button
+                                type="button"
+                                disabled={!canRestore || restoringOrderId === ord.id}
+                                onClick={() => void handleRestoreSite(ord)}
+                                className="btn-spring inline-flex min-h-[38px] shrink-0 items-center justify-center rounded-xl bg-slate-900 px-4 text-xs font-semibold text-white shadow-2xs hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500"
+                              >
+                                {restoringOrderId === ord.id ? 'Restoring...' : 'Restore Website'}
+                              </button>
+                            </div>
+                          </div>
+                        ) : null}
+
                         {/* Flipkart-style 3-Step Visual Progress Tracker (Full width on mobile so 3 steps never squeeze beside thumbnail) */}
-                        {!isRefunded && !isFailed ? (
+                        {!isSoftDeleted && !isRefunded && !isFailed ? (
                           <div className="pt-3 sm:pl-28">
                             <div className="flex max-w-md items-center text-[11px] font-semibold">
                               <div className="flex shrink-0 items-center gap-1.5 text-emerald-700">
@@ -819,76 +1078,88 @@ export function OrdersClient({ orders, webUrl, userEmail }: OrdersClientProps) {
                       </div>
 
                       {/* Right: Amazon / Flipkart Clean Action Stack */}
-                      <div className="flex w-full shrink-0 flex-col gap-2 md:w-56">
-                        {isPending && ord.isTest ? (
-                          <Link
-                            href={`/mock-pay/${ord.id}`}
-                            className="btn-spring inline-flex min-h-[40px] w-full items-center justify-center rounded-xl bg-amber-500 px-4 text-sm font-semibold text-slate-950 shadow-2xs hover:bg-amber-400"
-                          >
-                            Finish Payment →
-                          </Link>
-                        ) : null}
-
-                        {waShareUrl && isLive ? (
-                          <a
-                            href={waShareUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="btn-spring inline-flex min-h-[40px] w-full items-center justify-center rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white shadow-2xs hover:bg-emerald-700"
-                          >
-                            Share on WhatsApp
-                          </a>
-                        ) : null}
-
-                        {liveHref ? (
-                          <div className="grid grid-cols-2 gap-2">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                fullLiveUrl && void copyWithFeedback(`url:${ord.id}`, fullLiveUrl)
-                              }
-                              className="btn-spring inline-flex min-h-[38px] items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-800 hover:bg-slate-50"
+                      {!isSoftDeleted ? (
+                        <div className="flex w-full shrink-0 flex-col gap-2 md:w-56">
+                          {isPending && ord.isTest ? (
+                            <Link
+                              href={`/mock-pay/${ord.id}`}
+                              className="btn-spring inline-flex min-h-[40px] w-full items-center justify-center rounded-xl bg-amber-500 px-4 text-sm font-semibold text-slate-950 shadow-2xs hover:bg-amber-400"
                             >
-                              {copiedKey === `url:${ord.id}` ? 'Copied!' : 'Copy Link'}
-                            </button>
+                              Finish Payment →
+                            </Link>
+                          ) : null}
+
+                          {waShareUrl && isLive ? (
                             <a
-                              href={liveHref}
+                              href={waShareUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="btn-spring inline-flex min-h-[38px] items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-800 hover:bg-slate-50"
+                              className="btn-spring inline-flex min-h-[40px] w-full items-center justify-center rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white shadow-2xs hover:bg-emerald-700"
                             >
-                              View Live ↗
+                              Share on WhatsApp
                             </a>
-                          </div>
-                        ) : null}
+                          ) : null}
 
-                        {ord.siteId && ord.canFreeEdit !== false ? (
-                          <div className="grid grid-cols-2 gap-2">
-                            <Link
-                              href={`/edit/${ord.siteId}`}
-                              className="btn-spring inline-flex min-h-[36px] items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-700 hover:border-webzy-primary hover:text-webzy-primary"
-                            >
-                              Edit Card
-                            </Link>
+                          {liveHref ? (
+                            <div className="grid grid-cols-2 gap-2">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  fullLiveUrl && void copyWithFeedback(`url:${ord.id}`, fullLiveUrl)
+                                }
+                                className="btn-spring inline-flex min-h-[38px] items-center justify-center rounded-xl border border-slate-300 bg-white px-2.5 sm:px-3 text-xs font-semibold text-slate-800 hover:bg-slate-50"
+                              >
+                                {copiedKey === `url:${ord.id}` ? 'Copied!' : 'Copy Link'}
+                              </button>
+                              <a
+                                href={liveHref}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="btn-spring inline-flex min-h-[38px] items-center justify-center rounded-xl border border-slate-300 bg-white px-2.5 sm:px-3 text-xs font-semibold text-slate-800 hover:bg-slate-50"
+                              >
+                                View Live ↗
+                              </a>
+                            </div>
+                          ) : null}
+
+                          {ord.siteId && ord.canFreeEdit !== false ? (
+                            <div className="grid grid-cols-2 gap-2">
+                              <Link
+                                href={`/edit/${ord.siteId}`}
+                                className="btn-spring inline-flex min-h-[36px] items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-2.5 sm:px-3 text-xs font-semibold text-slate-700 hover:border-webzy-primary hover:text-webzy-primary"
+                              >
+                                Edit Card
+                              </Link>
+                              <button
+                                type="button"
+                                onClick={() => openTypoModal(ord)}
+                                className="btn-spring inline-flex min-h-[36px] items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-2.5 sm:px-3 text-xs font-semibold text-slate-700 hover:border-webzy-primary hover:text-webzy-primary"
+                              >
+                                Quick Fix
+                              </button>
+                            </div>
+                          ) : null}
+
+                          {canSoftDelete ? (
                             <button
                               type="button"
-                              onClick={() => openTypoModal(ord)}
-                              className="btn-spring inline-flex min-h-[36px] items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-700 hover:border-webzy-primary hover:text-webzy-primary"
+                              onClick={() => openDeleteModal(ord)}
+                              className="btn-spring inline-flex min-h-[34px] w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-600 hover:border-red-300 hover:bg-red-50 hover:text-red-700"
                             >
-                              Quick Fix
+                              Delete Website
                             </button>
-                          </div>
-                        ) : null}
-                      </div>
+                          ) : null}
+                        </div>
+                      ) : null}
                     </div>
 
                     {/* Clean Order Footer Utility Links */}
-                    {ord.siteSlug ? (
-                      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3 text-xs text-slate-500">
+                    {ord.siteSlug && !isSoftDeleted ? (
+                      <div className="mt-3.5 sm:mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-2.5 sm:pt-3 text-xs text-slate-500">
                         <span className="font-mono text-xs text-slate-600">
                           Link: <strong className="text-slate-800">/s/{ord.siteSlug}</strong>
                         </span>
-                        <div className="flex flex-wrap items-center gap-4 font-semibold text-[#007185]">
+                        <div className="flex flex-wrap items-center gap-3 sm:gap-4 font-semibold text-[#007185]">
                           <button
                             type="button"
                             onClick={() => setShareOrder(ord)}
@@ -1219,6 +1490,97 @@ export function OrdersClient({ orders, webUrl, userEmail }: OrdersClientProps) {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        ) : null}
+
+        {/* 4. Soft-Delete Confirmation Modal (7-Day Grace Recovery) */}
+        {deleteConfirmOrder ? (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm animate-fade-in"
+            onClick={(e) => {
+              if (e.target === e.currentTarget && !deletingSite) {
+                setDeleteConfirmOrder(null);
+                setDeleteError(null);
+              }
+            }}
+          >
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="orders-delete-title"
+              className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl animate-scale-in"
+            >
+              <div className="flex items-start justify-between gap-3 border-b border-slate-200 pb-3">
+                <div>
+                  <h3 id="orders-delete-title" className="text-lg font-bold text-slate-900">
+                    Take Down &amp; Delete Website?
+                  </h3>
+                  <p className="mt-0.5 text-xs text-slate-500">
+                    {deleteConfirmOrder.receiverName || deleteConfirmOrder.invoiceNumber}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  disabled={deletingSite}
+                  onClick={() => {
+                    setDeleteConfirmOrder(null);
+                    setDeleteError(null);
+                  }}
+                  aria-label="Close delete confirmation"
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 disabled:opacity-50"
+                >
+                  ×
+                </button>
+              </div>
+
+              <div className="mt-4 space-y-3 text-xs leading-relaxed text-slate-600">
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3.5 space-y-2">
+                  <p>
+                    <strong className="text-slate-900">Immediate link takedown:</strong>{' '}
+                    Taking down this site hides{' '}
+                    <span className="font-mono font-semibold text-slate-800">
+                      /s/{deleteConfirmOrder.siteSlug || '...'}
+                    </span>{' '}
+                    right away so visitors see the page is unavailable — helpful after a
+                    disagreement or change of plans.
+                  </p>
+                  <p>
+                    <strong className="text-slate-900">7-day safe recovery:</strong>{' '}
+                    Your card remains safely recoverable for <strong>7 days</strong> inside your{' '}
+                    <strong>Deleted</strong> items before photos and message data are permanently
+                    erased under DPDP rules.
+                  </p>
+                </div>
+
+                {deleteError ? (
+                  <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-semibold text-red-900">
+                    {deleteError}
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="mt-5 flex justify-end gap-2.5 border-t border-slate-200 pt-4">
+                <button
+                  type="button"
+                  disabled={deletingSite}
+                  onClick={() => {
+                    setDeleteConfirmOrder(null);
+                    setDeleteError(null);
+                  }}
+                  className="btn-spring rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-800 hover:bg-slate-50 disabled:opacity-50"
+                >
+                  Keep Website Live
+                </button>
+                <button
+                  type="button"
+                  disabled={deletingSite}
+                  onClick={() => void handleConfirmSoftDelete()}
+                  className="btn-spring rounded-xl bg-red-600 px-5 py-2 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+                >
+                  {deletingSite ? 'Taking Down...' : 'Take Down & Delete'}
+                </button>
+              </div>
             </div>
           </div>
         ) : null}

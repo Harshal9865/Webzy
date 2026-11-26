@@ -106,6 +106,7 @@ export default async function AdminHomePage() {
       waitlistItems={snapshot.waitlistItems}
       recentModLogs={snapshot.recentModLogs}
       recentAudits={snapshot.recentAudits}
+      capacity={snapshot.capacity}
       statsLoadError={snapshot.statsLoadError}
       signOutRedirect="/login"
     />

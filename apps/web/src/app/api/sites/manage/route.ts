@@ -1,15 +1,23 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { assertSafeReadyMadeText, logEvent, WebzyError } from '@webzy/core';
+import {
+  assertSafeReadyMadeText,
+  evaluateSiteDeletionAndRestore,
+  logEvent,
+  SITE_DELETE_GRACE_DAYS,
+  WebzyError,
+} from '@webzy/core';
 import { guardMutationRequest } from '../../../../../../../infra/security/requestGuard';
-import { getAuthSessionState } from '../../../../../../../infra/supabase/auth';
+import { getAuthSessionState, writeAuditLog } from '../../../../../../../infra/supabase/auth';
 import { createSupabaseAdminClient } from '../../../../../../../infra/supabase/server';
+
+type SiteManageAction = 'hide' | 'unhide' | 'update_content' | 'soft_delete' | 'restore';
 
 export async function POST(request: NextRequest | Request) {
   try {
     const guard = await guardMutationRequest(request, {
       bucket: 'site_manage',
-      maxHits: 20,
-      windowSeconds: 60,
+      maxHits: 30,
+      windowSeconds: 600,
     });
     if (guard) return guard;
 
@@ -20,7 +28,7 @@ export async function POST(request: NextRequest | Request) {
 
     const body = (await request.json().catch(() => ({}))) as {
       siteId?: string;
-      action?: 'hide' | 'unhide' | 'update_content';
+      action?: SiteManageAction;
       receiverName?: string;
       senderName?: string;
       message?: string;
@@ -28,24 +36,134 @@ export async function POST(request: NextRequest | Request) {
     const siteId = typeof body.siteId === 'string' ? body.siteId.trim() : '';
     const action = body.action;
 
-    if (!siteId || (action !== 'hide' && action !== 'unhide' && action !== 'update_content')) {
+    if (
+      !siteId ||
+      (action !== 'hide' &&
+        action !== 'unhide' &&
+        action !== 'update_content' &&
+        action !== 'soft_delete' &&
+        action !== 'restore')
+    ) {
       return NextResponse.json({ error: 'Invalid site action.' }, { status: 400 });
     }
 
     const admin = createSupabaseAdminClient();
     const { data: site } = await admin
       .from('sites')
-      .select('id, user_id, status, hidden, reveal_at, expires_at, deleted_at, created_at, free_edit_until, content_json')
+      .select(
+        'id, slug, user_id, status, hidden, reveal_at, expires_at, deleted_at, delete_grace_until, is_lifetime, created_at, free_edit_until, content_json',
+      )
       .eq('id', siteId)
       .eq('user_id', session.user.id)
-      .is('deleted_at', null)
       .maybeSingle();
 
     if (!site) {
       return NextResponse.json({ error: 'Site not found.' }, { status: 404 });
     }
 
-    if (site.status === 'removed' || site.status === 'expired') {
+    const lifecycleState = evaluateSiteDeletionAndRestore({
+      status: site.status,
+      deletedAt: site.deleted_at ?? null,
+      deleteGraceUntil: site.delete_grace_until ?? null,
+      expiresAt: site.expires_at ?? null,
+      isLifetime: Boolean(site.is_lifetime),
+    });
+
+    if (action === 'soft_delete') {
+      if (!lifecycleState.canSoftDelete) {
+        return NextResponse.json({ error: lifecycleState.reason }, { status: 409 });
+      }
+      const nowIso = new Date().toISOString();
+      const graceUntilIso = new Date(
+        Date.now() + SITE_DELETE_GRACE_DAYS * 24 * 60 * 60 * 1000,
+      ).toISOString();
+
+      const { error: deleteErr } = await admin
+        .from('sites')
+        .update({
+          deleted_at: nowIso,
+          delete_grace_until: graceUntilIso,
+          hidden: true,
+        })
+        .eq('id', site.id)
+        .eq('user_id', session.user.id);
+
+      if (deleteErr) {
+        throw new Error(deleteErr.message);
+      }
+
+      await writeAuditLog({
+        actorId: session.user.id,
+        action: 'site_soft_deleted',
+        entity: 'sites',
+        entityId: site.id,
+        meta: { slug: site.slug, deleteGraceUntil: graceUntilIso },
+      });
+
+      logEvent('info', 'web.site.sender_soft_deleted', {
+        siteId: site.id,
+        userId: session.user.id,
+      });
+
+      return NextResponse.json({
+        ok: true,
+        deletedAt: nowIso,
+        deleteGraceUntil: graceUntilIso,
+        graceDays: SITE_DELETE_GRACE_DAYS,
+      });
+    }
+
+    if (action === 'restore') {
+      if (!lifecycleState.canRestore) {
+        return NextResponse.json({ error: lifecycleState.reason }, { status: 409 });
+      }
+
+      const isExpired =
+        !site.is_lifetime &&
+        Boolean(site.expires_at) &&
+        Date.parse(String(site.expires_at)) <= Date.now();
+      const isScheduled =
+        !isExpired && Boolean(site.reveal_at) && Date.parse(String(site.reveal_at)) > Date.now();
+      const nextStatus = isExpired ? 'expired' : isScheduled ? 'scheduled' : 'live';
+
+      const { error: restoreErr } = await admin
+        .from('sites')
+        .update({
+          deleted_at: null,
+          delete_grace_until: null,
+          hidden: false,
+          status: nextStatus,
+        })
+        .eq('id', site.id)
+        .eq('user_id', session.user.id);
+
+      if (restoreErr) {
+        throw new Error(restoreErr.message);
+      }
+
+      await writeAuditLog({
+        actorId: session.user.id,
+        action: 'site_restored',
+        entity: 'sites',
+        entityId: site.id,
+        meta: { slug: site.slug, restoredStatus: nextStatus },
+      });
+
+      logEvent('info', 'web.site.sender_restored', {
+        siteId: site.id,
+        userId: session.user.id,
+        status: nextStatus,
+      });
+
+      return NextResponse.json({
+        ok: true,
+        deletedAt: null,
+        hidden: false,
+        status: nextStatus,
+      });
+    }
+
+    if (site.deleted_at || site.status === 'removed' || site.status === 'expired') {
       return NextResponse.json({ error: 'This site cannot be modified.' }, { status: 409 });
     }
 

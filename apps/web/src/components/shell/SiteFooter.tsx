@@ -66,9 +66,17 @@ export function SiteFooter({ config }: SiteFooterProps) {
             Grievance contact: {config.business.grievanceName} ({config.business.grievanceEmail}) · All
             prices shown are GST-inclusive.
           </span>
-          <Link href="/admin" className="inline-flex min-h-[44px] items-center text-[11px] font-semibold text-webzy-ink/60 hover:text-webzy-primary">
-            Admin Console
-          </Link>
+          <div className="flex flex-wrap items-center gap-4">
+            <Link href="/pricing" className="inline-flex min-h-[44px] items-center text-[11px] font-semibold text-webzy-ink/65 hover:text-webzy-primary">
+              {copy.nav.prices}
+            </Link>
+            <Link href="/studio" className="inline-flex min-h-[44px] items-center text-[11px] font-semibold text-webzy-ink/65 hover:text-webzy-primary">
+              {copy.nav.studio}
+            </Link>
+            <Link href="/admin" className="inline-flex min-h-[44px] items-center text-[11px] font-semibold text-webzy-ink/60 hover:text-webzy-primary">
+              Admin Console
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

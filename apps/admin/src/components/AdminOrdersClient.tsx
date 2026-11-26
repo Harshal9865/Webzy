@@ -60,6 +60,7 @@ function formatIst(iso: string): string {
 
 function parseOrderAddons(raw?: Record<string, boolean> | string[] | null) {
   const isArr = Array.isArray(raw);
+  const hasLifetime = isArr ? raw.includes('lifetime') : Boolean(raw?.lifetime);
   const validityLabel = isArr
     ? raw.includes('extend') || raw.includes('extendValidity90d')
       ? '3m (90d) Validity'
@@ -83,6 +84,7 @@ function parseOrderAddons(raw?: Record<string, boolean> | string[] | null) {
     hasVideo: isArr
       ? raw.includes('video') || raw.includes('videoCard')
       : Boolean(raw?.videoCard || raw?.video),
+    hasLifetime,
     validityLabel,
   };
 }
@@ -220,8 +222,8 @@ export function AdminOrdersClient({ orders, webUrl = '' }: AdminOrdersClientProp
       } else {
         liveGrossPaise += amt;
       }
-      const { hasPin, hasVideo, validityLabel } = parseOrderAddons(o.addons_json);
-      if (hasPin || hasVideo || Boolean(validityLabel)) addonAttached += 1;
+      const { hasPin, hasVideo, hasLifetime, validityLabel } = parseOrderAddons(o.addons_json);
+      if (hasPin || hasVideo || hasLifetime || Boolean(validityLabel)) addonAttached += 1;
     }
 
     const refundedPaise = refundedOrders.reduce((s, o) => s + (o.amount_paise || 0), 0);
@@ -491,7 +493,7 @@ export function AdminOrdersClient({ orders, webUrl = '' }: AdminOrdersClientProp
               const isRefunded =
                 ord.status === 'refunded' || ord.status === 'partially_refunded';
               const liveUrl = ord.site_slug ? buildSiteHref(webUrl, ord.site_slug) : null;
-              const { hasPin, hasVideo, validityLabel } = parseOrderAddons(ord.addons_json);
+              const { hasPin, hasVideo, hasLifetime, validityLabel } = parseOrderAddons(ord.addons_json);
               const addonList = [
                 hasPin ? 'PIN Lock' : null,
                 hasVideo ? 'Status Video' : null,
@@ -602,6 +604,12 @@ export function AdminOrdersClient({ orders, webUrl = '' }: AdminOrdersClientProp
                         {addonList ? (
                           <span className="rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-0.5 text-xs font-semibold text-indigo-900">
                             Add-ons: {addonList}
+                          </span>
+                        ) : null}
+
+                        {hasLifetime ? (
+                          <span className="rounded-full border border-amber-300 bg-gradient-to-r from-emerald-50 to-amber-50 px-2.5 py-0.5 text-xs font-bold text-emerald-900">
+                            Lifetime
                           </span>
                         ) : null}
                       </div>

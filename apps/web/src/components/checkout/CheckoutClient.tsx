@@ -13,6 +13,8 @@ import {
   isValidityAddonId,
   LanguageCode,
   pickLocalizedText,
+  STOREFRONT_VALIDITY_ADDON_IDS,
+  type StorefrontValidityAddonId,
   VALIDITY_TARGET_DAYS,
   type ValidityAddonId,
 } from '@webzy/core';
@@ -71,6 +73,15 @@ const ADDON_META: Record<AddonId, { title: string; subtitle: string; icon: React
     subtitle: 'Extend from 7 days to 21 days live hosting',
     icon: CALENDAR_ICON,
   },
+  lifetime: {
+    title: 'Lifetime Hosting (Ready-Made)',
+    subtitle: 'Never expires — keep your celebration site online permanently',
+    icon: (
+      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+      </svg>
+    ),
+  },
   extend: {
     title: '3 Months (90 Days) Validity',
     subtitle: 'Full 90 days of active online access',
@@ -127,6 +138,15 @@ export function CheckoutClient({
     () => validityAddons.find((id) => selectedAddons.includes(id)) ?? null,
     [validityAddons, selectedAddons],
   );
+  const visibleValidityAddons = useMemo(() => {
+    const allowedSet = new Set(expandedAllowedAddons);
+    const list: Array<StorefrontValidityAddonId | ValidityAddonId> =
+      STOREFRONT_VALIDITY_ADDON_IDS.filter((id) => allowedSet.has(id));
+    if (selectedValidityAddon === 'extend' && allowedSet.has('extend')) {
+      list.push('extend');
+    }
+    return list;
+  }, [expandedAllowedAddons, selectedValidityAddon]);
 
   // Pre-select any add-ons the user toggled on the /pricing page
   useEffect(() => {
@@ -139,7 +159,7 @@ export function CheckoutClient({
         const rawValid = parsed.filter(
           (id): id is AddonId => typeof id === 'string' && allowed.has(id as AddonId),
         );
-        const chosenValidity = (['extend', 'extend_21d', 'extend_14d'] as const).find((vId) =>
+        const chosenValidity = (['lifetime', 'extend', 'extend_21d', 'extend_14d'] as const).find((vId) =>
           rawValid.includes(vId),
         );
         const valid = Array.from(
@@ -259,6 +279,7 @@ export function CheckoutClient({
         allowedAddons: theme.price.addons,
         selectedAddons,
         defaultValidityDays,
+        productType: 'ready_made',
       }),
     [theme.price.base, theme.price.addons, selectedAddons, defaultValidityDays],
   );
@@ -331,8 +352,8 @@ export function CheckoutClient({
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
-      <div className="mb-6">
+    <div className="mx-auto max-w-4xl px-3.5 py-5 sm:px-6 sm:py-10">
+      <div className="mb-4 sm:mb-6">
         <Link
           href={
             theme.occasion === 'wedding'
@@ -343,17 +364,17 @@ export function CheckoutClient({
         >
           ← Back to edit draft
         </Link>
-        <h1 className="font-heading text-3xl font-bold text-webzy-ink">
+        <h1 className="font-heading text-2xl font-bold text-webzy-ink sm:text-3xl">
           {site.account.checkoutReviewAndPay} ({formatPaiseAsInr(pricing.totalPaise)})
         </h1>
       </div>
 
       {!effectiveAuthenticated ? (
-        <div className="rounded-2xl border border-webzy-ink/[0.09] bg-white p-6 shadow-sm sm:p-8">
+        <div className="rounded-2xl border border-webzy-ink/[0.09] bg-white p-4 shadow-sm sm:p-8">
           <p className="text-xs font-semibold text-webzy-primary">
             Step 1 of 2
           </p>
-          <h2 className="mt-2 font-heading text-2xl font-bold text-webzy-ink">
+          <h2 className="mt-2 font-heading text-xl font-bold text-webzy-ink sm:text-2xl">
             Where should we send your receipt and live link?
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-webzy-ink/80">
@@ -461,9 +482,9 @@ export function CheckoutClient({
           )}
         </div>
       ) : (
-        <form onSubmit={handleCheckout} className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-          <section className="space-y-5 rounded-3xl border border-webzy-tint bg-webzy-surface/60 p-6 lg:col-span-7">
-            <h2 className="font-heading text-xl font-bold text-webzy-ink">
+        <form onSubmit={handleCheckout} className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-12">
+          <section className="space-y-4 sm:space-y-5 rounded-2xl sm:rounded-3xl border border-webzy-tint bg-webzy-surface/60 p-4 sm:p-6 lg:col-span-7">
+            <h2 className="font-heading text-lg sm:text-xl font-bold text-webzy-ink">
               Your details & consent
             </h2>
 
@@ -497,12 +518,12 @@ export function CheckoutClient({
             </div>
 
             {expandedAllowedAddons.length > 0 ? (
-              <div className="rounded-2xl bg-white p-4">
-                <div className="flex items-center justify-between">
+              <div className="rounded-2xl bg-white p-3 sm:p-4">
+                <div className="flex items-center justify-between gap-2">
                   <p className="text-xs font-bold text-webzy-ink">{site.account.checkoutOptionalAddons}</p>
                   <span className="text-[11px] text-webzy-ink/50">{site.common.tapToSelect}</span>
                 </div>
-                <div className="mt-3 space-y-2.5">
+                <div className="mt-2.5 sm:mt-3 space-y-2 sm:space-y-2.5">
                   {featureAddons.map((addonId) => {
                     const isSelected = selectedAddons.includes(addonId);
                     const catalog = ADDON_CATALOG[addonId];
@@ -512,18 +533,18 @@ export function CheckoutClient({
                     return (
                       <label
                         key={addonId}
-                        className={`flex min-h-[56px] cursor-pointer items-center justify-between gap-3 rounded-2xl border p-3.5 transition-all ${
+                        className={`flex min-h-[52px] sm:min-h-[56px] cursor-pointer items-center justify-between gap-2.5 sm:gap-3 rounded-2xl border p-3 sm:p-3.5 transition-all ${
                           isSelected
                             ? 'border-emerald-500 bg-emerald-50/50 shadow-sm ring-1 ring-emerald-500/20'
                             : 'border-webzy-tint bg-white hover:border-webzy-tint/80'
                         }`}
                       >
-                        <div className="flex items-center gap-3">
+                        <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
                           <input
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => toggleAddon(addonId)}
-                            className="h-4 w-4 accent-emerald-600"
+                            className="h-4 w-4 shrink-0 accent-emerald-600"
                           />
                           <div
                             className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
@@ -534,7 +555,7 @@ export function CheckoutClient({
                           >
                             {meta?.icon}
                           </div>
-                          <div>
+                          <div className="min-w-0">
                             <p className="text-xs font-bold text-webzy-ink">
                               {site.pricing.addons[addonId]?.title ||
                                 meta?.title ||
@@ -566,14 +587,16 @@ export function CheckoutClient({
                   })}
                 </div>
 
-                {validityAddons.length > 0 ? (
-                  <div className="mt-4 border-t border-webzy-tint/70 pt-3.5">
-                    <div className="flex items-center justify-between gap-2">
+                {visibleValidityAddons.length > 0 ? (
+                  <div className="mt-3.5 sm:mt-4 border-t border-webzy-tint/70 pt-3 sm:pt-3.5">
+                    <div className="flex flex-wrap items-center justify-between gap-1.5 sm:gap-2">
                       <p className="text-xs font-bold text-webzy-ink">
                         Link Validity Duration
                       </p>
                       <span className="text-[11px] text-webzy-ink/60 font-tabular">
-                        {pricing.validityDays} {site.common.daysLink}
+                        {pricing.isLifetime
+                          ? 'Lifetime Hosting (No Expiry)'
+                          : `${pricing.validityDays} ${site.common.daysLink}`}
                       </span>
                     </div>
                     <div
@@ -600,16 +623,21 @@ export function CheckoutClient({
                         </span>
                       </button>
 
-                      {validityAddons.map((vId) => {
+                      {visibleValidityAddons.map((vId) => {
                         const isSelected = selectedValidityAddon === vId;
                         const catalog = ADDON_CATALOG[vId];
-                        const targetDays = VALIDITY_TARGET_DAYS[vId];
+                        const isLifetimeOption = vId === 'lifetime';
+                        const targetDays = isLifetimeOption
+                          ? null
+                          : VALIDITY_TARGET_DAYS[vId as Exclude<ValidityAddonId, 'lifetime'>];
                         const durationTitle =
-                          vId === 'extend_14d'
-                            ? '14 Days'
-                            : vId === 'extend_21d'
-                              ? '21 Days'
-                              : '3 Months';
+                          vId === 'lifetime'
+                            ? 'Lifetime Hosting'
+                            : vId === 'extend_14d'
+                              ? '14 Days'
+                              : vId === 'extend_21d'
+                                ? '21 Days'
+                                : '3 Months';
 
                         return (
                           <button
@@ -628,7 +656,9 @@ export function CheckoutClient({
                               {durationTitle}
                             </span>
                             <span className="text-[10px] text-webzy-ink/60">
-                              {targetDays} {site.common.daysLink}
+                              {isLifetimeOption
+                                ? 'No Expiry · Ready-Made'
+                                : `${targetDays} ${site.common.daysLink}`}
                             </span>
                             <div className="mt-1 flex items-baseline gap-1">
                               <span className="text-[10px] text-webzy-ink/40 line-through">
@@ -646,7 +676,7 @@ export function CheckoutClient({
                 ) : null}
 
                 {selectedAddons.includes('pin') ? (
-                  <div className="mt-3 rounded-2xl border border-emerald-200 bg-emerald-50/50 p-4">
+                  <div className="mt-3 rounded-2xl border border-emerald-200 bg-emerald-50/50 p-3 sm:p-4">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <label htmlFor="chk-secret-pin" className="text-xs font-bold text-emerald-950">
                         Set your 4-digit Secret PIN *
@@ -681,7 +711,7 @@ export function CheckoutClient({
               </div>
             ) : null}
 
-            <div className="space-y-2.5 rounded-2xl bg-white p-4 text-xs">
+            <div className="space-y-2 sm:space-y-2.5 rounded-2xl bg-white p-3 sm:p-4 text-xs">
               <p className="font-bold text-webzy-ink">Required confirmations:</p>
               <label className="flex min-h-[40px] cursor-pointer items-start gap-2.5">
                 <input
@@ -689,7 +719,7 @@ export function CheckoutClient({
                   required
                   checked={ageConfirmed}
                   onChange={(e) => setAgeConfirmed(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 accent-webzy-primary"
+                  className="mt-0.5 h-4 w-4 shrink-0 accent-webzy-primary"
                 />
                 <span>I am 18 or older, or I am paying with a parent.</span>
               </label>
@@ -699,7 +729,7 @@ export function CheckoutClient({
                   required
                   checked={termsAccepted}
                   onChange={(e) => setTermsAccepted(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 accent-webzy-primary"
+                  className="mt-0.5 h-4 w-4 shrink-0 accent-webzy-primary"
                 />
                 <span>
                   I accept the{' '}
@@ -720,7 +750,7 @@ export function CheckoutClient({
                     required
                     checked={photoPermConfirmed}
                     onChange={(e) => setPhotoPermConfirmed(e.target.checked)}
-                    className="mt-0.5 h-4 w-4 accent-webzy-primary"
+                    className="mt-0.5 h-4 w-4 shrink-0 accent-webzy-primary"
                   />
                   <span>I have permission to use the uploaded photos of others.</span>
                 </label>
@@ -737,22 +767,22 @@ export function CheckoutClient({
             ) : null}
           </section>
 
-          <aside className="rounded-3xl border border-webzy-tint bg-white p-6 shadow-sm lg:col-span-5">
-            <h2 className="font-heading text-xl font-bold text-webzy-ink">{site.account.checkoutOrderSummary}</h2>
-            <dl className="mt-4 space-y-2 text-sm">
-              <div className="flex justify-between">
-                <dt className="text-webzy-ink/75">{pickLocalizedText(theme.name, siteLang)}</dt>
-                <dd className="font-semibold">{formatPaiseAsInr(pricing.basePaise)}</dd>
+          <aside className="rounded-2xl sm:rounded-3xl border border-webzy-tint bg-white p-4 sm:p-6 shadow-sm lg:col-span-5">
+            <h2 className="font-heading text-lg sm:text-xl font-bold text-webzy-ink">{site.account.checkoutOrderSummary}</h2>
+            <dl className="mt-3.5 sm:mt-4 space-y-2 text-sm">
+              <div className="flex justify-between gap-3">
+                <dt className="min-w-0 text-webzy-ink/75">{pickLocalizedText(theme.name, siteLang)}</dt>
+                <dd className="shrink-0 font-semibold font-tabular">{formatPaiseAsInr(pricing.basePaise)}</dd>
               </div>
               {pricing.addonsPaise > 0 ? (
-                <div className="flex justify-between">
-                  <dt className="text-webzy-ink/75">{site.account.checkoutOptionalAddons}</dt>
-                  <dd className="font-semibold">{formatPaiseAsInr(pricing.addonsPaise)}</dd>
+                <div className="flex justify-between gap-3">
+                  <dt className="min-w-0 text-webzy-ink/75">{site.account.checkoutOptionalAddons}</dt>
+                  <dd className="shrink-0 font-semibold font-tabular">{formatPaiseAsInr(pricing.addonsPaise)}</dd>
                 </div>
               ) : null}
-              <div className="flex justify-between border-t border-webzy-tint pt-2.5 text-base font-bold text-webzy-ink">
+              <div className="flex justify-between gap-3 border-t border-webzy-tint pt-2.5 text-base font-bold text-webzy-ink">
                 <dt>{site.account.checkoutTotalGst}</dt>
-                <dd className="font-extrabold text-emerald-700">{formatPaiseAsInr(pricing.totalPaise)}</dd>
+                <dd className="shrink-0 font-extrabold text-emerald-700 font-tabular">{formatPaiseAsInr(pricing.totalPaise)}</dd>
               </div>
             </dl>
             {(() => {
@@ -761,27 +791,28 @@ export function CheckoutClient({
               const taxable = Number((totalInr - halfGst * 2).toFixed(2));
               return (
                 <div className="mt-3 rounded-2xl border border-webzy-tint/80 bg-webzy-surface/50 px-3.5 py-2.5 text-[11px] text-webzy-ink/70 font-tabular">
-                  <div className="flex justify-between">
+                  <div className="flex justify-between gap-2">
                     <span>Taxable Value (SAC 998314):</span>
-                    <span>₹{taxable.toFixed(2)}</span>
+                    <span className="shrink-0">₹{taxable.toFixed(2)}</span>
                   </div>
-                  <div className="mt-0.5 flex justify-between">
+                  <div className="mt-0.5 flex justify-between gap-2">
                     <span>CGST (9%) + SGST (9%):</span>
-                    <span>₹{halfGst.toFixed(2)} + ₹{halfGst.toFixed(2)}</span>
+                    <span className="shrink-0">₹{halfGst.toFixed(2)} + ₹{halfGst.toFixed(2)}</span>
                   </div>
                 </div>
               );
             })()}
             <p className="mt-2 text-xs text-webzy-ink/60">
-              {pricing.validityDays} {site.common.daysLink}
-              {pricing.validityDays === 90 ? ' (3 months)' : ''}
+              {pricing.isLifetime
+                ? 'Lifetime Hosting (No Expiry)'
+                : `${pricing.validityDays} ${site.common.daysLink}${pricing.validityDays === 90 ? ' (3 months)' : ''}`}
             </p>
 
             <button
               suppressHydrationWarning
               type="submit"
               disabled={submitting || payButtonDisabled}
-              className="mt-6 inline-flex min-h-[48px] w-full items-center justify-center rounded-full bg-emerald-600 px-6 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50"
+              className="mt-4 sm:mt-6 inline-flex min-h-[48px] w-full items-center justify-center rounded-full bg-emerald-600 px-5 sm:px-6 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50"
             >
               {payButtonDisabled
                 ? 'Pay temporarily disabled'

@@ -127,7 +127,7 @@ const ARTWORK_MAP = [
 
   // Occasion Product Bespoke Covers & Scenes
   {
-    src: 'birthday_confetti_keepsake_flatlay_final_1795524093976.jpg',
+    src: 'birthday_redesign_cover_v2_1795683876488.jpg',
     dest: path.join('occasions', 'birthday-confetti', 'cover.jpg'),
   },
   {
@@ -159,12 +159,34 @@ const ARTWORK_MAP = [
     dest: path.join('occasions', 'our-year', 'cover.jpg'),
   },
   {
+    src: 'portfolio_editorial_cover_v1_1795684448710.jpg',
+    dest: path.join('occasions', 'portfolio', 'cover.jpg'),
+  },
+  {
     src: 'harvest_festival_greeting_final_1795524085413.jpg',
     dest: path.join('occasions', 'harvest-greeting', 'cover.jpg'),
   },
   {
+    src: 'small_business_boutique_cover_v1_1795684460411.jpg',
+    dest: path.join('occasions', 'small-business', 'cover.jpg'),
+  },
+  {
     src: 'business_greeting_luxury_artwork_1795523999390.jpg',
     dest: path.join('occasions', 'business-greeting', 'cover.jpg'),
+  },
+
+  // Pricing Page Editorial Art Plates
+  {
+    src: 'pricing_occasions_art_v1_1795693712913.jpg',
+    dest: path.join('pricing', 'occasions-art.jpg'),
+  },
+  {
+    src: 'pricing_weddings_art_v1_1795693759014.jpg',
+    dest: path.join('pricing', 'weddings-art.jpg'),
+  },
+  {
+    src: 'portfolio_editorial_cover_v1_1795684448710.jpg',
+    dest: path.join('pricing', 'custom-made-art.jpg'),
   },
 ];
 

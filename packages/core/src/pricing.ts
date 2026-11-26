@@ -1,40 +1,56 @@
 import type { LocalizedText } from './types';
 import { WebzyError } from './logger';
 
-export type ValidityAddonId = 'extend_14d' | 'extend_21d' | 'extend';
+export type ValidityAddonId = 'extend_14d' | 'extend_21d' | 'lifetime' | 'extend';
+export type StorefrontValidityAddonId = 'extend_14d' | 'extend_21d' | 'lifetime';
 export type AddonId = 'pin' | 'video' | ValidityAddonId;
+export type PricingProductType = 'ready_made' | 'custom_made';
+
+export const STOREFRONT_VALIDITY_ADDON_IDS: readonly StorefrontValidityAddonId[] = [
+  'extend_14d',
+  'extend_21d',
+  'lifetime',
+] as const;
 
 export const VALIDITY_EXTENSION_ADDON_IDS: readonly ValidityAddonId[] = [
   'extend_14d',
   'extend_21d',
+  'lifetime',
   'extend',
 ] as const;
 
 export const VALIDITY_TARGET_DAYS: Record<ValidityAddonId, number> = {
   extend_14d: 14,
   extend_21d: 21,
+  lifetime: 36500,
   extend: 90,
 };
 
+export const SITE_DELETE_GRACE_DAYS = 7;
+
 export function isValidityAddonId(id: string): id is ValidityAddonId {
-  return id === 'extend_14d' || id === 'extend_21d' || id === 'extend';
+  return id === 'extend_14d' || id === 'extend_21d' || id === 'lifetime' || id === 'extend';
 }
 
 /**
- * Ensures any theme offering the `'extend'` add-on also exposes the 14-day and 21-day tiers.
+ * Expands the legacy `'extend'` add-on into storefront validity tiers (`extend_14d`, `extend_21d`, `lifetime`),
+ * preserving non-validity add-ons first with no duplicates.
  */
 export function expandThemeAddons(addons: readonly AddonId[]): AddonId[] {
-  const expanded: AddonId[] = [];
+  const nonValidity: AddonId[] = [];
+  const validity: AddonId[] = [];
   for (const id of addons) {
     if (id === 'extend') {
-      for (const vId of VALIDITY_EXTENSION_ADDON_IDS) {
-        if (!expanded.includes(vId)) expanded.push(vId);
+      for (const vId of STOREFRONT_VALIDITY_ADDON_IDS) {
+        if (!validity.includes(vId)) validity.push(vId);
       }
-    } else if (!expanded.includes(id)) {
-      expanded.push(id);
+    } else if (isValidityAddonId(id)) {
+      if (!validity.includes(id)) validity.push(id);
+    } else if (!nonValidity.includes(id)) {
+      nonValidity.push(id);
     }
   }
-  return expanded;
+  return [...nonValidity, ...validity];
 }
 
 export interface PriceTierInfo {
@@ -97,6 +113,17 @@ export const ADDON_CATALOG: Record<AddonId, AddonCatalogItem> = {
       hi: '21 दिन कुल वैधता (+₹14)',
     },
   },
+  lifetime: {
+    id: 'lifetime',
+    priceInr: 500,
+    compareAtInr: 999,
+    targetValidityDays: 36500,
+    label: {
+      en: 'Lifetime Hosting (Ready-Made Only)',
+      hinglish: 'Lifetime Hosting (Ready-Made Only)',
+      hi: 'लाइफटाइम होस्टिंग (केवल रेडी-मेड)',
+    },
+  },
   extend: {
     id: 'extend',
     priceInr: 19,
@@ -122,25 +149,25 @@ export const BUSINESS_PRICE_TIERS: PriceTierInfo[] = [
       hi: 'रेडी-मेड सेलिब्रेशन',
     },
     summary: {
-      en: 'Pick a theme, fill 3–6 quick fields, and get an instant WhatsApp link.',
-      hinglish: 'Theme chuno, 3–6 details bharo, 5 min mein WhatsApp link ready.',
-      hi: 'थीम चुनें, 3–6 जानकारी भरें, 5 मिनट में लिंक तैयार।',
+      en: '7-day hosting included; extendable to 14d (+₹9), 21d (+₹14), or Lifetime (+₹500).',
+      hinglish: '7 din hosting shamil; 14d (+₹9), 21d (+₹14) ya Lifetime (+₹500) chuno.',
+      hi: '7 दिन की होस्टिंग शामिल; 14 दिन (+₹9), 21 दिन (+₹14) या लाइफटाइम (+₹500) विकल्प।',
     },
   },
   {
     id: 'semi_custom',
-    rangeLabel: '₹299 – ₹999',
-    compareRangeLabel: '₹599 – ₹2,499',
+    rangeLabel: '₹499',
+    compareRangeLabel: '₹1,499',
     validityDays: 7,
     title: {
-      en: 'Semi-custom Keepsakes',
-      hinglish: 'Semi-custom Keepsakes',
-      hi: 'सेमी-कस्टम कीपसेक',
+      en: 'Ready-made Weddings',
+      hinglish: 'Ready-made Weddings',
+      hi: 'रेडी-मेड वेडिंग कार्ड',
     },
     summary: {
-      en: 'Wedding invites & family layouts tailored personally by our team.',
-      hinglish: 'Wedding cards aur khaas family tweaks hamare haath se.',
-      hi: 'शादी कार्ड और परिवार के खास बदलाव हमारे द्वारा।',
+      en: 'Royal interactive wedding invitations with guest RSVPs; Lifetime Hosting optional (+₹500).',
+      hinglish: 'Royal wedding invite + guest RSVP; Lifetime Hosting (+₹500) optional.',
+      hi: 'शाही डिजिटल विवाह निमंत्रण व गेस्ट RSVP; लाइफटाइम होस्टिंग (+₹500) वैकल्पिक।',
     },
   },
   {
@@ -149,30 +176,30 @@ export const BUSINESS_PRICE_TIERS: PriceTierInfo[] = [
     compareRangeLabel: '₹2,999+',
     validityDays: 90,
     title: {
-      en: 'Custom request',
-      hinglish: 'Custom request',
-      hi: 'कस्टम रिक्वेस्ट',
+      en: 'Custom Made',
+      hinglish: 'Custom Made',
+      hi: 'कस्टम मेड',
     },
     summary: {
-      en: 'Share your brief, pick email or a 15-min call, and get a custom build.',
-      hinglish: '15-minute call par plan, quote aur dedicated build.',
-      hi: '15 मिनट कॉल पर प्लान, कोटेशन और खास डिज़ाइन।',
+      en: 'Bespoke coaching, clinic, business & wedding websites. Custom domains billed at registrar actuals.',
+      hinglish: 'Coaching, clinic, business aur custom wedding sites; domain actuals par.',
+      hi: 'कोचिंग, क्लिनिक, बिज़नेस व कस्टम वेडिंग वेबसाइट; डोमेन रजिस्ट्रार दर पर।',
     },
   },
   {
     id: 'business_plan',
-    rangeLabel: '₹99 – ₹199 / mo',
-    compareRangeLabel: '₹299 – ₹499 / mo',
+    rangeLabel: '₹99',
+    compareRangeLabel: '₹249',
     validityDays: 7,
     title: {
-      en: 'Small business',
-      hinglish: 'Small business',
-      hi: 'छोटा व्यवसाय',
+      en: 'Small Business Cards',
+      hinglish: 'Small Business Cards',
+      hi: 'छोटा व्यवसाय कार्ड',
     },
     summary: {
-      en: 'Festive greetings, grand openings, and one-tap WhatsApp leads.',
-      hinglish: 'Festive greetings, grand opening aur WhatsApp inquiry card.',
-      hi: 'त्योहार शुभकामना, ओपनिंग और व्हाट्सऐप कार्ड।',
+      en: 'Festive greetings, grand openings & one-tap WhatsApp leads with optional Lifetime Hosting.',
+      hinglish: 'Festive greetings, grand opening aur WhatsApp lead card; Lifetime optional.',
+      hi: 'त्योहार शुभकामना, ओपनिंग व व्हाट्सऐप कार्ड; लाइफटाइम होस्टिंग वैकल्पिक।',
     },
   },
 ];
@@ -185,8 +212,11 @@ export interface ServerOrderPricingResult {
   totalPaise: number;
   feeEstimatePaise: number;
   validityDays: number;
+  isLifetime: boolean;
   validAddonIds: AddonId[];
 }
+
+export type OrderPricingBreakdown = ServerOrderPricingResult;
 
 /**
  * Server-only pricing calculator (Section 3 & Section 10).
@@ -198,6 +228,7 @@ export function computeOrderPricingPaise(params: {
   selectedAddons?: string[];
   couponDiscountPaise?: number;
   defaultValidityDays?: number;
+  productType?: PricingProductType;
 }): ServerOrderPricingResult {
   if (!Number.isFinite(params.basePriceInr) || params.basePriceInr < 19) {
     throw new WebzyError('Invalid base theme price.', {
@@ -206,15 +237,28 @@ export function computeOrderPricingPaise(params: {
     });
   }
 
-  const allowedSet = new Set(expandThemeAddons(params.allowedAddons));
+  const productType: PricingProductType = params.productType ?? 'ready_made';
+  const allowedSet = new Set<AddonId>([
+    ...expandThemeAddons(params.allowedAddons),
+    ...params.allowedAddons,
+  ]);
+  if (productType === 'custom_made') {
+    allowedSet.delete('lifetime');
+  }
+
   const rawAllowed = Array.from(
-    new Set((params.selectedAddons ?? []).filter((id): id is AddonId => allowedSet.has(id as AddonId))),
+    new Set(
+      (params.selectedAddons ?? []).filter(
+        (id): id is AddonId =>
+          (productType !== 'custom_made' || id !== 'lifetime') && allowedSet.has(id as AddonId),
+      ),
+    ),
   );
 
-  // Enforce mutual exclusivity for validity tiers (highest selected tier wins: extend 90d > extend_21d > extend_14d)
-  const chosenValidityAddon: ValidityAddonId | undefined = (['extend', 'extend_21d', 'extend_14d'] as const).find(
-    (vId) => rawAllowed.includes(vId),
-  );
+  // Enforce mutual exclusivity for validity tiers (highest priority wins: lifetime > extend > extend_21d > extend_14d)
+  const chosenValidityAddon: ValidityAddonId | undefined = (
+    ['lifetime', 'extend', 'extend_21d', 'extend_14d'] as const
+  ).find((vId) => rawAllowed.includes(vId));
   const validAddonIds: AddonId[] = [
     ...rawAllowed.filter((id) => !isValidityAddonId(id)),
     ...(chosenValidityAddon ? [chosenValidityAddon] : []),
@@ -234,6 +278,7 @@ export function computeOrderPricingPaise(params: {
   const feeEstimatePaise = Math.round(totalPaise * 0.0236);
   const baseDays =
     params.defaultValidityDays && params.defaultValidityDays > 0 ? params.defaultValidityDays : 7;
+  const isLifetime = chosenValidityAddon === 'lifetime';
   const validityDays = chosenValidityAddon
     ? Math.max(baseDays, VALIDITY_TARGET_DAYS[chosenValidityAddon])
     : baseDays;
@@ -246,7 +291,128 @@ export function computeOrderPricingPaise(params: {
     totalPaise,
     feeEstimatePaise,
     validityDays,
+    isLifetime,
     validAddonIds,
+  };
+}
+
+/**
+ * Evaluates whether a published site can be soft-deleted or restored within the 7-day DPDP grace window.
+ */
+export function evaluateSiteDeletionAndRestore(input: {
+  status: string;
+  deletedAt: string | null;
+  deleteGraceUntil: string | null;
+  expiresAt: string | null;
+  isLifetime?: boolean;
+  nowMs?: number;
+}): {
+  canSoftDelete: boolean;
+  canRestore: boolean;
+  reason: string;
+  isSoftDeleted: boolean;
+  graceRemainingDays: number;
+} {
+  const nowMs = input.nowMs ?? Date.now();
+  const isSoftDeleted = Boolean(input.deletedAt);
+
+  if (isSoftDeleted) {
+    if (input.status === 'removed') {
+      return {
+        canSoftDelete: false,
+        canRestore: false,
+        reason: 'This site has already been permanently removed.',
+        isSoftDeleted: true,
+        graceRemainingDays: 0,
+      };
+    }
+
+    const explicitGraceMs = input.deleteGraceUntil ? Date.parse(input.deleteGraceUntil) : NaN;
+    const deletedMs = input.deletedAt ? Date.parse(input.deletedAt) : NaN;
+    const graceMs = !Number.isNaN(explicitGraceMs)
+      ? explicitGraceMs
+      : !Number.isNaN(deletedMs)
+        ? deletedMs + SITE_DELETE_GRACE_DAYS * 24 * 60 * 60 * 1000
+        : NaN;
+
+    if (!Number.isNaN(graceMs) && graceMs > nowMs) {
+      const graceRemainingDays = Math.max(1, Math.ceil((graceMs - nowMs) / (24 * 60 * 60 * 1000)));
+      return {
+        canSoftDelete: false,
+        canRestore: true,
+        reason: `Site can be restored (${graceRemainingDays} day${graceRemainingDays === 1 ? '' : 's'} remaining in grace window).`,
+        isSoftDeleted: true,
+        graceRemainingDays,
+      };
+    }
+
+    return {
+      canSoftDelete: false,
+      canRestore: false,
+      reason: 'The 7-day restore window for this deleted site has expired.',
+      isSoftDeleted: true,
+      graceRemainingDays: 0,
+    };
+  }
+
+  if (input.status === 'removed') {
+    return {
+      canSoftDelete: false,
+      canRestore: false,
+      reason: 'This site has already been permanently removed.',
+      isSoftDeleted: false,
+      graceRemainingDays: 0,
+    };
+  }
+
+  return {
+    canSoftDelete: true,
+    canRestore: false,
+    reason: 'Eligible for self-service deletion with a 7-day restore window.',
+    isSoftDeleted: false,
+    graceRemainingDays: 0,
+  };
+}
+
+/**
+ * Computes custom order slot availability from platform settings and active queue count.
+ */
+export function evaluateCapacitySlot(input: {
+  paused: boolean;
+  limit: number;
+  activeCount: number;
+  capacityMessage?: string;
+}): {
+  paused: boolean;
+  limit: number;
+  activeCount: number;
+  remainingSlots: number;
+  acceptingOrders: boolean;
+  capacityMessage: string;
+} {
+  const limit = Math.max(0, Math.floor(Number.isFinite(input.limit) ? input.limit : 0));
+  const activeCount = Math.max(
+    0,
+    Math.floor(Number.isFinite(input.activeCount) ? input.activeCount : 0),
+  );
+  const remainingSlots = input.paused ? 0 : Math.max(0, limit - activeCount);
+  const acceptingOrders = !input.paused && remainingSlots > 0;
+  const trimmedMsg = (input.capacityMessage || '').trim();
+  const capacityMessage =
+    trimmedMsg ||
+    (input.paused
+      ? 'Custom slots are temporarily paused while we complete active builds.'
+      : acceptingOrders
+        ? `${remainingSlots} custom build slot${remainingSlots === 1 ? '' : 's'} open right now.`
+        : 'All custom build slots are currently full. Please check back shortly or choose a ready-made theme.');
+
+  return {
+    paused: Boolean(input.paused),
+    limit,
+    activeCount,
+    remainingSlots,
+    acceptingOrders,
+    capacityMessage,
   };
 }
 

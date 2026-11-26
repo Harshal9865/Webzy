@@ -1,4 +1,5 @@
 import {
+  getThemeById,
   MOCK_CHRISTIAN_IVORY_WEDDING,
   MOCK_EMERALD_WEDDING,
   MOCK_ROSE_IVORY_WEDDING,
@@ -11,6 +12,23 @@ import {
 } from '@webzy/themes';
 
 export type { WeddingTemplateId, WeddingTradition };
+
+function liveThemePrice(
+  id: WeddingTemplateId,
+  fallbackPrice: number,
+  fallbackCompare: number,
+): { priceInr: number; compareAtInr: number } {
+  const manifest = getThemeById(id);
+  const priceInr =
+    typeof manifest?.price?.base === 'number' && manifest.price.base > 0
+      ? manifest.price.base
+      : fallbackPrice;
+  const compareAtInr =
+    typeof manifest?.price?.compareAt === 'number' && manifest.price.compareAt >= priceInr
+      ? manifest.price.compareAt
+      : fallbackCompare;
+  return { priceInr, compareAtInr };
+}
 
 export interface WeddingEditionMeta {
   id: WeddingTemplateId;
@@ -67,8 +85,7 @@ export const WEDDING_EDITIONS: WeddingEditionMeta[] = [
     specimenDate: '24 Dec 2026',
     demoSlug: 'aanya-kabir',
     sampleGuest: 'Sharma Family',
-    priceInr: 499,
-    compareAtInr: 1499,
+    ...liveThemePrice('wedding-emerald-01', 499, 1499),
     validityDays: 7,
     coverArtUrl: '/templates/wedding-emerald-01/art/doors-embossed.jpg',
     sceneArtUrl: '/templates/wedding-emerald-01/art/jharokha-scene.jpg',
@@ -133,8 +150,7 @@ export const WEDDING_EDITIONS: WeddingEditionMeta[] = [
     specimenDate: '18 Jan 2027',
     demoSlug: 'riya-siddharth',
     sampleGuest: 'Kapoor Family',
-    priceInr: 499,
-    compareAtInr: 1499,
+    ...liveThemePrice('wedding-royal-red-01', 499, 1499),
     validityDays: 7,
     coverArtUrl: '/templates/wedding-royal-red-01/art/velvet-embossed.jpg',
     sceneArtUrl: '/templates/wedding-royal-red-01/art/mughal-scene.jpg',
@@ -199,8 +215,7 @@ export const WEDDING_EDITIONS: WeddingEditionMeta[] = [
     specimenDate: '19 Dec 2026',
     demoSlug: 'claire-aaron',
     sampleGuest: 'Pereira Family',
-    priceInr: 499,
-    compareAtInr: 1499,
+    ...liveThemePrice('wedding-christian-ivory-01', 499, 1499),
     validityDays: 7,
     coverArtUrl: '/templates/wedding-christian-ivory-01/art/chapel-cover.jpg',
     sceneArtUrl: '/templates/wedding-christian-ivory-01/art/chapel-scene.jpg',
@@ -265,8 +280,7 @@ export const WEDDING_EDITIONS: WeddingEditionMeta[] = [
     specimenDate: '14 Feb 2027',
     demoSlug: 'meera-dev',
     sampleGuest: 'Rathore Family',
-    priceInr: 499,
-    compareAtInr: 1499,
+    ...liveThemePrice('wedding-royal-blue-01', 499, 1499),
     validityDays: 7,
     coverArtUrl: '/templates/wedding-royal-blue-01/art/indigo-doors.jpg',
     sceneArtUrl: '/templates/wedding-royal-blue-01/art/jodhpur-scene.jpg',
@@ -331,8 +345,7 @@ export const WEDDING_EDITIONS: WeddingEditionMeta[] = [
     specimenDate: '29 Jan 2027',
     demoSlug: 'ananya-karthik',
     sampleGuest: 'Subramanian Family',
-    priceInr: 499,
-    compareAtInr: 1499,
+    ...liveThemePrice('wedding-temple-gold-01', 499, 1499),
     validityDays: 7,
     coverArtUrl: '/templates/wedding-temple-gold-01/art/kanjeevaram-cover.jpg',
     sceneArtUrl: '/templates/wedding-temple-gold-01/art/temple-gold-scene.jpg',
@@ -397,8 +410,7 @@ export const WEDDING_EDITIONS: WeddingEditionMeta[] = [
     specimenDate: '21 Feb 2027',
     demoSlug: 'tara-vihaan',
     sampleGuest: 'Khanna Family',
-    priceInr: 499,
-    compareAtInr: 1499,
+    ...liveThemePrice('wedding-rose-ivory-01', 499, 1499),
     validityDays: 7,
     coverArtUrl: '/templates/wedding-rose-ivory-01/art/rose-folio-cover.jpg',
     sceneArtUrl: '/templates/wedding-rose-ivory-01/art/rose-palace-scene.jpg',

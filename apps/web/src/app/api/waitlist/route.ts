@@ -1,8 +1,9 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { logEvent } from '@webzy/core';
+import { detectScamPatterns, getWebzyPublicConfig, logEvent } from '@webzy/core';
 import { sendTransactionalEmail } from '../../../../../../infra/email/resend';
 import { guardMutationRequest } from '../../../../../../infra/security/requestGuard';
 import { writeAuditLog } from '../../../../../../infra/supabase/auth';
+import { getCustomOrderCapacity } from '../../../../../../infra/supabase/capacity';
 import { getSupabaseEnv } from '../../../../../../infra/supabase/env';
 import { createSupabaseAdminClient } from '../../../../../../infra/supabase/server';
 import { requireVerifiedAdmin } from '../../../lib/requireAdmin';
@@ -237,6 +238,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Please enter a valid email address.' }, { status: 400 });
     }
 
+    const SCAM_PHRASE_RE =
+      /\b(?:kyc\s*expired|pan\s*card\s*block|lottery\s*winner|claim\s*your\s*prize|instant\s*loan\s*approval|crypto\s*airdrop|send\s*otp|verify\s*bank\s*account)\b/i;
+    const combinedText = `${name} ${businessName} ${city} ${notes}`;
+    const scamCheck = detectScamPatterns(combinedText, { allowPhone: true });
+    if (
+      SCAM_PHRASE_RE.test(combinedText) ||
+      scamCheck.violation === 'ifsc' ||
+      scamCheck.violation === 'upi_or_email'
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            'Your request contains restricted promotional, UPI, or banking phrases. Please describe your requirement in plain text.',
+        },
+        { status: 400 },
+      );
+    }
+
     const admin = createSupabaseAdminClient();
 
     // Check for existing signup in same category
@@ -253,6 +272,21 @@ export async function POST(request: NextRequest) {
         alreadyWaitlisted: true,
         message: 'You are already on the priority waitlist! We will notify you first upon launch.',
       });
+    }
+
+    const capacityCategory = category === 'wedding_bespoke' ? 'wedding' : 'studio';
+    const capacity = await getCustomOrderCapacity(admin);
+    const slot = capacity[capacityCategory];
+    if (!slot.acceptingOrders) {
+      return NextResponse.json(
+        {
+          error: slot.capacityMessage,
+          code: 'CAPACITY_FULL',
+          category: capacityCategory,
+          capacity: slot,
+        },
+        { status: 429 },
+      );
     }
 
     const { data: inserted, error: insertErr } = await admin
@@ -291,9 +325,14 @@ export async function POST(request: NextRequest) {
       city,
     });
 
-    // Notify founder if email is configured
+    // Notify founder/support if email is configured
+    const cfg = getWebzyPublicConfig();
+    const notifyTo =
+      process.env.SEED_ADMIN_EMAIL?.trim() ||
+      process.env.SUPPORT_EMAIL?.trim() ||
+      cfg.business.supportEmail;
     sendTransactionalEmail({
-      to: 'harshalkr220@gmail.com',
+      to: notifyTo,
       subject: `[Webzy Studio Waitlist] New Lead: ${businessName || name} (${category})`,
       text: `New Studio Waitlist Lead:\n\nName: ${name}\nBusiness: ${businessName || 'N/A'}\nCategory: ${category}\nEmail: ${email}\nPhone: ${phone || 'N/A'}\nCity: ${city || 'N/A'}\nNotes: ${notes || 'None'}\n\nQueue Position: #${totalWaitlisted ?? 1}`,
       idempotencyKey: `waitlist_${inserted.id}`,

@@ -522,6 +522,7 @@ export interface OccasionAdaptiveGalleryProps {
   accentColor: string;
   dark?: boolean;
   captionPrefix?: string;
+  captionFont?: 'mono' | 'handwritten' | 'editorial';
   emptyFallback?: React.ReactNode;
 }
 
@@ -534,10 +535,18 @@ export function OccasionAdaptiveGallery({
   accentColor,
   dark = false,
   captionPrefix = 'Memory',
+  captionFont = 'mono',
   emptyFallback,
 }: OccasionAdaptiveGalleryProps) {
   const [failedUrls, setFailedUrls] = useState<Record<string, boolean>>({});
   const [zoomIdx, setZoomIdx] = useState<number | null>(null);
+
+  const captionClassName =
+    captionFont === 'handwritten'
+      ? 'font-handwritten text-sm font-semibold tracking-normal'
+      : captionFont === 'editorial'
+        ? 'font-editorial italic text-xs font-normal tracking-wide'
+        : 'font-mono text-[9.5px] font-bold uppercase tracking-[0.14em]';
 
   const validPhotos = (photos ?? [])
     .map((src) => (typeof src === 'string' ? src.trim() : ''))
@@ -612,9 +621,18 @@ export function OccasionAdaptiveGallery({
                 className="absolute bottom-2.5 left-2.5 inline-flex items-center rounded-full px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-white shadow-sm backdrop-blur-xs"
                 style={{ backgroundColor: `${accentColor}D9` }}
               >
-                {captionPrefix} 01
+                {captionFont === 'mono' ? `${captionPrefix} 01` : '01'}
               </span>
             </div>
+            {captionFont !== 'mono' ? (
+              <span
+                className={`mt-2 block truncate text-center ${captionClassName} ${
+                  dark ? 'text-white/85' : 'text-[#2B1B2E]/80'
+                }`}
+              >
+                {captionPrefix} 01
+              </span>
+            ) : null}
           </button>
         </div>
       ) : count === 2 ? (
@@ -646,8 +664,8 @@ export function OccasionAdaptiveGallery({
                 />
               </div>
               <span
-                className={`mt-2 block truncate text-center font-mono text-[9.5px] font-bold uppercase tracking-[0.14em] ${
-                  dark ? 'text-white/75' : 'text-stone-500'
+                className={`mt-2 block truncate text-center ${captionClassName} ${
+                  dark ? 'text-white/80' : 'text-stone-600'
                 }`}
               >
                 {captionPrefix} 0{idx + 1}

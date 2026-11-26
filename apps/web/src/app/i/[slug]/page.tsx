@@ -70,14 +70,15 @@ async function resolveLiveOrDemoWeddingBySlug(slug: string): Promise<WeddingInvi
       const admin = createSupabaseAdminClient();
       const { data: site } = await admin
         .from('sites')
-        .select('id, slug, content_json, status, hidden, expires_at, deleted_at, theme_versions(theme_id)')
+        .select('id, slug, content_json, status, hidden, expires_at, is_lifetime, deleted_at, theme_versions(theme_id)')
         .eq('slug', slug)
         .is('deleted_at', null)
         .maybeSingle();
 
       const isExpired =
-        site?.status === 'expired' ||
-        (Boolean(site?.expires_at) && Date.parse(String(site?.expires_at)) <= Date.now());
+        !site?.is_lifetime &&
+        (site?.status === 'expired' ||
+          (Boolean(site?.expires_at) && Date.parse(String(site?.expires_at)) <= Date.now()));
 
       if (site && site.status !== 'removed' && !isExpired && !site.hidden) {
         const rawContent = (site.content_json as Record<string, unknown> | null) || {};

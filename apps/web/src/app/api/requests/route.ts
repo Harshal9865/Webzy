@@ -3,11 +3,12 @@ import { detectScamPatterns, getWebzyPublicConfig, logEvent } from '@webzy/core'
 import { sendTransactionalEmail } from '../../../../../../infra/email/resend';
 import { guardMutationRequest, verifyTurnstileIfConfigured } from '../../../../../../infra/security/requestGuard';
 import { getAuthSessionState } from '../../../../../../infra/supabase/auth';
+import { getCustomOrderCapacity } from '../../../../../../infra/supabase/capacity';
 import { getSupabaseEnv } from '../../../../../../infra/supabase/env';
 import { createSupabaseAdminClient } from '../../../../../../infra/supabase/server';
 
 const ALLOWED_OCCASIONS = new Set(['wedding', 'birthday', 'anniversary', 'family', 'business', 'other']);
-const ALLOWED_BUDGETS = new Set(['2999-4999', '5000-9999', '10000+']);
+const ALLOWED_BUDGETS = new Set(['1999', '3499', '5999', '2999-4999', '5000-9999', '10000+']);
 
 export async function POST(request: NextRequest) {
   try {
@@ -83,6 +84,21 @@ export async function POST(request: NextRequest) {
     const session = await getAuthSessionState();
     const admin = createSupabaseAdminClient();
 
+    const capacityCategory = occasion === 'wedding' ? 'wedding' : 'studio';
+    const capacity = await getCustomOrderCapacity(admin);
+    const slot = capacity[capacityCategory];
+    if (!slot.acceptingOrders) {
+      return NextResponse.json(
+        {
+          error: slot.capacityMessage,
+          code: 'CAPACITY_FULL',
+          category: capacityCategory,
+          capacity: slot,
+        },
+        { status: 429 },
+      );
+    }
+
     const { data: created, error } = await admin
       .from('custom_requests')
       .insert({
@@ -113,7 +129,10 @@ export async function POST(request: NextRequest) {
     });
 
     const cfg = getWebzyPublicConfig();
-    const founderEmail = process.env.SEED_ADMIN_EMAIL || cfg.business.supportEmail;
+    const founderEmail =
+      process.env.SEED_ADMIN_EMAIL?.trim() ||
+      process.env.SUPPORT_EMAIL?.trim() ||
+      cfg.business.supportEmail;
     await sendTransactionalEmail({
       to: founderEmail,
       subject: `[Webzy Custom Request] ${occasion} (${budgetTier}) from ${name}`,

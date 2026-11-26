@@ -9,6 +9,7 @@ export type ThemeOccasion =
   | 'anniversary'
   | 'family'
   | 'festival'
+  | 'portfolio'
   | 'business';
 
 export type ThemeFieldType =

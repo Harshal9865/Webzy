@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import React, { useMemo, useState } from 'react';
 import { getSiteCopy, getStorefrontCopy, LanguageCode, pickLocalizedText } from '@webzy/core';
 import { OCCASION_LABELS, ThemeManifest, ThemeOccasion } from '@webzy/themes';
@@ -13,13 +14,12 @@ interface ThemesCatalogueClientProps {
 
 const OCCASIONS: Array<'all' | ThemeOccasion> = [
   'all',
-  'wedding',
   'birthday',
+  'portfolio',
+  'business',
   'love',
   'anniversary',
   'family',
-  'festival',
-  'business',
 ];
 
 export function ThemesCatalogueClient({
@@ -39,6 +39,7 @@ export function ThemesCatalogueClient({
   const filtered = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     return themes.filter((t) => {
+      if (t.occasion === 'wedding') return false;
       if (occasion !== 'all' && t.occasion !== occasion) return false;
       if (langFilter !== 'all' && !t.languages.includes(langFilter)) return false;
       if (maxPrice > 0 && t.price.base > maxPrice) return false;
@@ -94,7 +95,7 @@ export function ThemesCatalogueClient({
               type="search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search birthday, wedding, diwali, ₹29..."
+              placeholder="Search birthday, portfolio, bakery, shop, ₹29..."
               className="min-h-[44px] w-full rounded-xl border border-webzy-tint bg-white px-3.5 text-base font-medium text-webzy-ink outline-none focus:border-webzy-primary sm:w-64 sm:text-xs"
             />
             <div className="grid grid-cols-2 gap-2.5 sm:flex sm:items-center sm:gap-3">
@@ -124,7 +125,7 @@ export function ThemesCatalogueClient({
                   <option value={49}>≤ ₹49</option>
                   <option value={79}>≤ ₹79</option>
                   <option value={99}>≤ ₹99</option>
-                  <option value={499}>≤ ₹499</option>
+                  <option value={149}>≤ ₹149</option>
                 </select>
               </label>
             </div>
@@ -134,6 +135,24 @@ export function ThemesCatalogueClient({
             {filtered.length} {filtered.length === 1 ? 'theme' : 'themes'}
           </span>
         </div>
+      </div>
+
+      {/* Dedicated Wedding Gallery Redirect Strip */}
+      <div className="mt-5 flex flex-col justify-between gap-3 rounded-2xl border border-[#C9A243]/40 bg-[#FBF7EE] px-4 py-3.5 sm:flex-row sm:items-center sm:px-6">
+        <div>
+          <p className="font-heading text-sm font-bold text-[#1F1419] sm:text-base">
+            Planning a Wedding?
+          </p>
+          <p className="mt-0.5 text-xs leading-relaxed text-[#4A383E] sm:text-sm">
+            Our 6 royal wedding invitation suites &amp; bespoke wedding builds live in their dedicated Wedding Gallery.
+          </p>
+        </div>
+        <Link
+          href="/weddings"
+          className="btn-spring inline-flex min-h-[42px] shrink-0 items-center justify-center rounded-full bg-[#1A1317] px-5 text-xs font-bold text-[#F5E0A3] shadow-xs transition hover:bg-[#2B1F26]"
+        >
+          Explore Weddings →
+        </Link>
       </div>
 
       {filtered.length === 0 ? (
@@ -150,7 +169,7 @@ export function ThemesCatalogueClient({
           </button>
         </div>
       ) : (
-        <div className="mt-7 grid grid-cols-1 gap-3.5 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 lg:gap-5">
+        <div className="mt-7 grid grid-cols-2 gap-2.5 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-5">
           {filtered.map((theme) => (
             <ThemeCard key={theme.id} theme={theme} />
           ))}

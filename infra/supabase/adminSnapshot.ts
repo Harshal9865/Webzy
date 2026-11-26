@@ -1,5 +1,8 @@
+import { buildDefaultCapacityState, getCustomOrderCapacity, type PlatformCapacityState } from './capacity';
 import { checkSupabaseConnection } from './health';
 import { createSupabaseAdminClient } from './server';
+
+const DEFAULT_PLATFORM_CAPACITY: PlatformCapacityState = buildDefaultCapacityState();
 
 export interface ExecutiveAddonStats {
   pinCount: number;
@@ -60,6 +63,9 @@ export interface SnapshotSiteItem {
   reveal_at: string | null;
   expires_at: string | null;
   created_at: string;
+  is_lifetime?: boolean;
+  deleted_at?: string | null;
+  delete_grace_until?: string | null;
   content_json?: Record<string, unknown> | null;
   theme_versions?: { theme_id?: string } | Array<{ theme_id?: string }> | null;
 }
@@ -172,6 +178,7 @@ export interface AdminDashboardSnapshot {
   waitlistItems: SnapshotWaitlistItem[];
   recentModLogs: Array<{ id: string; what: string; why: string; when_at: string }>;
   recentAudits: AdminAuditEntry[];
+  capacity: PlatformCapacityState;
   statsLoadError: boolean;
   syncedAt: string;
 }
@@ -255,6 +262,7 @@ export async function loadAdminDashboardSnapshot(): Promise<AdminDashboardSnapsh
     totalPayingCustomers: 0,
   };
   let statsLoadError = false;
+  let capacity: PlatformCapacityState = DEFAULT_PLATFORM_CAPACITY;
 
   const supabaseHealth = await checkSupabaseConnection();
 
@@ -279,6 +287,7 @@ export async function loadAdminDashboardSnapshot(): Promise<AdminDashboardSnapsh
       tdRes,
       crRes,
       draftsCountRes,
+      loadedCapacity,
     ] = await Promise.all([
       adminClient.from('profiles').select('id', { count: 'exact', head: true }),
       adminClient
@@ -332,9 +341,8 @@ export async function loadAdminDashboardSnapshot(): Promise<AdminDashboardSnapsh
       adminClient
         .from('sites')
         .select(
-          'id, slug, user_id, status, hidden, views_count, reveal_at, expires_at, created_at, content_json, theme_versions(theme_id)',
+          'id, slug, user_id, status, hidden, views_count, reveal_at, expires_at, created_at, is_lifetime, deleted_at, delete_grace_until, content_json, theme_versions(theme_id)',
         )
-        .is('deleted_at', null)
         .order('created_at', { ascending: false })
         .limit(100),
       adminClient
@@ -362,7 +370,24 @@ export async function loadAdminDashboardSnapshot(): Promise<AdminDashboardSnapsh
         .from('drafts')
         .select('id', { count: 'exact', head: true })
         .is('deleted_at', null),
+      getCustomOrderCapacity(adminClient).catch(() => DEFAULT_PLATFORM_CAPACITY),
     ]);
+
+    capacity = loadedCapacity;
+
+    let resolvedSitesList = sitesListRes;
+    if (sitesListRes.error) {
+      const fallbackSitesRes = await adminClient
+        .from('sites')
+        .select(
+          'id, slug, user_id, status, hidden, views_count, reveal_at, expires_at, created_at, content_json, theme_versions(theme_id)',
+        )
+        .order('created_at', { ascending: false })
+        .limit(100);
+      if (!fallbackSitesRes.error) {
+        resolvedSitesList = fallbackSitesRes as unknown as typeof sitesListRes;
+      }
+    }
 
     if (
       pRes.error ||
@@ -370,7 +395,7 @@ export async function loadAdminDashboardSnapshot(): Promise<AdminDashboardSnapsh
       aRes.error ||
       ordersRes.error ||
       profilesListRes.error ||
-      sitesListRes.error
+      resolvedSitesList.error
     ) {
       statsLoadError = true;
     }
@@ -476,7 +501,8 @@ export async function loadAdminDashboardSnapshot(): Promise<AdminDashboardSnapsh
               raw.includes('extend_14d') ||
               raw.includes('extend_21d') ||
               raw.includes('extend') ||
-              raw.includes('extendValidity90d'),
+              raw.includes('extendValidity90d') ||
+              raw.includes('lifetime'),
           };
         }
         if (raw && typeof raw === 'object') {
@@ -485,7 +511,11 @@ export async function loadAdminDashboardSnapshot(): Promise<AdminDashboardSnapsh
             hasPin: Boolean(obj.secretPin || obj.pin),
             hasVideo: Boolean(obj.videoCard || obj.video),
             hasExtend: Boolean(
-              obj.extend14d || obj.extend21d || obj.extendValidity90d || obj.extend,
+              obj.extend14d ||
+                obj.extend21d ||
+                obj.extendValidity90d ||
+                obj.extend ||
+                obj.lifetime,
             ),
           };
         }
@@ -549,7 +579,7 @@ export async function loadAdminDashboardSnapshot(): Promise<AdminDashboardSnapsh
       sitesCount: userSiteCounts[p.id] || 0,
     }));
 
-    siteItems = (sitesListRes.data as SnapshotSiteItem[] | null) ?? [];
+    siteItems = (resolvedSitesList.data as SnapshotSiteItem[] | null) ?? [];
     const allowedWaitlistStatuses = new Set<WaitlistLeadStatus>([
       'waitlisted',
       'contacted',
@@ -717,6 +747,7 @@ export async function loadAdminDashboardSnapshot(): Promise<AdminDashboardSnapsh
     waitlistItems,
     recentModLogs,
     recentAudits,
+    capacity,
     statsLoadError,
     syncedAt: new Date().toISOString(),
   };

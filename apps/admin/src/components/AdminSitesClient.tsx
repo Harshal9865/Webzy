@@ -12,6 +12,9 @@ export interface AdminSiteItem {
   reveal_at: string | null;
   expires_at: string | null;
   created_at: string;
+  is_lifetime?: boolean;
+  deleted_at?: string | null;
+  delete_grace_until?: string | null;
   content_json?: Record<string, unknown> | null;
   theme_versions?: { theme_id?: string } | Array<{ theme_id?: string }> | null;
 }
@@ -499,6 +502,19 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
                             PIN Locked
                           </span>
                         ) : null}
+                        {site.is_lifetime ? (
+                          <span className="rounded border border-emerald-300 bg-emerald-50 px-1.5 py-0.5 text-[9.5px] font-bold uppercase text-emerald-900">
+                            Lifetime (No Expiry)
+                          </span>
+                        ) : null}
+                        {site.deleted_at ? (
+                          <span
+                            suppressHydrationWarning
+                            className="rounded border border-red-300 bg-red-50 px-1.5 py-0.5 text-[9.5px] font-bold uppercase text-red-900"
+                          >
+                            User Soft-Deleted (Grace until {formatIstDate(site.delete_grace_until || site.deleted_at)})
+                          </span>
+                        ) : null}
                         <span suppressHydrationWarning className="text-[10.5px] text-webzy-ink/50 font-tabular">
                           {site.created_at ? site.created_at.slice(0, 10) : '—'}
                         </span>
@@ -514,21 +530,27 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
                     </td>
                     <td className="px-4 py-3">
                       <span
-                        className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase ${isHidden
-                          ? 'bg-amber-100 text-amber-900'
-                          : site.status === 'expired'
-                            ? 'bg-slate-200 text-slate-700'
-                            : 'bg-emerald-100 text-emerald-900'
+                        className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase ${site.deleted_at
+                          ? 'bg-red-100 text-red-900'
+                          : isHidden
+                            ? 'bg-amber-100 text-amber-900'
+                            : site.status === 'expired'
+                              ? 'bg-slate-200 text-slate-700'
+                              : 'bg-emerald-100 text-emerald-900'
                           }`}
                       >
-                        {isHidden ? 'Paused' : site.status}
+                        {site.deleted_at ? 'Soft-Deleted' : isHidden ? 'Paused' : site.status}
                       </span>
                     </td>
                     <td className="px-4 py-3 font-semibold text-webzy-ink font-tabular">
                       {site.views_count}
                     </td>
                     <td suppressHydrationWarning className="px-4 py-3 text-webzy-ink/70 font-tabular">
-                      {site.expires_at ? site.expires_at.slice(0, 10) : '—'}
+                      {site.is_lifetime
+                        ? 'Lifetime'
+                        : site.expires_at
+                          ? site.expires_at.slice(0, 10)
+                          : '—'}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex flex-wrap items-center justify-end gap-1.5">

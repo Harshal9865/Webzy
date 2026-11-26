@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useMemo, useState } from 'react';
+import type { PlatformCapacityState } from '../../../../infra/supabase/capacity';
 
 export interface StudioBuildRow {
   id: string;
@@ -41,11 +42,13 @@ export interface CustomRequestRow {
 interface AdminCustomBuildsClientProps {
   studioLeads: StudioBuildRow[];
   customRequests: CustomRequestRow[];
+  initialCapacity?: PlatformCapacityState;
 }
 
 export interface UnifiedProject {
   id: string;
   source: 'studio' | 'request';
+  occasion?: string;
   clientName: string;
   clientEmail: string;
   clientPhone: string;
@@ -131,27 +134,105 @@ function sanitizePhoneForWa(phone: string): string {
   return digits;
 }
 
+const DEFAULT_CAPACITY_STATE: PlatformCapacityState = {
+  wedding: {
+    paused: false,
+    limit: 3,
+    activeCount: 0,
+    remainingSlots: 3,
+    acceptingOrders: true,
+    capacityMessage: '',
+  },
+  studio: {
+    paused: false,
+    limit: 5,
+    activeCount: 0,
+    remainingSlots: 5,
+    acceptingOrders: true,
+    capacityMessage: '',
+  },
+  capacityMessage: '',
+  updatedAt: null,
+};
+
+function resolveCapacityEndpoint(): string {
+  if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
+    return '/api/admin/capacity';
+  }
+  return '/api/capacity';
+}
+
+function buildGoogleMeetMailto(project: UnifiedProject): string {
+  const subject = encodeURIComponent(
+    `Your Webzy ${project.occasion === 'wedding' ? 'Custom Wedding' : 'Custom Made'} Website — 15-Min Google Meet`,
+  );
+  const dateLine = project.targetDate ? `Target date noted: ${project.targetDate}\n` : '';
+  const body = encodeURIComponent(
+    [
+      `Hi ${project.clientName},`,
+      '',
+      `Thank you for sharing your ${project.occasion === 'wedding' ? 'custom wedding website' : 'custom website'} brief with Webzy.`,
+      dateLine.trim(),
+      'Let us connect for a short 15-minute Google Meet to finalize your aesthetic, functions, and launch timeline.',
+      'Please reply with two time slots that suit you today or tomorrow (IST), and I will send the Google Meet calendar link right away.',
+      '',
+      'Warm regards,',
+      'Webzy Custom Made Team',
+    ]
+      .filter(Boolean)
+      .join('\n'),
+  );
+  return `mailto:${encodeURIComponent(project.clientEmail)}?subject=${subject}&body=${body}`;
+}
+
 export function AdminCustomBuildsClient({
   studioLeads,
   customRequests,
+  initialCapacity,
 }: AdminCustomBuildsClientProps) {
   const router = useRouter();
+
+  const [capacityState, setCapacityState] = useState<PlatformCapacityState>(
+    initialCapacity ?? DEFAULT_CAPACITY_STATE,
+  );
+  const [weddingLimitInput, setWeddingLimitInput] = useState<string>(
+    String((initialCapacity ?? DEFAULT_CAPACITY_STATE).wedding.limit),
+  );
+  const [studioLimitInput, setStudioLimitInput] = useState<string>(
+    String((initialCapacity ?? DEFAULT_CAPACITY_STATE).studio.limit),
+  );
+  const [capacityMessageInput, setCapacityMessageInput] = useState<string>(
+    (initialCapacity ?? DEFAULT_CAPACITY_STATE).capacityMessage ?? '',
+  );
+  const [capacityDirty, setCapacityDirty] = useState(false);
+  const [savingCapacity, setSavingCapacity] = useState(false);
+
+  useEffect(() => {
+    if (!initialCapacity) return;
+    setCapacityState(initialCapacity);
+    if (!capacityDirty) {
+      setWeddingLimitInput(String(initialCapacity.wedding.limit));
+      setStudioLimitInput(String(initialCapacity.studio.limit));
+      setCapacityMessageInput(initialCapacity.capacityMessage ?? '');
+    }
+  }, [initialCapacity, capacityDirty]);
 
   // Combine both sources into unified list
   const initialProjects = useMemo<UnifiedProject[]>(() => {
     const list: UnifiedProject[] = [];
 
-    // 1. Studio Leads (/studio waitlist)
+    // 1. Custom Made Leads (/studio waitlist)
     studioLeads.forEach((lead) => {
       const rawChecklist = lead.checklist || {};
       const { clientBrief, internalNotes } = splitStudioNotes(lead.notes);
       list.push({
         id: lead.id,
         source: 'studio',
+        occasion: lead.category === 'wedding_bespoke' ? 'wedding' : lead.category,
         clientName: lead.name,
         clientEmail: lead.email,
         clientPhone: lead.phone,
-        businessName: lead.business_name || 'Studio Custom Build',
+        businessName: lead.business_name || 'Custom Made Build',
         city: lead.city,
         categoryLabel:
           lead.category === 'coaching'
@@ -190,6 +271,7 @@ export function AdminCustomBuildsClient({
       list.push({
         id: req.id,
         source: 'request',
+        occasion: req.occasion,
         clientName: req.requester_name,
         clientEmail: req.requester_email,
         clientPhone: req.requester_phone,
@@ -292,6 +374,56 @@ export function AdminCustomBuildsClient({
     );
   }
 
+  // Capacity controls handler
+  async function saveCapacityChanges(overrides?: {
+    customWeddingPaused?: boolean;
+    customStudioPaused?: boolean;
+  }) {
+    setSavingCapacity(true);
+    setNotice('');
+    setErrorMsg('');
+
+    const parsedWeddingLimit = Math.min(50, Math.max(0, Math.round(Number(weddingLimitInput) || 0)));
+    const parsedStudioLimit = Math.min(50, Math.max(0, Math.round(Number(studioLimitInput) || 0)));
+
+    try {
+      const res = await fetch(resolveCapacityEndpoint(), {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customWeddingPaused:
+            overrides?.customWeddingPaused ?? capacityState.wedding.paused,
+          customWeddingLimit: parsedWeddingLimit,
+          customStudioPaused:
+            overrides?.customStudioPaused ?? capacityState.studio.paused,
+          customStudioLimit: parsedStudioLimit,
+          capacityMessage: capacityMessageInput.trim() || null,
+        }),
+      });
+      const data = (await res.json()) as {
+        ok?: boolean;
+        capacity?: PlatformCapacityState;
+        error?: string;
+      };
+      if (!res.ok || !data.capacity) {
+        throw new Error(data.error || 'Failed to update capacity settings.');
+      }
+
+      setCapacityState(data.capacity);
+      setWeddingLimitInput(String(data.capacity.wedding.limit));
+      setStudioLimitInput(String(data.capacity.studio.limit));
+      setCapacityMessageInput(data.capacity.capacityMessage ?? '');
+      setCapacityDirty(false);
+      setNotice('Updated live order capacity & pause controls.');
+      window.dispatchEvent(new Event('webzy_admin_mutated'));
+      router.refresh();
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'Failed to save capacity settings.');
+    } finally {
+      setSavingCapacity(false);
+    }
+  }
+
   // Save changes to API
   async function handleSaveProject(project: UnifiedProject, sendQuoteEmail = false) {
     setBusyId(project.id);
@@ -372,14 +504,14 @@ export function AdminCustomBuildsClient({
               CB
             </span>
             <h2 className="font-heading text-2xl font-bold text-webzy-ink">
-              Custom Builds &amp; Studio Projects Pipeline
+              Custom Made Builds &amp; Requests Pipeline
             </h2>
             <span className="rounded-full bg-webzy-tint px-3 py-0.5 text-xs font-bold text-webzy-primary font-tabular">
               {totalCount} Total
             </span>
           </div>
           <p className="mt-1 text-xs text-webzy-ink/75">
-            Manage incoming briefs from <strong>/studio</strong> and <strong>/request</strong>. Review what website features the client wants and check off build milestones as they are made.
+            Manage incoming briefs from <strong>/weddings</strong>, <strong>/studio</strong>, and <strong>/request</strong>. Review what website features the client wants and check off build milestones as they are made.
           </p>
         </div>
 
@@ -405,6 +537,189 @@ export function AdminCustomBuildsClient({
           {errorMsg}
         </div>
       ) : null}
+
+      {/* Capacity & Order Limit Control Card */}
+      <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3">
+          <div>
+            <h3 className="font-heading text-sm font-bold text-webzy-ink sm:text-base">
+              Live Batch Capacity &amp; Order Limit Controls
+            </h3>
+            <p className="text-[11px] text-webzy-ink/70">
+              Pause new bespoke requests anytime or adjust active batch limits (0–50). Reflects immediately on /weddings.
+            </p>
+          </div>
+          <button
+            suppressHydrationWarning
+            type="button"
+            disabled={savingCapacity}
+            onClick={() => void saveCapacityChanges()}
+            className={`inline-flex min-h-[44px] items-center rounded-xl px-4 text-xs font-bold text-white shadow-xs transition disabled:opacity-50 ${
+              capacityDirty ? 'bg-amber-600 ring-2 ring-amber-300' : 'bg-webzy-primary hover:opacity-95'
+            }`}
+          >
+            {savingCapacity ? 'Saving...' : capacityDirty ? 'Save Capacity Limits' : 'Save Controls'}
+          </button>
+        </div>
+
+        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {/* Custom Wedding Commissions */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p className="text-xs font-bold text-webzy-ink">Custom Wedding Commissions</p>
+                <p className="text-[11px] text-webzy-ink/65 font-tabular">
+                  {capacityState.wedding.activeCount}/{capacityState.wedding.limit} active ·{' '}
+                  {capacityState.wedding.remainingSlots} open
+                </p>
+              </div>
+              <button
+                suppressHydrationWarning
+                type="button"
+                disabled={savingCapacity}
+                onClick={() =>
+                  void saveCapacityChanges({
+                    customWeddingPaused: !capacityState.wedding.paused,
+                  })
+                }
+                className={`inline-flex min-h-[44px] items-center rounded-full px-4 text-xs font-bold transition disabled:opacity-50 ${
+                  capacityState.wedding.paused
+                    ? 'border border-red-200 bg-red-50 text-red-900 hover:bg-red-100'
+                    : 'border border-emerald-200 bg-emerald-50 text-emerald-900 hover:bg-emerald-100'
+                }`}
+              >
+                {capacityState.wedding.paused ? 'Paused · Resume' : 'Accepting Orders · Pause'}
+              </button>
+            </div>
+
+            <div className="mt-3 flex items-center gap-3">
+              <div className="h-2 flex-1 overflow-hidden rounded-full border border-slate-200 bg-slate-100">
+                <div
+                  className={`h-full transition-all duration-300 ${
+                    capacityState.wedding.acceptingOrders ? 'bg-emerald-600' : 'bg-amber-500'
+                  }`}
+                  style={{
+                    width: `${
+                      capacityState.wedding.limit > 0
+                        ? Math.min(
+                            100,
+                            Math.round(
+                              (capacityState.wedding.activeCount / capacityState.wedding.limit) * 100,
+                            ),
+                          )
+                        : 100
+                    }%`,
+                  }}
+                />
+              </div>
+              <label className="flex items-center gap-1.5 text-[11px] font-bold text-webzy-ink">
+                <span>Slot Limit</span>
+                <input
+                  suppressHydrationWarning
+                  type="number"
+                  min={0}
+                  max={50}
+                  value={weddingLimitInput}
+                  onChange={(e) => {
+                    setWeddingLimitInput(e.target.value);
+                    setCapacityDirty(true);
+                  }}
+                  className="min-h-[38px] w-16 rounded-lg border border-slate-200 bg-slate-50 px-2 text-center text-xs font-bold font-tabular text-webzy-ink outline-none focus:border-webzy-primary focus:bg-white"
+                />
+              </label>
+            </div>
+          </div>
+
+          {/* General Custom Made Builds */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p className="text-xs font-bold text-webzy-ink">General Custom Made Builds</p>
+                <p className="text-[11px] text-webzy-ink/65 font-tabular">
+                  {capacityState.studio.activeCount}/{capacityState.studio.limit} active ·{' '}
+                  {capacityState.studio.remainingSlots} open
+                </p>
+              </div>
+              <button
+                suppressHydrationWarning
+                type="button"
+                disabled={savingCapacity}
+                onClick={() =>
+                  void saveCapacityChanges({
+                    customStudioPaused: !capacityState.studio.paused,
+                  })
+                }
+                className={`inline-flex min-h-[44px] items-center rounded-full px-4 text-xs font-bold transition disabled:opacity-50 ${
+                  capacityState.studio.paused
+                    ? 'border border-red-200 bg-red-50 text-red-900 hover:bg-red-100'
+                    : 'border border-emerald-200 bg-emerald-50 text-emerald-900 hover:bg-emerald-100'
+                }`}
+              >
+                {capacityState.studio.paused ? 'Paused · Resume' : 'Accepting Orders · Pause'}
+              </button>
+            </div>
+
+            <div className="mt-3 flex items-center gap-3">
+              <div className="h-2 flex-1 overflow-hidden rounded-full border border-slate-200 bg-slate-100">
+                <div
+                  className={`h-full transition-all duration-300 ${
+                    capacityState.studio.acceptingOrders ? 'bg-emerald-600' : 'bg-amber-500'
+                  }`}
+                  style={{
+                    width: `${
+                      capacityState.studio.limit > 0
+                        ? Math.min(
+                            100,
+                            Math.round(
+                              (capacityState.studio.activeCount / capacityState.studio.limit) * 100,
+                            ),
+                          )
+                        : 100
+                    }%`,
+                  }}
+                />
+              </div>
+              <label className="flex items-center gap-1.5 text-[11px] font-bold text-webzy-ink">
+                <span>Slot Limit</span>
+                <input
+                  suppressHydrationWarning
+                  type="number"
+                  min={0}
+                  max={50}
+                  value={studioLimitInput}
+                  onChange={(e) => {
+                    setStudioLimitInput(e.target.value);
+                    setCapacityDirty(true);
+                  }}
+                  className="min-h-[38px] w-16 rounded-lg border border-slate-200 bg-slate-50 px-2 text-center text-xs font-bold font-tabular text-webzy-ink outline-none focus:border-webzy-primary focus:bg-white"
+                />
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-3">
+          <label
+            htmlFor="capacity-banner-note"
+            className="block text-[11px] font-bold text-webzy-ink"
+          >
+            Optional Storefront Capacity Note (shown on /weddings when paused or full)
+          </label>
+          <input
+            id="capacity-banner-note"
+            suppressHydrationWarning
+            type="text"
+            maxLength={240}
+            value={capacityMessageInput}
+            onChange={(e) => {
+              setCapacityMessageInput(e.target.value);
+              setCapacityDirty(true);
+            }}
+            placeholder="e.g. Next bespoke wedding batch opens Monday morning IST — ready-made editions remain open 24/7."
+            className="mt-1 min-h-[42px] w-full rounded-xl border border-slate-200 bg-white px-3.5 text-xs text-webzy-ink outline-none focus:border-webzy-primary"
+          />
+        </div>
+      </div>
 
       {/* Filters and Search Bar */}
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
@@ -432,7 +747,7 @@ export function AdminCustomBuildsClient({
                 : 'border border-slate-200 bg-slate-50/70 text-webzy-ink hover:border-webzy-primary/40 hover:bg-slate-100'
             }`}
           >
-            Studio Builds ({studioLeads.length})
+            Custom Made Builds ({studioLeads.length})
           </button>
           <button
             suppressHydrationWarning
@@ -485,8 +800,10 @@ export function AdminCustomBuildsClient({
           {filteredProjects.map((p) => {
             const waNumber = sanitizePhoneForWa(p.clientPhone);
             const waGreeting = encodeURIComponent(
-              `Hi ${p.clientName}, this is Webzy Studio regarding your website request for "${p.businessName || 'your custom project'}". We are preparing your build details!`,
+              `Hi ${p.clientName}, this is Webzy Custom Made regarding your ${p.occasion === 'wedding' ? 'custom wedding website' : 'website request'} for "${p.businessName || 'your custom project'}". Let us schedule a quick 15-minute Google Meet to finalize your ideas!`,
             );
+            const meetMailto = buildGoogleMeetMailto(p);
+            const isWeddingOccasion = p.occasion === 'wedding';
 
             // Compute checklist completion percentage
             const completedCount = Object.values(p.checklist).filter(Boolean).length;
@@ -517,8 +834,13 @@ export function AdminCustomBuildsClient({
                           : 'bg-rose-100 text-rose-900 border border-rose-200'
                       }`}
                     >
-                      {p.source === 'studio' ? 'Studio Build' : 'Custom Request'}
+                      {p.source === 'studio' ? 'Custom Made' : 'Custom Request'}
                     </span>
+                    {isWeddingOccasion ? (
+                      <span className="rounded-full border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-900">
+                        Wedding
+                      </span>
+                    ) : null}
                     <h3 className="font-heading text-base font-bold text-webzy-ink">
                       {p.businessName || p.clientName}
                     </h3>
@@ -610,9 +932,16 @@ export function AdminCustomBuildsClient({
                           <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.303-.058.116-.087.188-.173.289l-.26.303c-.087.087-.177.181-.076.355.101.173.449.741.964 1.201.662.591 1.221.774 1.394.86.173.086.275.072.376-.043.101-.116.433-.506.549-.68.116-.173.231-.144.39-.086s1.011.477 1.184.564.289.13.332.202c.043.073.043.419-.101.824z" />
                           </svg>
-                          <span>WhatsApp</span>
+                          <span>Message on WhatsApp</span>
                         </a>
                       ) : null}
+
+                      <a
+                        href={meetMailto}
+                        className="inline-flex min-h-[44px] items-center rounded-full border border-indigo-200 bg-indigo-50 px-3.5 text-xs font-bold text-indigo-900 hover:bg-indigo-100"
+                      >
+                        Send Google Meet Invite (Email)
+                      </a>
 
                       {p.clientPhone ? (
                         <a
@@ -622,13 +951,6 @@ export function AdminCustomBuildsClient({
                           Call
                         </a>
                       ) : null}
-
-                      <a
-                        href={`mailto:${p.clientEmail}`}
-                        className="inline-flex min-h-[44px] items-center rounded-full border border-slate-200 bg-white px-4 text-xs font-semibold text-webzy-ink hover:bg-slate-50"
-                      >
-                        Email
-                      </a>
                     </div>
                   </div>
 
@@ -795,7 +1117,7 @@ export function AdminCustomBuildsClient({
 
                     <div className="sm:col-span-7">
                       <label className="block text-[11px] font-bold text-webzy-ink">
-                        Internal / Studio Notes
+                        Internal / Build Notes
                       </label>
                       <input
                         suppressHydrationWarning

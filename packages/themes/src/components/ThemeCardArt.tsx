@@ -66,8 +66,8 @@ const OCCASION_ART_PREVIEW: Record<
   { cover: string; isDark?: boolean }
 > = {
   'birthday-confetti-01': {
-    cover: '/templates/occasions/birthday-confetti/cover.jpg',
-    isDark: true,
+    cover: '/templates/occasions/birthday-confetti/cover.jpg?v=2',
+    isDark: false,
   },
   'birthday-ashirwad-01': {
     cover: '/templates/occasions/birthday-ashirwad/cover.jpg',
@@ -91,6 +91,14 @@ const OCCASION_ART_PREVIEW: Record<
   },
   'harvest-greeting-01': {
     cover: '/templates/occasions/harvest-greeting/cover.jpg',
+  },
+  'portfolio-01': {
+    cover: '/templates/occasions/portfolio/cover.jpg?v=1',
+    isDark: false,
+  },
+  'small-business-01': {
+    cover: '/templates/occasions/small-business/cover.jpg?v=1',
+    isDark: false,
   },
   'business-greeting-01': {
     cover: '/templates/occasions/business-greeting/cover.jpg',

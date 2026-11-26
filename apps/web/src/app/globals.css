@@ -133,6 +133,57 @@ body {
   font-family: var(--font-cormorant), var(--font-devanagari), var(--font-gujarati), Georgia, serif;
 }
 
+/* Curated Occasion Typography System (with Indic fallbacks) */
+.font-editorial {
+  font-family: var(--font-instrument-serif), var(--font-cormorant), var(--font-devanagari), Georgia, serif;
+}
+
+.font-literary {
+  font-family: var(--font-newsreader), var(--font-devanagari), Georgia, serif;
+}
+
+.font-handwritten {
+  font-family: var(--font-caveat), var(--font-devanagari), cursive;
+}
+
+.font-festive {
+  font-family: var(--font-bricolage), var(--font-devanagari), system-ui, sans-serif;
+}
+
+.font-playful {
+  font-family: var(--font-fredoka), var(--font-devanagari), system-ui, sans-serif;
+}
+
+.font-pixel {
+  font-family: var(--font-pixel), ui-monospace, SFMono-Regular, monospace;
+}
+
+.font-romance {
+  font-family: var(--font-playfair), var(--font-instrument-serif), var(--font-cormorant), var(--font-devanagari), Georgia, serif;
+}
+
+.font-zine {
+  font-family: var(--font-bebas), var(--font-bricolage), var(--font-devanagari), system-ui, sans-serif;
+}
+
+/* Tactile Paper & Scrapbook Surfaces */
+.occasion-stationery-lined {
+  background-color: #fffbf2;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 27px,
+    rgba(155, 28, 46, 0.08) 27px,
+    rgba(155, 28, 46, 0.08) 28px
+  );
+}
+
+.occasion-dot-grid {
+  background-color: #fffbf6;
+  background-image: radial-gradient(rgba(225, 29, 99, 0.14) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
 /* 3D Envelope Perspectives */
 .perspective-1000 {
   perspective: 1000px;

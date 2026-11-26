@@ -11,6 +11,8 @@ import { MaanJaoSite } from '../occasions/MaanJaoSite';
 import { MakeThemSmileSite } from '../occasions/MakeThemSmileSite';
 import { OurTimelineSite } from '../occasions/OurTimelineSite';
 import { OurYearWrappedSite } from '../occasions/OurYearWrappedSite';
+import { PortfolioSite } from '../occasions/PortfolioSite';
+import { SmallBusinessSite } from '../occasions/SmallBusinessSite';
 import { WillYouSite } from '../occasions/WillYouSite';
 import { getWeddingMockByTemplateId } from '../weddings/mockData';
 import { isWeddingTemplateId } from '../weddings/schema';
@@ -55,6 +57,10 @@ function renderOccasionMiniSite({
       return <OurYearWrappedSite {...sharedProps} />;
     case 'harvest-greeting-01':
       return <HarvestGreetingSite {...sharedProps} />;
+    case 'portfolio-01':
+      return <PortfolioSite {...sharedProps} />;
+    case 'small-business-01':
+      return <SmallBusinessSite {...sharedProps} />;
     case 'business-greeting-01':
       return <BusinessGreetingSite {...sharedProps} />;
     default:

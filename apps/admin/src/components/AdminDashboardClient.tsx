@@ -8,6 +8,7 @@ import type {
   AdminDashboardSnapshot,
   ExecutiveMetrics,
 } from '../../../../infra/supabase/adminSnapshot';
+import type { PlatformCapacityState } from '../../../../infra/supabase/capacity';
 
 export type { ExecutiveMetrics };
 import { getSupabaseBrowserClient, isBrowserSupabaseConfigured } from '../../../../infra/supabase/browser';
@@ -82,6 +83,7 @@ export interface AdminDashboardClientProps {
   waitlistItems: AdminWaitlistItem[];
   recentModLogs: Array<{ id: string; what: string; why: string; when_at: string }>;
   recentAudits: AdminAuditEntry[];
+  capacity?: PlatformCapacityState;
   statsLoadError: boolean;
   signOutRedirect?: string;
 }
@@ -119,6 +121,7 @@ export function AdminDashboardClient({
   waitlistItems,
   recentModLogs,
   recentAudits,
+  capacity,
   statsLoadError,
   signOutRedirect = '/login',
 }: AdminDashboardClientProps) {
@@ -155,6 +158,7 @@ export function AdminDashboardClient({
   const [liveAudits, setLiveAudits] = useState<AdminAuditEntry[]>(recentAudits);
   const [liveStatsError, setLiveStatsError] = useState(statsLoadError);
 
+  const [liveCapacity, setLiveCapacity] = useState<PlatformCapacityState | undefined>(capacity);
   const [autoSync, setAutoSync] = useState(true);
   const [syncState, setSyncState] = useState<'connected' | 'syncing' | 'paused' | 'error'>('connected');
   const [lastSyncedAtMs, setLastSyncedAtMs] = useState<number>(() => Date.now());
@@ -179,6 +183,7 @@ export function AdminDashboardClient({
     setLiveWaitlist(waitlistItems);
     setLiveModLogs(recentModLogs);
     setLiveAudits(recentAudits);
+    setLiveCapacity(capacity);
     setLiveStatsError(statsLoadError);
     setLastSyncedAtMs(Date.now());
     setSecondsAgo(0);
@@ -195,6 +200,7 @@ export function AdminDashboardClient({
     waitlistItems,
     recentModLogs,
     recentAudits,
+    capacity,
     statsLoadError,
   ]);
 
@@ -249,6 +255,9 @@ export function AdminDashboardClient({
         setLiveWaitlist(snap.waitlistItems as AdminWaitlistItem[]);
         setLiveModLogs(snap.recentModLogs);
         setLiveAudits(snap.recentAudits as AdminAuditEntry[]);
+        if (snap.capacity) {
+          setLiveCapacity(snap.capacity);
+        }
         setLiveStatsError(snap.statsLoadError);
         setLastSyncedAtMs(Date.now());
         setSecondsAgo(0);
@@ -725,11 +734,16 @@ export function AdminDashboardClient({
   const viralViewsPerSite =
     liveCounts.liveSites > 0 ? (metrics.totalViewsCount / liveCounts.liveSites).toFixed(1) : '0.0';
 
+  const isAnyCustomPaused = Boolean(
+    liveCapacity?.wedding?.paused || liveCapacity?.studio?.paused,
+  );
+
   const navItems: Array<{
     id: DashboardTab;
     label: string;
     shortcut: string;
     badge?: number | string;
+    statusPill?: string;
     tooltip?: string;
     alert?: boolean;
   }> = [
@@ -746,9 +760,10 @@ export function AdminDashboardClient({
     },
     {
       id: 'studio',
-      label: 'Studio & Custom Pipeline',
+      label: 'Custom Made Pipeline',
       shortcut: 'Alt+6',
       badge: activeStudioPipelineCount,
+      statusPill: isAnyCustomPaused ? 'Paused' : undefined,
       tooltip: `${activeStudioPipelineCount} active / unquoted (${totalStudioPipelineCount} total in pipeline)`,
       alert: liveCounts.newRequests > 0,
     },
@@ -938,6 +953,17 @@ export function AdminDashboardClient({
                 >
                   <span className="truncate">{item.label}</span>
                   <span className="flex items-center gap-1.5">
+                    {item.statusPill ? (
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                          active
+                            ? 'bg-amber-300 text-amber-950'
+                            : 'bg-amber-100 text-amber-900'
+                        }`}
+                      >
+                        {item.statusPill}
+                      </span>
+                    ) : null}
                     {item.badge !== undefined ? (
                       <span
                         className={`rounded-full px-2 py-0.5 text-[10px] font-bold font-tabular ${
@@ -1504,6 +1530,7 @@ export function AdminDashboardClient({
             <AdminCustomBuildsClient
               studioLeads={studioBuildRows}
               customRequests={customRequestRows}
+              initialCapacity={liveCapacity}
             />
           )}
 

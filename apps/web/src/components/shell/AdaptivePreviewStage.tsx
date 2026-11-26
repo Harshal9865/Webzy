@@ -179,55 +179,24 @@ function PreviewSkeleton({
   }
 
   return (
-    <>
-      {/* Mobile / Tablet Skeleton (< 1024px) */}
-      <div className="w-full md:mx-auto md:max-w-[500px] lg:hidden">
-        <div className="w-full overflow-hidden rounded-[26px] border border-stone-200/80 bg-[#FAF8F5] shadow-md">
-          <div className="flex items-center justify-between gap-2 border-b border-stone-200/70 bg-white/90 px-4 py-3">
-            <div className="flex items-center gap-2">
-              <span
-                className="h-2.5 w-2.5 animate-pulse rounded-full"
-                style={{ backgroundColor: accentColor }}
-                aria-hidden="true"
-              />
-              <span className="text-xs font-bold text-stone-700">
-                {title || 'Preparing preview...'}
-              </span>
-            </div>
-            <div
-              className="h-9 w-28 animate-pulse rounded-full"
-              style={{ backgroundColor: `${accentColor}22` }}
-            />
-          </div>
-          <div className={`relative flex w-full flex-col items-center justify-center p-6 ${heightClassName}`}>
-            <div
-              className="h-14 w-14 animate-pulse rounded-2xl border border-stone-200/70 bg-white shadow-sm"
-              style={{ boxShadow: `0 12px 30px -12px ${accentColor}40` }}
-            />
-            <div className="mt-4 h-3.5 w-44 animate-pulse rounded-full bg-stone-200/80" />
-            <div className="mt-2 h-2.5 w-32 animate-pulse rounded-full bg-stone-200/60" />
-          </div>
+    <div className="flex w-full flex-col items-center">
+      <div className="w-full max-w-[292px] xs:max-w-[316px] sm:max-w-[332px] lg:max-w-[344px] xl:max-w-[366px] rounded-[38px] border-[7px] border-[#1C131E] bg-[#1C131E] p-[3px] shadow-[0_20px_50px_-12px_rgba(225,29,99,0.18),0_12px_28px_-6px_rgba(43,27,46,0.14)] sm:rounded-[44px] sm:border-[9px] sm:p-1 lg:rounded-[46px] lg:border-[10px]">
+        <div
+          className={`flex h-[min(455px,64dvh)] min-h-[390px] w-full flex-col items-center justify-center rounded-[30px] bg-gradient-to-b from-white to-[#FAF8F5] px-6 text-center sm:h-[min(540px,70dvh)] sm:min-h-[450px] sm:rounded-[34px] lg:h-[min(580px,calc(100dvh-250px))] lg:min-h-[470px] lg:rounded-[35px] xl:h-[min(620px,calc(100dvh-240px))] ${heightClassName}`}
+        >
+          <span
+            className="h-12 w-12 animate-pulse rounded-2xl"
+            style={{ backgroundColor: `${accentColor}24` }}
+            aria-hidden="true"
+          />
+          <p className="mt-4 text-xs font-bold text-stone-600">
+            {title || 'Loading live card...'}
+          </p>
+          <div className="mt-3 h-2.5 w-36 animate-pulse rounded-full bg-stone-200/80" />
+          <div className="mt-2 h-2.5 w-24 animate-pulse rounded-full bg-stone-200/60" />
         </div>
       </div>
-
-      {/* Desktop Skeleton (>= 1024px) matching PhoneFrame height cleanly (zero CLS) */}
-      <div className="hidden w-full flex-col items-center lg:flex">
-        <div className="w-full max-w-[344px] xl:max-w-[366px] rounded-[46px] border-[10px] border-[#1C131E] bg-[#1C131E] p-1 shadow-[0_20px_50px_-12px_rgba(225,29,99,0.18),0_12px_28px_-6px_rgba(43,27,46,0.14)]">
-          <div className="flex h-[min(580px,calc(100dvh-250px))] min-h-[470px] w-full flex-col items-center justify-center rounded-[35px] bg-gradient-to-b from-white to-[#FAF8F5] px-6 text-center xl:h-[min(620px,calc(100dvh-240px))]">
-            <span
-              className="h-12 w-12 animate-pulse rounded-2xl"
-              style={{ backgroundColor: `${accentColor}24` }}
-              aria-hidden="true"
-            />
-            <p className="mt-4 text-xs font-bold text-stone-600">
-              {title || 'Loading live card...'}
-            </p>
-            <div className="mt-3 h-2.5 w-36 animate-pulse rounded-full bg-stone-200/80" />
-            <div className="mt-2 h-2.5 w-24 animate-pulse rounded-full bg-stone-200/60" />
-          </div>
-        </div>
-      </div>
-    </>
+    </div>
   );
 }
 
@@ -336,8 +305,8 @@ export function AdaptivePreviewStage({
   // Strict single-tree mount: NEVER render children until client breakpoint + first paint complete.
   // Eliminates duplicate DOM trees, duplicate SVG paper filters, timers, and SSR hydration overhead.
   const canRenderStage = mounted && previewReady && isDesktop !== null && !isFullscreen;
-  const renderMobileStage = canRenderStage && isDesktop === false;
-  const renderDesktopPhone = canRenderStage && isDesktop === true;
+  const renderMobileCompact = canRenderStage && isDesktop === false && mobileVariant === 'compact';
+  const renderPhoneShowcase = canRenderStage && (mobileVariant === 'card' || isDesktop === true);
   const effectiveViewport: DesktopViewportMode = isDesktop ? desktopViewport : 'desktop';
   const isFramedViewport = effectiveViewport === 'mobile' || effectiveViewport === 'tablet';
   const modalContent =
@@ -527,8 +496,8 @@ export function AdaptivePreviewStage({
         </div>
       ) : null}
 
-      {/* MOBILE & TABLET (< 1024px): Native Zero-Bezel Experience */}
-      {renderMobileStage && mobileVariant === 'compact' ? (
+      {/* MOBILE & TABLET (< 1024px) COMPACT VARIANT */}
+      {renderMobileCompact ? (
         <div className="w-full space-y-3 md:mx-auto md:max-w-[540px] lg:hidden animate-fade-in">
           {/* Lightweight Preview Launcher Bar (Zero heavy card DOM until user opens or expands) */}
           <div className="rounded-2xl border border-stone-200/90 bg-white p-4 shadow-sm">
@@ -613,94 +582,16 @@ export function AdaptivePreviewStage({
         </div>
       ) : null}
 
-      {renderMobileStage && mobileVariant === 'card' ? (
-        <div className="w-full md:mx-auto md:max-w-[500px] lg:hidden animate-fade-in">
-          <div className="w-full overflow-hidden rounded-[28px] border border-stone-200/85 bg-white shadow-[0_20px_50px_-18px_rgba(28,19,30,0.18)]">
-            {/* Native Mobile Header Strip (Zero fake phone notch/bezel) */}
-            <div className="flex items-center justify-between gap-2 border-b border-stone-200/75 bg-[#FAF8F5] px-4 py-2.5">
-              <div className="flex min-w-0 items-center gap-2">
-                <span
-                  className="h-2.5 w-2.5 shrink-0 rounded-full"
-                  style={{ backgroundColor: primaryAccent }}
-                  aria-hidden="true"
-                />
-                <div className="min-w-0">
-                  <span className="block truncate text-xs font-bold tracking-tight text-webzy-ink">
-                    {title || 'Live Interactive Preview'}
-                  </span>
-                  <span className="block truncate text-[10px] font-medium text-stone-500">
-                    Tap directly on card to interact
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex shrink-0 items-center gap-1.5">
-                {onReplay ? (
-                  <button
-                    type="button"
-                    onClick={onReplay}
-                    aria-label="Replay preview animation"
-                    className="inline-flex min-h-[44px] items-center justify-center gap-1 rounded-full border border-stone-200 bg-white px-3 text-[11px] font-bold text-stone-700 transition hover:border-stone-300"
-                  >
-                    <ReplayIcon className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">Replay</span>
-                  </button>
-                ) : null}
-
-                <button
-                  type="button"
-                  onClick={() => setIsFullscreen(true)}
-                  className="btn-spring inline-flex min-h-[44px] items-center gap-1.5 rounded-full px-3.5 text-xs font-bold text-white shadow-sm transition hover:opacity-95"
-                  style={{ backgroundColor: primaryAccent }}
-                >
-                  <ExpandIcon className="h-3.5 w-3.5" />
-                  <span>Full Screen</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Edge-to-Edge Frameless Mobile Interactive Canvas */}
-            <div className={`relative w-full overflow-hidden bg-[#FAF8F5] transform-gpu ${mobileHeightClassName}`}>
-              <div className="h-full w-full overflow-y-auto overflow-x-clip overscroll-contain scrollbar-none">
-                {children}
-              </div>
-            </div>
-
-            {/* Native Bottom Action Strip */}
-            {caption || externalFullScreenHref ? (
-              <div className="flex flex-wrap items-center justify-between gap-2 border-t border-stone-200/75 bg-white px-4 py-1.5">
-                {caption ? (
-                  <p className="text-[11px] font-semibold text-webzy-ink/70">{caption}</p>
-                ) : (
-                  <span />
-                )}
-                {externalFullScreenHref ? (
-                  <Link
-                    href={externalFullScreenHref}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex min-h-[40px] items-center gap-1 px-1 text-[11px] font-bold text-[#8C6D23] hover:underline"
-                  >
-                    <span>Open in new tab</span>
-                    <ExternalLinkIcon className="h-3 w-3" />
-                  </Link>
-                ) : null}
-              </div>
-            ) : null}
-          </div>
-        </div>
-      ) : null}
-
-      {/* LAPTOP & DESKTOP (>= 1024px): Sleek Scrollbar-Free PhoneFrame + 1-Click Full-Screen Bar */}
-      {renderDesktopPhone ? (
-        <div className="hidden w-full flex-col items-center lg:flex animate-fade-in">
+      {/* ALL VIEWPORTS SHOWCASE (Responsive Resized PhoneFrame + Action Bar) */}
+      {renderPhoneShowcase ? (
+        <div className="flex w-full flex-col items-center animate-fade-in">
           <PhoneFrame caption={caption}>{children}</PhoneFrame>
 
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+          <div className="mt-3.5 flex flex-wrap items-center justify-center gap-2 sm:mt-4">
             <button
               type="button"
               onClick={() => setIsFullscreen(true)}
-              className="btn-spring inline-flex min-h-[40px] items-center gap-2 rounded-full px-5 text-xs font-bold text-white shadow-sm transition hover:opacity-95"
+              className="btn-spring inline-flex min-h-[40px] items-center gap-2 rounded-full px-4 text-xs font-bold text-white shadow-sm transition hover:opacity-95 sm:px-5"
               style={{ backgroundColor: primaryAccent }}
             >
               <ExpandIcon className="h-3.5 w-3.5" />
@@ -711,7 +602,7 @@ export function AdaptivePreviewStage({
               <button
                 type="button"
                 onClick={onReplay}
-                className="inline-flex min-h-[40px] items-center gap-1.5 rounded-full border border-stone-200 bg-white px-4 text-xs font-bold text-stone-700 shadow-sm transition hover:border-[#C9A243] hover:text-stone-950"
+                className="inline-flex min-h-[40px] items-center gap-1.5 rounded-full border border-stone-200 bg-white px-3.5 text-xs font-bold text-stone-700 shadow-sm transition hover:border-[#C9A243] hover:text-stone-950 sm:px-4"
               >
                 <ReplayIcon className="h-3.5 w-3.5" />
                 <span>Replay</span>
@@ -723,7 +614,7 @@ export function AdaptivePreviewStage({
                 href={externalFullScreenHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-h-[40px] items-center gap-1.5 rounded-full border border-stone-200 bg-white px-4 text-xs font-bold text-[#8C6D23] shadow-sm transition hover:border-[#C9A243]"
+                className="inline-flex min-h-[40px] items-center gap-1.5 rounded-full border border-stone-200 bg-white px-3.5 text-xs font-bold text-[#8C6D23] shadow-sm transition hover:border-[#C9A243] sm:px-4"
               >
                 <span>Open in New Tab</span>
                 <ExternalLinkIcon className="h-3.5 w-3.5" />

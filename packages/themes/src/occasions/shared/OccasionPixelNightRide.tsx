@@ -287,7 +287,7 @@ function PixelStreetSegment({
       <div className="relative flex h-16 w-[84px] flex-col justify-between border-2 border-[#7C2D12] bg-[#24132C]">
         {/* Glowing CHAI Neon Sign */}
         <div className="mx-auto -mt-4 border-2 border-[#F59E0B] bg-[#1D0F24] px-1.5 py-0.5 shadow-[0_0_10px_rgba(245,158,11,0.65)]">
-          <span className="block font-mono text-[9px] font-black leading-none tracking-[0.18em] text-[#FDE047]">
+          <span className="block font-pixel text-[8px] font-bold leading-none tracking-[0.12em] text-[#FDE047]">
             CHAI
           </span>
         </div>
@@ -334,7 +334,7 @@ function PixelStreetSegment({
             boxShadow: `0 0 10px ${accentColor}99`,
           }}
         >
-          <span className="block font-mono text-[9px] font-black leading-none tracking-[0.14em] text-[#67E8F9]">
+          <span className="block font-pixel text-[8px] font-bold leading-none tracking-[0.1em] text-[#67E8F9]">
             MOMOS
           </span>
         </div>
@@ -961,7 +961,7 @@ export function OccasionPixelNightRide(props: PixelNightRideProps): JSX.Element 
               style={{ backgroundColor: cleanAccent }}
               aria-hidden="true"
             />
-            <span className="truncate font-mono text-[11px] font-black tracking-[0.12em] text-[#FDE047]">
+            <span className="truncate font-pixel text-[10px] font-bold tracking-[0.06em] text-[#FDE047]">
               PLAYER 01: {cleanReceiver.toUpperCase().slice(0, 14)}
             </span>
           </div>
@@ -982,7 +982,7 @@ export function OccasionPixelNightRide(props: PixelNightRideProps): JSX.Element 
               onClick={() => setSoundEnabled((prev) => !prev)}
               aria-pressed={soundEnabled}
               aria-label={soundEnabled ? copy.soundOn : copy.soundOff}
-              className="ml-1 inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-1 border border-[#453380] bg-[#1B143D] px-2 font-mono text-[10px] font-bold text-[#E2E8F0] transition hover:border-[#FDE047] active:translate-y-0.5"
+              className="ml-1 inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-1 border border-[#453380] bg-[#1B143D] px-2 font-pixel text-[9px] font-bold text-[#E2E8F0] transition hover:border-[#FDE047] active:translate-y-0.5"
             >
               <PixelSpeakerIcon muted={!soundEnabled} />
               <span className="hidden sm:inline">
@@ -994,7 +994,7 @@ export function OccasionPixelNightRide(props: PixelNightRideProps): JSX.Element 
 
         {/* Live RIDE Meter Bar */}
         <div className="mt-1.5 flex items-center gap-2">
-          <span className="shrink-0 font-mono text-[10px] font-black tracking-[0.14em] text-[#67E8F9]">
+          <span className="shrink-0 font-pixel text-[9px] font-bold tracking-[0.08em] text-[#67E8F9]">
             {copy.rideLabel}
           </span>
           <div
@@ -1022,11 +1022,11 @@ export function OccasionPixelNightRide(props: PixelNightRideProps): JSX.Element 
               />
             ))}
           </div>
-          <span className="w-9 shrink-0 text-right font-mono text-[10px] font-black tabular-nums text-[#FEF08A]">
+          <span className="w-10 shrink-0 text-right font-pixel text-[9px] font-bold tabular-nums text-[#FEF08A]">
             {stage === 'finale' ? '100%' : `${Math.round(progress)}%`}
           </span>
           {starsCollected > 0 ? (
-            <span className="inline-flex shrink-0 items-center gap-1 border border-[#FACC15]/50 bg-[#271C4D] px-1.5 py-0.5 font-mono text-[9px] font-bold text-[#FEF08A]">
+            <span className="inline-flex shrink-0 items-center gap-1 border border-[#FACC15]/50 bg-[#271C4D] px-1.5 py-0.5 font-pixel text-[8px] font-bold text-[#FEF08A]">
               {copy.starsLabel}: {starsCollected}
             </span>
           ) : null}
@@ -1070,17 +1070,17 @@ export function OccasionPixelNightRide(props: PixelNightRideProps): JSX.Element 
               {stage === 'riding' ? (
                 <div className="mx-auto max-w-md border-2 border-[#67E8F9]/75 bg-[#120C2B]/95 px-3 py-2 shadow-[0_4px_0_#070414]">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="font-mono text-[9px] font-black uppercase tracking-[0.16em] text-[#67E8F9]">
+                    <span className="font-pixel text-[8px] font-bold uppercase tracking-[0.1em] text-[#67E8F9]">
                       {copy.speakerTag} · 0{activeCheckpointIdx + 1}/04
                     </span>
                     <span
-                      className="font-mono text-[9px] font-bold uppercase tracking-wider"
+                      className="font-pixel text-[8px] font-bold uppercase tracking-wider"
                       style={{ color: cleanAccent }}
                     >
                       {cleanSender.slice(0, 14)}
                     </span>
                   </div>
-                  <p className="mt-1 text-xs font-semibold leading-snug text-[#F8FAFC] sm:text-[13px]">
+                  <p className="mt-1 font-sans text-xs font-semibold leading-snug text-[#F8FAFC] sm:text-[13px]">
                     {activeDialogue}
                   </p>
                 </div>
@@ -1110,19 +1110,19 @@ export function OccasionPixelNightRide(props: PixelNightRideProps): JSX.Element 
             {/* Stage 0 Ready Card */}
             {stage === 'ready' ? (
               <div className="relative z-20 mx-auto my-auto w-[calc(100%-24px)] max-w-sm border-2 border-[#FDE047] bg-[#130E2E]/95 p-4 text-center shadow-[0_6px_0_#060412]">
-                <p className="font-mono text-[10px] font-black uppercase tracking-[0.2em] text-[#67E8F9]">
+                <p className="font-pixel text-[9px] font-bold uppercase tracking-[0.14em] text-[#67E8F9]">
                   {copy.stageBadge}
                 </p>
-                <h2 className="mt-1.5 font-mono text-base font-black tracking-wider text-[#FEF08A] sm:text-lg">
+                <h2 className="mt-2 break-words font-pixel text-sm font-bold leading-snug tracking-wide text-[#FEF08A] sm:text-base">
                   NIGHT RIDE // FOR {cleanReceiver.toUpperCase()}
                 </h2>
-                <p className="mt-1.5 text-xs leading-relaxed text-[#E2E8F0]/90">
+                <p className="mt-2 font-sans text-xs leading-relaxed text-[#E2E8F0]/90">
                   {copy.readySub}
                 </p>
                 <button
                   type="button"
                   onClick={handleStartRide}
-                  className="mt-4 inline-flex min-h-[48px] w-full items-center justify-center border-2 border-[#FEF9C3] px-5 font-mono text-sm font-black uppercase tracking-[0.18em] text-[#0B081C] shadow-[0_4px_0_#7F1D1D] transition active:translate-y-0.5 active:shadow-[0_2px_0_#7F1D1D]"
+                  className="mt-4 inline-flex min-h-[48px] w-full items-center justify-center border-2 border-[#FEF9C3] px-5 font-pixel text-xs font-bold uppercase tracking-[0.14em] text-[#0B081C] shadow-[0_4px_0_#7F1D1D] transition active:translate-y-0.5 active:shadow-[0_2px_0_#7F1D1D]"
                   style={{ backgroundColor: cleanAccent }}
                 >
                   {copy.startBtn}
@@ -1234,15 +1234,15 @@ export function OccasionPixelNightRide(props: PixelNightRideProps): JSX.Element 
 
             {/* Celebratory Banner Card */}
             <div className="relative z-20 mx-auto my-2 w-[calc(100%-24px)] max-w-sm border-2 border-[#FDE047] bg-[#140E30]/95 px-4 py-3.5 text-center shadow-[0_6px_0_#070414]">
-              <p className="font-mono text-[10px] font-black uppercase tracking-[0.2em] text-[#67E8F9]">
+              <p className="font-pixel text-[9px] font-bold uppercase tracking-[0.14em] text-[#67E8F9]">
                 {copy.finaleTag}
               </p>
-              <h2 className="mt-1 font-mono text-base font-black tracking-wide text-[#FEF08A] sm:text-lg">
+              <h2 className="mt-1.5 break-words font-pixel text-sm font-bold tracking-wide text-[#FEF08A] sm:text-base">
                 {cleanReceiver} · Always
               </h2>
-              <p className="mt-1.5 text-xs leading-relaxed text-[#E2E8F0]">{copy.finaleNote}</p>
+              <p className="mt-1.5 font-sans text-xs leading-relaxed text-[#E2E8F0]">{copy.finaleNote}</p>
               <p
-                className="mt-2 font-mono text-[11px] font-bold tracking-wider"
+                className="mt-2 font-pixel text-[10px] font-bold tracking-wider"
                 style={{ color: cleanAccent }}
               >
                 {copy.signedBy} {cleanSender}
@@ -1251,7 +1251,7 @@ export function OccasionPixelNightRide(props: PixelNightRideProps): JSX.Element 
               <button
                 type="button"
                 onClick={handleRideAgain}
-                className="mt-3 inline-flex min-h-[48px] min-w-[44px] items-center justify-center border-2 border-[#FEF9C3] px-5 font-mono text-xs font-black uppercase tracking-[0.16em] text-[#0B081C] shadow-[0_4px_0_#7F1D1D] transition active:translate-y-0.5 active:shadow-[0_2px_0_#7F1D1D]"
+                className="mt-3 inline-flex min-h-[48px] min-w-[44px] items-center justify-center border-2 border-[#FEF9C3] px-5 font-pixel text-[11px] font-bold uppercase tracking-[0.12em] text-[#0B081C] shadow-[0_4px_0_#7F1D1D] transition active:translate-y-0.5 active:shadow-[0_2px_0_#7F1D1D]"
                 style={{ backgroundColor: cleanAccent }}
               >
                 {copy.rideAgain}
@@ -1354,17 +1354,17 @@ export function OccasionPixelNightRide(props: PixelNightRideProps): JSX.Element 
                   ? `0 0 22px ${cleanAccent}`
                   : `0 0 12px ${cleanAccent}80`,
               }}
-              className="absolute inline-flex min-h-[64px] min-w-[64px] items-center justify-center rounded-full border-2 border-[#FEF9C3] font-mono text-[10px] font-black uppercase tracking-wider text-[#0B081C] transition-transform active:scale-95"
+              className="absolute inline-flex min-h-[64px] min-w-[64px] items-center justify-center rounded-full border-2 border-[#FEF9C3] font-pixel text-[9px] font-bold uppercase tracking-wider text-[#0B081C] transition-transform active:scale-95"
             >
               {isHolding ? 'GO!' : 'RIDE'}
             </button>
           </div>
 
           <div className="text-center">
-            <p className="font-mono text-[11px] font-black uppercase tracking-[0.14em] text-[#FEF08A]">
+            <p className="font-pixel text-[10px] font-bold uppercase tracking-[0.1em] text-[#FEF08A]">
               {isHolding ? copy.throttleActive : copy.holdToRide}
             </p>
-            <p className="mt-0.5 text-[11px] text-[#CBD5E1]/85">{copy.ridingHint}</p>
+            <p className="mt-0.5 font-sans text-[11px] text-[#CBD5E1]/85">{copy.ridingHint}</p>
           </div>
         </div>
       ) : null}
