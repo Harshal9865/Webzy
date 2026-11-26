@@ -425,8 +425,13 @@ export function CreateWizardClient({
       });
 
       if (error) {
+        const lower = (error.message || '').toLowerCase();
         setAuthStatus('error');
-        setAuthErrorMessage(error.message);
+        setAuthErrorMessage(
+          lower.includes('rate limit') || lower.includes('too many')
+            ? 'Hourly email limit reached on Supabase default mailer. If you already received a code, tap "Already have a code?" below (or connect Custom SMTP in Supabase to lift the 2-email/hr limit).'
+            : error.message || 'Failed to send OTP code.',
+        );
         return;
       }
 
@@ -440,9 +445,9 @@ export function CreateWizardClient({
   async function handleVerifyInlineOtp(e: React.FormEvent) {
     e.preventDefault();
     const cleanEmail = authEmail.trim().toLowerCase();
-    const cleanCode = authOtpCode.replace(/\s+/g, '');
+    const cleanCode = authOtpCode.replace(/\D/g, '');
     if (cleanCode.length < 6) {
-      setAuthErrorMessage('Please enter the 6-digit code.');
+      setAuthErrorMessage('Please enter the 6 to 8 digit code from your email.');
       return;
     }
 
@@ -451,32 +456,45 @@ export function CreateWizardClient({
 
     try {
       const supabase = getSupabaseBrowserClient();
-      const { error } = await supabase.auth.verifyOtp({
-        email: cleanEmail,
-        token: cleanCode,
-        type: 'email',
-      });
+      const attemptTypes = ['email', 'magiclink', 'signup'] as const;
+      let verified = false;
+      let lastErrMsg = '';
+      for (const otpType of attemptTypes) {
+        const { data: verifyData, error } = await supabase.auth.verifyOtp({
+          email: cleanEmail,
+          token: cleanCode,
+          type: otpType,
+        });
+        if (!error && verifyData.session) {
+          verified = true;
+          break;
+        }
+        lastErrMsg = error?.message || lastErrMsg;
+      }
 
-      if (error) {
+      if (!verified) {
         setAuthStatus('sent');
-        setAuthErrorMessage(error.message || 'Invalid or expired code. Please check or resend.');
+        setAuthErrorMessage(lastErrMsg || 'Invalid or expired code. Please check or resend.');
         return;
       }
 
       setIsClientAuthed(true);
-      if (draftToken) {
+      const activeToken = draftTokenRef.current || draftToken;
+      if (activeToken) {
         await fetch('/api/auth/attach-draft', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ draftToken }),
-        }).catch(() => { });
+          body: JSON.stringify({ draftToken: activeToken }),
+        }).catch(() => {});
       }
 
+      window.dispatchEvent(new Event('webzy_auth_updated'));
+      window.dispatchEvent(new Event('webzy_orders_updated'));
       setAuthModalOpen(false);
       if (authTargetAction === 'checkout') {
-        router.push(`/checkout?draft=${encodeURIComponent(draftToken)}`);
+        router.push(`/checkout?draft=${encodeURIComponent(activeToken)}`);
       } else {
-        router.push(`/preview/${encodeURIComponent(draftToken)}`);
+        router.push(`/preview/${encodeURIComponent(activeToken)}`);
       }
     } catch (err) {
       setAuthStatus('sent');
@@ -1209,9 +1227,10 @@ export function CreateWizardClient({
                     id="auth-otp-code"
                     type="text"
                     inputMode="numeric"
-                    maxLength={6}
+                    autoComplete="one-time-code"
+                    maxLength={8}
                     value={authOtpCode}
-                    onChange={(e) => setAuthOtpCode(e.target.value)}
+                    onChange={(e) => setAuthOtpCode(e.target.value.replace(/[^\d]/g, '').slice(0, 8))}
                     placeholder="123456"
                     className="mt-1.5 min-h-[48px] w-full rounded-xl border border-webzy-tint bg-white px-4 text-center font-mono text-xl tracking-widest text-webzy-ink focus:border-webzy-primary"
                     autoFocus
@@ -1267,6 +1286,22 @@ export function CreateWizardClient({
                   className="min-h-[44px] w-full rounded-full bg-webzy-primary px-4 text-xs font-bold text-white shadow-sm hover:opacity-95 disabled:opacity-50"
                 >
                   {authStatus === 'sending' ? 'Sending code...' : 'Send 6-digit code →'}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const clean = authEmail.trim().toLowerCase();
+                    if (!clean || !clean.includes('@')) {
+                      setAuthErrorMessage('Enter your email address first.');
+                      return;
+                    }
+                    setAuthErrorMessage('');
+                    setAuthStatus('sent');
+                  }}
+                  className="min-h-[38px] w-full rounded-full border border-webzy-tint bg-webzy-surface/60 px-4 text-xs font-bold text-webzy-ink/80 hover:border-webzy-primary/40 hover:text-webzy-primary"
+                >
+                  Already have a code? Enter it here
                 </button>
 
                 <p className="text-center text-[11px] text-webzy-ink/60">
