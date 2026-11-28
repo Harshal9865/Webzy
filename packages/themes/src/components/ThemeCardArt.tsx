@@ -83,8 +83,8 @@ const OCCASION_COVER_ART: Record<string, CoverArtConfig> = {
     objectPosition: 'object-center',
   },
   'will-you-01': {
-    src: '/templates/occasions/will-you/cover.jpg',
-    alt: 'Crimson velvet and red gingham keepsake box with wax-sealed letter, rose bouquet and polaroids',
+    src: '/templates/occasions/will-you/velvet-envelope-art.jpg',
+    alt: 'Candlelit burgundy damask velvet still-life with rose wax-sealed cream envelope, ranunculus and brass key',
     bg: 'linear-gradient(135deg, #4A0912 0%, #8F1522 100%)',
     objectPosition: 'object-center',
     isDark: true,
@@ -96,9 +96,9 @@ const OCCASION_COVER_ART: Record<string, CoverArtConfig> = {
     objectPosition: 'object-center',
   },
   'maan-jao-01': {
-    src: '/templates/occasions/maan-jao/cover.jpg',
-    alt: 'Rain-to-sunshine meadow sky with pink gingham spiral apology notebook and clipped peace notes',
-    bg: 'linear-gradient(135deg, #2C3E5E 0%, #D47A92 100%)',
+    src: '/templates/occasions/maan-jao/warm-rain-chai-art.jpg',
+    alt: 'Cozy rainy-twilight window with two steaming mugs of masala chai, fresh daisies, lavender and golden fairy lights',
+    bg: 'linear-gradient(135deg, #2A1D1B 0%, #8E354A 100%)',
     objectPosition: 'object-center',
     isDark: true,
   },

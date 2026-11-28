@@ -21,93 +21,123 @@ function hasDevanagari(text: string): boolean {
 }
 
 type StageId = 'cover' | 'keepsakes' | 'proposal' | 'accepted';
-type KeepsakeId = 'scrapbook' | 'letter' | 'bouquet' | 'vinyl';
-type DreamDateId = 'coffee' | 'gelato' | 'stargaze' | 'bookstore';
+type KeepsakeId = 'bouquet' | 'letter' | 'scrapbook' | 'vinyl';
+type DreamDateId = 'coffee' | 'picnic' | 'terrace' | 'walk';
+
+const ART = {
+  velvetEnvelope: '/templates/occasions/will-you/velvet-envelope-art.jpg',
+  handsBouquet: '/templates/occasions/will-you/hands-bouquet-art.jpg',
+  moonlitTerrace: '/templates/occasions/will-you/moonlit-terrace-art.jpg',
+  parisBalcony: '/templates/occasions/upgrades/paris-moonlit-balcony.jpg',
+  roseCottage: '/templates/cafe/rose-cottage.jpg',
+  warmChai: '/templates/occasions/maan-jao/warm-rain-chai-art.jpg',
+  goldenWalk: '/templates/occasions/maan-jao/golden-walk-art.jpg',
+} as const;
 
 interface PolaroidSample {
   src: string;
   caption: Record<CoreLanguageCode, string>;
+  momentTag: Record<CoreLanguageCode, string>;
 }
 
 const SAMPLE_POLAROIDS: readonly PolaroidSample[] = [
   {
-    src: '/templates/cafe/maison-rouge.jpg',
+    src: ART.velvetEnvelope,
     caption: {
-      en: 'crimson blooms',
-      hinglish: 'laal gulaab',
-      hi: 'लाल गुलाब',
+      en: 'sealed with roses',
+      hinglish: 'gulaab aur khat',
+      hi: 'गुलाब और स्नेह पत्र',
+    },
+    momentTag: {
+      en: 'CHAPTER 01',
+      hinglish: 'CHAPTER 01',
+      hi: 'अध्याय 01',
     },
   },
   {
-    src: '/templates/occasions/upgrades/paris-moonlit-balcony.jpg',
+    src: ART.handsBouquet,
     caption: {
-      en: 'quiet evening',
-      hinglish: 'shaam ka sukoon',
-      hi: 'सुकून भरी शाम',
+      en: 'sunlit blooms for you',
+      hinglish: 'dhoop aur phool',
+      hi: 'सुनहरे फूल',
+    },
+    momentTag: {
+      en: 'CHAPTER 02',
+      hinglish: 'CHAPTER 02',
+      hi: 'अध्याय 02',
     },
   },
   {
-    src: '/templates/cafe/rose-cottage.jpg',
+    src: ART.moonlitTerrace,
     caption: {
-      en: 'our little world',
-      hinglish: 'hamari duniya',
-      hi: 'हमारी दुनिया',
+      en: 'candlelit evening',
+      hinglish: 'chaandni shaam',
+      hi: 'चाँदनी शाम',
+    },
+    momentTag: {
+      en: 'CHAPTER 03',
+      hinglish: 'CHAPTER 03',
+      hi: 'अध्याय 03',
     },
   },
 ];
 
-interface ReasonDefault {
+interface BouquetHotspot {
+  id: number;
+  leftPct: number;
+  topPct: number;
+  bloomName: Record<CoreLanguageCode, string>;
   title: Record<CoreLanguageCode, string>;
   detail: Record<CoreLanguageCode, string>;
 }
 
-const BOUQUET_REASONS_DEFAULT: readonly ReasonDefault[] = [
+const BOUQUET_HOTSPOTS: readonly BouquetHotspot[] = [
   {
-    title: {
-      en: 'Your Laugh',
-      hinglish: 'Tumhari Hansi',
-      hi: 'तुम्हारी मुस्कान',
-    },
+    id: 0,
+    leftPct: 40,
+    topPct: 26,
+    bloomName: { en: 'Crimson Peony', hinglish: 'Laal Peony', hi: 'लाल पियोनी' },
+    title: { en: 'Your Laugh', hinglish: 'Tumhari Hansi', hi: 'तुम्हारी मुस्कान' },
     detail: {
-      en: 'Even the busiest day turns calm the second I hear you laugh.',
-      hinglish: 'Sabse thake din mein bhi tumhari ek hansi sab shaant kar deti hai.',
+      en: 'The way even a noisy, exhausting day turns quiet and golden the second you smile.',
+      hinglish: 'Sabse thake din mein bhi tumhari ek muskaan sab shaant aur sunahra bana deti hai.',
       hi: 'सबसे थके हुए दिन में भी तुम्हारी एक मुस्कान सब सुकून से भर देती है।',
     },
   },
   {
-    title: {
-      en: 'Effortless Peace',
-      hinglish: 'Be-Wajah Sukoon',
-      hi: 'सुकून भरा साथ',
-    },
+    id: 1,
+    leftPct: 45,
+    topPct: 45,
+    bloomName: { en: 'Blush Rose', hinglish: 'Gulaabi Phool', hi: 'गुलाबी गुलाब' },
+    title: { en: 'Our Easy Peace', hinglish: 'Hamara Sukoon', hi: 'सुकून भरा साथ' },
     detail: {
-      en: 'Talking for hours feels easy, and quiet silences feel just as warm.',
-      hinglish: 'Ghanton baatein bhi aasaan hain, aur tumhare paas chup rehna bhi pyara lagta hai.',
-      hi: 'तुम्हारे साथ घंटों बातें करना भी आसान है और खामोशी भी उतनी ही मीठी।',
+      en: 'Talking with you for hours feels effortless, and sitting beside you in silence feels like home.',
+      hinglish: 'Ghanton baatein karna bhi aasaan hai, aur tumhare saath chup rehna bhi ghar jaisa lagta hai.',
+      hi: 'तुम्हारे साथ घंटों बातें करना भी आसान है और खामोशी भी घर जैसी लगती है।',
     },
   },
   {
-    title: {
-      en: 'Little Rituals',
-      hinglish: 'Chhoti Aadatein',
-      hi: 'छोटी-छोटी यादें',
-    },
+    id: 2,
+    leftPct: 55,
+    topPct: 54,
+    bloomName: { en: 'White Jasmine', hinglish: 'Mogra & Chameli', hi: 'सफ़ेद चमेली' },
+    title: { en: 'Little Rituals', hinglish: 'Chhoti Yaadein', hi: 'छोटी-छोटी आदतें' },
     detail: {
-      en: 'Every coffee stop, rain shower, or walk feels like a story worth saving.',
-      hinglish: 'Chai ka cup ho ya baarish wali shaam, tumhare saath har pal yaadgaar hai.',
-      hi: 'चाय की शाम हो या बारिश की बूँदें, तुम्हारे साथ हर साधारण पल ख़ास बन जाता है।',
+      en: 'Every shared cup of coffee, evening breeze, or random drive becomes my favorite memory.',
+      hinglish: 'Har shared coffee, shaam ki hawa aur chhoti si walk meri sabse pyaari yaad ban jaati hai.',
+      hi: 'हर चाय की शाम, ठंडी हवा और छोटी सी सैर मेरी सबसे प्रिय याद बन जाती है।',
     },
   },
   {
-    title: {
-      en: 'Always You',
-      hinglish: 'Hamesha Tum',
-      hi: 'सदैव तुम',
-    },
+    id: 3,
+    leftPct: 77,
+    topPct: 47,
+    bloomName: { en: 'Satin Ribbon', hinglish: 'Satin Ribbon', hi: 'रेशमी रिबन' },
+    title: { en: 'Always You', hinglish: 'Sirf Tum', hi: 'सदैव तुम' },
     detail: {
-      en: 'You feel like home — warm, honest, and my favorite person in every room.',
-      hinglish: 'Tumhare saath har jagah ghar jaisa lagta hai — saccha, apna aur sabse khaas.',
-      hi: 'तुम्हारे साथ हर जगह घर जैसी लगती है — सच्चा, अपना और सबसे प्रिय।',
+      en: 'In every crowded room and every quiet season ahead, my heart keeps choosing you.',
+      hinglish: 'Har bheed mein aur aane wale har mausam mein, mera dil baar-baar tumhe hi chunta hai.',
+      hi: 'हर भीड़ में और आने वाले हर मौसम में, मेरा हृदय बार-बार तुम्हें ही चुनता है।',
     },
   },
 ];
@@ -115,6 +145,7 @@ const BOUQUET_REASONS_DEFAULT: readonly ReasonDefault[] = [
 interface DreamDateOption {
   id: DreamDateId;
   code: string;
+  artSrc: string;
   label: Record<CoreLanguageCode, string>;
   vibe: Record<CoreLanguageCode, string>;
 }
@@ -123,57 +154,95 @@ const DREAM_DATE_OPTIONS: readonly DreamDateOption[] = [
   {
     id: 'coffee',
     code: 'DATE-01',
+    artSrc: ART.warmChai,
     label: {
-      en: 'Rainy Window Coffee',
-      hinglish: 'Baarish Wali Coffee',
-      hi: 'बारिश और कॉफ़ी',
+      en: 'Rainy Window Chai & Coffee',
+      hinglish: 'Baarish Wali Chai-Coffee',
+      hi: 'बारिश और गरम चाय-कॉफ़ी',
     },
     vibe: {
-      en: 'Warm mugs & unhurried talks',
+      en: 'Steaming mugs & slow talks',
       hinglish: 'Garam cup & lambi baatein',
-      hi: 'गर्म कॉफ़ी और लंबी बातें',
+      hi: 'गरम कप और लंबी बातें',
     },
   },
   {
-    id: 'gelato',
+    id: 'picnic',
     code: 'DATE-02',
+    artSrc: ART.handsBouquet,
     label: {
-      en: 'Midnight Dessert Walk',
-      hinglish: 'Late Night Ice-Cream Walk',
-      hi: 'रात की मीठी सैर',
+      en: 'Garden Flowers & Picnic',
+      hinglish: 'Garden Picnic & Phool',
+      hi: 'बग़ीचे में फूल और पिकनिक',
     },
     vibe: {
-      en: 'Quiet streets & sweet stops',
-      hinglish: 'Street lights & meethi baatein',
-      hi: 'धीमी रोशनी और मीठे पल',
+      en: 'Golden sunlight & fresh blooms',
+      hinglish: 'Sunahri dhoop & taaze phool',
+      hi: 'सुनहरी धूप और ताज़े फूल',
     },
   },
   {
-    id: 'stargaze',
+    id: 'terrace',
     code: 'DATE-03',
+    artSrc: ART.moonlitTerrace,
     label: {
-      en: 'Rooftop Stargazing',
-      hinglish: 'Chhat Par Sitare',
-      hi: 'छत पर सितारों की शाम',
+      en: 'Candlelit Terrace Evening',
+      hinglish: 'Candlelight Terrace Shaam',
+      hi: 'चाँदनी और दीपों भरी शाम',
     },
     vibe: {
-      en: 'Cool breeze & our playlist',
-      hinglish: 'Thandi hawa & favourite gaane',
-      hi: 'ठंडी हवा और पसंदीदा गीत',
+      en: 'Fairy lights & quiet stars',
+      hinglish: 'Fairy lights & sitare',
+      hi: 'धीमी रोशनी और सितारे',
     },
   },
   {
-    id: 'bookstore',
+    id: 'walk',
     code: 'DATE-04',
+    artSrc: ART.goldenWalk,
     label: {
-      en: 'Bookstore & Chai',
-      hinglish: 'Kitabein & Chai Date',
-      hi: 'किताबें और चाय',
+      en: 'Golden Hour Park Walk',
+      hinglish: 'Sunset Walk Saath Mein',
+      hi: 'सुनहरी शाम की सैर',
     },
     vibe: {
-      en: 'Notes tucked inside pages',
-      hinglish: 'Pannon mein chhupi yaadein',
-      hi: 'पन्नों में छिपे प्यारे नोट्स',
+      en: 'Warm breeze & unhurried steps',
+      hinglish: 'Thandi hawa & saath chalna',
+      hi: 'ठंडी हवा और साथ चलना',
+    },
+  },
+];
+
+const VINYL_POSTCARDS: ReadonlyArray<{
+  src: string;
+  title: Record<CoreLanguageCode, string>;
+  lyric: Record<CoreLanguageCode, string>;
+}> = [
+  {
+    src: ART.moonlitTerrace,
+    title: { en: 'Twilight Terrace', hinglish: 'Chaandni Terrace', hi: 'चाँदनी छत' },
+    lyric: {
+      en: 'Two warm cups, flickering candlelight, and nowhere else in the world I would rather be.',
+      hinglish: 'Do garam cup, dheemi roshni, aur duniya mein kahin aur jaane ki khwahish nahi.',
+      hi: 'दो गरम कप, दीपों की रोशनी और दुनिया में कहीं और जाने की इच्छा नहीं।',
+    },
+  },
+  {
+    src: ART.parisBalcony,
+    title: { en: 'Evening Balcony', hinglish: 'Shaam Ki Balcony', hi: 'शाम का झरोखा' },
+    lyric: {
+      en: 'Every love song makes a little more sense whenever your hand is in mine.',
+      hinglish: 'Har pyaara gaana tab aur khaas lagta hai jab tumhara haath mere haath mein ho.',
+      hi: 'हर मधुर गीत तब और सुंदर लगता है जब तुम्हारा हाथ मेरे हाथ में हो।',
+    },
+  },
+  {
+    src: ART.roseCottage,
+    title: { en: 'Rose Garden', hinglish: 'Gulaab Ka Baag', hi: 'गुलाब का बाग़' },
+    lyric: {
+      en: 'If I could bottle how calm you make me feel, I would keep it on my shelf forever.',
+      hinglish: 'Tumhare saath jo sukoon milta hai, use hamesha apne paas sambhaal kar rakhna chahta hoon.',
+      hi: 'तुम्हारे साथ जो शांति मिलती है, उसे सदैव संजोकर रखना चाहता हूँ।',
     },
   },
 ];
@@ -181,7 +250,7 @@ const DREAM_DATE_OPTIONS: readonly DreamDateOption[] = [
 interface WillYouCopy {
   coverEyebrow: string;
   coverHeadline: string;
-  postcardQuote: string;
+  tapSealPill: string;
   forPrefix: string;
   fromPrefix: string;
   promptQuestion: string;
@@ -195,14 +264,16 @@ interface WillYouCopy {
   drawerSub: string;
   openedProgress: (n: number, total: number) => string;
   keepsakeLabels: Record<KeepsakeId, { title: string; tag: string }>;
-  scrapbookHeading: string;
-  scrapbookHint: string;
-  letterHeading: string;
   bouquetHeading: string;
   bouquetHint: string;
+  bouquetCount: (n: number, total: number) => string;
+  letterHeading: string;
+  candleToggleOn: string;
+  candleToggleOff: string;
+  scrapbookHeading: string;
+  scrapbookHint: string;
   vinylHeading: string;
   vinylSongTitle: string;
-  vinylSubtitle: string;
   vinylTap: string;
   vinylPlaying: string;
   proceedToAskCta: string;
@@ -211,8 +282,8 @@ interface WillYouCopy {
   proposalQuestion: string;
   yesLabel: string;
   noLabel: string;
-  bearIdleCaption: string;
-  bearCaptions: readonly [string, string, string, string];
+  nudgeIdle: string;
+  nudgeCaptions: readonly [string, string, string, string];
   acceptedEyebrow: string;
   acceptedStamp: string;
   acceptedTitle: (receiver: string) => string;
@@ -230,196 +301,217 @@ interface WillYouCopy {
 
 const COPY_BY_LANG: Record<CoreLanguageCode, WillYouCopy> = {
   en: {
-    coverEyebrow: 'LOVE MAIL · HAND-TIED EDITION',
-    coverHeadline: 'I Have a Little Surprise For You',
-    postcardQuote: 'You turned ordinary days into my favorite memories.',
-    forPrefix: 'Dear',
+    coverEyebrow: 'HAND-SEALED LOVE FOLIO',
+    coverHeadline: 'I Made Something Quiet & Special For You',
+    tapSealPill: 'Tap the rose wax seal',
+    forPrefix: 'For',
     fromPrefix: 'With all my heart,',
-    promptQuestion: 'Would you like to open it?',
-    promptYes: 'Yes, open it',
-    promptNo: 'No',
+    promptQuestion: 'Would you like to open what is inside?',
+    promptYes: 'Yes, unseal the letter',
+    promptNo: 'Maybe later',
     promptNoNudges: [
-      'I tied the ribbon myself — just one peek?',
-      'Wait, there are flowers inside!',
-      'Okay, tapping Yes is way sweeter.',
+      'I picked fresh crimson roses and tied the ribbon just for you...',
+      'Just one peek — the candles are already lit inside.',
+      'Your table for two is waiting. Tap Yes to step in.',
     ],
     navKeepsakes: 'Keepsakes',
-    navAsk: 'The Ask',
-    drawerEyebrow: 'RED GINGHAM KEEPSAKE BOX',
-    drawerTitle: 'These Are For You',
-    drawerSub: 'Tap each lace doily keepsake to open what I packed inside.',
-    openedProgress: (n, total) => `${n} / ${total} opened`,
+    navAsk: 'The Question',
+    drawerEyebrow: 'CRIMSON VELVET & GINGHAM COLLECTION',
+    drawerTitle: 'Four Keepsakes Prepared For You',
+    drawerSub: 'Explore each piece below — tap the bouquet blooms, candles, photos, and evening vinyl.',
+    openedProgress: (n, total) => `${n} / ${total} explored`,
     keepsakeLabels: {
-      scrapbook: { title: 'Photo Roll', tag: 'Our Scrapbook' },
-      letter: { title: 'Love Letter', tag: 'Handwritten' },
-      bouquet: { title: 'Rose Bouquet', tag: '4 Reasons' },
-      vinyl: { title: 'Our Vinyl', tag: 'Side A Song' },
+      bouquet: { title: 'Rose Bouquet', tag: '4 Hidden Notes' },
+      letter: { title: 'Candlelit Letter', tag: 'Handwritten' },
+      scrapbook: { title: 'Memory Gallery', tag: 'Polaroid Roll' },
+      vinyl: { title: 'Evening Vinyl', tag: 'Song & Postcards' },
     },
-    scrapbookHeading: 'Tucked Inside My Scrapbook',
-    scrapbookHint: 'Tap any polaroid to inspect closely',
-    letterHeading: 'A Quiet Note For You',
-    bouquetHeading: 'Flowers For You, My Sweetheart',
-    bouquetHint: 'Tap each ribbon tag around the bouquet',
-    vinylHeading: 'Song That Reminds Me Of You',
-    vinylSongTitle: 'Crimson Evening · Acoustic Vinyl',
-    vinylSubtitle: 'Every time this melody plays, I catch myself smiling at my phone.',
-    vinylTap: 'Spin Record & Play Chime',
+    bouquetHeading: 'Flowers For You — Tap Each Bloom',
+    bouquetHint: 'Touch the glowing pins on the bouquet to read why my heart chose you.',
+    bouquetCount: (n, total) => `${n} / ${total} blooms opened`,
+    letterHeading: 'Written By Candlelight',
+    candleToggleOn: 'Candlelight Glow: Lit',
+    candleToggleOff: 'Light the Table Candles',
+    scrapbookHeading: 'Frames I Want To Keep Forever',
+    scrapbookHint: 'Tap any polaroid to view full-screen',
+    vinylHeading: 'Our Evening Soundtrack & Postcards',
+    vinylSongTitle: 'Twilight Rose Terrace · Side A',
+    vinylTap: 'Spin Record & Play Melody',
     vinylPlaying: 'Spinning Side A...',
-    proceedToAskCta: 'Open My One Little Question',
-    proposalEyebrow: 'ONE FINAL CARD',
-    proposalBanner: 'Yay, Finally You Are Here!',
+    proceedToAskCta: 'Step Onto The Candlelit Terrace',
+    proposalEyebrow: 'A TABLE FOR TWO UNDER THE MOON',
+    proposalBanner: 'Everything tonight was arranged with you in mind',
     proposalQuestion: 'Will you go out with me?',
     yesLabel: 'Yes, always',
     noLabel: 'No',
-    bearIdleCaption: 'holding this heart for you',
-    bearCaptions: ['pretty please?', 'i brought crimson roses!', 'wait don’t run!', 'say yes!'],
-    acceptedEyebrow: 'KEEPSAKE DATE TICKET · ADMIT TWO',
+    nudgeIdle: 'Two warm cups and a quiet rose garden are waiting for us.',
+    nudgeCaptions: [
+      'Even the candles are hoping you say yes...',
+      'I already brought crimson peonies for you.',
+      'Wait — don’t walk away from our table for two!',
+      'One tap on Yes makes this evening unforgettable.',
+    ],
+    acceptedEyebrow: 'EVENING KEEPSAKE · ADMIT TWO',
     acceptedStamp: 'SEALED WITH LOVE',
-    acceptedTitle: (receiver) => `It’s officially a date, ${receiver}`,
-    acceptedSub: (sender) => `${sender} is grinning from ear to ear right now.`,
-    datePickerTitle: 'Stamp our first celebration onto this ticket',
+    acceptedTitle: (r) => `Our evening is officially set, ${r}`,
+    acceptedSub: (s) => `${s} cannot stop smiling right now.`,
+    datePickerTitle: 'Choose the scene for our first celebration',
     copyYesCta: 'Copy My YES Reply for WhatsApp',
-    copiedYesToast: 'Copied! Paste it straight back on WhatsApp.',
-    petalShowerCta: 'Shower Petals',
+    copiedYesToast: 'Copied! Ready to send straight back on WhatsApp.',
+    petalShowerCta: 'Shower Rose Petals',
     revisitKeepsakesCta: 'Revisit Keepsakes',
     closeLabel: 'Close',
     photoLabel: 'Memory',
     defaultHeadline: 'Will you be mine?',
     defaultMessage:
-      'Every ordinary evening turns golden the moment you are around. Let me steal you away for slow coffee, warm laughter, and a night worth keeping forever.',
+      'Every ordinary evening turns warm and unforgettable the moment you are near. Let me steal you away for unhurried conversation, candlelight, and a memory we will keep forever.',
   },
   hinglish: {
-    coverEyebrow: 'LOVE MAIL · HAND-TIED EDITION',
-    coverHeadline: 'Tumhare Liye Ek Chhota Sa Surprise Hai',
-    postcardQuote: 'Tumne har aam din ko meri sabse pyaari yaad bana diya.',
-    forPrefix: 'Pyaare',
+    coverEyebrow: 'HAND-SEALED LOVE FOLIO',
+    coverHeadline: 'Tumhare Liye Dil Se Kuch Khaas Banaya Hai',
+    tapSealPill: 'Rose wax seal par tap karo',
+    forPrefix: 'Sirf',
     fromPrefix: 'Poore dil se,',
     promptQuestion: 'Kya tum ise khol kar dekhogi?',
-    promptYes: 'Haan, kholo',
-    promptNo: 'Nahi',
+    promptYes: 'Haan, khat kholo',
+    promptNo: 'Baad mein',
     promptNoNudges: [
-      'Ribbon khud baandha hai — bas ek baar dekho?',
-      'Ruko, andar tumhare liye phool hain!',
-      'Chalo maan jao, Haan par tap karo.',
+      'Tumhare liye taaze gulaab aur ribbon khud sajaya hai...',
+      'Bas ek jhalak dekho — andar candles jal rahi hain.',
+      'Hamari shaam tumhara intezaar kar rahi hai. Haan par tap karo.',
     ],
     navKeepsakes: 'Keepsakes',
-    navAsk: 'Sawaal',
-    drawerEyebrow: 'RED GINGHAM KEEPSAKE BOX',
-    drawerTitle: 'Ye Sab Tumhare Liye Hain',
-    drawerSub: 'Har lace doily gift par tap karo aur andar chhupa pyaar dekho.',
-    openedProgress: (n, total) => `${n} / ${total} khole`,
+    navAsk: 'Dil Ka Sawaal',
+    drawerEyebrow: 'CRIMSON VELVET & GINGHAM COLLECTION',
+    drawerTitle: 'Tumhare Liye Chaar Khaas Tohfe',
+    drawerSub: 'Har keepsake kholo — bouquet ke phool, candlelight khat, polaroids aur shaam ka vinyl.',
+    openedProgress: (n, total) => `${n} / ${total} dekhe`,
     keepsakeLabels: {
-      scrapbook: { title: 'Photo Roll', tag: 'Scrapbook' },
-      letter: { title: 'Pyaara Khat', tag: 'Dil Se' },
-      bouquet: { title: 'Gulaab Bouquet', tag: '4 Wajah' },
-      vinyl: { title: 'Hamara Vinyl', tag: 'Side A Dhun' },
+      bouquet: { title: 'Gulaab Bouquet', tag: '4 Chhupe Notes' },
+      letter: { title: 'Candlelight Khat', tag: 'Dil Se Likha' },
+      scrapbook: { title: 'Yaadon Ki Gallery', tag: 'Polaroids' },
+      vinyl: { title: 'Shaam Ka Vinyl', tag: 'Dhun & Postcards' },
     },
-    scrapbookHeading: 'Meri Scrapbook Ki Yaadein',
-    scrapbookHint: 'Paas se dekhne ke liye photo par tap karo',
-    letterHeading: 'Tumhare Naam Ek Khat',
-    bouquetHeading: 'Tumhare Liye Gulaab Ka Guldasta',
-    bouquetHint: 'Har ribbon tag par tap karo aur wajah padho',
-    vinylHeading: 'Wo Dhun Jo Tumhari Yaad Dilati Hai',
-    vinylSongTitle: 'Sunahri Shaam · Acoustic Vinyl',
-    vinylSubtitle: 'Jab bhi ye dhun bajti hai, bas tumhara chehra yaad aa jaata hai.',
+    bouquetHeading: 'Tumhare Liye Phool — Har Phool Par Tap Karo',
+    bouquetHint: 'Bouquet par chamakte pins par tap karo aur dil ki baatein padho.',
+    bouquetCount: (n, total) => `${n} / ${total} phool khole`,
+    letterHeading: 'Candlelight Mein Likha Khat',
+    candleToggleOn: 'Candlelight: Roshan',
+    candleToggleOff: 'Table Candles Jalao',
+    scrapbookHeading: 'Wo Pal Jo Hamesha Paas Rakhna Chahta Hoon',
+    scrapbookHint: 'Full screen dekhne ke liye photo par tap karo',
+    vinylHeading: 'Hamari Shaam Ki Dhun Aur Postcards',
+    vinylSongTitle: 'Chaandni Gulaab Terrace · Side A',
     vinylTap: 'Vinyl Chalao',
     vinylPlaying: 'Side A Chal Raha Hai...',
-    proceedToAskCta: 'Ab Dil Ka Sawaal Kholo',
-    proposalEyebrow: 'AAKHIRI CARD',
-    proposalBanner: 'Aakhir Tum Yahan Tak Aa Hi Gayi!',
+    proceedToAskCta: 'Ab Chaandni Terrace Par Chalo',
+    proposalEyebrow: 'CHAANDNI MEIN SIRF HUM DO',
+    proposalBanner: 'Aaj ki poori shaam sirf tumhare liye sajayi hai',
     proposalQuestion: 'Kya tum mere saath date par chalogi?',
     yesLabel: 'Haan, bilkul',
     noLabel: 'Nahi',
-    bearIdleCaption: 'ye dil sirf tumhare liye',
-    bearCaptions: ['please maan jao?', 'gulaab laya hoon!', 'ruko toh sahi!', 'haan bol do!'],
-    acceptedEyebrow: 'KEEPSAKE DATE TICKET · ADMIT TWO',
-    acceptedStamp: 'DIL SE LOCKED',
-    acceptedTitle: (receiver) => `Ye shaam hamari rahi, ${receiver}`,
-    acceptedSub: (sender) => `${sender} ke chehre par abhi sabse badi muskaan hai.`,
-    datePickerTitle: 'Hamari pehli date is ticket par stamp karo',
-    copyYesCta: 'Mera YES Reply Copy Karo',
+    nudgeIdle: 'Do garam cup aur gulaabon se saja terrace hamara intezaar kar raha hai.',
+    nudgeCaptions: [
+      'Ye jalti hui candles bhi tumhari Haan ka intezaar kar rahi hain...',
+      'Tumhare liye laal gulaab bhi laaya hoon.',
+      'Ruko — hamari shaam se yu bhaag kar mat jao!',
+      'Haan par ek tap aur ye raat yaadgaar ban jayegi.',
+    ],
+    acceptedEyebrow: 'EVENING KEEPSAKE · ADMIT TWO',
+    acceptedStamp: 'PYAAR SE LOCKED',
+    acceptedTitle: (r) => `Ye shaam hamari rahi, ${r}`,
+    acceptedSub: (s) => `${s} ke chehre par abhi sabse pyaari muskaan hai.`,
+    datePickerTitle: 'Hamari pehli date ka scene chuno',
+    copyYesCta: 'Mera YES Reply Copy Karo (WhatsApp)',
     copiedYesToast: 'Copy ho gaya! Seedha WhatsApp par bhej do.',
-    petalShowerCta: 'Phool Barsao',
-    revisitKeepsakesCta: 'Gifts Phir Dekho',
+    petalShowerCta: 'Gulaab Ki Pankhudiyan Barsao',
+    revisitKeepsakesCta: 'Tohfe Phir Dekho',
     closeLabel: 'Band Karein',
     photoLabel: 'Yaad',
     defaultHeadline: 'Kya tum meri banogi?',
     defaultMessage:
-      'Tumhare aas-paas hote hi har shaam sunahri lagne lagti hai. Chalo garam coffee, meethi hansi aur ek yaadgaar shaam saath bitate hain.',
+      'Tumhare paas hote hi har aam shaam sunahri aur yaadgaar ban jaati hai. Chalo dheemi baatein, candlelight aur ek aisi shaam saath bitate hain jo hamesha yaad rahe.',
   },
   hi: {
-    coverEyebrow: 'स्नेह पत्र · हस्तनिर्मित संस्करण',
-    coverHeadline: 'तुम्हारे लिए एक प्यारा सा उपहार है',
-    postcardQuote: 'तुमने हर साधारण दिन को मेरी सबसे सुंदर याद बना दिया।',
+    coverEyebrow: 'हस्तनिर्मित स्नेह पत्रिका',
+    coverHeadline: 'तुम्हारे लिए हृदय से कुछ विशेष सजाया है',
+    tapSealPill: 'गुलाब की मोहर पर टैप करें',
     forPrefix: 'प्रिय',
-    fromPrefix: 'हृदय से तुम्हारा,',
-    promptQuestion: 'क्या तुम इसे खोलकर देखोगी?',
-    promptYes: 'हाँ, खोलें',
-    promptNo: 'नहीं',
+    fromPrefix: 'संपूर्ण हृदय से,',
+    promptQuestion: 'क्या तुम भीतर छिपा उपहार खोलोगी?',
+    promptYes: 'हाँ, पत्र खोलें',
+    promptNo: 'अभी नहीं',
     promptNoNudges: [
-      'इतने प्यार से सजाया है — बस एक झलक देख लो?',
-      'रुको, इसके भीतर तुम्हारे लिए फूल रखे हैं!',
-      'चलो मान जाओ, हाँ पर टैप करो।',
+      'ताज़े गुलाब और रेशमी रिबन सिर्फ़ तुम्हारे लिए सजाया है...',
+      'बस एक झलक देखो — भीतर दीप प्रज्वलित हैं।',
+      'हमारी शांत शाम तुम्हारी प्रतीक्षा कर रही है। हाँ पर टैप करें।',
     ],
     navKeepsakes: 'उपहार',
-    navAsk: 'सवाल',
-    drawerEyebrow: 'स्मृति उपहार पेटी',
-    drawerTitle: 'यह सब तुम्हारे लिए है',
-    drawerSub: 'हर लेस कार्ड पर टैप करें और भीतर छिपे उपहार देखें।',
-    openedProgress: (n, total) => `${n} / ${total} खोले गए`,
+    navAsk: 'हृदय का प्रश्न',
+    drawerEyebrow: 'मखमली एवं पुष्प स्मृति संग्रह',
+    drawerTitle: 'तुम्हारे लिए चार विशेष उपहार',
+    drawerSub: 'प्रत्येक स्मृति खोलें — गुलाब गुलदस्ते के संदेश, दीपों का पत्र, तस्वीरें और संध्या की धुन।',
+    openedProgress: (n, total) => `${n} / ${total} देखे गए`,
     keepsakeLabels: {
-      scrapbook: { title: 'तस्वीरें', tag: 'स्क्रैपबुक' },
-      letter: { title: 'प्रेम पत्र', tag: 'हस्तलिखित' },
-      bouquet: { title: 'गुलाब गुलदस्ता', tag: '4 कारण' },
-      vinyl: { title: 'हमारी धुन', tag: 'विनाइल रिकॉर्ड' },
+      bouquet: { title: 'गुलाब गुलदस्ता', tag: '4 छिपे संदेश' },
+      letter: { title: 'संध्या पत्र', tag: 'हस्तलिखित' },
+      scrapbook: { title: 'स्मृति गैलरी', tag: 'तस्वीरें' },
+      vinyl: { title: 'संध्या विनाइल', tag: 'धुन व पोस्टकार्ड' },
     },
-    scrapbookHeading: 'मेरी स्क्रैपबुक की यादें',
-    scrapbookHint: 'विस्तार से देखने के लिए तस्वीर पर टैप करें',
-    letterHeading: 'तुम्हारे नाम एक शांत पत्र',
-    bouquetHeading: 'तुम्हारे लिए गुलाब का गुलदस्ता',
-    bouquetHint: 'हर रिबन टैग पर टैप करें और कारण पढ़ें',
-    vinylHeading: 'वह धुन जो तुम्हारी याद दिलाती है',
-    vinylSongTitle: 'सुनहरी शाम · विनाइल धुन',
-    vinylSubtitle: 'जब भी यह धुन बजती है, तुम्हारी मुस्कान आँखों के सामने आ जाती है।',
-    vinylTap: 'धुन चलाएँ',
+    bouquetHeading: 'तुम्हारे लिए फूल — प्रत्येक फूल पर टैप करें',
+    bouquetHint: 'गुलदस्ते पर चमकते बिंदुओं को स्पर्श करें और हृदय की बातें पढ़ें।',
+    bouquetCount: (n, total) => `${n} / ${total} फूल खोले गए`,
+    letterHeading: 'दीपों की रोशनी में लिखा पत्र',
+    candleToggleOn: 'दीप ज्योति: प्रज्वलित',
+    candleToggleOff: 'मेज़ के दीप जलाएँ',
+    scrapbookHeading: 'वे पल जिन्हें सदैव संजोना चाहता हूँ',
+    scrapbookHint: 'बड़ा देखने के लिए तस्वीर पर टैप करें',
+    vinylHeading: 'हमारी संध्या की धुन और दृश्य',
+    vinylSongTitle: 'चाँदनी गुलाब छत · साइड A',
+    vinylTap: 'मधुर धुन चलाएँ',
     vinylPlaying: 'धुन बज रही है...',
-    proceedToAskCta: 'अब दिल का सवाल खोलें',
-    proposalEyebrow: 'अंतिम पत्र',
-    proposalBanner: 'आख़िर तुम यहाँ तक आ ही गईं!',
+    proceedToAskCta: 'चाँदनी छत पर चलिए',
+    proposalEyebrow: 'चाँदनी में हमारे लिए सजी मेज़',
+    proposalBanner: 'आज की यह संपूर्ण संध्या केवल तुम्हारे लिए सजाई है',
     proposalQuestion: 'क्या तुम मेरे साथ चलोगी?',
-    yesLabel: 'हाँ, बिल्कुल',
+    yesLabel: 'हाँ, सदैव',
     noLabel: 'नहीं',
-    bearIdleCaption: 'यह हृदय केवल तुम्हारे लिए',
-    bearCaptions: ['कृपया मान जाओ?', 'लाल गुलाब लाया हूँ!', 'रुको ना?', 'हाँ बोल दो!'],
-    acceptedEyebrow: 'स्मृति डेट टिकट · केवल हमारे लिए',
+    nudgeIdle: 'दो गरम कप और गुलाबों से सजा झरोखा हमारी प्रतीक्षा कर रहा है।',
+    nudgeCaptions: [
+      'ये जलते हुए दीप भी तुम्हारी हाँ की प्रतीक्षा कर रहे हैं...',
+      'तुम्हारे लिए ताज़े गुलाब भी सजाकर लाया हूँ।',
+      'रुको — इस प्यारी शाम से यूँ दूर मत जाओ!',
+      'हाँ पर एक स्पर्श इस संध्या को अविस्मरणीय बना देगा।',
+    ],
+    acceptedEyebrow: 'संध्या स्मृति टिकट · केवल हमारे लिए',
     acceptedStamp: 'स्नेह से स्वीकृत',
-    acceptedTitle: (receiver) => `यह शाम हमारी रही, ${receiver}`,
-    acceptedSub: (sender) => `${sender} के चेहरे पर अभी सबसे प्यारी मुस्कान है।`,
-    datePickerTitle: 'हमारी पहली ख़ास मुलाक़ात टिकट पर चुनें',
-    copyYesCta: 'मेरा हाँ जवाब कॉपी करें',
+    acceptedTitle: (r) => `यह शाम हमारी रही, ${r}`,
+    acceptedSub: (s) => `${s} के चेहरे पर अभी सबसे प्यारी मुस्कान है।`,
+    datePickerTitle: 'हमारी पहली ख़ास मुलाक़ात का दृश्य चुनें',
+    copyYesCta: 'मेरा हाँ जवाब कॉपी करें (WhatsApp)',
     copiedYesToast: 'कॉपी हो गया! सीधे WhatsApp पर भेज दें।',
-    petalShowerCta: 'फूल बरसाएँ',
+    petalShowerCta: 'गुलाब की पंखुड़ियाँ बरसाएँ',
     revisitKeepsakesCta: 'उपहार फिर देखें',
     closeLabel: 'बंद करें',
     photoLabel: 'याद',
     defaultHeadline: 'क्या तुम मेरी बनोगी?',
     defaultMessage:
-      'तुम्हारे पास होने से हर साधारण शाम सुनहरी बन जाती है। चलो गर्म कॉफ़ी, मीठी हँसी और एक यादगार शाम साथ बिताते हैं।',
+      'तुम्हारे पास होने से हर साधारण शाम सुनहरी और अविस्मरणीय बन जाती है। आइए धीमी बातें, दीपों की रोशनी और एक प्यारी शाम साथ बिताते हैं।',
   },
 };
 
 const RUNAWAY_SPOTS = [
   { x: 0, y: 0 },
-  { x: 42, y: -18 },
+  { x: 42, y: -16 },
   { x: -46, y: -14 },
-  { x: 38, y: 20 },
-  { x: -38, y: 18 },
-  { x: 26, y: -26 },
+  { x: 38, y: 18 },
+  { x: -38, y: 16 },
+  { x: 24, y: -22 },
 ] as const;
 
 const BURST_PETALS = Array.from({ length: 24 }, (_, idx) => {
   const angle = (idx / 24) * 360;
-  const dist = 74 + (idx % 4) * 34;
+  const dist = 76 + (idx % 4) * 34;
   return {
     angle,
     dist,
@@ -428,7 +520,6 @@ const BURST_PETALS = Array.from({ length: 24 }, (_, idx) => {
   };
 });
 
-/** Scalloped Ivory Crochet Lace Border SVG (inspired by vintage gingham love folios) */
 function CrochetLaceTrim({ flip = false }: { flip?: boolean }) {
   return (
     <svg
@@ -452,168 +543,13 @@ function CrochetLaceTrim({ flip = false }: { flip?: boolean }) {
   );
 }
 
-/** Pressed Crimson Velvet Lily SVG Accent */
-function CrimsonLilyCorner({ className = '' }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 96 96" className={className} fill="none" aria-hidden="true">
-      <path d="M48 48 C34 26 20 18 14 14 C24 32 30 44 48 48 Z" fill="#881337" />
-      <path d="M48 48 C62 24 76 16 84 14 C72 34 64 44 48 48 Z" fill="#9F1239" />
-      <path d="M48 48 C70 42 82 52 88 60 C68 62 56 58 48 48 Z" fill="#BE123C" />
-      <path d="M48 48 C56 68 48 82 44 88 C38 72 38 58 48 48 Z" fill="#881337" />
-      <path d="M48 48 C28 54 14 66 10 74 C28 70 40 62 48 48 Z" fill="#9F1239" />
-      <path d="M48 48 C44 26 48 12 52 6 C56 20 56 36 48 48 Z" fill="#E11D48" fillOpacity="0.88" />
-      <circle cx="48" cy="48" r="5" fill="#FDE68A" />
-      <circle cx="44" cy="44" r="1.4" fill="#4A0912" />
-      <circle cx="52" cy="45" r="1.4" fill="#4A0912" />
-      <circle cx="48" cy="52" r="1.4" fill="#4A0912" />
-    </svg>
-  );
-}
-
-/** Tactile Illustrated Keepsake Object Icons (Camera, Ribbon Envelope, Rose Bouquet, Gramophone) */
-function KeepsakeObjectIcon({ id }: { id: KeepsakeId }) {
-  if (id === 'scrapbook') {
-    return (
-      <svg viewBox="0 0 64 64" className="h-12 w-12" fill="none" aria-hidden="true">
-        <rect x="8" y="18" width="48" height="32" rx="6" fill="#2E2522" stroke="#D6C1A3" strokeWidth="1.8" />
-        <rect x="14" y="13" width="14" height="6" rx="2" fill="#B69571" />
-        <rect x="42" y="14" width="8" height="4" rx="1.5" fill="#E11D48" />
-        <circle cx="33" cy="34" r="11" fill="#473A35" stroke="#EAD9C1" strokeWidth="2" />
-        <circle cx="33" cy="34" r="6.5" fill="#1A1412" />
-        <circle cx="30.5" cy="31.5" r="2" fill="#FDA4AF" fillOpacity="0.7" />
-        <circle cx="17" cy="25" r="2.2" fill="#FDE68A" />
-      </svg>
-    );
-  }
-  if (id === 'letter') {
-    return (
-      <svg viewBox="0 0 64 64" className="h-12 w-12" fill="none" aria-hidden="true">
-        <rect x="8" y="16" width="48" height="34" rx="5" fill="#9F1239" stroke="#F7E7CE" strokeWidth="1.6" />
-        <path d="M10 18 L32 35 L54 18" stroke="#F7E7CE" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M23 33 C25 28 32 33 32 33 C32 33 39 28 41 33 C39 38 32 34 32 34 C32 34 25 38 23 33 Z" fill="#FFFDF8" />
-        <circle cx="32" cy="33.5" r="3.2" fill="#FDE68A" />
-      </svg>
-    );
-  }
-  if (id === 'bouquet') {
-    return (
-      <svg viewBox="0 0 64 64" className="h-12 w-12" fill="none" aria-hidden="true">
-        <path d="M22 36 L32 56 L42 36 Z" fill="#EBD7BC" stroke="#B69571" strokeWidth="1.4" />
-        <circle cx="24" cy="27" r="7" fill="#BE123C" />
-        <circle cx="40" cy="27" r="7" fill="#E11D48" />
-        <circle cx="32" cy="21" r="8" fill="#9F1239" />
-        <circle cx="32" cy="21" r="3.5" fill="#FDA4AF" />
-        <circle cx="24" cy="27" r="2.6" fill="#FECDD3" />
-        <circle cx="40" cy="27" r="2.6" fill="#FECDD3" />
-        <ellipse cx="17" cy="34" rx="5" ry="2.5" transform="rotate(-25 17 34)" fill="#3F6212" />
-        <ellipse cx="47" cy="34" rx="5" ry="2.5" transform="rotate(25 47 34)" fill="#3F6212" />
-        <path d="M26 44 H38" stroke="#9F1239" strokeWidth="2.4" strokeLinecap="round" />
-      </svg>
-    );
-  }
-  return (
-    <svg viewBox="0 0 64 64" className="h-12 w-12" fill="none" aria-hidden="true">
-      <circle cx="32" cy="32" r="22" fill="#1F1817" stroke="#D8C2A6" strokeWidth="1.6" />
-      <circle cx="32" cy="32" r="16" stroke="#FFFFFF" strokeOpacity="0.14" strokeWidth="1" />
-      <circle cx="32" cy="32" r="12" stroke="#FFFFFF" strokeOpacity="0.14" strokeWidth="1" />
-      <circle cx="32" cy="32" r="7.5" fill="#BE123C" />
-      <circle cx="32" cy="32" r="2.2" fill="#FAF2E4" />
-    </svg>
-  );
-}
-
-/** Adorable Hand-Drawn Bear & Bunny Couple SVG (inspired by the reference's framed lace card!) */
-function CozyCoupleIllustration({
-  mood,
-  caption,
-}: {
-  mood: 0 | 1 | 2 | 3 | 4 | 5;
-  caption: string;
-}) {
-  const isHappy = mood === 5;
-  const isPleading = mood >= 1 && mood <= 4;
-  return (
-    <div className="flex flex-col items-center">
-      <svg viewBox="0 0 180 116" className="h-28 w-44" fill="none" aria-hidden="true">
-        {/* Soft warm shadow */}
-        <ellipse cx="90" cy="106" rx="58" ry="6" fill="#7C2D12" fillOpacity="0.12" />
-
-        {/* Left Ivory Bear */}
-        <circle cx="48" cy="32" r="10" fill="#FFFDF9" stroke="#4A2520" strokeWidth="2" />
-        <circle cx="78" cy="32" r="10" fill="#FFFDF9" stroke="#4A2520" strokeWidth="2" />
-        <ellipse cx="63" cy="64" rx="26" ry="30" fill="#FFFDF9" stroke="#4A2520" strokeWidth="2" />
-        {/* Blush */}
-        <ellipse cx="50" cy="58" rx="4.5" ry="2.6" fill="#FDA4AF" fillOpacity="0.75" />
-        <ellipse cx="76" cy="58" rx="4.5" ry="2.6" fill="#FDA4AF" fillOpacity="0.75" />
-        {/* Eyes */}
-        {isHappy ? (
-          <>
-            <path d="M51 50 Q55 46 59 50" stroke="#4A2520" strokeWidth="2.2" strokeLinecap="round" />
-            <path d="M67 50 Q71 46 75 50" stroke="#4A2520" strokeWidth="2.2" strokeLinecap="round" />
-          </>
-        ) : (
-          <>
-            <circle cx="55" cy="51" r={isPleading ? 3.2 : 2.6} fill="#3B1D1B" />
-            <circle cx="71" cy="51" r={isPleading ? 3.2 : 2.6} fill="#3B1D1B" />
-            {isPleading ? (
-              <>
-                <circle cx="54" cy="49.8" r="1" fill="#FFF" />
-                <circle cx="70" cy="49.8" r="1" fill="#FFF" />
-              </>
-            ) : null}
-          </>
-        )}
-        <path d="M60 56 Q63 59 66 56" stroke="#4A2520" strokeWidth="1.8" strokeLinecap="round" />
-
-        {/* Right Warm Mocha Bear */}
-        <circle cx="102" cy="32" r="10" fill="#D5A684" stroke="#4A2520" strokeWidth="2" />
-        <circle cx="132" cy="32" r="10" fill="#D5A684" stroke="#4A2520" strokeWidth="2" />
-        <ellipse cx="117" cy="64" rx="26" ry="30" fill="#D5A684" stroke="#4A2520" strokeWidth="2" />
-        <ellipse cx="104" cy="58" rx="4.5" ry="2.6" fill="#FB7185" fillOpacity="0.55" />
-        <ellipse cx="130" cy="58" rx="4.5" ry="2.6" fill="#FB7185" fillOpacity="0.55" />
-        {isHappy ? (
-          <>
-            <path d="M105 50 Q109 46 113 50" stroke="#4A2520" strokeWidth="2.2" strokeLinecap="round" />
-            <path d="M121 50 Q125 46 129 50" stroke="#4A2520" strokeWidth="2.2" strokeLinecap="round" />
-          </>
-        ) : (
-          <>
-            <circle cx="109" cy="51" r="2.6" fill="#3B1D1B" />
-            <circle cx="125" cy="51" r="2.6" fill="#3B1D1B" />
-          </>
-        )}
-        <path d="M114 56 Q117 59 120 56" stroke="#4A2520" strokeWidth="1.8" strokeLinecap="round" />
-
-        {/* Center Crimson Heart Held Between Them */}
-        <path
-          d="M90 83 C80 75 76 68 79 62 C82 57 87 58 90 62 C93 58 98 57 101 62 C104 68 100 75 90 83 Z"
-          fill="#BE123C"
-          stroke="#FFFDF9"
-          strokeWidth="1.6"
-        />
-
-        {/* Floating little sparkle hearts when accepted */}
-        {isHappy ? (
-          <>
-            <path d="M90 24 C86 20 84 17 86 14 C88 12 90 14 90 15 C90 14 92 12 94 14 C96 17 94 20 90 24 Z" fill="#E11D48" />
-            <circle cx="34" cy="20" r="2.5" fill="#F59E0B" />
-            <circle cx="146" cy="20" r="2.5" fill="#F59E0B" />
-          </>
-        ) : null}
-      </svg>
-      <span className="mt-1 inline-flex rounded-full border border-[#C69C6D]/50 bg-[#FAF2E4] px-3 py-0.5 text-[11px] font-semibold text-[#7A2029]">
-        {caption}
-      </span>
-    </div>
-  );
-}
-
 /**
- * Editorial Crimson Damask & French Gingham Keepsake Box ("Will You" — `will-you-01`).
- * Inspired by vintage love websites: burgundy damask envelope with twine bow prompt,
- * red-and-cream gingham lace keepsake drawer with 4 interactive heart-doily gifts
- * (Scrapbook Camera, Handwritten Letter, Rose Bouquet Reasons, Spinning Vinyl),
- * scalloped lace proposal table with runaway No, and stamped Dream Date keepsake ticket.
+ * Art-Driven Luxury Romance Folio ("Will You" — `will-you-01`).
+ * Anchored by 3 bespoke fine-art illustrations (burgundy velvet wax-sealed envelope,
+ * golden-hour peony & rose bouquet on red gingham, candlelit twilight garden terrace):
+ * interactive wax-seal cover, 4 rich visual keepsakes (hotspot-pinned bouquet, candlelit
+ * letter with ambient light toggle, polaroid gallery + lightbox, spinning vinyl & scene
+ * postcards), twilight terrace proposal with runaway No, and photo-backed Dream Date ticket.
  */
 export function WillYouSite({
   data,
@@ -624,11 +560,14 @@ export function WillYouSite({
   const uid = useId().replace(/:/g, '');
   const [stage, setStage] = useState<StageId>('cover');
   const [coverNoCount, setCoverNoCount] = useState(0);
-  const [activeKeepsake, setActiveKeepsake] = useState<KeepsakeId>('letter');
-  const [openedKeepsakes, setOpenedKeepsakes] = useState<KeepsakeId[]>(['letter']);
-  const [activeReasonIdx, setActiveReasonIdx] = useState<number>(0);
+  const [activeKeepsake, setActiveKeepsake] = useState<KeepsakeId>('bouquet');
+  const [openedKeepsakes, setOpenedKeepsakes] = useState<KeepsakeId[]>(['bouquet']);
+  const [activeBloomIdx, setActiveBloomIdx] = useState<number>(0);
+  const [discoveredBlooms, setDiscoveredBlooms] = useState<number[]>([0]);
+  const [candlesLit, setCandlesLit] = useState(true);
+  const [activePostcardIdx, setActivePostcardIdx] = useState(0);
   const [nudgeCount, setNudgeCount] = useState(0);
-  const [selectedDateId, setSelectedDateId] = useState<DreamDateId>('coffee');
+  const [selectedDateId, setSelectedDateId] = useState<DreamDateId>('terrace');
   const [burstKey, setBurstKey] = useState(0);
   const [showBurst, setShowBurst] = useState(false);
   const [zoomIdx, setZoomIdx] = useState<number | null>(null);
@@ -662,37 +601,55 @@ export function WillYouSite({
     if (customPhotos.length > 0) {
       return [0, 1, 2].map((idx) => {
         const customSrc = customPhotos[idx];
-        if (customSrc) {
-          return { src: customSrc, caption: `${copy.photoLabel} 0${idx + 1}` };
-        }
         const sample = SAMPLE_POLAROIDS[idx];
-        return { src: sample.src, caption: sample.caption[coreLang] };
+        if (customSrc) {
+          return {
+            src: customSrc,
+            caption: `${copy.photoLabel} 0${idx + 1}`,
+            momentTag: sample.momentTag[coreLang],
+          };
+        }
+        return {
+          src: sample.src,
+          caption: sample.caption[coreLang],
+          momentTag: sample.momentTag[coreLang],
+        };
       });
     }
     return SAMPLE_POLAROIDS.map((sample) => ({
       src: sample.src,
       caption: sample.caption[coreLang],
+      momentTag: sample.momentTag[coreLang],
     }));
   }, [copy.photoLabel, coreLang, data.photos]);
 
-  const bouquetReasons = useMemo(() => {
+  const bloomNotes = useMemo(() => {
     const customHighlights = data.highlights ?? [];
-    return [0, 1, 2, 3].map((idx) => {
+    return BOUQUET_HOTSPOTS.map((spot, idx) => {
       const h = customHighlights[idx];
-      const fallback = BOUQUET_REASONS_DEFAULT[idx];
       if (h) {
         const t = pickLocalizedText(h.title, language).trim();
         const d = pickLocalizedText(h.detail, language).trim();
         if (t || d) {
-          return { title: t || fallback.title[coreLang], detail: d || fallback.detail[coreLang] };
+          return {
+            ...spot,
+            titleText: t || spot.title[coreLang],
+            detailText: d || spot.detail[coreLang],
+          };
         }
       }
-      return { title: fallback.title[coreLang], detail: fallback.detail[coreLang] };
+      return {
+        ...spot,
+        titleText: spot.title[coreLang],
+        detailText: spot.detail[coreLang],
+      };
     });
   }, [coreLang, data.highlights, language]);
 
   const selectedDateObj =
-    DREAM_DATE_OPTIONS.find((d) => d.id === selectedDateId) ?? DREAM_DATE_OPTIONS[0];
+    DREAM_DATE_OPTIONS.find((d) => d.id === selectedDateId) ?? DREAM_DATE_OPTIONS[2];
+  const activeBloom = bloomNotes[activeBloomIdx] ?? bloomNotes[0];
+  const activePostcard = VINYL_POSTCARDS[activePostcardIdx] ?? VINYL_POSTCARDS[0];
 
   useEffect(() => {
     return () => {
@@ -725,7 +682,7 @@ export function WillYouSite({
   }, []);
 
   const handleOpenBox = useCallback(() => {
-    playPaperUnsealSfx(0);
+    playLanternPullChime();
     setStage('keepsakes');
     notifyOpenedOnce();
   }, [notifyOpenedOnce]);
@@ -734,6 +691,12 @@ export function WillYouSite({
     playPaperUnsealSfx(idx + 1);
     setActiveKeepsake(id);
     setOpenedKeepsakes((prev) => (prev.includes(id) ? prev : [...prev, id]));
+  }, []);
+
+  const handleTapBloom = useCallback((idx: number) => {
+    playPaperUnsealSfx(idx);
+    setActiveBloomIdx(idx);
+    setDiscoveredBlooms((prev) => (prev.includes(idx) ? prev : [...prev, idx]));
   }, []);
 
   const handleDodgeNo = useCallback(() => {
@@ -758,7 +721,7 @@ export function WillYouSite({
         ? `हाँ, बिल्कुल ${senderDisplay}! मैंने हमारे स्मृति टिकट पर "${chosenDateLabel}" चुन लिया है।`
         : coreLang === 'hinglish'
           ? `Haan bilkul ${senderDisplay}! Keepsake ticket par "${chosenDateLabel}" stamp kar diya hai.`
-          : `YES, always ${senderDisplay}! I stamped "${chosenDateLabel}" onto our keepsake date ticket.`;
+          : `YES, always ${senderDisplay}! I chose "${chosenDateLabel}" on our keepsake date ticket.`;
     try {
       if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(reply);
@@ -778,16 +741,20 @@ export function WillYouSite({
     setStage('cover');
   }, []);
 
-  const bearMood: 0 | 1 | 2 | 3 | 4 =
-    nudgeCount === 0 ? 0 : ((((nudgeCount - 1) % 4) + 1) as 1 | 2 | 3 | 4);
-  const bearCaption =
+  const nudgeLine =
     nudgeCount === 0
-      ? copy.bearIdleCaption
-      : copy.bearCaptions[(nudgeCount - 1) % copy.bearCaptions.length];
+      ? copy.nudgeIdle
+      : copy.nudgeCaptions[(nudgeCount - 1) % copy.nudgeCaptions.length];
   const dodgeSpot = RUNAWAY_SPOTS[nudgeCount % RUNAWAY_SPOTS.length];
   const yesScale = Math.min(1.14, 1 + nudgeCount * 0.03);
+  const isGinghamStage = stage === 'keepsakes';
 
-  const isGinghamStage = stage === 'keepsakes' || stage === 'proposal';
+  const keepsakeThumbs: Record<KeepsakeId, string> = {
+    bouquet: ART.handsBouquet,
+    letter: ART.velvetEnvelope,
+    scrapbook: polaroids[0]?.src || ART.parisBalcony,
+    vinyl: ART.moonlitTerrace,
+  };
 
   return (
     <div
@@ -797,71 +764,64 @@ export function WillYouSite({
           ? {
               backgroundColor: '#FBF3E8',
               backgroundImage:
-                'linear-gradient(90deg, rgba(168, 36, 44, 0.16) 50%, transparent 50%), linear-gradient(rgba(168, 36, 44, 0.16) 50%, transparent 50%)',
-              backgroundSize: '36px 36px',
+                'linear-gradient(90deg, rgba(160, 32, 42, 0.14) 50%, transparent 50%), linear-gradient(rgba(160, 32, 42, 0.14) 50%, transparent 50%)',
+              backgroundSize: '34px 34px',
             }
           : {
               background:
-                'radial-gradient(ellipse 90% 60% at 50% 18%, #6D1120 0%, #4A0912 52%, #2B050B 100%)',
+                'radial-gradient(ellipse 90% 60% at 50% 15%, #5C0D1B 0%, #3A0710 55%, #1E0409 100%)',
             }
       }
     >
       <style>{`
-        @keyframes wy2-fade-up-${uid} {
-          0% { opacity: 0; transform: translateY(12px) scale(0.985); }
+        @keyframes wy3-fade-${uid} {
+          0% { opacity: 0; transform: translateY(10px) scale(0.985); }
           100% { opacity: 1; transform: translateY(0) scale(1); }
         }
-        @keyframes wy2-float-${uid} {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-5px); }
+        @keyframes wy3-pulse-ring-${uid} {
+          0% { transform: scale(0.92); opacity: 0.9; }
+          70% { transform: scale(1.45); opacity: 0; }
+          100% { transform: scale(1.45); opacity: 0; }
         }
-        @keyframes wy2-spin-${uid} {
+        @keyframes wy3-spin-${uid} {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
         }
-        @keyframes wy2-burst-${uid} {
+        @keyframes wy3-burst-${uid} {
           0% { transform: translate(-50%, -50%) translate(0px, 0px) scale(0.35) rotate(0deg); opacity: 1; }
           75% { opacity: 0.92; }
-          100% { transform: translate(-50%, -50%) translate(var(--wy2-tx), var(--wy2-ty)) scale(1.1) rotate(180deg); opacity: 0; }
+          100% { transform: translate(-50%, -50%) translate(var(--wy3-tx), var(--wy3-ty)) scale(1.1) rotate(180deg); opacity: 0; }
         }
-        .wy2-fade-up-${uid} { animation: wy2-fade-up-${uid} 440ms cubic-bezier(0.22, 1, 0.36, 1) both; }
-        .wy2-float-${uid} { animation: wy2-float-${uid} 4.2s ease-in-out infinite; }
-        .wy2-spin-${uid} { animation: wy2-spin-${uid} 9s linear infinite; }
-        .wy2-burst-${uid} { animation: wy2-burst-${uid} 1350ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .wy3-fade-${uid} { animation: wy3-fade-${uid} 440ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+        .wy3-pulse-${uid} { animation: wy3-pulse-ring-${uid} 2.2s cubic-bezier(0.22, 1, 0.36, 1) infinite; }
+        .wy3-spin-${uid} { animation: wy3-spin-${uid} 10s linear infinite; }
+        .wy3-burst-${uid} { animation: wy3-burst-${uid} 1350ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         @media (prefers-reduced-motion: reduce) {
-          .wy2-fade-up-${uid}, .wy2-float-${uid}, .wy2-spin-${uid}, .wy2-burst-${uid} {
+          .wy3-fade-${uid}, .wy3-pulse-${uid}, .wy3-spin-${uid}, .wy3-burst-${uid} {
             animation: none !important;
           }
         }
       `}</style>
 
-      {/* Damask Wallpaper Filigree on Velvet Stages */}
-      {!isGinghamStage ? (
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 opacity-[0.09]"
-          style={{
-            backgroundImage:
-              'radial-gradient(circle at 12px 12px, #FDE68A 1.1px, transparent 1.1px), radial-gradient(circle at 28px 28px, #FDA4AF 0.9px, transparent 0.9px)',
-            backgroundSize: '32px 32px',
-          }}
-        />
-      ) : null}
-
-      {/* Watermark Strip */}
       {watermarked ? (
         <div
           aria-hidden="true"
-          className="relative z-30 flex justify-center border-b border-[#D8C2A6]/40 bg-[#3A070F]/92 py-1 font-mono text-[10px] font-bold tracking-[0.18em] text-[#FDE68A]"
+          className="relative z-30 flex justify-center border-b border-[#E5CFAF]/30 bg-[#2B050B]/95 py-1 font-mono text-[10px] font-bold tracking-[0.18em] text-[#FDE68A]"
         >
           WEBZY FREE PREVIEW
         </div>
       ) : null}
 
-      {/* Scalloped Crochet Lace Top Trim on Gingham Stages */}
-      {isGinghamStage ? (
+      {/* Top Navigation Bar on Unlocked Stages */}
+      {stage !== 'cover' ? (
         <div className="relative z-20">
-          <div className="flex items-center justify-between gap-2 bg-[#FAF2E4] px-4 py-2 text-[#4A0912]">
+          <div
+            className={`flex items-center justify-between gap-2 px-4 py-2.5 ${
+              isGinghamStage
+                ? 'bg-[#FAF2E4] text-[#4A0912]'
+                : 'border-b border-[#FAF2E4]/15 bg-[#2B050B]/80 text-[#FAF2E4] backdrop-blur-md'
+            }`}
+          >
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
@@ -869,7 +829,9 @@ export function WillYouSite({
                 className={`min-h-[36px] rounded-full px-3 text-xs font-bold transition ${
                   stage === 'keepsakes'
                     ? 'bg-[#8F1522] text-[#FAF2E4]'
-                    : 'border border-[#D4BC9E] bg-white text-[#5C1A22] hover:bg-[#F5E9D6]'
+                    : isGinghamStage
+                      ? 'border border-[#D4BC9E] bg-white text-[#5C1A22]'
+                      : 'border border-white/20 bg-white/10 text-[#FAF2E4]'
                 }`}
               >
                 {copy.navKeepsakes}
@@ -878,9 +840,11 @@ export function WillYouSite({
                 type="button"
                 onClick={() => setStage('proposal')}
                 className={`min-h-[36px] rounded-full px-3 text-xs font-bold transition ${
-                  stage === 'proposal'
+                  stage === 'proposal' || stage === 'accepted'
                     ? 'bg-[#8F1522] text-[#FAF2E4]'
-                    : 'border border-[#D4BC9E] bg-white text-[#5C1A22] hover:bg-[#F5E9D6]'
+                    : isGinghamStage
+                      ? 'border border-[#D4BC9E] bg-white text-[#5C1A22]'
+                      : 'border border-white/20 bg-white/10 text-[#FAF2E4]'
                 }`}
               >
                 {copy.navAsk}
@@ -889,16 +853,20 @@ export function WillYouSite({
             <button
               type="button"
               onClick={handleReplay}
-              className="inline-flex min-h-[36px] items-center rounded-full border border-[#D4BC9E] bg-white px-3 text-[11px] font-semibold text-[#5C1A22] transition hover:bg-[#F5E9D6]"
+              className={`inline-flex min-h-[36px] items-center rounded-full border px-3 text-[11px] font-semibold transition ${
+                isGinghamStage
+                  ? 'border-[#D4BC9E] bg-white text-[#5C1A22] hover:bg-[#F5E9D6]'
+                  : 'border-white/20 bg-white/10 text-[#FAF2E4] hover:bg-white/15'
+              }`}
             >
               {getReplayLabel(language)}
             </button>
           </div>
-          <CrochetLaceTrim />
+          {isGinghamStage ? <CrochetLaceTrim /> : null}
         </div>
       ) : null}
 
-      {/* Petal Celebration Burst Overlay */}
+      {/* Petal Celebration Burst */}
       {showBurst ? (
         <div
           key={`burst-${burstKey}`}
@@ -912,11 +880,11 @@ export function WillYouSite({
             return (
               <span
                 key={`petal-${idx}`}
-                className={`wy2-burst-${uid} absolute left-1/2 top-1/2`}
+                className={`wy3-burst-${uid} absolute left-1/2 top-1/2`}
                 style={
                   {
-                    '--wy2-tx': tx,
-                    '--wy2-ty': ty,
+                    '--wy3-tx': tx,
+                    '--wy3-ty': ty,
                     animationDelay: p.delay,
                   } as React.CSSProperties
                 }
@@ -931,16 +899,13 @@ export function WillYouSite({
       ) : null}
 
       {/* =====================================================================
-          STAGE 1: CRIMSON DAMASK ENVELOPE & TWINE-TIED PROMPT COVER
+          STAGE 1: FULL-BLEED BURGUNDY VELVET & WAX-SEALED ENVELOPE COVER
          ===================================================================== */}
       {stage === 'cover' ? (
-        <main className="relative z-10 mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-5 px-4 py-8 text-center text-[#FAF2E4]">
-          <CrimsonLilyCorner className="pointer-events-none absolute -left-4 top-2 h-24 w-24 opacity-85" />
-          <CrimsonLilyCorner className="pointer-events-none absolute -right-4 bottom-8 h-24 w-24 rotate-180 opacity-85" />
-
+        <main className="relative z-10 mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-4 px-4 py-6 text-center text-[#FAF2E4]">
           <span
             style={hindiSafe}
-            className={`inline-flex items-center gap-2 rounded-full border border-[#FDE68A]/35 bg-[#30060C]/80 px-3.5 py-1 text-[10px] font-bold text-[#FDE68A] ${
+            className={`inline-flex items-center gap-2 rounded-full border border-[#FDE68A]/35 bg-[#26040A]/80 px-3.5 py-1 text-[10px] font-bold text-[#FDE68A] ${
               isHindi ? '' : 'font-mono uppercase tracking-[0.2em]'
             }`}
           >
@@ -957,117 +922,102 @@ export function WillYouSite({
             {copy.coverHeadline}
           </h1>
 
-          {/* Cream Envelope Peeking Out with Wax Seal & Vintage Postcard */}
-          <div className={`wy2-float-${uid} relative w-full max-w-[320px]`}>
-            <div className="relative rounded-[20px] border border-[#E7D4B8]/85 bg-gradient-to-b from-[#FCF6EC] to-[#F2E4CE] p-5 text-[#3B181E] shadow-[0_28px_60px_-16px_rgba(0,0,0,0.75)]">
+          {/* Full-Bleed Fine-Art Velvet Envelope Plate with Interactive Wax Seal Hotspot */}
+          <button
+            type="button"
+            onClick={handleOpenBox}
+            className="group relative w-full overflow-hidden rounded-[24px] border-2 border-[#E5CFAF]/55 bg-[#2B050B] shadow-[0_28px_60px_-14px_rgba(0,0,0,0.82)] transition duration-300 hover:border-[#FDE68A]/80 active:scale-[0.99]"
+          >
+            <div className="relative aspect-[4/3] w-full overflow-hidden">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={ART.velvetEnvelope}
+                alt="Hand-sealed cream cotton envelope with crimson rose wax seal on burgundy damask velvet"
+                className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]"
+              />
               <div
                 aria-hidden="true"
-                className="pointer-events-none absolute inset-2 rounded-[14px] border border-[#C69C6D]/45"
+                className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#24040A]/90 via-transparent to-[#24040A]/25"
               />
 
-              {/* Top Postage Stamp + Heart Wax Seal Row */}
-              <div className="relative flex items-center justify-between gap-2">
-                <span className="inline-flex h-11 w-11 items-center justify-center rounded-full border-2 border-[#FDA4AF]/50 bg-gradient-to-br from-[#BE123C] to-[#7A0B24] font-heading text-xs font-bold text-[#FFF8EF] shadow-md">
-                  {senderInitial}&amp;{receiverInitial}
-                </span>
-
-                <div className="rounded border border-dashed border-[#B69571] bg-[#FFFDF8] px-2.5 py-1 text-right font-mono text-[8.5px] font-bold uppercase tracking-[0.14em] text-[#8F1522]">
-                  <div>POSTCARD</div>
-                  <div className="text-[#7A5438]">LOVE MAIL</div>
-                </div>
-              </div>
-
-              <div className="relative mt-4 border-t border-dashed border-[#D3BC9C] pt-4 text-left">
-                <p
-                  style={hindiSafe}
-                  className={`font-heading text-xl font-bold text-[#4A0912] ${
-                    isHindi || hasDevanagari(receiverDisplay) ? 'not-italic' : 'italic'
-                  }`}
-                >
-                  {copy.forPrefix} {receiverDisplay},
-                </p>
-                <p
-                  style={hindiSafe}
-                  className="mt-1.5 font-serif text-[13.5px] leading-relaxed text-[#5C3136]"
-                >
-                  {copy.postcardQuote}
-                </p>
-                <p className="mt-3 text-right text-xs font-semibold text-[#8F1522]">
-                  {copy.fromPrefix} {senderDisplay}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Twine-Tied Vintage Prompt Card ("Would you like to open it? Yes / No") */}
-          <div className="relative mt-1 w-full max-w-[290px] pt-3">
-            {/* Linen Twine Bow SVG */}
-            <svg
-              viewBox="0 0 80 28"
-              className="pointer-events-none mx-auto -mb-2 h-7 w-20"
-              fill="none"
-              aria-hidden="true"
-            >
-              <path
-                d="M40 16 C28 4 14 8 22 18 C28 24 37 18 40 16 C43 18 52 24 58 18 C66 8 52 4 40 16 Z"
-                stroke="#E5CFAF"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path d="M40 16 L32 27 M40 16 L48 27" stroke="#E5CFAF" strokeWidth="1.8" strokeLinecap="round" />
-            </svg>
-
-            <div className="rounded-xl border border-[#DFC7A5] bg-[#FAF2E4] px-5 py-4 text-[#3B181E] shadow-[0_18px_40px_-14px_rgba(0,0,0,0.68)]">
-              <p
-                style={hindiSafe}
-                className={`font-heading text-base font-bold text-[#4A0912] ${
-                  isHindi ? 'not-italic' : 'italic'
-                }`}
+              {/* Pulsing Wax Seal Touch Ring centered over the sculpted crimson wax seal */}
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
               >
-                {copy.promptQuestion}
-              </p>
+                <span className={`wy3-pulse-${uid} block h-14 w-14 rounded-full border-2 border-[#FDE68A]`} />
+              </span>
 
-              <div className="mt-3.5 flex flex-col gap-2">
-                <button
-                  type="button"
-                  onClick={handleOpenBox}
-                  className="inline-flex min-h-[46px] w-full items-center justify-center rounded-lg border-2 border-[#7A0B24] bg-[#8F1522] px-4 py-2 text-xs font-bold tracking-wide text-[#FFF8EF] shadow-sm transition hover:bg-[#74101B] active:scale-[0.98]"
-                >
-                  {copy.promptYes}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    playPaperUnsealSfx(coverNoCount);
-                    setCoverNoCount((c) => c + 1);
-                  }}
-                  className="inline-flex min-h-[44px] w-full items-center justify-center rounded-lg border border-[#C6A984] bg-[#FFFDF8] px-4 py-2 text-xs font-semibold text-[#6B3B40] transition hover:bg-[#F5E9D6] active:scale-[0.98]"
-                >
-                  {copy.promptNo}
-                </button>
+              {/* Bottom Recipient Nameplate Ribbon */}
+              <div className="absolute inset-x-3 bottom-3 flex items-end justify-between gap-2 text-left">
+                <div className="min-w-0">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#FDE68A]/90">
+                    {copy.forPrefix}
+                  </p>
+                  <p
+                    style={hindiSafe}
+                    className={`truncate font-heading text-xl font-bold text-[#FFF8EF] ${
+                      isHindi || hasDevanagari(receiverDisplay) ? 'not-italic' : 'italic'
+                    }`}
+                  >
+                    {receiverDisplay}
+                  </p>
+                </div>
+                <span className="shrink-0 rounded-full border border-[#FDE68A]/55 bg-[#4A0912]/90 px-3 py-1 text-[10.5px] font-bold text-[#FDE68A] backdrop-blur-xs">
+                  {copy.tapSealPill}
+                </span>
               </div>
-
-              {coverNoCount > 0 ? (
-                <p
-                  role="status"
-                  style={hindiSafe}
-                  className="mt-2.5 text-[11.5px] font-semibold text-[#8F1522]"
-                >
-                  {copy.promptNoNudges[(coverNoCount - 1) % copy.promptNoNudges.length]}
-                </p>
-              ) : null}
             </div>
+          </button>
+
+          {/* Twine-Tied Cream Stationery Prompt */}
+          <div className="w-full rounded-[20px] border border-[#E5CFAF]/75 bg-[#FAF2E4] px-5 py-4 text-[#3B181E] shadow-xl">
+            <p className="text-[11px] font-semibold text-[#8F1522]">
+              {copy.fromPrefix} {senderDisplay}
+            </p>
+            <p
+              style={hindiSafe}
+              className={`mt-1 font-heading text-base font-bold text-[#4A0912] ${
+                isHindi ? 'not-italic' : 'italic'
+              }`}
+            >
+              {copy.promptQuestion}
+            </p>
+
+            <div className="mt-3.5 flex gap-2">
+              <button
+                type="button"
+                onClick={handleOpenBox}
+                className="inline-flex min-h-[46px] flex-1 items-center justify-center rounded-full bg-[#8F1522] px-4 py-2 text-xs font-bold text-[#FFF8EF] shadow-sm transition hover:bg-[#74101B] active:scale-[0.98]"
+              >
+                {copy.promptYes}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  playPaperUnsealSfx(coverNoCount);
+                  setCoverNoCount((c) => c + 1);
+                }}
+                className="inline-flex min-h-[46px] items-center justify-center rounded-full border border-[#C6A984] bg-white px-4 py-2 text-xs font-semibold text-[#6B3B40] transition hover:bg-[#F5E9D6]"
+              >
+                {copy.promptNo}
+              </button>
+            </div>
+
+            {coverNoCount > 0 ? (
+              <p role="status" style={hindiSafe} className="mt-2.5 text-xs font-semibold text-[#8F1522]">
+                {copy.promptNoNudges[(coverNoCount - 1) % copy.promptNoNudges.length]}
+              </p>
+            ) : null}
           </div>
         </main>
       ) : null}
 
       {/* =====================================================================
-          STAGE 2: RED GINGHAM LACE KEEPSAKE DRAWER (4 INTERACTIVE GIFTS)
+          STAGE 2: VISUAL KEEPSAKE TABLE ON FRENCH RED GINGHAM & LACE
          ===================================================================== */}
       {stage === 'keepsakes' ? (
-        <main className={`wy2-fade-up-${uid} relative z-10 mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-4 py-5 text-[#3B181E]`}>
-          {/* Header Banner */}
+        <main className={`wy3-fade-${uid} relative z-10 mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-4 py-5 text-[#3B181E]`}>
           <div className="rounded-2xl border border-[#DFC7A5] bg-[#FAF2E4]/95 px-4 py-4 text-center shadow-sm">
             <div className="flex flex-wrap items-center justify-center gap-2">
               <span
@@ -1095,151 +1045,213 @@ export function WillYouSite({
             </p>
           </div>
 
-          {/* 4 Lace-Doily Keepsake Buttons (2x2 Grid) */}
-          <section aria-label={copy.drawerTitle} className="grid grid-cols-2 gap-3">
-            {(['letter', 'bouquet', 'scrapbook', 'vinyl'] as const).map((id, idx) => {
-              const isSelected = activeKeepsake === id;
-              const isOpened = openedKeepsakes.includes(id);
+          {/* 4 Visual Art-Plate Keepsake Selector Cards (2x2) */}
+          <section aria-label={copy.drawerTitle} className="grid grid-cols-2 gap-2.5">
+            {(['bouquet', 'letter', 'scrapbook', 'vinyl'] as const).map((id, idx) => {
+              const selected = activeKeepsake === id;
+              const opened = openedKeepsakes.includes(id);
               const meta = copy.keepsakeLabels[id];
               return (
                 <button
                   key={id}
                   type="button"
                   onClick={() => handleSelectKeepsake(id, idx)}
-                  aria-pressed={isSelected}
-                  className={`group relative flex min-h-[118px] flex-col items-center justify-center gap-1.5 rounded-[22px] border-2 px-3 py-3.5 text-center transition-all duration-200 active:scale-[0.97] ${
-                    isSelected
-                      ? 'border-[#8F1522] bg-[#FFFDF9] shadow-[0_14px_28px_-12px_rgba(143,21,34,0.45)]'
-                      : 'border-dashed border-[#D2B694] bg-[#FAF2E4]/95 hover:border-[#8F1522]/60 hover:bg-[#FFFDF9]'
+                  aria-pressed={selected}
+                  className={`group relative overflow-hidden rounded-[18px] border-2 bg-[#FFFDF9] p-1.5 text-left transition-all duration-200 active:scale-[0.98] ${
+                    selected
+                      ? 'border-[#8F1522] shadow-[0_14px_26px_-12px_rgba(143,21,34,0.45)]'
+                      : 'border-[#DFC7A5] hover:border-[#8F1522]/60'
                   }`}
                 >
-                  {isOpened ? (
-                    <span
-                      aria-hidden="true"
-                      className="absolute right-2.5 top-2.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#8F1522] text-white"
-                    >
-                      <svg viewBox="0 0 16 16" className="h-3 w-3" fill="none">
-                        <path
-                          d="M3.5 8.2L6.6 11.3L12.5 4.8"
-                          stroke="currentColor"
-                          strokeWidth="2.2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </span>
-                  ) : null}
-
-                  <div className="transition-transform duration-200 group-hover:scale-105">
-                    <KeepsakeObjectIcon id={id} />
+                  <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl bg-[#4A0912]">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={keepsakeThumbs[id]}
+                      alt={meta.title}
+                      loading="lazy"
+                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                    />
+                    {opened ? (
+                      <span
+                        aria-hidden="true"
+                        className="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#8F1522] text-white shadow-xs"
+                      >
+                        <svg viewBox="0 0 16 16" className="h-3 w-3" fill="none">
+                          <path
+                            d="M3.5 8.2L6.6 11.3L12.5 4.8"
+                            stroke="currentColor"
+                            strokeWidth="2.2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </span>
+                    ) : null}
                   </div>
-                  <span style={hindiSafe} className="font-heading text-sm font-bold text-[#4A0912]">
-                    {meta.title}
-                  </span>
-                  <span className="text-[10.5px] font-semibold text-[#8F1522]/80">{meta.tag}</span>
+                  <div className="px-1.5 pb-1 pt-2">
+                    <p style={hindiSafe} className="font-heading text-xs font-bold text-[#4A0912]">
+                      {meta.title}
+                    </p>
+                    <p className="text-[10px] font-semibold text-[#8F1522]/80">{meta.tag}</p>
+                  </div>
                 </button>
               );
             })}
           </section>
 
-          {/* Active Keepsake Interactive Stage */}
-          <section className="relative overflow-hidden rounded-[24px] border-2 border-[#DFC7A5] bg-[#FFFDF8] p-5 shadow-[0_18px_36px_-18px_rgba(74,9,18,0.35)]">
-            {activeKeepsake === 'letter' ? (
-              <div className="space-y-3 text-center">
-                <span
-                  style={hindiSafe}
-                  className={`inline-block rounded-full border border-[#DFC7A5] bg-[#FAF2E4] px-3 py-0.5 text-[10px] font-bold text-[#8F1522] ${
-                    isHindi ? '' : 'font-mono uppercase tracking-[0.16em]'
-                  }`}
-                >
-                  {copy.letterHeading}
-                </span>
-                <h3
-                  style={hindiSafe}
-                  className={`break-words font-heading text-2xl font-bold leading-snug text-[#4A0912] ${
-                    isHindi || hasDevanagari(headlineText) ? 'not-italic' : 'italic'
-                  }`}
-                >
-                  {headlineText}
-                </h3>
-                <div className="mx-auto h-px w-16 bg-[#D8C2A6]" aria-hidden="true" />
-                <p
-                  style={hindiSafe}
-                  className="break-words rounded-2xl border border-[#EFE2CE] bg-[#FBF6EC] p-4 font-serif text-[15px] leading-relaxed text-[#4A252B]"
-                >
-                  {messageText}
-                </p>
-                <p className="font-heading text-sm font-bold italic text-[#8F1522]">
-                  {copy.fromPrefix} {senderDisplay}
-                </p>
-              </div>
-            ) : null}
-
+          {/* ACTIVE KEEPSAKE EXPERIENCE STAGE */}
+          <section className="relative overflow-hidden rounded-[24px] border-2 border-[#DFC7A5] bg-[#FFFDF8] p-4 shadow-[0_20px_40px_-18px_rgba(74,9,18,0.35)] sm:p-5">
+            {/* 1. INTERACTIVE BOUQUET WITH FLOATING HOTSPOT PINS */}
             {activeKeepsake === 'bouquet' ? (
-              <div className="space-y-3.5 text-center">
-                <div>
-                  <h3
-                    style={hindiSafe}
-                    className={`font-heading text-xl font-bold text-[#4A0912] ${
-                      isHindi ? 'not-italic' : 'italic'
-                    }`}
-                  >
-                    {copy.bouquetHeading}
-                  </h3>
-                  <p style={hindiSafe} className="mt-0.5 text-xs text-[#6B3B40]">
-                    {copy.bouquetHint}
-                  </p>
+              <div className="space-y-3.5">
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <h3
+                      style={hindiSafe}
+                      className={`font-heading text-lg font-bold text-[#4A0912] ${
+                        isHindi ? 'not-italic' : 'italic'
+                      }`}
+                    >
+                      {copy.bouquetHeading}
+                    </h3>
+                    <p style={hindiSafe} className="text-[11.5px] text-[#6B3B40]">
+                      {copy.bouquetHint}
+                    </p>
+                  </div>
+                  <span className="shrink-0 rounded-full border border-[#DFC7A5] bg-[#FAF2E4] px-2.5 py-1 font-mono text-[10px] font-bold text-[#8F1522]">
+                    {copy.bouquetCount(discoveredBlooms.length, 4)}
+                  </span>
                 </div>
 
-                {/* Illustrated Rose Bouquet Centerpiece */}
-                <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full border border-[#E7D4B8] bg-gradient-to-b from-[#FDF5EB] to-[#F7E6D4]">
-                  <KeepsakeObjectIcon id="bouquet" />
-                </div>
-
-                {/* 4 Tappable Ribbon Callout Tags */}
-                <div className="grid grid-cols-2 gap-2">
-                  {bouquetReasons.map((reason, idx) => {
-                    const active = activeReasonIdx === idx;
+                {/* Full-Bleed Bouquet Painting with 4 Interactive Glowing Botanical Pins */}
+                <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-[#DFC7A5] bg-[#4A0912]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={ART.handsBouquet}
+                    alt="Hand-tied crimson peony and blush rose bouquet on red gingham"
+                    className="h-full w-full object-cover"
+                  />
+                  {bloomNotes.map((spot, idx) => {
+                    const isCurrent = activeBloomIdx === idx;
+                    const isSeen = discoveredBlooms.includes(idx);
                     return (
                       <button
-                        key={`reason-tag-${idx}`}
+                        key={spot.id}
                         type="button"
-                        onClick={() => {
-                          playPaperUnsealSfx(idx);
-                          setActiveReasonIdx(idx);
-                        }}
-                        aria-pressed={active}
-                        className={`min-h-[44px] rounded-xl border px-3 py-2 text-xs font-bold transition active:scale-[0.98] ${
-                          active
-                            ? 'border-[#8F1522] bg-[#8F1522] text-[#FFF8EF]'
-                            : 'border-[#DFC7A5] bg-[#FAF2E4] text-[#4A0912] hover:border-[#8F1522]/50'
-                        }`}
+                        onClick={() => handleTapBloom(idx)}
+                        aria-label={`${spot.bloomName[coreLang]} — ${spot.titleText}`}
+                        style={{ left: `${spot.leftPct}%`, top: `${spot.topPct}%` }}
+                        className="absolute -translate-x-1/2 -translate-y-1/2 focus-visible:outline-none"
                       >
-                        {reason.title}
+                        {!isSeen ? (
+                          <span
+                            aria-hidden="true"
+                            className={`wy3-pulse-${uid} absolute inset-0 rounded-full bg-[#FDE68A]`}
+                          />
+                        ) : null}
+                        <span
+                          className={`relative flex h-9 w-9 items-center justify-center rounded-full border-2 font-mono text-xs font-extrabold shadow-lg transition-transform ${
+                            isCurrent
+                              ? 'scale-110 border-[#FFFDF8] bg-[#8F1522] text-[#FDE68A]'
+                              : 'border-[#FFFDF8] bg-[#FAF2E4]/95 text-[#8F1522] hover:scale-105'
+                          }`}
+                        >
+                          {idx + 1}
+                        </span>
                       </button>
                     );
                   })}
                 </div>
 
+                {/* Active Bloom Revealed Secret Card */}
                 <div
                   role="status"
-                  className="rounded-2xl border border-[#DFC7A5] bg-[#FBF6EC] px-4 py-3.5"
+                  className="rounded-2xl border border-[#DFC7A5] bg-[#FBF6EC] px-4 py-3.5 text-center"
                 >
-                  <p style={hindiSafe} className="font-heading text-sm font-bold text-[#8F1522]">
-                    {bouquetReasons[activeReasonIdx]?.title}
-                  </p>
+                  <span className="font-mono text-[9.5px] font-bold uppercase tracking-[0.16em] text-[#8F1522]/80">
+                    0{activeBloomIdx + 1} · {activeBloom.bloomName[coreLang]}
+                  </span>
+                  <h4 style={hindiSafe} className="mt-1 font-heading text-base font-bold text-[#4A0912]">
+                    {activeBloom.titleText}
+                  </h4>
                   <p
                     style={hindiSafe}
                     className="mt-1 font-serif text-[13.5px] leading-relaxed text-[#4A252B]"
                   >
-                    {bouquetReasons[activeReasonIdx]?.detail}
+                    {activeBloom.detailText}
                   </p>
                 </div>
               </div>
             ) : null}
 
+            {/* 2. CANDLELIT LETTER WITH INTERACTIVE AMBIENT GLOW */}
+            {activeKeepsake === 'letter' ? (
+              <div className="space-y-3.5 text-center">
+                <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl border border-[#DFC7A5]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={ART.velvetEnvelope}
+                    alt="Candlelit velvet desk with sealed love letter"
+                    className={`h-full w-full object-cover transition duration-700 ${
+                      candlesLit ? 'brightness-105 saturate-110' : 'brightness-75 saturate-75'
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      playPaperUnsealSfx(candlesLit ? 0 : 2);
+                      setCandlesLit((v) => !v);
+                    }}
+                    className="absolute bottom-2.5 right-2.5 inline-flex min-h-[38px] items-center gap-1.5 rounded-full border border-[#FDE68A]/60 bg-[#2B050B]/85 px-3.5 py-1 text-[11px] font-bold text-[#FDE68A] backdrop-blur-xs transition hover:bg-[#4A0912]"
+                  >
+                    <span
+                      className={`h-2 w-2 rounded-full ${
+                        candlesLit ? 'bg-[#FDE68A] shadow-[0_0_8px_#FDE68A]' : 'bg-white/30'
+                      }`}
+                    />
+                    <span>{candlesLit ? copy.candleToggleOn : copy.candleToggleOff}</span>
+                  </button>
+                </div>
+
+                <div
+                  className="rounded-2xl border border-[#EFE2CE] p-4 transition-all duration-700"
+                  style={{
+                    background: candlesLit
+                      ? 'radial-gradient(circle at 50% 0%, #FFF7E0 0%, #FBF5E8 65%, #F6ECDA 100%)'
+                      : '#FAF6F0',
+                  }}
+                >
+                  <span
+                    style={hindiSafe}
+                    className="font-mono text-[9.5px] font-bold uppercase tracking-[0.16em] text-[#8F1522]"
+                  >
+                    {copy.letterHeading}
+                  </span>
+                  <h3
+                    style={hindiSafe}
+                    className={`mt-1.5 break-words font-heading text-2xl font-bold leading-snug text-[#4A0912] ${
+                      isHindi || hasDevanagari(headlineText) ? 'not-italic' : 'italic'
+                    }`}
+                  >
+                    {headlineText}
+                  </h3>
+                  <div className="mx-auto my-3 h-px w-16 bg-[#D8C2A6]" aria-hidden="true" />
+                  <p
+                    style={hindiSafe}
+                    className="break-words font-serif text-[15px] leading-relaxed text-[#4A252B]"
+                  >
+                    {messageText}
+                  </p>
+                  <p className="mt-4 font-heading text-sm font-bold italic text-[#8F1522]">
+                    {copy.fromPrefix} {senderDisplay}
+                  </p>
+                </div>
+              </div>
+            ) : null}
+
+            {/* 3. VISUAL MEMORY GALLERY & POLAROID TABLE */}
             {activeKeepsake === 'scrapbook' ? (
-              <div className="space-y-3 text-center">
+              <div className="space-y-3.5 text-center">
                 <div>
                   <h3
                     style={hindiSafe}
@@ -1254,22 +1266,18 @@ export function WillYouSite({
                   </p>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2.5 pt-1">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                   {polaroids.map((item, idx) => {
                     const isFailed = Boolean(failedPhotos[item.src]);
-                    const tilts = ['-rotate-2', 'rotate-1', 'rotate-2'] as const;
+                    const tilts = ['sm:-rotate-2', 'sm:rotate-1', 'sm:rotate-2'] as const;
                     return (
                       <button
                         key={`scrap-photo-${idx}`}
                         type="button"
                         onClick={() => !isFailed && setZoomIdx(idx)}
-                        className={`group relative flex flex-col rounded-lg border border-[#D8C2A6] bg-white p-1.5 pb-2.5 shadow-md transition hover:z-10 hover:rotate-0 hover:scale-105 active:scale-95 ${tilts[idx % 3]}`}
+                        className={`group relative flex flex-col rounded-xl border border-[#D8C2A6] bg-white p-2 pb-3 text-left shadow-md transition hover:z-10 hover:rotate-0 hover:scale-[1.03] active:scale-95 ${tilts[idx % 3]}`}
                       >
-                        <span
-                          aria-hidden="true"
-                          className="pointer-events-none absolute -top-2 left-1/2 h-3 w-8 -translate-x-1/2 rounded-[2px] bg-[#E11D48]/35"
-                        />
-                        <div className="aspect-square w-full overflow-hidden rounded bg-[#F5E9D6]">
+                        <div className="aspect-[4/3] w-full overflow-hidden rounded-lg bg-[#4A0912] sm:aspect-square">
                           {!isFailed ? (
                             /* eslint-disable-next-line @next/next/no-img-element */
                             <img
@@ -1279,15 +1287,18 @@ export function WillYouSite({
                               onError={() =>
                                 setFailedPhotos((prev) => ({ ...prev, [item.src]: true }))
                               }
-                              className="h-full w-full object-cover"
+                              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                             />
                           ) : (
-                            <div className="flex h-full w-full items-center justify-center bg-[#4A0912] text-xs font-bold text-[#FDE68A]">
+                            <div className="flex h-full w-full items-center justify-center text-xs font-bold text-[#FDE68A]">
                               0{idx + 1}
                             </div>
                           )}
                         </div>
-                        <span className="mt-1.5 block truncate text-[10px] font-semibold italic text-[#4A0912]">
+                        <span className="mt-2 font-mono text-[8.5px] font-bold tracking-[0.14em] text-[#8F1522]/75">
+                          {item.momentTag}
+                        </span>
+                        <span className="truncate font-heading text-xs font-bold italic text-[#4A0912]">
                           {item.caption}
                         </span>
                       </button>
@@ -1297,33 +1308,74 @@ export function WillYouSite({
               </div>
             ) : null}
 
+            {/* 4. SPINNING VINYL & VISUAL SCENE POSTCARDS */}
             {activeKeepsake === 'vinyl' ? (
-              <div className="space-y-4 text-center">
+              <div className="space-y-4">
                 <h3
                   style={hindiSafe}
-                  className={`font-heading text-xl font-bold text-[#4A0912] ${
+                  className={`text-center font-heading text-xl font-bold text-[#4A0912] ${
                     isHindi ? 'not-italic' : 'italic'
                   }`}
                 >
                   {copy.vinylHeading}
                 </h3>
 
-                {/* Spinning 33RPM Crimson Vinyl Disc */}
-                <div className="mx-auto flex h-28 w-28 items-center justify-center">
-                  <div
-                    className={`wy2-spin-${uid} flex h-24 w-24 items-center justify-center rounded-full border-2 border-[#D8C2A6] bg-[#1C1414] shadow-lg`}
-                  >
-                    <div className="flex h-16 w-16 items-center justify-center rounded-full border border-white/10">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#BE123C] text-[9px] font-bold text-[#FAF2E4]">
+                {/* Visual Postcard Viewer with Spinning Vinyl Badge */}
+                <div className="relative overflow-hidden rounded-2xl border border-[#DFC7A5] bg-[#2B050B]">
+                  <div className="relative aspect-[16/10] w-full overflow-hidden">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={activePostcard.src}
+                      alt={activePostcard.title[coreLang]}
+                      className="h-full w-full object-cover"
+                    />
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#24040A]/90 via-[#24040A]/25 to-transparent"
+                    />
+                    {/* Spinning Mini Vinyl Record Overlay */}
+                    <div
+                      aria-hidden="true"
+                      className={`wy3-spin-${uid} absolute right-3 top-3 flex h-14 w-14 items-center justify-center rounded-full border-2 border-[#E5CFAF]/75 bg-[#1C1414] shadow-lg`}
+                    >
+                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#BE123C] text-[8px] font-bold text-[#FAF2E4]">
                         {senderInitial}&amp;{receiverInitial}
                       </div>
+                    </div>
+                    <div className="absolute inset-x-3.5 bottom-3 text-left text-[#FFF8EF]">
+                      <p className="font-mono text-[9.5px] font-bold uppercase tracking-[0.16em] text-[#FDE68A]">
+                        {activePostcard.title[coreLang]}
+                      </p>
+                      <p
+                        style={hindiSafe}
+                        className="mt-0.5 font-serif text-xs leading-relaxed text-[#FFF8EF]/95"
+                      >
+                        {activePostcard.lyric[coreLang]}
+                      </p>
                     </div>
                   </div>
                 </div>
 
-                <p style={hindiSafe} className="font-serif text-xs leading-relaxed text-[#5C3136]">
-                  {copy.vinylSubtitle}
-                </p>
+                {/* 3 Postcard Scene Switcher Pills */}
+                <div className="grid grid-cols-3 gap-1.5">
+                  {VINYL_POSTCARDS.map((card, idx) => (
+                    <button
+                      key={`pc-${idx}`}
+                      type="button"
+                      onClick={() => {
+                        playPaperUnsealSfx(idx);
+                        setActivePostcardIdx(idx);
+                      }}
+                      className={`min-h-[38px] rounded-full border px-2 text-[11px] font-bold transition ${
+                        activePostcardIdx === idx
+                          ? 'border-[#8F1522] bg-[#8F1522] text-[#FFF8EF]'
+                          : 'border-[#DFC7A5] bg-[#FAF2E4] text-[#5C1A22]'
+                      }`}
+                    >
+                      {card.title[coreLang]}
+                    </button>
+                  ))}
+                </div>
 
                 <OccasionCassettePlayer
                   trackTitle={copy.vinylSongTitle}
@@ -1336,7 +1388,6 @@ export function WillYouSite({
             ) : null}
           </section>
 
-          {/* Proceed to Proposal CTA */}
           <button
             type="button"
             onClick={() => {
@@ -1346,196 +1397,221 @@ export function WillYouSite({
             className="inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-full border-2 border-[#FAF2E4] bg-[#4A0912] px-6 py-3 text-sm font-bold text-[#FFF8EF] shadow-[0_14px_30px_-10px_rgba(74,9,18,0.65)] transition hover:bg-[#640D19] active:scale-[0.98]"
           >
             <span>{copy.proceedToAskCta}</span>
-            <span aria-hidden="true">-&gt;</span>
           </button>
         </main>
       ) : null}
 
       {/* =====================================================================
-          STAGE 3: LACE-FRAMED PROPOSAL TABLE (RUNAWAY NO & YES)
+          STAGE 3: CANDLELIT TWILIGHT TERRACE PROPOSAL (CINEMATIC FINE ART)
          ===================================================================== */}
       {stage === 'proposal' ? (
-        <main className={`wy2-fade-up-${uid} relative z-10 mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-5 px-4 py-7 text-center text-[#3B181E]`}>
-          <section className="relative w-full rounded-[28px] border-[6px] border-double border-[#E6D0B1] bg-[#FFFDF8] px-5 py-7 shadow-[0_24px_54px_-16px_rgba(74,9,18,0.42)]">
-            <span
-              style={hindiSafe}
-              className={`inline-block rounded-full border border-[#DFC7A5] bg-[#FAF2E4] px-3.5 py-1 text-[10px] font-bold text-[#8F1522] ${
-                isHindi ? '' : 'font-mono uppercase tracking-[0.18em]'
-              }`}
-            >
-              {copy.proposalEyebrow}
-            </span>
-
-            <p
-              style={hindiSafe}
-              className="mt-2 font-serif text-xs font-semibold text-[#7A3B42]"
-            >
-              {copy.proposalBanner}
-            </p>
-
-            <div className="my-4">
-              <CozyCoupleIllustration mood={bearMood} caption={bearCaption} />
+        <main className={`wy3-fade-${uid} relative z-10 mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-4 px-4 py-6 text-center text-[#FAF2E4]`}>
+          <section className="w-full overflow-hidden rounded-[26px] border-2 border-[#E5CFAF]/65 bg-[#FAF2E4] text-[#3B181E] shadow-[0_28px_60px_-14px_rgba(0,0,0,0.82)]">
+            {/* Full-Bleed Moonlit Candlelit Terrace Painting */}
+            <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#1E0409]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={ART.moonlitTerrace}
+                alt="Candlelit twilight balcony terrace table for two surrounded by blooming roses and fairy lights"
+                className="h-full w-full object-cover"
+              />
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#24040A]/85 via-transparent to-transparent"
+              />
+              <div className="absolute inset-x-4 bottom-3 text-center">
+                <span
+                  style={hindiSafe}
+                  className={`inline-block rounded-full border border-[#FDE68A]/50 bg-[#2B050B]/80 px-3 py-0.5 text-[9.5px] font-bold text-[#FDE68A] backdrop-blur-xs ${
+                    isHindi ? '' : 'font-mono uppercase tracking-[0.18em]'
+                  }`}
+                >
+                  {copy.proposalEyebrow}
+                </span>
+              </div>
             </div>
 
-            <h2
-              style={hindiSafe}
-              className={`break-words font-heading text-2xl font-bold text-[#4A0912] sm:text-[28px] ${
-                isHindi ? 'not-italic' : 'italic'
-              }`}
-            >
-              {copy.proposalQuestion}
-            </h2>
-
-            {/* Interactive Yes / Runaway No Stage */}
-            <div className="relative mt-6 flex min-h-[100px] flex-wrap items-center justify-center gap-3.5 px-2 py-2">
-              <button
-                type="button"
-                onClick={handleSayYes}
-                style={{ transform: `scale(${yesScale})` }}
-                className="relative z-10 inline-flex min-h-[48px] items-center justify-center rounded-full border-2 border-[#7A0B24] bg-gradient-to-r from-[#8F1522] via-[#BE123C] to-[#9F1239] px-7 py-2.5 text-sm font-bold text-[#FFF8EF] shadow-[0_12px_28px_-8px_rgba(143,21,34,0.65)] transition-all duration-300 hover:brightness-110 active:scale-95"
+            <div className="px-5 py-6">
+              <p style={hindiSafe} className="font-serif text-xs font-semibold text-[#8F1522]">
+                {copy.proposalBanner}
+              </p>
+              <h2
+                style={hindiSafe}
+                className={`mt-1.5 break-words font-heading text-2xl font-bold text-[#4A0912] sm:text-[28px] ${
+                  isHindi ? 'not-italic' : 'italic'
+                }`}
               >
-                {copy.yesLabel}
-              </button>
+                {copy.proposalQuestion}
+              </h2>
+              <p style={hindiSafe} className="mt-2 font-serif text-xs leading-relaxed text-[#6B3B40]">
+                {nudgeLine}
+              </p>
 
-              <button
-                type="button"
-                onClick={handleDodgeNo}
-                onMouseEnter={handleDodgeNo}
-                style={{ transform: `translate(${dodgeSpot.x}px, ${dodgeSpot.y}px)` }}
-                className="relative z-10 inline-flex min-h-[44px] min-w-[78px] items-center justify-center rounded-full border border-[#C6A984] bg-[#FAF2E4] px-4 py-2 text-xs font-semibold text-[#5C3136] transition-transform duration-300 ease-out hover:bg-[#F2E4CE]"
-              >
-                {copy.noLabel}
-              </button>
+              <div className="relative mt-5 flex min-h-[96px] flex-wrap items-center justify-center gap-3.5 px-2 py-2">
+                <button
+                  type="button"
+                  onClick={handleSayYes}
+                  style={{ transform: `scale(${yesScale})` }}
+                  className="relative z-10 inline-flex min-h-[48px] items-center justify-center rounded-full border-2 border-[#7A0B24] bg-gradient-to-r from-[#8F1522] via-[#BE123C] to-[#9F1239] px-7 py-2.5 text-sm font-bold text-[#FFF8EF] shadow-[0_12px_28px_-8px_rgba(143,21,34,0.65)] transition-all duration-300 hover:brightness-110 active:scale-95"
+                >
+                  {copy.yesLabel}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleDodgeNo}
+                  onMouseEnter={handleDodgeNo}
+                  style={{ transform: `translate(${dodgeSpot.x}px, ${dodgeSpot.y}px)` }}
+                  className="relative z-10 inline-flex min-h-[44px] min-w-[78px] items-center justify-center rounded-full border border-[#C6A984] bg-white px-4 py-2 text-xs font-semibold text-[#5C3136] transition-transform duration-300 ease-out hover:bg-[#F5E9D6]"
+                >
+                  {copy.noLabel}
+                </button>
+              </div>
             </div>
           </section>
         </main>
       ) : null}
 
       {/* =====================================================================
-          STAGE 4: ACCEPTED GRAND VELVET BOUQUET & STAMPED DATE TICKET
+          STAGE 4: ACCEPTED GRAND KEEPSAKE TICKET & PHOTO-BACKED DREAM DATES
          ===================================================================== */}
       {stage === 'accepted' ? (
-        <main className={`wy2-fade-up-${uid} relative z-10 mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-4 px-4 py-7 text-[#FAF2E4]`}>
-          <div className="rounded-2xl border border-[#DFC7A5]/45 bg-[#FFFDF8] px-5 py-3 shadow-lg">
-            <CozyCoupleIllustration mood={5} caption={copy.yesLabel} />
-          </div>
-
-          {/* Vintage Velvet & Cream Keepsake Date Ticket */}
-          <section className="relative w-full overflow-hidden rounded-[26px] border-2 border-[#E5CFAF]/75 bg-[#FAF2E4] p-5 text-[#3B181E] shadow-[0_28px_60px_-16px_rgba(0,0,0,0.75)]">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <span
-                style={hindiSafe}
-                className={`text-[10px] font-bold text-[#8F1522] ${
-                  isHindi ? '' : 'font-mono uppercase tracking-[0.16em]'
-                }`}
-              >
-                {copy.acceptedEyebrow}
-              </span>
-              <span className="-rotate-2 rounded border border-[#8F1522] bg-[#8F1522]/10 px-2 py-0.5 font-mono text-[9px] font-bold text-[#8F1522]">
-                {copy.acceptedStamp}
-              </span>
-            </div>
-
-            <h2
-              style={hindiSafe}
-              className={`mt-2.5 break-words font-heading text-2xl font-bold leading-snug text-[#4A0912] ${
-                isHindi || hasDevanagari(receiverDisplay) ? 'not-italic' : 'italic'
-              }`}
-            >
-              {copy.acceptedTitle(receiverDisplay)}
-            </h2>
-            <p style={hindiSafe} className="mt-1 text-xs leading-relaxed text-[#6B3B40]">
-              {copy.acceptedSub(senderDisplay)}
-            </p>
-
-            {/* Dream Date Stamp Picker */}
-            <div className="mt-4 space-y-2 rounded-2xl border border-[#DFC7A5] bg-[#FFFDF9] p-3">
-              <p style={hindiSafe} className="text-[11px] font-bold text-[#4A0912]">
-                {copy.datePickerTitle}
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                {DREAM_DATE_OPTIONS.map((opt, idx) => {
-                  const picked = opt.id === selectedDateId;
-                  return (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => {
-                        playPaperUnsealSfx(idx);
-                        setSelectedDateId(opt.id);
-                      }}
-                      aria-pressed={picked}
-                      className={`flex min-h-[56px] flex-col items-start justify-center rounded-xl border px-3 py-2 text-left transition active:scale-[0.98] ${
-                        picked
-                          ? 'border-[#8F1522] bg-[#8F1522] text-[#FFF8EF]'
-                          : 'border-[#DFC7A5] bg-[#FAF2E4]/75 text-[#4A0912] hover:border-[#8F1522]/50'
-                      }`}
-                    >
-                      <span className="text-[11px] font-bold leading-snug">
-                        {opt.label[coreLang]}
-                      </span>
-                      <span
-                        className={`mt-0.5 text-[10px] ${
-                          picked ? 'text-[#FDE68A]' : 'text-[#7A4B50]'
-                        }`}
-                      >
-                        {opt.vibe[coreLang]}
-                      </span>
-                    </button>
-                  );
-                })}
+        <main className={`wy3-fade-${uid} relative z-10 mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-4 px-4 py-6 text-[#FAF2E4]`}>
+          <section className="w-full overflow-hidden rounded-[26px] border-2 border-[#E5CFAF]/75 bg-[#FAF2E4] text-[#3B181E] shadow-[0_28px_60px_-14px_rgba(0,0,0,0.82)]">
+            {/* Chosen Dream Date Live Art Banner */}
+            <div className="relative aspect-[16/9] w-full overflow-hidden bg-[#2B050B]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={selectedDateObj.artSrc}
+                alt={selectedDateObj.label[coreLang]}
+                className="h-full w-full object-cover transition duration-500"
+              />
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#24040A]/85 via-transparent to-[#24040A]/30"
+              />
+              <div className="absolute inset-x-4 top-3 flex items-center justify-between gap-2">
+                <span className="rounded-full border border-[#FDE68A]/50 bg-[#2B050B]/80 px-2.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-[#FDE68A]">
+                  {copy.acceptedEyebrow}
+                </span>
+                <span className="-rotate-2 rounded border border-[#FDE68A] bg-[#8F1522]/90 px-2 py-0.5 font-mono text-[9px] font-bold text-[#FFF8EF]">
+                  {copy.acceptedStamp}
+                </span>
+              </div>
+              <div className="absolute inset-x-4 bottom-3 text-left text-[#FFF8EF]">
+                <p className="font-mono text-[9.5px] font-bold text-[#FDE68A]">
+                  {selectedDateObj.code} · {selectedDateObj.label[coreLang]}
+                </p>
               </div>
             </div>
 
-            {/* Perforated Tear Line */}
-            <div className="relative my-4 flex items-center" aria-hidden="true">
-              <span className="-ml-8 h-6 w-6 shrink-0 rounded-full bg-[#3A070F]" />
-              <span className="w-full border-t-2 border-dashed border-[#C6A984]" />
-              <span className="-mr-8 h-6 w-6 shrink-0 rounded-full bg-[#3A070F]" />
-            </div>
-
-            {/* Reserved Stamp Summary & Actions */}
-            <div className="space-y-2.5 text-center">
-              <p className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-[#8F1522]">
-                {selectedDateObj.code} · {selectedDateObj.label[coreLang]}
+            <div className="p-5">
+              <h2
+                style={hindiSafe}
+                className={`break-words font-heading text-2xl font-bold leading-snug text-[#4A0912] ${
+                  isHindi || hasDevanagari(receiverDisplay) ? 'not-italic' : 'italic'
+                }`}
+              >
+                {copy.acceptedTitle(receiverDisplay)}
+              </h2>
+              <p style={hindiSafe} className="mt-1 text-xs leading-relaxed text-[#6B3B40]">
+                {copy.acceptedSub(senderDisplay)}
               </p>
 
-              <button
-                type="button"
-                onClick={() => void handleCopyYesReply()}
-                className="inline-flex min-h-[46px] w-full items-center justify-center rounded-full bg-[#8F1522] px-5 py-2.5 text-xs font-bold text-[#FFF8EF] shadow-sm transition hover:bg-[#74101B] active:scale-[0.98]"
-              >
-                {copy.copyYesCta}
-              </button>
-
-              {copiedYes ? (
-                <p role="status" className="text-xs font-semibold text-emerald-800">
-                  {copy.copiedYesToast}
+              {/* 4 Visual Photo-Thumbnailed Dream Date Picker Cards */}
+              <div className="mt-4 space-y-2">
+                <p style={hindiSafe} className="text-[11px] font-bold text-[#4A0912]">
+                  {copy.datePickerTitle}
                 </p>
-              ) : null}
+                <div className="grid grid-cols-2 gap-2">
+                  {DREAM_DATE_OPTIONS.map((opt, idx) => {
+                    const picked = opt.id === selectedDateId;
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => {
+                          playPaperUnsealSfx(idx);
+                          setSelectedDateId(opt.id);
+                        }}
+                        aria-pressed={picked}
+                        className={`overflow-hidden rounded-xl border-2 text-left transition active:scale-[0.98] ${
+                          picked
+                            ? 'border-[#8F1522] bg-[#8F1522] text-[#FFF8EF]'
+                            : 'border-[#DFC7A5] bg-white text-[#4A0912] hover:border-[#8F1522]/50'
+                        }`}
+                      >
+                        <div className="aspect-[16/9] w-full overflow-hidden bg-[#2B050B]">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={opt.artSrc}
+                            alt={opt.label[coreLang]}
+                            loading="lazy"
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                        <div className="p-2">
+                          <span className="block text-[11px] font-bold leading-snug">
+                            {opt.label[coreLang]}
+                          </span>
+                          <span
+                            className={`mt-0.5 block text-[9.5px] ${
+                              picked ? 'text-[#FDE68A]' : 'text-[#7A4B50]'
+                            }`}
+                          >
+                            {opt.vibe[coreLang]}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
-              <div className="flex flex-wrap gap-2">
+              {/* Perforated Tear Line */}
+              <div className="relative my-4 flex items-center" aria-hidden="true">
+                <span className="-ml-8 h-6 w-6 shrink-0 rounded-full bg-[#3A0710]" />
+                <span className="w-full border-t-2 border-dashed border-[#C6A984]" />
+                <span className="-mr-8 h-6 w-6 shrink-0 rounded-full bg-[#3A0710]" />
+              </div>
+
+              <div className="space-y-2.5 text-center">
                 <button
                   type="button"
-                  onClick={triggerPetalBurst}
-                  className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-full border border-[#8F1522]/35 bg-[#FFFDF8] px-4 text-xs font-bold text-[#8F1522] transition hover:bg-[#F5E9D6] active:scale-95"
+                  onClick={() => void handleCopyYesReply()}
+                  className="inline-flex min-h-[46px] w-full items-center justify-center rounded-full bg-[#8F1522] px-5 py-2.5 text-xs font-bold text-[#FFF8EF] shadow-sm transition hover:bg-[#74101B] active:scale-[0.98]"
                 >
-                  {copy.petalShowerCta}
+                  {copy.copyYesCta}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setStage('keepsakes')}
-                  className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-full border border-[#C6A984] bg-[#FFFDF8] px-4 text-xs font-semibold text-[#5C3136] transition hover:bg-[#F5E9D6] active:scale-95"
-                >
-                  {copy.revisitKeepsakesCta}
-                </button>
+
+                {copiedYes ? (
+                  <p role="status" className="text-xs font-semibold text-emerald-800">
+                    {copy.copiedYesToast}
+                  </p>
+                ) : null}
+
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={triggerPetalBurst}
+                    className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-full border border-[#8F1522]/35 bg-white px-4 text-xs font-bold text-[#8F1522] transition hover:bg-[#F5E9D6]"
+                  >
+                    {copy.petalShowerCta}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStage('keepsakes')}
+                    className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-full border border-[#C6A984] bg-white px-4 text-xs font-semibold text-[#5C3136] transition hover:bg-[#F5E9D6]"
+                  >
+                    {copy.revisitKeepsakesCta}
+                  </button>
+                </div>
               </div>
             </div>
           </section>
         </main>
       ) : null}
 
-      {/* Bottom Scalloped Lace Trim on Gingham Stages */}
       {isGinghamStage ? (
         <div className="relative z-20 mt-auto">
           <CrochetLaceTrim flip />
@@ -1544,12 +1620,12 @@ export function WillYouSite({
           </footer>
         </div>
       ) : (
-        <footer className="relative z-10 mt-auto border-t border-[#FAF2E4]/15 bg-[#2B050B]/70 px-4 py-3 text-center text-[11px] text-[#FAF2E4]/75">
+        <footer className="relative z-10 mt-auto border-t border-[#FAF2E4]/15 bg-[#1E0409]/80 px-4 py-3 text-center text-[11px] text-[#FAF2E4]/75">
           {getWebzyFooterLabel(language)}
         </footer>
       )}
 
-      {/* Portaled Scrapbook Lightbox */}
+      {/* Portaled Full-Screen Photo Lightbox */}
       {zoomIdx !== null && polaroids[zoomIdx] && typeof document !== 'undefined'
         ? createPortal(
             <div
@@ -1557,7 +1633,7 @@ export function WillYouSite({
               aria-modal="true"
               aria-label={polaroids[zoomIdx].caption}
               onClick={() => setZoomIdx(null)}
-              className="fixed inset-0 z-[120] flex items-center justify-center bg-[#2B050B]/85 p-4 backdrop-blur-xs"
+              className="fixed inset-0 z-[120] flex items-center justify-center bg-[#1E0409]/88 p-4 backdrop-blur-xs"
             >
               <div
                 onClick={(e) => e.stopPropagation()}
