@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { type CoreLanguageCode, pickLocalizedText, toCoreLanguageCode } from '@webzy/core';
 import {
   type OccasionSiteProps,
+  OccasionCassettePlayer,
   getReplayLabel,
   getWebzyFooterLabel,
 } from './shared/OccasionPrimitives';
@@ -19,6 +20,10 @@ function hasDevanagari(text: string): boolean {
   return DEVANAGARI_RE.test(text);
 }
 
+type StageId = 'cover' | 'keepsakes' | 'proposal' | 'accepted';
+type KeepsakeId = 'scrapbook' | 'letter' | 'bouquet' | 'vinyl';
+type DreamDateId = 'coffee' | 'gelato' | 'stargaze' | 'bookstore';
+
 interface PolaroidSample {
   src: string;
   caption: Record<CoreLanguageCode, string>;
@@ -26,152 +31,37 @@ interface PolaroidSample {
 
 const SAMPLE_POLAROIDS: readonly PolaroidSample[] = [
   {
-    src: '/templates/occasions/upgrades/paris-moonlit-balcony.jpg',
+    src: '/templates/cafe/maison-rouge.jpg',
     caption: {
-      en: 'starlight glow',
-      hinglish: 'sitaron ki raat',
-      hi: 'सितारों की रात',
+      en: 'crimson blooms',
+      hinglish: 'laal gulaab',
+      hi: 'लाल गुलाब',
     },
   },
   {
-    src: '/templates/occasions/upgrades/stained-glass-gate.jpg',
+    src: '/templates/occasions/upgrades/paris-moonlit-balcony.jpg',
     caption: {
-      en: 'secret garden',
-      hinglish: 'khwabon ka baag',
-      hi: 'ख्वाबों का बाग़',
+      en: 'quiet evening',
+      hinglish: 'shaam ka sukoon',
+      hi: 'सुकून भरी शाम',
     },
   },
   {
     src: '/templates/cafe/rose-cottage.jpg',
     caption: {
-      en: 'sunset blooms',
-      hinglish: 'shaam ke phool',
-      hi: 'शाम के फूल',
+      en: 'our little world',
+      hinglish: 'hamari duniya',
+      hi: 'हमारी दुनिया',
     },
   },
 ];
 
-interface LocalizedCopy {
-  coverEyebrow: string;
-  coverPrompt: string;
-  forPrefix: string;
-  fromPrefix: string;
-  tapSealHint: string;
-  openingLabel: string;
-  defaultHeadline: string;
-  defaultMessage: string;
-  polaroidEyebrow: string;
-  photoLabel: string;
-  questionEyebrow: string;
-  questionTitle: string;
-  yesLabel: string;
-  noLabel: string;
-  catIdleCaption: string;
-  catCaptions: readonly [string, string, string, string];
-  ticketEyebrow: string;
-  ticketStamp: string;
-  ticketTitle: (receiver: string) => string;
-  ticketSubtitle: (sender: string) => string;
-  promiseLabel: string;
-  promiseValue: string;
-  petalShowerCta: string;
-  askAgainCta: string;
-  closeLabel: string;
-}
-
-const COPY_BY_LANG: Record<CoreLanguageCode, LocalizedCopy> = {
-  en: {
-    coverEyebrow: 'MOONLIT CONSERVATORY',
-    coverPrompt: 'A quiet little note for you',
-    forPrefix: 'For',
-    fromPrefix: 'with love,',
-    tapSealHint: 'Tap the wax seal to unfold',
-    openingLabel: 'Unfolding under moonlight...',
-    defaultHeadline: 'Will you be mine?',
-    defaultMessage:
-      'Every ordinary evening feels like starlight the moment you are near. Let me steal you away for one unforgettable night.',
-    polaroidEyebrow: 'KEEPSAKE POLAROIDS',
-    photoLabel: 'Memory',
-    questionEyebrow: 'ONE LITTLE QUESTION',
-    questionTitle: 'Will you go out with me?',
-    yesLabel: 'Yes, always',
-    noLabel: 'No',
-    catIdleCaption: 'for you',
-    catCaptions: ['pretty pls?', 'take rose', 'wait pls?', 'say yes!'],
-    ticketEyebrow: 'CONSTELLATION PROMISE',
-    ticketStamp: 'WRITTEN IN STARS',
-    ticketTitle: (receiver) => `Forever starts tonight, ${receiver}`,
-    ticketSubtitle: (sender) => `${sender} is smiling at the moon right now.`,
-    promiseLabel: 'PROMISE',
-    promiseValue: 'Moonlit walks, warm laughs & endless blooms',
-    petalShowerCta: 'Petal Shower',
-    askAgainCta: 'Replay',
-    closeLabel: 'Close',
-  },
-  hinglish: {
-    coverEyebrow: 'MOONLIT CONSERVATORY',
-    coverPrompt: 'Tumhare liye ek pyaara sa khat',
-    forPrefix: 'Sirf',
-    fromPrefix: 'pyaar se,',
-    tapSealHint: 'Kholne ke liye wax seal par tap karo',
-    openingLabel: 'Chaandni mein khul raha hai...',
-    defaultHeadline: 'Kya tum meri banogi?',
-    defaultMessage:
-      'Tumhare saath har shaam sitaron si lagti hai. Chalo ek aisi raat banayein jo kabhi khatam na ho.',
-    polaroidEyebrow: 'YAADON KE POLAROIDS',
-    photoLabel: 'Yaad',
-    questionEyebrow: 'EK DIL SE SAWAAL',
-    questionTitle: 'Kya tum mere saath chalogi?',
-    yesLabel: 'Haan, bilkul',
-    noLabel: 'Nahi',
-    catIdleCaption: 'tumhare liye',
-    catCaptions: ['maan jao?', 'ye lo phool', 'ruko pls?', 'haan bolo!'],
-    ticketEyebrow: 'CONSTELLATION PROMISE',
-    ticketStamp: 'SITARON MEIN LIKHA',
-    ticketTitle: (receiver) => `Ye shaam hamari rahi, ${receiver}`,
-    ticketSubtitle: (sender) => `${sender} ke chehre par abhi sabse badi muskaan hai.`,
-    promiseLabel: 'WAADA',
-    promiseValue: 'Chaandni raatein, hansi aur dher saara pyaar',
-    petalShowerCta: 'Phool Barsao',
-    askAgainCta: 'Phir Se',
-    closeLabel: 'Band Karein',
-  },
-  hi: {
-    coverEyebrow: 'चाँदनी बग़ीचा',
-    coverPrompt: 'तुम्हारे लिए एक प्यारा सा पैग़ाम',
-    forPrefix: 'प्रिय',
-    fromPrefix: 'स्नेह सहित,',
-    tapSealHint: 'खोलने के लिए मोहर पर टैप करें',
-    openingLabel: 'चाँदनी में खुल रहा है...',
-    defaultHeadline: 'क्या तुम मेरी बनोगी?',
-    defaultMessage:
-      'तुम्हारे पास होने से हर साधारण शाम सितारों सी चमक उठती है। चलो एक यादगार शाम साथ बिताते हैं।',
-    polaroidEyebrow: 'सुनहरी यादें',
-    photoLabel: 'याद',
-    questionEyebrow: 'दिल से एक सवाल',
-    questionTitle: 'क्या तुम मेरे साथ चलोगी?',
-    yesLabel: 'हाँ, बिल्कुल',
-    noLabel: 'नहीं',
-    catIdleCaption: 'तुम्हारे लिए',
-    catCaptions: ['मान जाओ?', 'ये लो गुलाब', 'रुको ना?', 'हाँ बोलो!'],
-    ticketEyebrow: 'सितारों का वादा',
-    ticketStamp: 'सितारों में लिखा',
-    ticketTitle: (receiver) => `यह शाम हमारी रही, ${receiver}`,
-    ticketSubtitle: (sender) => `${sender} के चेहरे पर अभी सबसे प्यारी मुस्कान है।`,
-    promiseLabel: 'वादा',
-    promiseValue: 'चाँदनी सैर, मीठी हँसी और अनगिनत फूल',
-    petalShowerCta: 'फूल बरसाएँ',
-    askAgainCta: 'फिर से देखें',
-    closeLabel: 'बंद करें',
-  },
-};
-
-interface StarReasonDefault {
+interface ReasonDefault {
   title: Record<CoreLanguageCode, string>;
   detail: Record<CoreLanguageCode, string>;
 }
 
-const STAR_REASONS_DEFAULT: readonly StarReasonDefault[] = [
+const BOUQUET_REASONS_DEFAULT: readonly ReasonDefault[] = [
   {
     title: {
       en: 'Your Laugh',
@@ -179,39 +69,52 @@ const STAR_REASONS_DEFAULT: readonly StarReasonDefault[] = [
       hi: 'तुम्हारी मुस्कान',
     },
     detail: {
-      en: 'The way even a crowded, tiring day goes quiet the moment you smile.',
-      hinglish: 'Bhaag-daud bhare din mein bhi tumhari ek muskaan sab shaant kar deti hai.',
-      hi: 'सबसे थके हुए दिन में भी तुम्हारी एक मुस्कान सब कुछ सुकून से भर देती है।',
+      en: 'Even the busiest day turns calm the second I hear you laugh.',
+      hinglish: 'Sabse thake din mein bhi tumhari ek hansi sab shaant kar deti hai.',
+      hi: 'सबसे थके हुए दिन में भी तुम्हारी एक मुस्कान सब सुकून से भर देती है।',
     },
   },
   {
     title: {
-      en: 'Our Easy Silence',
-      hinglish: 'Hamari Khaamoshi',
-      hi: 'हमारा सुकून भरा साथ',
+      en: 'Effortless Peace',
+      hinglish: 'Be-Wajah Sukoon',
+      hi: 'सुकून भरा साथ',
     },
     detail: {
-      en: 'Talking for hours feels effortless, and saying nothing beside you feels just as right.',
-      hinglish: 'Ghanton baatein karna bhi aasaan hai, aur chup rehna bhi utna hi sukoon deta hai.',
-      hi: 'तुम्हारे साथ घंटों बातें करना भी आसान है और चुपचाप बैठना भी उतना ही सुकून देता है।',
+      en: 'Talking for hours feels easy, and quiet silences feel just as warm.',
+      hinglish: 'Ghanton baatein bhi aasaan hain, aur tumhare paas chup rehna bhi pyara lagta hai.',
+      hi: 'तुम्हारे साथ घंटों बातें करना भी आसान है और खामोशी भी उतनी ही मीठी।',
     },
   },
   {
     title: {
-      en: 'How You Make Home',
-      hinglish: 'Tumhare Saath Ghar',
-      hi: 'तुम्हारे संग हर जगह घर',
+      en: 'Little Rituals',
+      hinglish: 'Chhoti Aadatein',
+      hi: 'छोटी-छोटी यादें',
     },
     detail: {
-      en: 'Any ordinary street, rain shower, or coffee table feels like a place worth remembering.',
-      hinglish: 'Chhoti si chai ki tapri ho ya baarish wali shaam, tumhare saath sab yaadgaar ban jaata hai.',
-      hi: 'कोई भी साधारण शाम, बारिश की बूँदें या चाय की मेज़ तुम्हारे साथ खास बन जाती है।',
+      en: 'Every coffee stop, rain shower, or walk feels like a story worth saving.',
+      hinglish: 'Chai ka cup ho ya baarish wali shaam, tumhare saath har pal yaadgaar hai.',
+      hi: 'चाय की शाम हो या बारिश की बूँदें, तुम्हारे साथ हर साधारण पल ख़ास बन जाता है।',
+    },
+  },
+  {
+    title: {
+      en: 'Always You',
+      hinglish: 'Hamesha Tum',
+      hi: 'सदैव तुम',
+    },
+    detail: {
+      en: 'You feel like home — warm, honest, and my favorite person in every room.',
+      hinglish: 'Tumhare saath har jagah ghar jaisa lagta hai — saccha, apna aur sabse khaas.',
+      hi: 'तुम्हारे साथ हर जगह घर जैसी लगती है — सच्चा, अपना और सबसे प्रिय।',
     },
   },
 ];
 
 interface DreamDateOption {
-  id: 'coffee' | 'gelato' | 'stargaze' | 'bookstore';
+  id: DreamDateId;
+  code: string;
   label: Record<CoreLanguageCode, string>;
   vibe: Record<CoreLanguageCode, string>;
 }
@@ -219,659 +122,498 @@ interface DreamDateOption {
 const DREAM_DATE_OPTIONS: readonly DreamDateOption[] = [
   {
     id: 'coffee',
+    code: 'DATE-01',
     label: {
       en: 'Rainy Window Coffee',
-      hinglish: 'Barish Wali Coffee',
+      hinglish: 'Baarish Wali Coffee',
       hi: 'बारिश और कॉफ़ी',
     },
     vibe: {
-      en: 'Warm mugs & slow talks',
+      en: 'Warm mugs & unhurried talks',
       hinglish: 'Garam cup & lambi baatein',
       hi: 'गर्म कॉफ़ी और लंबी बातें',
     },
   },
   {
     id: 'gelato',
+    code: 'DATE-02',
     label: {
       en: 'Midnight Dessert Walk',
       hinglish: 'Late Night Ice-Cream Walk',
       hi: 'रात की मीठी सैर',
     },
     vibe: {
-      en: 'Quiet lights & sweet stops',
+      en: 'Quiet streets & sweet stops',
       hinglish: 'Street lights & meethi baatein',
       hi: 'धीमी रोशनी और मीठे पल',
     },
   },
   {
     id: 'stargaze',
+    code: 'DATE-03',
     label: {
       en: 'Rooftop Stargazing',
       hinglish: 'Chhat Par Sitare',
       hi: 'छत पर सितारों की शाम',
     },
     vibe: {
-      en: 'Cool breeze & playlist',
+      en: 'Cool breeze & our playlist',
       hinglish: 'Thandi hawa & favourite gaane',
       hi: 'ठंडी हवा और पसंदीदा गीत',
     },
   },
   {
     id: 'bookstore',
+    code: 'DATE-04',
     label: {
       en: 'Bookstore & Chai',
       hinglish: 'Kitabein & Chai Date',
       hi: 'किताबें और चाय',
     },
     vibe: {
-      en: 'Notes tucked in pages',
+      en: 'Notes tucked inside pages',
       hinglish: 'Pannon mein chhupi yaadein',
       hi: 'पन्नों में छिपे प्यारे नोट्स',
     },
   },
 ];
 
-const EXTRA_WILLYOU_COPY: Record<
-  CoreLanguageCode,
-  {
-    starsEyebrow: string;
-    starsTitle: string;
-    starsHint: string;
-    starsProgress: (lit: number, total: number) => string;
-    tapToRevealStar: string;
-    datePickerEyebrow: string;
-    datePickerTitle: string;
-    chosenDateStamp: string;
-    copyYesCta: string;
-    copiedYesToast: string;
-  }
-> = {
+interface WillYouCopy {
+  coverEyebrow: string;
+  coverHeadline: string;
+  postcardQuote: string;
+  forPrefix: string;
+  fromPrefix: string;
+  promptQuestion: string;
+  promptYes: string;
+  promptNo: string;
+  promptNoNudges: readonly [string, string, string];
+  navKeepsakes: string;
+  navAsk: string;
+  drawerEyebrow: string;
+  drawerTitle: string;
+  drawerSub: string;
+  openedProgress: (n: number, total: number) => string;
+  keepsakeLabels: Record<KeepsakeId, { title: string; tag: string }>;
+  scrapbookHeading: string;
+  scrapbookHint: string;
+  letterHeading: string;
+  bouquetHeading: string;
+  bouquetHint: string;
+  vinylHeading: string;
+  vinylSongTitle: string;
+  vinylSubtitle: string;
+  vinylTap: string;
+  vinylPlaying: string;
+  proceedToAskCta: string;
+  proposalEyebrow: string;
+  proposalBanner: string;
+  proposalQuestion: string;
+  yesLabel: string;
+  noLabel: string;
+  bearIdleCaption: string;
+  bearCaptions: readonly [string, string, string, string];
+  acceptedEyebrow: string;
+  acceptedStamp: string;
+  acceptedTitle: (receiver: string) => string;
+  acceptedSub: (sender: string) => string;
+  datePickerTitle: string;
+  copyYesCta: string;
+  copiedYesToast: string;
+  petalShowerCta: string;
+  revisitKeepsakesCta: string;
+  closeLabel: string;
+  photoLabel: string;
+  defaultHeadline: string;
+  defaultMessage: string;
+}
+
+const COPY_BY_LANG: Record<CoreLanguageCode, WillYouCopy> = {
   en: {
-    starsEyebrow: 'WRITTEN IN THE STARS',
-    starsTitle: 'Three Reasons I Chose You',
-    starsHint: 'Tap each star to light up a little secret.',
-    starsProgress: (lit, total) => `${lit} / ${total} stars lit`,
-    tapToRevealStar: 'Tap to light star',
-    datePickerEyebrow: 'PICK OUR DREAM DATE',
-    datePickerTitle: 'Stamp our first celebration onto the ticket',
-    chosenDateStamp: 'FIRST DATE RESERVED',
-    copyYesCta: 'Copy My YES Reply',
-    copiedYesToast: 'Copied! Paste it right back on WhatsApp.',
+    coverEyebrow: 'LOVE MAIL · HAND-TIED EDITION',
+    coverHeadline: 'I Have a Little Surprise For You',
+    postcardQuote: 'You turned ordinary days into my favorite memories.',
+    forPrefix: 'Dear',
+    fromPrefix: 'With all my heart,',
+    promptQuestion: 'Would you like to open it?',
+    promptYes: 'Yes, open it',
+    promptNo: 'No',
+    promptNoNudges: [
+      'I tied the ribbon myself — just one peek?',
+      'Wait, there are flowers inside!',
+      'Okay, tapping Yes is way sweeter.',
+    ],
+    navKeepsakes: 'Keepsakes',
+    navAsk: 'The Ask',
+    drawerEyebrow: 'RED GINGHAM KEEPSAKE BOX',
+    drawerTitle: 'These Are For You',
+    drawerSub: 'Tap each lace doily keepsake to open what I packed inside.',
+    openedProgress: (n, total) => `${n} / ${total} opened`,
+    keepsakeLabels: {
+      scrapbook: { title: 'Photo Roll', tag: 'Our Scrapbook' },
+      letter: { title: 'Love Letter', tag: 'Handwritten' },
+      bouquet: { title: 'Rose Bouquet', tag: '4 Reasons' },
+      vinyl: { title: 'Our Vinyl', tag: 'Side A Song' },
+    },
+    scrapbookHeading: 'Tucked Inside My Scrapbook',
+    scrapbookHint: 'Tap any polaroid to inspect closely',
+    letterHeading: 'A Quiet Note For You',
+    bouquetHeading: 'Flowers For You, My Sweetheart',
+    bouquetHint: 'Tap each ribbon tag around the bouquet',
+    vinylHeading: 'Song That Reminds Me Of You',
+    vinylSongTitle: 'Crimson Evening · Acoustic Vinyl',
+    vinylSubtitle: 'Every time this melody plays, I catch myself smiling at my phone.',
+    vinylTap: 'Spin Record & Play Chime',
+    vinylPlaying: 'Spinning Side A...',
+    proceedToAskCta: 'Open My One Little Question',
+    proposalEyebrow: 'ONE FINAL CARD',
+    proposalBanner: 'Yay, Finally You Are Here!',
+    proposalQuestion: 'Will you go out with me?',
+    yesLabel: 'Yes, always',
+    noLabel: 'No',
+    bearIdleCaption: 'holding this heart for you',
+    bearCaptions: ['pretty please?', 'i brought crimson roses!', 'wait don’t run!', 'say yes!'],
+    acceptedEyebrow: 'KEEPSAKE DATE TICKET · ADMIT TWO',
+    acceptedStamp: 'SEALED WITH LOVE',
+    acceptedTitle: (receiver) => `It’s officially a date, ${receiver}`,
+    acceptedSub: (sender) => `${sender} is grinning from ear to ear right now.`,
+    datePickerTitle: 'Stamp our first celebration onto this ticket',
+    copyYesCta: 'Copy My YES Reply for WhatsApp',
+    copiedYesToast: 'Copied! Paste it straight back on WhatsApp.',
+    petalShowerCta: 'Shower Petals',
+    revisitKeepsakesCta: 'Revisit Keepsakes',
+    closeLabel: 'Close',
+    photoLabel: 'Memory',
+    defaultHeadline: 'Will you be mine?',
+    defaultMessage:
+      'Every ordinary evening turns golden the moment you are around. Let me steal you away for slow coffee, warm laughter, and a night worth keeping forever.',
   },
   hinglish: {
-    starsEyebrow: 'SITARON MEIN LIKHA',
-    starsTitle: 'Teen Wajah Jo Tum Khaas Ho',
-    starsHint: 'Har sitare par tap karo aur chhupa hua note padho.',
-    starsProgress: (lit, total) => `${lit} / ${total} sitare roshan`,
-    tapToRevealStar: 'Sitara roshan karo',
-    datePickerEyebrow: 'APNI DREAM DATE CHUNO',
-    datePickerTitle: 'Ticket par hamari pehli date stamp karo',
-    chosenDateStamp: 'DATE RESERVED',
+    coverEyebrow: 'LOVE MAIL · HAND-TIED EDITION',
+    coverHeadline: 'Tumhare Liye Ek Chhota Sa Surprise Hai',
+    postcardQuote: 'Tumne har aam din ko meri sabse pyaari yaad bana diya.',
+    forPrefix: 'Pyaare',
+    fromPrefix: 'Poore dil se,',
+    promptQuestion: 'Kya tum ise khol kar dekhogi?',
+    promptYes: 'Haan, kholo',
+    promptNo: 'Nahi',
+    promptNoNudges: [
+      'Ribbon khud baandha hai — bas ek baar dekho?',
+      'Ruko, andar tumhare liye phool hain!',
+      'Chalo maan jao, Haan par tap karo.',
+    ],
+    navKeepsakes: 'Keepsakes',
+    navAsk: 'Sawaal',
+    drawerEyebrow: 'RED GINGHAM KEEPSAKE BOX',
+    drawerTitle: 'Ye Sab Tumhare Liye Hain',
+    drawerSub: 'Har lace doily gift par tap karo aur andar chhupa pyaar dekho.',
+    openedProgress: (n, total) => `${n} / ${total} khole`,
+    keepsakeLabels: {
+      scrapbook: { title: 'Photo Roll', tag: 'Scrapbook' },
+      letter: { title: 'Pyaara Khat', tag: 'Dil Se' },
+      bouquet: { title: 'Gulaab Bouquet', tag: '4 Wajah' },
+      vinyl: { title: 'Hamara Vinyl', tag: 'Side A Dhun' },
+    },
+    scrapbookHeading: 'Meri Scrapbook Ki Yaadein',
+    scrapbookHint: 'Paas se dekhne ke liye photo par tap karo',
+    letterHeading: 'Tumhare Naam Ek Khat',
+    bouquetHeading: 'Tumhare Liye Gulaab Ka Guldasta',
+    bouquetHint: 'Har ribbon tag par tap karo aur wajah padho',
+    vinylHeading: 'Wo Dhun Jo Tumhari Yaad Dilati Hai',
+    vinylSongTitle: 'Sunahri Shaam · Acoustic Vinyl',
+    vinylSubtitle: 'Jab bhi ye dhun bajti hai, bas tumhara chehra yaad aa jaata hai.',
+    vinylTap: 'Vinyl Chalao',
+    vinylPlaying: 'Side A Chal Raha Hai...',
+    proceedToAskCta: 'Ab Dil Ka Sawaal Kholo',
+    proposalEyebrow: 'AAKHIRI CARD',
+    proposalBanner: 'Aakhir Tum Yahan Tak Aa Hi Gayi!',
+    proposalQuestion: 'Kya tum mere saath date par chalogi?',
+    yesLabel: 'Haan, bilkul',
+    noLabel: 'Nahi',
+    bearIdleCaption: 'ye dil sirf tumhare liye',
+    bearCaptions: ['please maan jao?', 'gulaab laya hoon!', 'ruko toh sahi!', 'haan bol do!'],
+    acceptedEyebrow: 'KEEPSAKE DATE TICKET · ADMIT TWO',
+    acceptedStamp: 'DIL SE LOCKED',
+    acceptedTitle: (receiver) => `Ye shaam hamari rahi, ${receiver}`,
+    acceptedSub: (sender) => `${sender} ke chehre par abhi sabse badi muskaan hai.`,
+    datePickerTitle: 'Hamari pehli date is ticket par stamp karo',
     copyYesCta: 'Mera YES Reply Copy Karo',
     copiedYesToast: 'Copy ho gaya! Seedha WhatsApp par bhej do.',
+    petalShowerCta: 'Phool Barsao',
+    revisitKeepsakesCta: 'Gifts Phir Dekho',
+    closeLabel: 'Band Karein',
+    photoLabel: 'Yaad',
+    defaultHeadline: 'Kya tum meri banogi?',
+    defaultMessage:
+      'Tumhare aas-paas hote hi har shaam sunahri lagne lagti hai. Chalo garam coffee, meethi hansi aur ek yaadgaar shaam saath bitate hain.',
   },
   hi: {
-    starsEyebrow: 'सितारों में लिखा',
-    starsTitle: 'तुम्हें चुनने के तीन कारण',
-    starsHint: 'हर सितारे पर टैप करें और छिपी हुई बात पढ़ें।',
-    starsProgress: (lit, total) => `${lit} / ${total} सितारे रोशन`,
-    tapToRevealStar: 'सितारा रोशन करें',
-    datePickerEyebrow: 'हमारी ख़ास डेट चुनें',
-    datePickerTitle: 'टिकट पर हमारी पहली मुलाक़ात चुनें',
-    chosenDateStamp: 'तय की गई मुलाक़ात',
+    coverEyebrow: 'स्नेह पत्र · हस्तनिर्मित संस्करण',
+    coverHeadline: 'तुम्हारे लिए एक प्यारा सा उपहार है',
+    postcardQuote: 'तुमने हर साधारण दिन को मेरी सबसे सुंदर याद बना दिया।',
+    forPrefix: 'प्रिय',
+    fromPrefix: 'हृदय से तुम्हारा,',
+    promptQuestion: 'क्या तुम इसे खोलकर देखोगी?',
+    promptYes: 'हाँ, खोलें',
+    promptNo: 'नहीं',
+    promptNoNudges: [
+      'इतने प्यार से सजाया है — बस एक झलक देख लो?',
+      'रुको, इसके भीतर तुम्हारे लिए फूल रखे हैं!',
+      'चलो मान जाओ, हाँ पर टैप करो।',
+    ],
+    navKeepsakes: 'उपहार',
+    navAsk: 'सवाल',
+    drawerEyebrow: 'स्मृति उपहार पेटी',
+    drawerTitle: 'यह सब तुम्हारे लिए है',
+    drawerSub: 'हर लेस कार्ड पर टैप करें और भीतर छिपे उपहार देखें।',
+    openedProgress: (n, total) => `${n} / ${total} खोले गए`,
+    keepsakeLabels: {
+      scrapbook: { title: 'तस्वीरें', tag: 'स्क्रैपबुक' },
+      letter: { title: 'प्रेम पत्र', tag: 'हस्तलिखित' },
+      bouquet: { title: 'गुलाब गुलदस्ता', tag: '4 कारण' },
+      vinyl: { title: 'हमारी धुन', tag: 'विनाइल रिकॉर्ड' },
+    },
+    scrapbookHeading: 'मेरी स्क्रैपबुक की यादें',
+    scrapbookHint: 'विस्तार से देखने के लिए तस्वीर पर टैप करें',
+    letterHeading: 'तुम्हारे नाम एक शांत पत्र',
+    bouquetHeading: 'तुम्हारे लिए गुलाब का गुलदस्ता',
+    bouquetHint: 'हर रिबन टैग पर टैप करें और कारण पढ़ें',
+    vinylHeading: 'वह धुन जो तुम्हारी याद दिलाती है',
+    vinylSongTitle: 'सुनहरी शाम · विनाइल धुन',
+    vinylSubtitle: 'जब भी यह धुन बजती है, तुम्हारी मुस्कान आँखों के सामने आ जाती है।',
+    vinylTap: 'धुन चलाएँ',
+    vinylPlaying: 'धुन बज रही है...',
+    proceedToAskCta: 'अब दिल का सवाल खोलें',
+    proposalEyebrow: 'अंतिम पत्र',
+    proposalBanner: 'आख़िर तुम यहाँ तक आ ही गईं!',
+    proposalQuestion: 'क्या तुम मेरे साथ चलोगी?',
+    yesLabel: 'हाँ, बिल्कुल',
+    noLabel: 'नहीं',
+    bearIdleCaption: 'यह हृदय केवल तुम्हारे लिए',
+    bearCaptions: ['कृपया मान जाओ?', 'लाल गुलाब लाया हूँ!', 'रुको ना?', 'हाँ बोल दो!'],
+    acceptedEyebrow: 'स्मृति डेट टिकट · केवल हमारे लिए',
+    acceptedStamp: 'स्नेह से स्वीकृत',
+    acceptedTitle: (receiver) => `यह शाम हमारी रही, ${receiver}`,
+    acceptedSub: (sender) => `${sender} के चेहरे पर अभी सबसे प्यारी मुस्कान है।`,
+    datePickerTitle: 'हमारी पहली ख़ास मुलाक़ात टिकट पर चुनें',
     copyYesCta: 'मेरा हाँ जवाब कॉपी करें',
     copiedYesToast: 'कॉपी हो गया! सीधे WhatsApp पर भेज दें।',
+    petalShowerCta: 'फूल बरसाएँ',
+    revisitKeepsakesCta: 'उपहार फिर देखें',
+    closeLabel: 'बंद करें',
+    photoLabel: 'याद',
+    defaultHeadline: 'क्या तुम मेरी बनोगी?',
+    defaultMessage:
+      'तुम्हारे पास होने से हर साधारण शाम सुनहरी बन जाती है। चलो गर्म कॉफ़ी, मीठी हँसी और एक यादगार शाम साथ बिताते हैं।',
   },
 };
 
-const CONSTELLATION_STARS = [
-  { cx: 12, cy: 14, r: 1.5, delay: '0s' },
-  { cx: 24, cy: 9, r: 1.1, delay: '0.7s' },
-  { cx: 36, cy: 18, r: 1.7, delay: '1.4s' },
-  { cx: 49, cy: 11, r: 1.2, delay: '0.4s' },
-  { cx: 63, cy: 16, r: 1.6, delay: '1.9s' },
-  { cx: 77, cy: 10, r: 1.3, delay: '1.1s' },
-  { cx: 88, cy: 20, r: 1.5, delay: '2.3s' },
-  { cx: 18, cy: 32, r: 1.0, delay: '1.6s' },
-  { cx: 43, cy: 29, r: 1.2, delay: '2.1s' },
-  { cx: 71, cy: 31, r: 1.1, delay: '0.9s' },
-  { cx: 91, cy: 39, r: 1.4, delay: '1.3s' },
-  { cx: 9, cy: 48, r: 1.2, delay: '2.6s' },
-  { cx: 29, cy: 56, r: 1.0, delay: '0.5s' },
-  { cx: 82, cy: 58, r: 1.3, delay: '1.8s' },
-] as const;
-
-const FIREFLIES = [
-  { left: '12%', top: '72%', size: 5, delay: '0s', duration: '7.5s' },
-  { left: '26%', top: '46%', size: 4, delay: '1.4s', duration: '8.8s' },
-  { left: '41%', top: '80%', size: 6, delay: '2.2s', duration: '9.2s' },
-  { left: '58%', top: '34%', size: 4, delay: '0.8s', duration: '7.8s' },
-  { left: '74%', top: '66%', size: 5, delay: '3.1s', duration: '8.4s' },
-  { left: '86%', top: '42%', size: 5, delay: '1.9s', duration: '9.5s' },
-  { left: '19%', top: '24%', size: 4, delay: '2.7s', duration: '8.1s' },
-  { left: '66%', top: '84%', size: 5, delay: '0.4s', duration: '7.2s' },
-  { left: '90%', top: '76%', size: 4, delay: '3.8s', duration: '8.6s' },
-  { left: '48%', top: '20%', size: 3.5, delay: '2.5s', duration: '9.0s' },
-] as const;
-
-const FALLING_PETALS = [
-  { left: '8%', delay: '0s', duration: '11s', scale: 0.9, shade: '#FDA4AF' },
-  { left: '22%', delay: '2.8s', duration: '13s', scale: 0.75, shade: '#FBCFE8' },
-  { left: '38%', delay: '5.1s', duration: '12s', scale: 1.0, shade: '#FB7185' },
-  { left: '54%', delay: '1.3s', duration: '14s', scale: 0.8, shade: '#FDA4AF' },
-  { left: '70%', delay: '4.2s', duration: '11.5s', scale: 0.95, shade: '#FBCFE8' },
-  { left: '84%', delay: '6.4s', duration: '12.5s', scale: 0.85, shade: '#FB7185' },
-  { left: '93%', delay: '3.4s', duration: '13.5s', scale: 0.7, shade: '#FDA4AF' },
-  { left: '30%', delay: '8.0s', duration: '12s', scale: 0.85, shade: '#FBCFE8' },
-] as const;
-
-const BURST_PARTICLES = [
-  { angle: 0, dist: 125, kind: 'petal', color: '#FDA4AF', delay: '0ms' },
-  { angle: 22, dist: 145, kind: 'star', color: '#FDE68A', delay: '30ms' },
-  { angle: 45, dist: 132, kind: 'petal', color: '#FB7185', delay: '50ms' },
-  { angle: 68, dist: 150, kind: 'star', color: '#FEF08A', delay: '20ms' },
-  { angle: 90, dist: 128, kind: 'petal', color: '#FBCFE8', delay: '60ms' },
-  { angle: 112, dist: 148, kind: 'star', color: '#FDE68A', delay: '40ms' },
-  { angle: 135, dist: 136, kind: 'petal', color: '#F43F5E', delay: '70ms' },
-  { angle: 158, dist: 142, kind: 'star', color: '#FEF08A', delay: '25ms' },
-  { angle: 180, dist: 126, kind: 'petal', color: '#FDA4AF', delay: '55ms' },
-  { angle: 202, dist: 146, kind: 'star', color: '#FDE68A', delay: '35ms' },
-  { angle: 225, dist: 134, kind: 'petal', color: '#FB7185', delay: '65ms' },
-  { angle: 248, dist: 148, kind: 'star', color: '#FEF08A', delay: '15ms' },
-  { angle: 270, dist: 130, kind: 'petal', color: '#FBCFE8', delay: '45ms' },
-  { angle: 292, dist: 144, kind: 'star', color: '#FDE68A', delay: '75ms' },
-  { angle: 315, dist: 138, kind: 'petal', color: '#F43F5E', delay: '30ms' },
-  { angle: 338, dist: 152, kind: 'star', color: '#FEF08A', delay: '60ms' },
-] as const;
-
 const RUNAWAY_SPOTS = [
   { x: 0, y: 0 },
-  { x: 52, y: -22 },
-  { x: -58, y: 18 },
-  { x: 46, y: 24 },
-  { x: -48, y: -20 },
-  { x: 18, y: 28 },
-  { x: -34, y: -12 },
+  { x: 42, y: -18 },
+  { x: -46, y: -14 },
+  { x: 38, y: 20 },
+  { x: -38, y: 18 },
+  { x: 26, y: -26 },
 ] as const;
 
-function ConservatoryBackdrop({ intensified = false }: { intensified?: boolean }) {
+const BURST_PETALS = Array.from({ length: 24 }, (_, idx) => {
+  const angle = (idx / 24) * 360;
+  const dist = 74 + (idx % 4) * 34;
+  return {
+    angle,
+    dist,
+    delay: `${(idx % 6) * 55}ms`,
+    color: idx % 3 === 0 ? '#E11D48' : idx % 3 === 1 ? '#FDE68A' : '#FDA4AF',
+  };
+});
+
+/** Scalloped Ivory Crochet Lace Border SVG (inspired by vintage gingham love folios) */
+function CrochetLaceTrim({ flip = false }: { flip?: boolean }) {
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      {/* Deep Midnight-Indigo & Rose-Velvet Gradient Sky */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background: intensified
-            ? 'radial-gradient(circle at 50% 18%, #521B4D 0%, #24103B 46%, #110922 78%, #070513 100%)'
-            : 'radial-gradient(circle at 50% 14%, #3D1746 0%, #1B0E32 48%, #0D081E 82%, #070512 100%)',
-        }}
+    <svg
+      viewBox="0 0 360 22"
+      preserveAspectRatio="none"
+      className={`pointer-events-none block h-5 w-full ${flip ? 'rotate-180' : ''}`}
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M0 0 H360 V9 C352 9 349 20 340 20 C331 20 328 9 320 9 C312 9 309 20 300 20 C291 20 288 9 280 9 C272 9 269 20 260 20 C251 20 248 9 240 9 C232 9 229 20 220 20 C211 20 208 9 200 9 C192 9 189 20 180 20 C171 20 168 9 160 9 C152 9 149 20 140 20 C131 20 128 9 120 9 C112 9 109 20 100 20 C91 20 88 9 80 9 C72 9 69 20 60 20 C51 20 48 9 40 9 C32 9 29 20 20 20 C11 20 8 9 0 9 Z"
+        fill="#FAF2E4"
+        fillOpacity="0.96"
       />
-
-      {/* Soft Rose-Velvet & Moonlight Mist Halos */}
-      <div
-        className="absolute -top-12 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full blur-3xl"
-        style={{ background: 'radial-gradient(circle, rgba(253,230,138,0.18) 0%, rgba(244,63,94,0.08) 55%, transparent 75%)' }}
+      <path
+        d="M0 9 C8 9 11 20 20 20 C29 20 32 9 40 9 C48 9 51 20 60 20 C69 20 72 9 80 9 C88 9 91 20 100 20 C109 20 112 9 120 9 C128 9 131 20 140 20 C149 20 152 9 160 9 C168 9 171 20 180 20 C189 20 192 9 200 9 C208 9 211 20 220 20 C229 20 232 9 240 9 C248 9 251 20 260 20 C269 20 272 9 280 9 C288 9 291 20 300 20 C309 20 312 9 320 9 C328 9 331 20 340 20 C349 20 352 9 360 9"
+        stroke="#D8C2A6"
+        strokeWidth="1.2"
       />
-      <div
-        className="absolute bottom-0 left-0 h-56 w-56 rounded-full blur-3xl"
-        style={{ background: 'radial-gradient(circle, rgba(190,24,93,0.22) 0%, transparent 72%)' }}
-      />
-      <div
-        className="absolute bottom-10 right-0 h-56 w-56 rounded-full blur-3xl"
-        style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.18) 0%, transparent 72%)' }}
-      />
-
-      {/* Twinkling Constellation Sky SVG */}
-      <svg
-        viewBox="0 0 100 70"
-        preserveAspectRatio="none"
-        className="absolute inset-x-0 top-0 h-[58%] w-full opacity-90"
-      >
-        <path
-          d="M12 14 L24 9 L36 18 L49 11 L63 16 L77 10 L88 20"
-          fill="none"
-          stroke="#FDE68A"
-          strokeOpacity="0.16"
-          strokeWidth="0.22"
-          strokeDasharray="1.2 1.4"
-        />
-        {CONSTELLATION_STARS.map((star, idx) => (
-          <circle
-            key={`star-${idx}`}
-            cx={star.cx}
-            cy={star.cy}
-            r={star.r * 0.45}
-            fill={idx % 3 === 0 ? '#FEF08A' : '#FFF1F2'}
-            className="wy-twinkle"
-            style={{ animationDelay: star.delay }}
-          />
-        ))}
-      </svg>
-
-      {/* Victorian Botanical Glasshouse Arch Silhouette */}
-      <svg
-        viewBox="0 0 400 620"
-        preserveAspectRatio="xMidYMin slice"
-        className="absolute inset-0 h-full w-full opacity-45"
-      >
-        <defs>
-          <linearGradient id="wy-arch-stroke" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#FDE68A" stopOpacity="0.55" />
-            <stop offset="50%" stopColor="#FDA4AF" stopOpacity="0.24" />
-            <stop offset="100%" stopColor="#818CF8" stopOpacity="0.08" />
-          </linearGradient>
-        </defs>
-        {/* Outer pointed glasshouse arch */}
-        <path
-          d="M24 620 V210 C24 88 106 24 200 20 C294 24 376 88 376 210 V620"
-          fill="none"
-          stroke="url(#wy-arch-stroke)"
-          strokeWidth="1.8"
-        />
-        {/* Inner botanical dome rib */}
-        <path
-          d="M44 620 V218 C44 108 116 48 200 44 C284 48 356 108 356 218 V620"
-          fill="none"
-          stroke="url(#wy-arch-stroke)"
-          strokeWidth="1"
-        />
-        {/* Radial glasshouse spokes */}
-        <line x1="200" y1="20" x2="200" y2="155" stroke="url(#wy-arch-stroke)" strokeWidth="0.9" />
-        <line x1="200" y1="44" x2="88" y2="148" stroke="url(#wy-arch-stroke)" strokeWidth="0.8" />
-        <line x1="200" y1="44" x2="312" y2="148" stroke="url(#wy-arch-stroke)" strokeWidth="0.8" />
-        <path
-          d="M44 195 Q200 135 356 195"
-          fill="none"
-          stroke="url(#wy-arch-stroke)"
-          strokeWidth="0.9"
-        />
-        {/* Decorative top finial */}
-        <circle cx="200" cy="44" r="5" fill="none" stroke="#FDE68A" strokeOpacity="0.45" strokeWidth="1" />
-      </svg>
-
-      {/* Luminous Crescent Moon */}
-      <div className="wy-moon-glow absolute right-6 top-6 h-14 w-14 sm:right-9 sm:top-8 sm:h-16 sm:w-16">
-        <svg viewBox="0 0 64 64" className="h-full w-full drop-shadow-[0_0_18px_rgba(253,230,138,0.65)]">
-          <defs>
-            <radialGradient id="wy-moon-fill" cx="35%" cy="35%" r="70%">
-              <stop offset="0%" stopColor="#FFFBEB" />
-              <stop offset="65%" stopColor="#FDE68A" />
-              <stop offset="100%" stopColor="#F59E0B" />
-            </radialGradient>
-          </defs>
-          <path
-            d="M39.5 11.5A21 21 0 1 0 53 41.2 17 17 0 1 1 39.5 11.5Z"
-            fill="url(#wy-moon-fill)"
-          />
-          <path
-            d="M47 16 L48.4 19.6 L52 21 L48.4 22.4 L47 26 L45.6 22.4 L42 21 L45.6 19.6 Z"
-            fill="#FFFBEB"
-            opacity="0.9"
-          />
-        </svg>
-      </div>
-
-      {/* Layered Botanical Vines & Fern Nature Art (Top-Left) */}
-      <svg
-        viewBox="0 0 180 220"
-        className="wy-vine-sway absolute -left-2 -top-2 h-44 w-36 opacity-80 sm:h-52 sm:w-44"
-        fill="none"
-      >
-        <path
-          d="M12 0 C16 48 42 84 36 140 C33 166 20 190 14 214"
-          stroke="#4ADE80"
-          strokeOpacity="0.42"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-        />
-        <path
-          d="M28 0 C50 34 86 44 128 32"
-          stroke="#86EFAC"
-          strokeOpacity="0.34"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-        />
-        {/* Eucalyptus & fern leaves */}
-        <ellipse cx="26" cy="40" rx="11" ry="5.5" transform="rotate(-24 26 40)" fill="#166534" fillOpacity="0.72" />
-        <ellipse cx="44" cy="64" rx="12" ry="6" transform="rotate(20 44 64)" fill="#15803D" fillOpacity="0.68" />
-        <ellipse cx="24" cy="96" rx="11" ry="5.5" transform="rotate(-32 24 96)" fill="#14532D" fillOpacity="0.78" />
-        <ellipse cx="46" cy="122" rx="10" ry="5" transform="rotate(16 46 122)" fill="#166534" fillOpacity="0.66" />
-        <ellipse cx="22" cy="158" rx="9" ry="4.5" transform="rotate(-22 22 158)" fill="#15803D" fillOpacity="0.62" />
-        <ellipse cx="66" cy="34" rx="11" ry="5" transform="rotate(-14 66 34)" fill="#15803D" fillOpacity="0.65" />
-        <ellipse cx="98" cy="36" rx="10" ry="4.8" transform="rotate(14 98 36)" fill="#166534" fillOpacity="0.62" />
-        {/* Moonlit rosebuds on vine */}
-        <circle cx="52" cy="54" r="5" fill="#FB7185" fillOpacity="0.82" />
-        <circle cx="52" cy="54" r="2.2" fill="#FFE4E6" />
-        <circle cx="116" cy="30" r="4.2" fill="#FDA4AF" fillOpacity="0.82" />
-        <circle cx="30" cy="134" r="4.5" fill="#F43F5E" fillOpacity="0.78" />
-      </svg>
-
-      {/* Layered Botanical Fern & Blossom Art (Bottom-Right) */}
-      <svg
-        viewBox="0 0 190 190"
-        className="wy-vine-sway-alt absolute -bottom-3 -right-3 h-40 w-40 opacity-75 sm:h-48 sm:w-48"
-        fill="none"
-      >
-        <path
-          d="M182 186 C152 142 130 106 86 78 C64 64 42 56 22 54"
-          stroke="#4ADE80"
-          strokeOpacity="0.38"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-        />
-        <path
-          d="M178 184 C166 130 162 84 172 34"
-          stroke="#86EFAC"
-          strokeOpacity="0.32"
-          strokeWidth="1.4"
-          strokeLinecap="round"
-        />
-        <ellipse cx="144" cy="138" rx="14" ry="6" transform="rotate(-48 144 138)" fill="#14532D" fillOpacity="0.78" />
-        <ellipse cx="122" cy="112" rx="13" ry="5.8" transform="rotate(-38 122 112)" fill="#166534" fillOpacity="0.74" />
-        <ellipse cx="94" cy="88" rx="12" ry="5.4" transform="rotate(-26 94 88)" fill="#15803D" fillOpacity="0.68" />
-        <ellipse cx="62" cy="70" rx="10" ry="4.8" transform="rotate(-14 62 70)" fill="#166534" fillOpacity="0.62" />
-        <ellipse cx="164" cy="108" rx="11" ry="5" transform="rotate(24 164 108)" fill="#15803D" fillOpacity="0.66" />
-        <ellipse cx="164" cy="72" rx="10" ry="4.5" transform="rotate(-24 164 72)" fill="#166534" fillOpacity="0.62" />
-        <circle cx="106" cy="96" r="5.5" fill="#FB7185" fillOpacity="0.8" />
-        <circle cx="106" cy="96" r="2.3" fill="#FFF1F2" />
-        <circle cx="158" cy="54" r="4.2" fill="#FDA4AF" fillOpacity="0.8" />
-      </svg>
-
-      {/* Drifting Golden Fireflies */}
-      {FIREFLIES.map((fly, idx) => (
-        <span
-          key={`fly-${idx}`}
-          className="wy-firefly absolute rounded-full"
-          style={{
-            left: fly.left,
-            top: fly.top,
-            width: `${fly.size}px`,
-            height: `${fly.size}px`,
-            backgroundColor: '#FEF08A',
-            boxShadow: '0 0 12px 3px rgba(253, 224, 71, 0.72)',
-            animationDelay: fly.delay,
-            animationDuration: fly.duration,
-          }}
-        />
-      ))}
-
-      {/* Falling Sakura / Rose Petals */}
-      {FALLING_PETALS.map((petal, idx) => (
-        <svg
-          key={`petal-${idx}`}
-          viewBox="0 0 20 20"
-          className="wy-petal-fall absolute -top-6 h-4 w-4"
-          style={{
-            left: petal.left,
-            animationDelay: petal.delay,
-            animationDuration: petal.duration,
-            transform: `scale(${petal.scale})`,
-          }}
-        >
-          <path
-            d="M10 2 C15 4 17 11 10 18 C3 11 5 4 10 2 Z"
-            fill={petal.shade}
-            fillOpacity="0.72"
-          />
-        </svg>
-      ))}
-    </div>
+    </svg>
   );
 }
 
-/** Expressive Die-Cut Cat Meme Companion Sticker (5 reactive moods: 0 idle, 1..4 runaway reactions, 5 purring celebration) */
-function CatMemeSticker({ mood, caption }: { mood: 0 | 1 | 2 | 3 | 4 | 5; caption: string }) {
-  const isHindi = hasDevanagari(caption);
-
+/** Pressed Crimson Velvet Lily SVG Accent */
+function CrimsonLilyCorner({ className = '' }: { className?: string }) {
   return (
-    <div
-      key={`cat-mood-${mood}`}
-      className="wy-sticker-pop relative mx-auto inline-flex flex-col items-center"
-    >
-      {/* Die-cut white vinyl sticker container */}
-      <div className="relative flex h-28 w-28 items-center justify-center rounded-[28px] border-[3px] border-[#FFFDF9] bg-gradient-to-b from-[#FFF9F4] via-[#FFF1F5] to-[#FDE8EF] shadow-[0_14px_30px_-10px_rgba(0,0,0,0.65),0_0_24px_-6px_rgba(253,164,175,0.45)]">
-        <svg viewBox="0 0 120 120" className="h-24 w-24" aria-hidden="true">
-          {/* Soft floor shadow */}
-          <ellipse cx="60" cy="106" rx="34" ry="6" fill="#F43F5E" fillOpacity="0.14" />
+    <svg viewBox="0 0 96 96" className={className} fill="none" aria-hidden="true">
+      <path d="M48 48 C34 26 20 18 14 14 C24 32 30 44 48 48 Z" fill="#881337" />
+      <path d="M48 48 C62 24 76 16 84 14 C72 34 64 44 48 48 Z" fill="#9F1239" />
+      <path d="M48 48 C70 42 82 52 88 60 C68 62 56 58 48 48 Z" fill="#BE123C" />
+      <path d="M48 48 C56 68 48 82 44 88 C38 72 38 58 48 48 Z" fill="#881337" />
+      <path d="M48 48 C28 54 14 66 10 74 C28 70 40 62 48 48 Z" fill="#9F1239" />
+      <path d="M48 48 C44 26 48 12 52 6 C56 20 56 36 48 48 Z" fill="#E11D48" fillOpacity="0.88" />
+      <circle cx="48" cy="48" r="5" fill="#FDE68A" />
+      <circle cx="44" cy="44" r="1.4" fill="#4A0912" />
+      <circle cx="52" cy="45" r="1.4" fill="#4A0912" />
+      <circle cx="48" cy="52" r="1.4" fill="#4A0912" />
+    </svg>
+  );
+}
 
-          {/* Cat ears */}
-          <path d="M29 52 L24 22 L50 38 Z" fill="#FFFDF9" stroke="#3B1D2E" strokeWidth="3" strokeLinejoin="round" />
-          <path d="M32 45 L29 29 L44 39 Z" fill="#FDA4AF" />
-          <path d="M91 52 L96 22 L70 38 Z" fill="#FFFDF9" stroke="#3B1D2E" strokeWidth="3" strokeLinejoin="round" />
-          <path d="M88 45 L91 29 L76 39 Z" fill="#FDA4AF" />
+/** Tactile Illustrated Keepsake Object Icons (Camera, Ribbon Envelope, Rose Bouquet, Gramophone) */
+function KeepsakeObjectIcon({ id }: { id: KeepsakeId }) {
+  if (id === 'scrapbook') {
+    return (
+      <svg viewBox="0 0 64 64" className="h-12 w-12" fill="none" aria-hidden="true">
+        <rect x="8" y="18" width="48" height="32" rx="6" fill="#2E2522" stroke="#D6C1A3" strokeWidth="1.8" />
+        <rect x="14" y="13" width="14" height="6" rx="2" fill="#B69571" />
+        <rect x="42" y="14" width="8" height="4" rx="1.5" fill="#E11D48" />
+        <circle cx="33" cy="34" r="11" fill="#473A35" stroke="#EAD9C1" strokeWidth="2" />
+        <circle cx="33" cy="34" r="6.5" fill="#1A1412" />
+        <circle cx="30.5" cy="31.5" r="2" fill="#FDA4AF" fillOpacity="0.7" />
+        <circle cx="17" cy="25" r="2.2" fill="#FDE68A" />
+      </svg>
+    );
+  }
+  if (id === 'letter') {
+    return (
+      <svg viewBox="0 0 64 64" className="h-12 w-12" fill="none" aria-hidden="true">
+        <rect x="8" y="16" width="48" height="34" rx="5" fill="#9F1239" stroke="#F7E7CE" strokeWidth="1.6" />
+        <path d="M10 18 L32 35 L54 18" stroke="#F7E7CE" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M23 33 C25 28 32 33 32 33 C32 33 39 28 41 33 C39 38 32 34 32 34 C32 34 25 38 23 33 Z" fill="#FFFDF8" />
+        <circle cx="32" cy="33.5" r="3.2" fill="#FDE68A" />
+      </svg>
+    );
+  }
+  if (id === 'bouquet') {
+    return (
+      <svg viewBox="0 0 64 64" className="h-12 w-12" fill="none" aria-hidden="true">
+        <path d="M22 36 L32 56 L42 36 Z" fill="#EBD7BC" stroke="#B69571" strokeWidth="1.4" />
+        <circle cx="24" cy="27" r="7" fill="#BE123C" />
+        <circle cx="40" cy="27" r="7" fill="#E11D48" />
+        <circle cx="32" cy="21" r="8" fill="#9F1239" />
+        <circle cx="32" cy="21" r="3.5" fill="#FDA4AF" />
+        <circle cx="24" cy="27" r="2.6" fill="#FECDD3" />
+        <circle cx="40" cy="27" r="2.6" fill="#FECDD3" />
+        <ellipse cx="17" cy="34" rx="5" ry="2.5" transform="rotate(-25 17 34)" fill="#3F6212" />
+        <ellipse cx="47" cy="34" rx="5" ry="2.5" transform="rotate(25 47 34)" fill="#3F6212" />
+        <path d="M26 44 H38" stroke="#9F1239" strokeWidth="2.4" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 64 64" className="h-12 w-12" fill="none" aria-hidden="true">
+      <circle cx="32" cy="32" r="22" fill="#1F1817" stroke="#D8C2A6" strokeWidth="1.6" />
+      <circle cx="32" cy="32" r="16" stroke="#FFFFFF" strokeOpacity="0.14" strokeWidth="1" />
+      <circle cx="32" cy="32" r="12" stroke="#FFFFFF" strokeOpacity="0.14" strokeWidth="1" />
+      <circle cx="32" cy="32" r="7.5" fill="#BE123C" />
+      <circle cx="32" cy="32" r="2.2" fill="#FAF2E4" />
+    </svg>
+  );
+}
 
-          {/* Round chubby cat head & body */}
-          <ellipse cx="60" cy="68" rx="36" ry="32" fill="#FFFDF9" stroke="#3B1D2E" strokeWidth="3" />
+/** Adorable Hand-Drawn Bear & Bunny Couple SVG (inspired by the reference's framed lace card!) */
+function CozyCoupleIllustration({
+  mood,
+  caption,
+}: {
+  mood: 0 | 1 | 2 | 3 | 4 | 5;
+  caption: string;
+}) {
+  const isHappy = mood === 5;
+  const isPleading = mood >= 1 && mood <= 4;
+  return (
+    <div className="flex flex-col items-center">
+      <svg viewBox="0 0 180 116" className="h-28 w-44" fill="none" aria-hidden="true">
+        {/* Soft warm shadow */}
+        <ellipse cx="90" cy="106" rx="58" ry="6" fill="#7C2D12" fillOpacity="0.12" />
 
-          {/* Subtle forehead tabby stripes */}
-          <path d="M55 38 L55 44 M60 36 L60 44 M65 38 L65 44" stroke="#E5C8B8" strokeWidth="2.4" strokeLinecap="round" />
+        {/* Left Ivory Bear */}
+        <circle cx="48" cy="32" r="10" fill="#FFFDF9" stroke="#4A2520" strokeWidth="2" />
+        <circle cx="78" cy="32" r="10" fill="#FFFDF9" stroke="#4A2520" strokeWidth="2" />
+        <ellipse cx="63" cy="64" rx="26" ry="30" fill="#FFFDF9" stroke="#4A2520" strokeWidth="2" />
+        {/* Blush */}
+        <ellipse cx="50" cy="58" rx="4.5" ry="2.6" fill="#FDA4AF" fillOpacity="0.75" />
+        <ellipse cx="76" cy="58" rx="4.5" ry="2.6" fill="#FDA4AF" fillOpacity="0.75" />
+        {/* Eyes */}
+        {isHappy ? (
+          <>
+            <path d="M51 50 Q55 46 59 50" stroke="#4A2520" strokeWidth="2.2" strokeLinecap="round" />
+            <path d="M67 50 Q71 46 75 50" stroke="#4A2520" strokeWidth="2.2" strokeLinecap="round" />
+          </>
+        ) : (
+          <>
+            <circle cx="55" cy="51" r={isPleading ? 3.2 : 2.6} fill="#3B1D1B" />
+            <circle cx="71" cy="51" r={isPleading ? 3.2 : 2.6} fill="#3B1D1B" />
+            {isPleading ? (
+              <>
+                <circle cx="54" cy="49.8" r="1" fill="#FFF" />
+                <circle cx="70" cy="49.8" r="1" fill="#FFF" />
+              </>
+            ) : null}
+          </>
+        )}
+        <path d="M60 56 Q63 59 66 56" stroke="#4A2520" strokeWidth="1.8" strokeLinecap="round" />
 
-          {/* Rosy blush cheeks */}
-          <ellipse cx="36" cy="74" rx="7" ry="4.2" fill="#FB7185" fillOpacity="0.45" />
-          <ellipse cx="84" cy="74" rx="7" ry="4.2" fill="#FB7185" fillOpacity="0.45" />
+        {/* Right Warm Mocha Bear */}
+        <circle cx="102" cy="32" r="10" fill="#D5A684" stroke="#4A2520" strokeWidth="2" />
+        <circle cx="132" cy="32" r="10" fill="#D5A684" stroke="#4A2520" strokeWidth="2" />
+        <ellipse cx="117" cy="64" rx="26" ry="30" fill="#D5A684" stroke="#4A2520" strokeWidth="2" />
+        <ellipse cx="104" cy="58" rx="4.5" ry="2.6" fill="#FB7185" fillOpacity="0.55" />
+        <ellipse cx="130" cy="58" rx="4.5" ry="2.6" fill="#FB7185" fillOpacity="0.55" />
+        {isHappy ? (
+          <>
+            <path d="M105 50 Q109 46 113 50" stroke="#4A2520" strokeWidth="2.2" strokeLinecap="round" />
+            <path d="M121 50 Q125 46 129 50" stroke="#4A2520" strokeWidth="2.2" strokeLinecap="round" />
+          </>
+        ) : (
+          <>
+            <circle cx="109" cy="51" r="2.6" fill="#3B1D1B" />
+            <circle cx="125" cy="51" r="2.6" fill="#3B1D1B" />
+          </>
+        )}
+        <path d="M114 56 Q117 59 120 56" stroke="#4A2520" strokeWidth="1.8" strokeLinecap="round" />
 
-          {/* Whiskers */}
-          <path
-            d="M19 67 L30 69 M18 74 L30 74 M101 67 L90 69 M102 74 L90 74"
-            stroke="#3B1D2E"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeOpacity="0.7"
-          />
+        {/* Center Crimson Heart Held Between Them */}
+        <path
+          d="M90 83 C80 75 76 68 79 62 C82 57 87 58 90 62 C93 58 98 57 101 62 C104 68 100 75 90 83 Z"
+          fill="#BE123C"
+          stroke="#FFFDF9"
+          strokeWidth="1.6"
+        />
 
-          {/* Tiny nose & mouth */}
-          <path d="M57 69 L63 69 L60 72 Z" fill="#F43F5E" />
-          {mood === 1 || mood === 3 ? (
-            /* Pleading wobbly 'w' mouth */
-            <path
-              d="M53 77 Q56.5 73 60 76 Q63.5 73 67 77"
-              fill="none"
-              stroke="#3B1D2E"
-              strokeWidth="2.4"
-              strokeLinecap="round"
-            />
-          ) : (
-            /* Sweet happy ':3' cat smile */
-            <path
-              d="M52 74 Q56 79 60 74 Q64 79 68 74"
-              fill="none"
-              stroke="#3B1D2E"
-              strokeWidth="2.4"
-              strokeLinecap="round"
-            />
-          )}
-
-          {/* Mood-specific Eyes & Accessories */}
-          {mood === 0 ? (
-            /* Mood 0: Sweet hopeful cat with floating little heart */
-            <>
-              <circle cx="45" cy="61" r="5.2" fill="#2A1422" />
-              <circle cx="43.5" cy="59.2" r="2" fill="#FFFFFF" />
-              <circle cx="75" cy="61" r="5.2" fill="#2A1422" />
-              <circle cx="73.5" cy="59.2" r="2" fill="#FFFFFF" />
-              <path
-                d="M95 30 C95 26 101 26 101 30 C101 34 95 38 95 38 C95 38 89 34 89 30 C89 26 95 26 95 30 Z"
-                fill="#F43F5E"
-              />
-            </>
-          ) : null}
-
-          {mood === 1 ? (
-            /* Mood 1: Giant starry pleading galaxy eyes */
-            <>
-              <circle cx="44" cy="60" r="9.5" fill="#1F1029" />
-              <circle cx="41" cy="56.5" r="3.6" fill="#FFFFFF" />
-              <circle cx="47.5" cy="63.5" r="1.8" fill="#FEF08A" />
-              <path d="M44 59 L45 61 L47 62 L45 63 L44 65 L43 63 L41 62 L43 61 Z" fill="#FBCFE8" />
-
-              <circle cx="76" cy="60" r="9.5" fill="#1F1029" />
-              <circle cx="73" cy="56.5" r="3.6" fill="#FFFFFF" />
-              <circle cx="79.5" cy="63.5" r="1.8" fill="#FEF08A" />
-              <path d="M76 59 L77 61 L79 62 L77 63 L76 65 L75 63 L73 62 L75 61 Z" fill="#FBCFE8" />
-
-              {/* Tiny tear shimmer */}
-              <circle cx="35.5" cy="68.5" r="2.2" fill="#93C5FD" />
-              <circle cx="84.5" cy="68.5" r="2.2" fill="#93C5FD" />
-            </>
-          ) : null}
-
-          {mood === 2 ? (
-            /* Mood 2: Holding a tiny glowing rose */
-            <>
-              <circle cx="45" cy="60" r="6" fill="#2A1422" />
-              <circle cx="43.5" cy="58" r="2.3" fill="#FFFFFF" />
-              <circle cx="75" cy="60" r="6" fill="#2A1422" />
-              <circle cx="73.5" cy="58" r="2.3" fill="#FFFFFF" />
-              {/* Tiny paws holding rose */}
-              <ellipse cx="47" cy="91" rx="8" ry="6" fill="#FFFDF9" stroke="#3B1D2E" strokeWidth="2.5" />
-              <ellipse cx="73" cy="91" rx="8" ry="6" fill="#FFFDF9" stroke="#3B1D2E" strokeWidth="2.5" />
-              {/* Rose stem & bloom */}
-              <path d="M60 98 L64 78" stroke="#16A34A" strokeWidth="2.8" strokeLinecap="round" />
-              <ellipse cx="58" cy="88" rx="5" ry="2.6" transform="rotate(-25 58 88)" fill="#22C55E" />
-              <circle cx="65" cy="75" r="7.5" fill="#E11D48" stroke="#881337" strokeWidth="1.5" />
-              <path d="M62 74 Q65 71 68 74 Q65 78 62 74 Z" fill="#FDA4AF" />
-            </>
-          ) : null}
-
-          {mood === 3 ? (
-            /* Mood 3: Dramatic tiny paw reaching out + "pls?" speech tag */
-            <>
-              <circle cx="44" cy="60" r="7.5" fill="#1F1029" />
-              <circle cx="42" cy="57.5" r="2.8" fill="#FFFFFF" />
-              <circle cx="46.5" cy="62.5" r="1.4" fill="#FFFFFF" />
-              <circle cx="76" cy="60" r="7.5" fill="#1F1029" />
-              <circle cx="74" cy="57.5" r="2.8" fill="#FFFFFF" />
-              <circle cx="78.5" cy="62.5" r="1.4" fill="#FFFFFF" />
-
-              {/* Dramatic tiny outstretched paw with pink toe beans */}
-              <circle cx="88" cy="88" r="13" fill="#FFFDF9" stroke="#3B1D2E" strokeWidth="2.6" />
-              <ellipse cx="88" cy="91" rx="5" ry="3.8" fill="#FDA4AF" />
-              <circle cx="82.5" cy="84" r="2.2" fill="#FDA4AF" />
-              <circle cx="88" cy="82" r="2.2" fill="#FDA4AF" />
-              <circle cx="93.5" cy="84" r="2.2" fill="#FDA4AF" />
-
-              {/* Mini comic speech badge "pls?" */}
-              <rect x="6" y="10" width="38" height="20" rx="10" fill="#FFF1F2" stroke="#F43F5E" strokeWidth="2" />
-              <text
-                x="25"
-                y="23.5"
-                textAnchor="middle"
-                fontSize="10.5"
-                fontWeight="800"
-                fill="#BE123C"
-                fontFamily="monospace"
-              >
-                pls?
-              </text>
-            </>
-          ) : null}
-
-          {mood === 4 ? (
-            /* Mood 4: Heart-shaped glossy pink sunglasses */
-            <>
-              {/* Glasses bridge */}
-              <line x1="54" y1="60" x2="66" y2="60" stroke="#9F1239" strokeWidth="2.8" />
-              {/* Left heart lens */}
-              <path
-                d="M44 55 C44 51 35 51 35 57 C35 64 44 70 44 70 C44 70 53 64 53 57 C53 51 44 51 44 55 Z"
-                fill="#F43F5E"
-                stroke="#881337"
-                strokeWidth="2.2"
-              />
-              <path d="M38.5 57 L41.5 54.5" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" opacity="0.8" />
-              {/* Right heart lens */}
-              <path
-                d="M76 55 C76 51 67 51 67 57 C67 64 76 70 76 70 C76 70 85 64 85 57 C85 51 76 51 76 55 Z"
-                fill="#F43F5E"
-                stroke="#881337"
-                strokeWidth="2.2"
-              />
-              <path d="M70.5 57 L73.5 54.5" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" opacity="0.8" />
-              {/* Star sparkle near glasses */}
-              <path d="M98 22 L100 27 L105 29 L100 31 L98 36 L96 31 L91 29 L96 27 Z" fill="#F59E0B" />
-            </>
-          ) : null}
-
-          {mood === 5 ? (
-            /* Mood 5: Celebratory purring cat with flower crown */
-            <>
-              {/* Happy closed purring eyes */}
-              <path d="M37 62 Q44 54 51 62" fill="none" stroke="#3B1D2E" strokeWidth="3" strokeLinecap="round" />
-              <path d="M69 62 Q76 54 83 62" fill="none" stroke="#3B1D2E" strokeWidth="3" strokeLinecap="round" />
-              {/* Botanical flower crown */}
-              <ellipse cx="42" cy="34" rx="7" ry="3.5" transform="rotate(-18 42 34)" fill="#22C55E" />
-              <ellipse cx="78" cy="34" rx="7" ry="3.5" transform="rotate(18 78 34)" fill="#22C55E" />
-              <circle cx="48" cy="34" r="6" fill="#FDA4AF" stroke="#BE123C" strokeWidth="1.4" />
-              <circle cx="48" cy="34" r="2.2" fill="#FEF08A" />
-              <circle cx="60" cy="30" r="7" fill="#F43F5E" stroke="#881337" strokeWidth="1.5" />
-              <circle cx="60" cy="30" r="2.5" fill="#FEF08A" />
-              <circle cx="72" cy="34" r="6" fill="#FBCFE8" stroke="#BE123C" strokeWidth="1.4" />
-              <circle cx="72" cy="34" r="2.2" fill="#F59E0B" />
-              {/* Floating twin hearts */}
-              <path
-                d="M18 34 C18 31 23 31 23 34 C23 37.5 18 40.5 18 40.5 C18 40.5 13 37.5 13 34 C13 31 18 31 18 34 Z"
-                fill="#F43F5E"
-              />
-              <path
-                d="M102 32 C102 29 107 29 107 32 C107 35.5 102 38.5 102 38.5 C102 38.5 97 35.5 97 32 C97 29 102 29 102 32 Z"
-                fill="#FDE68A"
-              />
-            </>
-          ) : null}
-        </svg>
-      </div>
-
-      {/* Tiny 2-word sticker caption pill */}
-      <span
-        className={`-mt-2.5 inline-flex items-center rounded-full border border-[#FDE68A]/55 bg-[#1B0C2E]/95 px-3 py-0.5 text-[11px] font-bold text-[#FDE68A] shadow-md ${
-          isHindi ? 'tracking-normal' : 'tracking-wider'
-        }`}
-      >
+        {/* Floating little sparkle hearts when accepted */}
+        {isHappy ? (
+          <>
+            <path d="M90 24 C86 20 84 17 86 14 C88 12 90 14 90 15 C90 14 92 12 94 14 C96 17 94 20 90 24 Z" fill="#E11D48" />
+            <circle cx="34" cy="20" r="2.5" fill="#F59E0B" />
+            <circle cx="146" cy="20" r="2.5" fill="#F59E0B" />
+          </>
+        ) : null}
+      </svg>
+      <span className="mt-1 inline-flex rounded-full border border-[#C69C6D]/50 bg-[#FAF2E4] px-3 py-0.5 text-[11px] font-semibold text-[#7A2029]">
         {caption}
       </span>
     </div>
   );
 }
 
-/** Tiny SVG Heart Pin for Polaroid corners */
-function HeartPinSvg({ className = 'h-3.5 w-3.5' }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 20 20" className={className} fill="currentColor" aria-hidden="true">
-      <path d="M10 17.2 8.7 16C4.2 12 1.5 9.5 1.5 6.4 1.5 3.9 3.4 2 5.9 2c1.4 0 2.8.7 3.6 1.8h1c.8-1.1 2.2-1.8 3.6-1.8 2.5 0 4.4 1.9 4.4 4.4 0 3.1-2.7 5.6-7.2 9.6L10 17.2Z" />
-    </svg>
-  );
-}
-
-/** Offline-safe botanical vignette fallback if a polaroid photo fails to load */
-function PolaroidBotanicalFallback({ index }: { index: number }) {
-  const palettes = [
-    ['#2A113B', '#581C4B', '#FDE68A'],
-    ['#1F1035', '#4C1D57', '#FDA4AF'],
-    ['#2B1232', '#6B1D45', '#FBCFE8'],
-  ] as const;
-  const [bg1, bg2, accent] = palettes[index % palettes.length];
-  return (
-    <div
-      className="flex h-full w-full items-center justify-center"
-      style={{ background: `linear-gradient(145deg, ${bg1}, ${bg2})` }}
-      aria-hidden="true"
-    >
-      <svg viewBox="0 0 64 64" className="h-10 w-10">
-        <path
-          d="M32 50 C20 40 14 33 14 25 C14 18 19.5 14 25 14 C28.5 14 30.8 16 32 18.2 C33.2 16 35.5 14 39 14 C44.5 14 50 18 50 25 C50 33 44 40 32 50 Z"
-          fill={accent}
-          fillOpacity="0.85"
-        />
-      </svg>
-    </div>
-  );
-}
-
 /**
- * Moonlit Botanical Conservatory & Cat-Meme Proposal Experience (`will-you-01`)
- * Stage 1: Wax-Sealed Botanical Envelope Cover with smooth unfold transition
- * Stage 2: Minimal Poetic Note, 3-Polaroid Keepsake Strip & Interactive Cat-Meme Runaway "No" Ask
- * Stage 3: Luminous Golden-Petal & Starlight Burst + Constellation Promise Keepsake Ticket
+ * Editorial Crimson Damask & French Gingham Keepsake Box ("Will You" — `will-you-01`).
+ * Inspired by vintage love websites: burgundy damask envelope with twine bow prompt,
+ * red-and-cream gingham lace keepsake drawer with 4 interactive heart-doily gifts
+ * (Scrapbook Camera, Handwritten Letter, Rose Bouquet Reasons, Spinning Vinyl),
+ * scalloped lace proposal table with runaway No, and stamped Dream Date keepsake ticket.
  */
 export function WillYouSite({
   data,
@@ -879,92 +621,81 @@ export function WillYouSite({
   watermarked = false,
   onOpened,
 }: OccasionSiteProps) {
-  const [stage, setStage] = useState<'cover' | 'opening' | 'question' | 'accepted'>('cover');
+  const uid = useId().replace(/:/g, '');
+  const [stage, setStage] = useState<StageId>('cover');
+  const [coverNoCount, setCoverNoCount] = useState(0);
+  const [activeKeepsake, setActiveKeepsake] = useState<KeepsakeId>('letter');
+  const [openedKeepsakes, setOpenedKeepsakes] = useState<KeepsakeId[]>(['letter']);
+  const [activeReasonIdx, setActiveReasonIdx] = useState<number>(0);
   const [nudgeCount, setNudgeCount] = useState(0);
+  const [selectedDateId, setSelectedDateId] = useState<DreamDateId>('coffee');
   const [burstKey, setBurstKey] = useState(0);
   const [showBurst, setShowBurst] = useState(false);
-  const [failedPhotos, setFailedPhotos] = useState<Record<string, boolean>>({});
   const [zoomIdx, setZoomIdx] = useState<number | null>(null);
-  const [litStars, setLitStars] = useState<number[]>([]);
-  const [selectedDateId, setSelectedDateId] = useState<DreamDateOption['id']>('coffee');
+  const [failedPhotos, setFailedPhotos] = useState<Record<string, boolean>>({});
   const [copiedYes, setCopiedYes] = useState(false);
 
-  const openTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const burstTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastDodgeRef = useRef<number>(0);
+  const openedNotifiedRef = useRef(false);
 
   const coreLang = toCoreLanguageCode(language);
   const copy = COPY_BY_LANG[coreLang] ?? COPY_BY_LANG.en;
-  const extraCopy = EXTRA_WILLYOU_COPY[coreLang] ?? EXTRA_WILLYOU_COPY.en;
   const isHindi = coreLang === 'hi';
+  const hindiSafe: React.CSSProperties | undefined = isHindi
+    ? { fontStyle: 'normal', letterSpacing: '0em' }
+    : undefined;
 
   const senderDisplay = (data.senderName || 'A').trim();
   const receiverDisplay = (data.receiverName || 'You').trim();
   const senderInitial = senderDisplay.charAt(0).toUpperCase() || 'A';
   const receiverInitial = receiverDisplay.charAt(0).toUpperCase() || 'Y';
 
-  const rawHeadline = pickLocalizedText(data.headline, language).trim();
-  const rawMessage = pickLocalizedText(data.message, language).trim();
-  const headlineText = rawHeadline || copy.defaultHeadline;
-  const messageText = rawMessage || copy.defaultMessage;
+  const headlineText = pickLocalizedText(data.headline, language).trim() || copy.defaultHeadline;
+  const messageText = pickLocalizedText(data.message, language).trim() || copy.defaultMessage;
 
   const polaroids = useMemo(() => {
     const customPhotos = (data.photos ?? [])
       .map((src) => (typeof src === 'string' ? src.trim() : ''))
       .filter((src) => src.length > 0);
-
     if (customPhotos.length > 0) {
       return [0, 1, 2].map((idx) => {
         const customSrc = customPhotos[idx];
         if (customSrc) {
-          return {
-            src: customSrc,
-            caption: `${copy.photoLabel} 0${idx + 1}`,
-          };
+          return { src: customSrc, caption: `${copy.photoLabel} 0${idx + 1}` };
         }
         const sample = SAMPLE_POLAROIDS[idx];
-        return {
-          src: sample.src,
-          caption: sample.caption[coreLang],
-        };
+        return { src: sample.src, caption: sample.caption[coreLang] };
       });
     }
-
     return SAMPLE_POLAROIDS.map((sample) => ({
       src: sample.src,
       caption: sample.caption[coreLang],
     }));
   }, [copy.photoLabel, coreLang, data.photos]);
 
-  const starReasons = useMemo(() => {
+  const bouquetReasons = useMemo(() => {
     const customHighlights = data.highlights ?? [];
-    return [0, 1, 2].map((idx) => {
+    return [0, 1, 2, 3].map((idx) => {
       const h = customHighlights[idx];
-      const fallback = STAR_REASONS_DEFAULT[idx];
+      const fallback = BOUQUET_REASONS_DEFAULT[idx];
       if (h) {
-        const title = pickLocalizedText(h.title, language).trim();
-        const detail = pickLocalizedText(h.detail, language).trim();
-        if (title || detail) {
-          return {
-            title: title || fallback.title[coreLang],
-            detail: detail || fallback.detail[coreLang],
-          };
+        const t = pickLocalizedText(h.title, language).trim();
+        const d = pickLocalizedText(h.detail, language).trim();
+        if (t || d) {
+          return { title: t || fallback.title[coreLang], detail: d || fallback.detail[coreLang] };
         }
       }
-      return {
-        title: fallback.title[coreLang],
-        detail: fallback.detail[coreLang],
-      };
+      return { title: fallback.title[coreLang], detail: fallback.detail[coreLang] };
     });
   }, [coreLang, data.highlights, language]);
 
   const selectedDateObj =
-    DREAM_DATE_OPTIONS.find((opt) => opt.id === selectedDateId) ?? DREAM_DATE_OPTIONS[0];
+    DREAM_DATE_OPTIONS.find((d) => d.id === selectedDateId) ?? DREAM_DATE_OPTIONS[0];
 
   useEffect(() => {
     return () => {
-      if (openTimerRef.current) clearTimeout(openTimerRef.current);
       if (burstTimerRef.current) clearTimeout(burstTimerRef.current);
       if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
     };
@@ -972,226 +703,227 @@ export function WillYouSite({
 
   useEffect(() => {
     if (zoomIdx === null) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setZoomIdx(null);
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setZoomIdx(null);
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [zoomIdx]);
 
+  const notifyOpenedOnce = useCallback(() => {
+    if (!openedNotifiedRef.current) {
+      openedNotifiedRef.current = true;
+      onOpened?.();
+    }
+  }, [onOpened]);
+
   const triggerPetalBurst = useCallback(() => {
-    setBurstKey((prev) => prev + 1);
+    setBurstKey((k) => k + 1);
     setShowBurst(true);
     if (burstTimerRef.current) clearTimeout(burstTimerRef.current);
-    burstTimerRef.current = setTimeout(() => {
-      setShowBurst(false);
-    }, 1500);
+    burstTimerRef.current = setTimeout(() => setShowBurst(false), 1500);
   }, []);
 
-  const handleUnfoldEnvelope = useCallback(() => {
-    if (stage !== 'cover') return;
+  const handleOpenBox = useCallback(() => {
     playPaperUnsealSfx(0);
-    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
-      navigator.vibrate(25);
-    }
-    setStage('opening');
-    openTimerRef.current = setTimeout(() => {
-      setStage('question');
-      onOpened?.();
-    }, 540);
-  }, [onOpened, stage]);
+    setStage('keepsakes');
+    notifyOpenedOnce();
+  }, [notifyOpenedOnce]);
 
-  const handleToggleStar = useCallback((idx: number) => {
+  const handleSelectKeepsake = useCallback((id: KeepsakeId, idx: number) => {
     playPaperUnsealSfx(idx + 1);
-    setLitStars((prev) => (prev.includes(idx) ? prev : [...prev, idx]));
+    setActiveKeepsake(id);
+    setOpenedKeepsakes((prev) => (prev.includes(id) ? prev : [...prev, id]));
   }, []);
 
   const handleDodgeNo = useCallback(() => {
     const now = Date.now();
-    if (now - lastDodgeRef.current < 160) return;
+    if (now - lastDodgeRef.current < 150) return;
     lastDodgeRef.current = now;
-    setNudgeCount((prev) => prev + 1);
-    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
-      navigator.vibrate(14);
-    }
-  }, []);
+    playPaperUnsealSfx(nudgeCount);
+    setNudgeCount((c) => c + 1);
+  }, [nudgeCount]);
 
   const handleSayYes = useCallback(() => {
     playLanternPullChime();
-    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
-      navigator.vibrate([25, 40, 35]);
-    }
     setStage('accepted');
     triggerPetalBurst();
-  }, [triggerPetalBurst]);
+    notifyOpenedOnce();
+  }, [notifyOpenedOnce, triggerPetalBurst]);
 
   const handleCopyYesReply = useCallback(async () => {
     const chosenDateLabel = selectedDateObj.label[coreLang];
     const reply =
       coreLang === 'hi'
-        ? `हाँ, बिल्कुल ${senderDisplay}! मैंने टिकट पर "${chosenDateLabel}" चुन लिया है।`
+        ? `हाँ, बिल्कुल ${senderDisplay}! मैंने हमारे स्मृति टिकट पर "${chosenDateLabel}" चुन लिया है।`
         : coreLang === 'hinglish'
-          ? `Haan bilkul ${senderDisplay}! Ticket par "${chosenDateLabel}" lock kar diya hai.`
-          : `YES, always ${senderDisplay}! I stamped "${chosenDateLabel}" onto our keepsake ticket.`;
+          ? `Haan bilkul ${senderDisplay}! Keepsake ticket par "${chosenDateLabel}" stamp kar diya hai.`
+          : `YES, always ${senderDisplay}! I stamped "${chosenDateLabel}" onto our keepsake date ticket.`;
     try {
       if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(reply);
       }
     } catch {
-      // Silent clipboard fallback
+      // Safe fallback
     }
     setCopiedYes(true);
     if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
     copyTimerRef.current = setTimeout(() => setCopiedYes(false), 3200);
   }, [coreLang, selectedDateObj, senderDisplay]);
 
-  const handleReplayCover = useCallback(() => {
-    if (openTimerRef.current) clearTimeout(openTimerRef.current);
+  const handleReplay = useCallback(() => {
     setZoomIdx(null);
     setNudgeCount(0);
-    setShowBurst(false);
+    setCoverNoCount(0);
     setStage('cover');
   }, []);
 
-  const catMood: 0 | 1 | 2 | 3 | 4 =
-    nudgeCount === 0 ? 0 : (((nudgeCount - 1) % 4) + 1) as 1 | 2 | 3 | 4;
-  const catCaption =
+  const bearMood: 0 | 1 | 2 | 3 | 4 =
+    nudgeCount === 0 ? 0 : ((((nudgeCount - 1) % 4) + 1) as 1 | 2 | 3 | 4);
+  const bearCaption =
     nudgeCount === 0
-      ? copy.catIdleCaption
-      : copy.catCaptions[(nudgeCount - 1) % copy.catCaptions.length];
-
+      ? copy.bearIdleCaption
+      : copy.bearCaptions[(nudgeCount - 1) % copy.bearCaptions.length];
   const dodgeSpot = RUNAWAY_SPOTS[nudgeCount % RUNAWAY_SPOTS.length];
-  const yesScale = Math.min(1.16, 1 + nudgeCount * 0.032);
-  const yesGlow = Math.min(38, 16 + nudgeCount * 5);
+  const yesScale = Math.min(1.14, 1 + nudgeCount * 0.03);
 
-  const eyebrowClass = isHindi
-    ? 'font-semibold tracking-normal text-[11px]'
-    : 'font-mono text-[10px] font-bold uppercase tracking-[0.22em]';
-
-  const polaroidTilts = ['-rotate-3', 'rotate-1', 'rotate-3'] as const;
-  const washiTints = [
-    'bg-[#FDA4AF]/70 -rotate-6',
-    'bg-[#FDE68A]/70 rotate-3',
-    'bg-[#C4B5FD]/70 -rotate-3',
-  ] as const;
+  const isGinghamStage = stage === 'keepsakes' || stage === 'proposal';
 
   return (
-    <div className="relative flex min-h-full w-full flex-col overflow-x-clip overflow-y-hidden rounded-[28px] bg-[#080514] text-[#FFF7F5]">
-      {/* Scoped Keyframes with prefers-reduced-motion support */}
+    <div
+      className="relative flex min-h-full w-full flex-col overflow-x-clip rounded-[28px] transition-colors duration-500"
+      style={
+        isGinghamStage
+          ? {
+              backgroundColor: '#FBF3E8',
+              backgroundImage:
+                'linear-gradient(90deg, rgba(168, 36, 44, 0.16) 50%, transparent 50%), linear-gradient(rgba(168, 36, 44, 0.16) 50%, transparent 50%)',
+              backgroundSize: '36px 36px',
+            }
+          : {
+              background:
+                'radial-gradient(ellipse 90% 60% at 50% 18%, #6D1120 0%, #4A0912 52%, #2B050B 100%)',
+            }
+      }
+    >
       <style>{`
-        @keyframes wy-twinkle {
-          0%, 100% { opacity: 0.25; transform: scale(0.85); }
-          50% { opacity: 1; transform: scale(1.25); }
-        }
-        @keyframes wy-firefly {
-          0%, 100% { transform: translate(0px, 0px) scale(0.85); opacity: 0.28; }
-          35% { transform: translate(12px, -22px) scale(1.15); opacity: 0.95; }
-          70% { transform: translate(-10px, -40px) scale(0.95); opacity: 0.65; }
-        }
-        @keyframes wy-petal-fall {
-          0% { transform: translate3d(0, -10%, 0) rotate(0deg); opacity: 0; }
-          12% { opacity: 0.8; }
-          85% { opacity: 0.7; }
-          100% { transform: translate3d(-44px, 560px, 0) rotate(240deg); opacity: 0; }
-        }
-        @keyframes wy-vine-sway {
-          0%, 100% { transform: rotate(0deg); }
-          50% { transform: rotate(2.4deg); }
-        }
-        @keyframes wy-moon-glow {
-          0%, 100% { transform: scale(1); opacity: 0.92; }
-          50% { transform: scale(1.06); opacity: 1; }
-        }
-        @keyframes wy-float-slow {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-6px); }
-        }
-        @keyframes wy-sticker-pop {
-          0% { transform: scale(0.82) rotate(-4deg); opacity: 0.4; }
-          65% { transform: scale(1.06) rotate(2deg); opacity: 1; }
-          100% { transform: scale(1) rotate(0deg); opacity: 1; }
-        }
-        @keyframes wy-fade-up {
-          0% { opacity: 0; transform: translateY(14px) scale(0.98); }
+        @keyframes wy2-fade-up-${uid} {
+          0% { opacity: 0; transform: translateY(12px) scale(0.985); }
           100% { opacity: 1; transform: translateY(0) scale(1); }
         }
-        @keyframes wy-burst-out {
-          0% { transform: translate(-50%, -50%) translate(0px, 0px) scale(0.3) rotate(0deg); opacity: 1; }
-          75% { opacity: 0.95; }
-          100% { transform: translate(-50%, -50%) translate(var(--wy-tx), var(--wy-ty)) scale(1.15) rotate(180deg); opacity: 0; }
+        @keyframes wy2-float-${uid} {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-5px); }
         }
-        .wy-twinkle { animation: wy-twinkle 3.2s ease-in-out infinite; transform-origin: center; }
-        .wy-firefly { animation: wy-firefly 8s ease-in-out infinite; }
-        .wy-petal-fall { animation: wy-petal-fall 12s linear infinite; }
-        .wy-vine-sway { animation: wy-vine-sway 7.5s ease-in-out infinite; transform-origin: top left; }
-        .wy-vine-sway-alt { animation: wy-vine-sway 8.5s ease-in-out infinite reverse; transform-origin: bottom right; }
-        .wy-moon-glow { animation: wy-moon-glow 5.5s ease-in-out infinite; }
-        .wy-float-slow { animation: wy-float-slow 4.6s ease-in-out infinite; }
-        .wy-sticker-pop { animation: wy-sticker-pop 380ms cubic-bezier(0.22, 1.25, 0.36, 1) both; }
-        .wy-fade-up { animation: wy-fade-up 520ms cubic-bezier(0.22, 1, 0.36, 1) both; }
-        .wy-burst-particle { animation: wy-burst-out 1350ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes wy2-spin-${uid} {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        @keyframes wy2-burst-${uid} {
+          0% { transform: translate(-50%, -50%) translate(0px, 0px) scale(0.35) rotate(0deg); opacity: 1; }
+          75% { opacity: 0.92; }
+          100% { transform: translate(-50%, -50%) translate(var(--wy2-tx), var(--wy2-ty)) scale(1.1) rotate(180deg); opacity: 0; }
+        }
+        .wy2-fade-up-${uid} { animation: wy2-fade-up-${uid} 440ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+        .wy2-float-${uid} { animation: wy2-float-${uid} 4.2s ease-in-out infinite; }
+        .wy2-spin-${uid} { animation: wy2-spin-${uid} 9s linear infinite; }
+        .wy2-burst-${uid} { animation: wy2-burst-${uid} 1350ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         @media (prefers-reduced-motion: reduce) {
-          .wy-twinkle,
-          .wy-firefly,
-          .wy-petal-fall,
-          .wy-vine-sway,
-          .wy-vine-sway-alt,
-          .wy-moon-glow,
-          .wy-float-slow,
-          .wy-sticker-pop,
-          .wy-fade-up,
-          .wy-burst-particle {
+          .wy2-fade-up-${uid}, .wy2-float-${uid}, .wy2-spin-${uid}, .wy2-burst-${uid} {
             animation: none !important;
-            transition-duration: 0.01ms !important;
           }
         }
       `}</style>
 
-      {/* Detailed Animated Moonlit Conservatory Background */}
-      <ConservatoryBackdrop intensified={stage === 'accepted'} />
+      {/* Damask Wallpaper Filigree on Velvet Stages */}
+      {!isGinghamStage ? (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 opacity-[0.09]"
+          style={{
+            backgroundImage:
+              'radial-gradient(circle at 12px 12px, #FDE68A 1.1px, transparent 1.1px), radial-gradient(circle at 28px 28px, #FDA4AF 0.9px, transparent 0.9px)',
+            backgroundSize: '32px 32px',
+          }}
+        />
+      ) : null}
 
-      {/* Watermark Strip (when in free preview mode) */}
+      {/* Watermark Strip */}
       {watermarked ? (
         <div
           aria-hidden="true"
-          className="relative z-30 flex justify-center bg-[#1E0D2E]/90 py-1 font-mono text-[10px] font-bold tracking-widest text-[#FBCFE8]"
+          className="relative z-30 flex justify-center border-b border-[#D8C2A6]/40 bg-[#3A070F]/92 py-1 font-mono text-[10px] font-bold tracking-[0.18em] text-[#FDE68A]"
         >
           WEBZY FREE PREVIEW
         </div>
       ) : null}
 
-      {/* Luminous Golden-Petal & Starlight Burst Overlay */}
+      {/* Scalloped Crochet Lace Top Trim on Gingham Stages */}
+      {isGinghamStage ? (
+        <div className="relative z-20">
+          <div className="flex items-center justify-between gap-2 bg-[#FAF2E4] px-4 py-2 text-[#4A0912]">
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setStage('keepsakes')}
+                className={`min-h-[36px] rounded-full px-3 text-xs font-bold transition ${
+                  stage === 'keepsakes'
+                    ? 'bg-[#8F1522] text-[#FAF2E4]'
+                    : 'border border-[#D4BC9E] bg-white text-[#5C1A22] hover:bg-[#F5E9D6]'
+                }`}
+              >
+                {copy.navKeepsakes}
+              </button>
+              <button
+                type="button"
+                onClick={() => setStage('proposal')}
+                className={`min-h-[36px] rounded-full px-3 text-xs font-bold transition ${
+                  stage === 'proposal'
+                    ? 'bg-[#8F1522] text-[#FAF2E4]'
+                    : 'border border-[#D4BC9E] bg-white text-[#5C1A22] hover:bg-[#F5E9D6]'
+                }`}
+              >
+                {copy.navAsk}
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={handleReplay}
+              className="inline-flex min-h-[36px] items-center rounded-full border border-[#D4BC9E] bg-white px-3 text-[11px] font-semibold text-[#5C1A22] transition hover:bg-[#F5E9D6]"
+            >
+              {getReplayLabel(language)}
+            </button>
+          </div>
+          <CrochetLaceTrim />
+        </div>
+      ) : null}
+
+      {/* Petal Celebration Burst Overlay */}
       {showBurst ? (
         <div
           key={`burst-${burstKey}`}
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 z-50 overflow-hidden"
         >
-          {BURST_PARTICLES.map((p, idx) => {
+          {BURST_PETALS.map((p, idx) => {
             const rad = (p.angle * Math.PI) / 180;
             const tx = `${Math.round(Math.cos(rad) * p.dist)}px`;
             const ty = `${Math.round(Math.sin(rad) * p.dist)}px`;
             return (
               <span
-                key={`bp-${idx}`}
-                className="wy-burst-particle absolute left-1/2 top-1/2"
+                key={`petal-${idx}`}
+                className={`wy2-burst-${uid} absolute left-1/2 top-1/2`}
                 style={
                   {
-                    '--wy-tx': tx,
-                    '--wy-ty': ty,
+                    '--wy2-tx': tx,
+                    '--wy2-ty': ty,
                     animationDelay: p.delay,
                   } as React.CSSProperties
                 }
               >
-                {p.kind === 'star' ? (
-                  <svg viewBox="0 0 24 24" className="h-5 w-5" fill={p.color}>
-                    <path d="M12 2 L14.4 9.2 L22 12 L14.4 14.8 L12 22 L9.6 14.8 L2 12 L9.6 9.2 Z" />
-                  </svg>
-                ) : (
-                  <svg viewBox="0 0 20 20" className="h-5 w-5" fill={p.color}>
-                    <path d="M10 2 C15 4.5 17 11 10 18 C3 11 5 4.5 10 2 Z" />
-                  </svg>
-                )}
+                <svg viewBox="0 0 20 20" className="h-5 w-5" fill={p.color}>
+                  <path d="M10 2 C15 4.5 17 11 10 18 C3 11 5 4.5 10 2 Z" />
+                </svg>
               </span>
             );
           })}
@@ -1199,433 +931,531 @@ export function WillYouSite({
       ) : null}
 
       {/* =====================================================================
-          STAGE 1: WAX-SEALED BOTANICAL ENVELOPE COVER
+          STAGE 1: CRIMSON DAMASK ENVELOPE & TWINE-TIED PROMPT COVER
          ===================================================================== */}
-      {stage === 'cover' || stage === 'opening' ? (
-        <main className="relative z-10 mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center px-5 py-10 text-center">
+      {stage === 'cover' ? (
+        <main className="relative z-10 mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-5 px-4 py-8 text-center text-[#FAF2E4]">
+          <CrimsonLilyCorner className="pointer-events-none absolute -left-4 top-2 h-24 w-24 opacity-85" />
+          <CrimsonLilyCorner className="pointer-events-none absolute -right-4 bottom-8 h-24 w-24 rotate-180 opacity-85" />
+
           <span
-            className={`inline-flex items-center gap-2 rounded-full border border-[#FDE68A]/35 bg-[#1B0D30]/75 px-3.5 py-1 text-[#FDE68A] backdrop-blur-xs ${eyebrowClass}`}
+            style={hindiSafe}
+            className={`inline-flex items-center gap-2 rounded-full border border-[#FDE68A]/35 bg-[#30060C]/80 px-3.5 py-1 text-[10px] font-bold text-[#FDE68A] ${
+              isHindi ? '' : 'font-mono uppercase tracking-[0.2em]'
+            }`}
           >
             <span className="h-1.5 w-1.5 rounded-full bg-[#FDA4AF]" aria-hidden="true" />
             {copy.coverEyebrow}
           </span>
 
-          <p
-            className={`mt-3 font-heading text-lg text-[#FFF1F2]/95 sm:text-xl ${
-              isHindi ? 'not-italic tracking-normal' : 'italic tracking-wide'
+          <h1
+            style={hindiSafe}
+            className={`max-w-xs break-words font-heading text-2xl font-bold leading-snug text-[#FFF8EF] sm:text-3xl ${
+              isHindi || hasDevanagari(copy.coverHeadline) ? 'not-italic' : 'italic'
             }`}
           >
-            {copy.coverPrompt}
-          </p>
+            {copy.coverHeadline}
+          </h1>
 
-          {/* Tactile Cream-Parchment Envelope with Pressed Flower Sprig & Crimson Wax Seal */}
-          <div className="wy-float-slow relative my-7 w-full max-w-[308px]" style={{ perspective: '900px' }}>
-            <button
-              type="button"
-              onClick={handleUnfoldEnvelope}
-              disabled={stage === 'opening'}
-              aria-label={copy.tapSealHint}
-              className={`group relative block w-full cursor-pointer overflow-visible rounded-[22px] border border-[#F5E6D3]/75 bg-gradient-to-br from-[#FAF3E8] via-[#F2E5D3] to-[#E7D4BC] px-6 pb-7 pt-16 text-center text-[#3B1D2B] shadow-[0_30px_60px_-14px_rgba(0,0,0,0.82),0_0_32px_-8px_rgba(253,230,138,0.28)] transition-all duration-500 hover:scale-[1.02] active:scale-[0.98] ${
-                stage === 'opening' ? 'scale-105 opacity-0' : 'opacity-100'
-              }`}
-            >
-              {/* Delicate gold-foil inner border */}
-              <span
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-2.5 rounded-[16px] border border-[#C69C6D]/45"
-              />
-
-              {/* Top Triangular Envelope Flap (flips open on unfold) */}
+          {/* Cream Envelope Peeking Out with Wax Seal & Vintage Postcard */}
+          <div className={`wy2-float-${uid} relative w-full max-w-[320px]`}>
+            <div className="relative rounded-[20px] border border-[#E7D4B8]/85 bg-gradient-to-b from-[#FCF6EC] to-[#F2E4CE] p-5 text-[#3B181E] shadow-[0_28px_60px_-16px_rgba(0,0,0,0.75)]">
               <div
                 aria-hidden="true"
-                className="pointer-events-none absolute inset-x-0 top-0 h-20 origin-top rounded-t-[22px] border-b border-[#D6BA9E]/70 bg-gradient-to-b from-[#FFFBF4] to-[#EBD8C2] transition-transform duration-500"
-                style={{
-                  clipPath: 'polygon(0 0, 100% 0, 50% 96%)',
-                  transform: stage === 'opening' ? 'rotateX(165deg)' : 'rotateX(0deg)',
-                }}
+                className="pointer-events-none absolute inset-2 rounded-[14px] border border-[#C69C6D]/45"
               />
 
-              {/* Pressed Botanical Flower Sprig tucked under the wax seal */}
-              <svg
-                viewBox="0 0 110 64"
-                className="pointer-events-none absolute left-1/2 top-7 h-16 w-28 -translate-x-1/2 -rotate-6"
-                fill="none"
-                aria-hidden="true"
-              >
-                <path
-                  d="M18 46 C38 36 62 28 92 16"
-                  stroke="#3F6212"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                />
-                <ellipse cx="36" cy="36" rx="7" ry="3.2" transform="rotate(-32 36 36)" fill="#4D7C0F" fillOpacity="0.82" />
-                <ellipse cx="74" cy="24" rx="7.5" ry="3.4" transform="rotate(12 74 24)" fill="#4D7C0F" fillOpacity="0.82" />
-                <ellipse cx="86" cy="14" rx="5.5" ry="2.6" transform="rotate(-24 86 14)" fill="#65A30D" fillOpacity="0.85" />
-                {/* Tiny dried lavender & rosebud dots */}
-                <circle cx="94" cy="15" r="3.4" fill="#FB7185" />
-                <circle cx="88" cy="22" r="2.6" fill="#FDA4AF" />
-                <circle cx="23" cy="43" r="2.5" fill="#FDE68A" />
-              </svg>
-
-              {/* Scalloped Crimson Botanical Wax Seal */}
-              <div
-                aria-hidden="true"
-                className={`relative z-10 mx-auto -mt-5 mb-3.5 flex h-14 w-14 items-center justify-center rounded-full border-2 border-[#FDA4AF]/55 bg-gradient-to-br from-[#E11D48] via-[#BE123C] to-[#881337] text-[#FFF1F2] shadow-[0_8px_20px_rgba(136,19,55,0.55),inset_0_2px_4px_rgba(255,255,255,0.28)] transition-transform duration-300 group-hover:scale-110 ${
-                  stage === 'opening' ? 'scale-125 opacity-0' : ''
-                }`}
-              >
-                <span className="font-heading text-xs font-bold tracking-wider">
+              {/* Top Postage Stamp + Heart Wax Seal Row */}
+              <div className="relative flex items-center justify-between gap-2">
+                <span className="inline-flex h-11 w-11 items-center justify-center rounded-full border-2 border-[#FDA4AF]/50 bg-gradient-to-br from-[#BE123C] to-[#7A0B24] font-heading text-xs font-bold text-[#FFF8EF] shadow-md">
                   {senderInitial}&amp;{receiverInitial}
                 </span>
+
+                <div className="rounded border border-dashed border-[#B69571] bg-[#FFFDF8] px-2.5 py-1 text-right font-mono text-[8.5px] font-bold uppercase tracking-[0.14em] text-[#8F1522]">
+                  <div>POSTCARD</div>
+                  <div className="text-[#7A5438]">LOVE MAIL</div>
+                </div>
               </div>
 
-              <p
-                className={`break-words font-heading text-2xl font-bold text-[#2B1424] ${
-                  hasDevanagari(receiverDisplay) || isHindi ? 'not-italic tracking-normal' : 'italic'
-                }`}
-              >
-                {copy.forPrefix} {receiverDisplay}
-              </p>
-              <p className="mt-1.5 break-words text-xs font-medium text-[#6B4253]">
-                {copy.fromPrefix} <span className="font-bold text-[#4A2033]">{senderDisplay}</span>
-              </p>
-            </button>
+              <div className="relative mt-4 border-t border-dashed border-[#D3BC9C] pt-4 text-left">
+                <p
+                  style={hindiSafe}
+                  className={`font-heading text-xl font-bold text-[#4A0912] ${
+                    isHindi || hasDevanagari(receiverDisplay) ? 'not-italic' : 'italic'
+                  }`}
+                >
+                  {copy.forPrefix} {receiverDisplay},
+                </p>
+                <p
+                  style={hindiSafe}
+                  className="mt-1.5 font-serif text-[13.5px] leading-relaxed text-[#5C3136]"
+                >
+                  {copy.postcardQuote}
+                </p>
+                <p className="mt-3 text-right text-xs font-semibold text-[#8F1522]">
+                  {copy.fromPrefix} {senderDisplay}
+                </p>
+              </div>
+            </div>
           </div>
 
+          {/* Twine-Tied Vintage Prompt Card ("Would you like to open it? Yes / No") */}
+          <div className="relative mt-1 w-full max-w-[290px] pt-3">
+            {/* Linen Twine Bow SVG */}
+            <svg
+              viewBox="0 0 80 28"
+              className="pointer-events-none mx-auto -mb-2 h-7 w-20"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path
+                d="M40 16 C28 4 14 8 22 18 C28 24 37 18 40 16 C43 18 52 24 58 18 C66 8 52 4 40 16 Z"
+                stroke="#E5CFAF"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path d="M40 16 L32 27 M40 16 L48 27" stroke="#E5CFAF" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+
+            <div className="rounded-xl border border-[#DFC7A5] bg-[#FAF2E4] px-5 py-4 text-[#3B181E] shadow-[0_18px_40px_-14px_rgba(0,0,0,0.68)]">
+              <p
+                style={hindiSafe}
+                className={`font-heading text-base font-bold text-[#4A0912] ${
+                  isHindi ? 'not-italic' : 'italic'
+                }`}
+              >
+                {copy.promptQuestion}
+              </p>
+
+              <div className="mt-3.5 flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={handleOpenBox}
+                  className="inline-flex min-h-[46px] w-full items-center justify-center rounded-lg border-2 border-[#7A0B24] bg-[#8F1522] px-4 py-2 text-xs font-bold tracking-wide text-[#FFF8EF] shadow-sm transition hover:bg-[#74101B] active:scale-[0.98]"
+                >
+                  {copy.promptYes}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    playPaperUnsealSfx(coverNoCount);
+                    setCoverNoCount((c) => c + 1);
+                  }}
+                  className="inline-flex min-h-[44px] w-full items-center justify-center rounded-lg border border-[#C6A984] bg-[#FFFDF8] px-4 py-2 text-xs font-semibold text-[#6B3B40] transition hover:bg-[#F5E9D6] active:scale-[0.98]"
+                >
+                  {copy.promptNo}
+                </button>
+              </div>
+
+              {coverNoCount > 0 ? (
+                <p
+                  role="status"
+                  style={hindiSafe}
+                  className="mt-2.5 text-[11.5px] font-semibold text-[#8F1522]"
+                >
+                  {copy.promptNoNudges[(coverNoCount - 1) % copy.promptNoNudges.length]}
+                </p>
+              ) : null}
+            </div>
+          </div>
+        </main>
+      ) : null}
+
+      {/* =====================================================================
+          STAGE 2: RED GINGHAM LACE KEEPSAKE DRAWER (4 INTERACTIVE GIFTS)
+         ===================================================================== */}
+      {stage === 'keepsakes' ? (
+        <main className={`wy2-fade-up-${uid} relative z-10 mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-4 py-5 text-[#3B181E]`}>
+          {/* Header Banner */}
+          <div className="rounded-2xl border border-[#DFC7A5] bg-[#FAF2E4]/95 px-4 py-4 text-center shadow-sm">
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <span
+                style={hindiSafe}
+                className={`text-[10px] font-bold text-[#8F1522] ${
+                  isHindi ? '' : 'font-mono uppercase tracking-[0.18em]'
+                }`}
+              >
+                {copy.drawerEyebrow}
+              </span>
+              <span className="rounded-full bg-[#8F1522] px-2.5 py-0.5 font-mono text-[10px] font-bold text-[#FAF2E4]">
+                {copy.openedProgress(openedKeepsakes.length, 4)}
+              </span>
+            </div>
+            <h2
+              style={hindiSafe}
+              className={`mt-1.5 font-heading text-2xl font-bold text-[#4A0912] ${
+                isHindi ? 'not-italic' : 'italic'
+              }`}
+            >
+              {copy.drawerTitle}
+            </h2>
+            <p style={hindiSafe} className="mt-1 text-xs text-[#6B3B40]">
+              {copy.drawerSub}
+            </p>
+          </div>
+
+          {/* 4 Lace-Doily Keepsake Buttons (2x2 Grid) */}
+          <section aria-label={copy.drawerTitle} className="grid grid-cols-2 gap-3">
+            {(['letter', 'bouquet', 'scrapbook', 'vinyl'] as const).map((id, idx) => {
+              const isSelected = activeKeepsake === id;
+              const isOpened = openedKeepsakes.includes(id);
+              const meta = copy.keepsakeLabels[id];
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => handleSelectKeepsake(id, idx)}
+                  aria-pressed={isSelected}
+                  className={`group relative flex min-h-[118px] flex-col items-center justify-center gap-1.5 rounded-[22px] border-2 px-3 py-3.5 text-center transition-all duration-200 active:scale-[0.97] ${
+                    isSelected
+                      ? 'border-[#8F1522] bg-[#FFFDF9] shadow-[0_14px_28px_-12px_rgba(143,21,34,0.45)]'
+                      : 'border-dashed border-[#D2B694] bg-[#FAF2E4]/95 hover:border-[#8F1522]/60 hover:bg-[#FFFDF9]'
+                  }`}
+                >
+                  {isOpened ? (
+                    <span
+                      aria-hidden="true"
+                      className="absolute right-2.5 top-2.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#8F1522] text-white"
+                    >
+                      <svg viewBox="0 0 16 16" className="h-3 w-3" fill="none">
+                        <path
+                          d="M3.5 8.2L6.6 11.3L12.5 4.8"
+                          stroke="currentColor"
+                          strokeWidth="2.2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </span>
+                  ) : null}
+
+                  <div className="transition-transform duration-200 group-hover:scale-105">
+                    <KeepsakeObjectIcon id={id} />
+                  </div>
+                  <span style={hindiSafe} className="font-heading text-sm font-bold text-[#4A0912]">
+                    {meta.title}
+                  </span>
+                  <span className="text-[10.5px] font-semibold text-[#8F1522]/80">{meta.tag}</span>
+                </button>
+              );
+            })}
+          </section>
+
+          {/* Active Keepsake Interactive Stage */}
+          <section className="relative overflow-hidden rounded-[24px] border-2 border-[#DFC7A5] bg-[#FFFDF8] p-5 shadow-[0_18px_36px_-18px_rgba(74,9,18,0.35)]">
+            {activeKeepsake === 'letter' ? (
+              <div className="space-y-3 text-center">
+                <span
+                  style={hindiSafe}
+                  className={`inline-block rounded-full border border-[#DFC7A5] bg-[#FAF2E4] px-3 py-0.5 text-[10px] font-bold text-[#8F1522] ${
+                    isHindi ? '' : 'font-mono uppercase tracking-[0.16em]'
+                  }`}
+                >
+                  {copy.letterHeading}
+                </span>
+                <h3
+                  style={hindiSafe}
+                  className={`break-words font-heading text-2xl font-bold leading-snug text-[#4A0912] ${
+                    isHindi || hasDevanagari(headlineText) ? 'not-italic' : 'italic'
+                  }`}
+                >
+                  {headlineText}
+                </h3>
+                <div className="mx-auto h-px w-16 bg-[#D8C2A6]" aria-hidden="true" />
+                <p
+                  style={hindiSafe}
+                  className="break-words rounded-2xl border border-[#EFE2CE] bg-[#FBF6EC] p-4 font-serif text-[15px] leading-relaxed text-[#4A252B]"
+                >
+                  {messageText}
+                </p>
+                <p className="font-heading text-sm font-bold italic text-[#8F1522]">
+                  {copy.fromPrefix} {senderDisplay}
+                </p>
+              </div>
+            ) : null}
+
+            {activeKeepsake === 'bouquet' ? (
+              <div className="space-y-3.5 text-center">
+                <div>
+                  <h3
+                    style={hindiSafe}
+                    className={`font-heading text-xl font-bold text-[#4A0912] ${
+                      isHindi ? 'not-italic' : 'italic'
+                    }`}
+                  >
+                    {copy.bouquetHeading}
+                  </h3>
+                  <p style={hindiSafe} className="mt-0.5 text-xs text-[#6B3B40]">
+                    {copy.bouquetHint}
+                  </p>
+                </div>
+
+                {/* Illustrated Rose Bouquet Centerpiece */}
+                <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full border border-[#E7D4B8] bg-gradient-to-b from-[#FDF5EB] to-[#F7E6D4]">
+                  <KeepsakeObjectIcon id="bouquet" />
+                </div>
+
+                {/* 4 Tappable Ribbon Callout Tags */}
+                <div className="grid grid-cols-2 gap-2">
+                  {bouquetReasons.map((reason, idx) => {
+                    const active = activeReasonIdx === idx;
+                    return (
+                      <button
+                        key={`reason-tag-${idx}`}
+                        type="button"
+                        onClick={() => {
+                          playPaperUnsealSfx(idx);
+                          setActiveReasonIdx(idx);
+                        }}
+                        aria-pressed={active}
+                        className={`min-h-[44px] rounded-xl border px-3 py-2 text-xs font-bold transition active:scale-[0.98] ${
+                          active
+                            ? 'border-[#8F1522] bg-[#8F1522] text-[#FFF8EF]'
+                            : 'border-[#DFC7A5] bg-[#FAF2E4] text-[#4A0912] hover:border-[#8F1522]/50'
+                        }`}
+                      >
+                        {reason.title}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div
+                  role="status"
+                  className="rounded-2xl border border-[#DFC7A5] bg-[#FBF6EC] px-4 py-3.5"
+                >
+                  <p style={hindiSafe} className="font-heading text-sm font-bold text-[#8F1522]">
+                    {bouquetReasons[activeReasonIdx]?.title}
+                  </p>
+                  <p
+                    style={hindiSafe}
+                    className="mt-1 font-serif text-[13.5px] leading-relaxed text-[#4A252B]"
+                  >
+                    {bouquetReasons[activeReasonIdx]?.detail}
+                  </p>
+                </div>
+              </div>
+            ) : null}
+
+            {activeKeepsake === 'scrapbook' ? (
+              <div className="space-y-3 text-center">
+                <div>
+                  <h3
+                    style={hindiSafe}
+                    className={`font-heading text-xl font-bold text-[#4A0912] ${
+                      isHindi ? 'not-italic' : 'italic'
+                    }`}
+                  >
+                    {copy.scrapbookHeading}
+                  </h3>
+                  <p style={hindiSafe} className="mt-0.5 text-xs text-[#6B3B40]">
+                    {copy.scrapbookHint}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2.5 pt-1">
+                  {polaroids.map((item, idx) => {
+                    const isFailed = Boolean(failedPhotos[item.src]);
+                    const tilts = ['-rotate-2', 'rotate-1', 'rotate-2'] as const;
+                    return (
+                      <button
+                        key={`scrap-photo-${idx}`}
+                        type="button"
+                        onClick={() => !isFailed && setZoomIdx(idx)}
+                        className={`group relative flex flex-col rounded-lg border border-[#D8C2A6] bg-white p-1.5 pb-2.5 shadow-md transition hover:z-10 hover:rotate-0 hover:scale-105 active:scale-95 ${tilts[idx % 3]}`}
+                      >
+                        <span
+                          aria-hidden="true"
+                          className="pointer-events-none absolute -top-2 left-1/2 h-3 w-8 -translate-x-1/2 rounded-[2px] bg-[#E11D48]/35"
+                        />
+                        <div className="aspect-square w-full overflow-hidden rounded bg-[#F5E9D6]">
+                          {!isFailed ? (
+                            /* eslint-disable-next-line @next/next/no-img-element */
+                            <img
+                              src={item.src}
+                              alt={item.caption}
+                              loading="lazy"
+                              onError={() =>
+                                setFailedPhotos((prev) => ({ ...prev, [item.src]: true }))
+                              }
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center bg-[#4A0912] text-xs font-bold text-[#FDE68A]">
+                              0{idx + 1}
+                            </div>
+                          )}
+                        </div>
+                        <span className="mt-1.5 block truncate text-[10px] font-semibold italic text-[#4A0912]">
+                          {item.caption}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
+
+            {activeKeepsake === 'vinyl' ? (
+              <div className="space-y-4 text-center">
+                <h3
+                  style={hindiSafe}
+                  className={`font-heading text-xl font-bold text-[#4A0912] ${
+                    isHindi ? 'not-italic' : 'italic'
+                  }`}
+                >
+                  {copy.vinylHeading}
+                </h3>
+
+                {/* Spinning 33RPM Crimson Vinyl Disc */}
+                <div className="mx-auto flex h-28 w-28 items-center justify-center">
+                  <div
+                    className={`wy2-spin-${uid} flex h-24 w-24 items-center justify-center rounded-full border-2 border-[#D8C2A6] bg-[#1C1414] shadow-lg`}
+                  >
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full border border-white/10">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#BE123C] text-[9px] font-bold text-[#FAF2E4]">
+                        {senderInitial}&amp;{receiverInitial}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <p style={hindiSafe} className="font-serif text-xs leading-relaxed text-[#5C3136]">
+                  {copy.vinylSubtitle}
+                </p>
+
+                <OccasionCassettePlayer
+                  trackTitle={copy.vinylSongTitle}
+                  mood="romantic"
+                  tapLabel={copy.vinylTap}
+                  playingLabel={copy.vinylPlaying}
+                  accentColor="#8F1522"
+                />
+              </div>
+            ) : null}
+          </section>
+
+          {/* Proceed to Proposal CTA */}
           <button
             type="button"
-            onClick={handleUnfoldEnvelope}
-            disabled={stage === 'opening'}
-            className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-[#FDE68A]/35 bg-[#1C0D30]/80 px-5 py-2 text-xs font-semibold text-[#FDE68A] backdrop-blur-sm transition hover:bg-[#2A1447] active:scale-95"
+            onClick={() => {
+              playLanternPullChime();
+              setStage('proposal');
+            }}
+            className="inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-full border-2 border-[#FAF2E4] bg-[#4A0912] px-6 py-3 text-sm font-bold text-[#FFF8EF] shadow-[0_14px_30px_-10px_rgba(74,9,18,0.65)] transition hover:bg-[#640D19] active:scale-[0.98]"
           >
-            <HeartPinSvg className="h-3.5 w-3.5 text-[#FDA4AF]" />
-            <span>{stage === 'opening' ? copy.openingLabel : copy.tapSealHint}</span>
+            <span>{copy.proceedToAskCta}</span>
+            <span aria-hidden="true">-&gt;</span>
           </button>
         </main>
       ) : null}
 
       {/* =====================================================================
-          STAGE 2 & STAGE 3 HEADER BAR
+          STAGE 3: LACE-FRAMED PROPOSAL TABLE (RUNAWAY NO & YES)
          ===================================================================== */}
-      {stage === 'question' || stage === 'accepted' ? (
-        <header className="relative z-20 flex items-center justify-between gap-2 border-b border-white/10 bg-[#120822]/75 px-4 py-2.5 backdrop-blur-md">
-          <span className="inline-flex min-h-[34px] max-w-[62%] items-center gap-1.5 truncate rounded-full border border-[#FDA4AF]/30 bg-[#24103A]/85 px-3 py-1 text-xs font-medium text-[#FBCFE8]">
-            <HeartPinSvg className="h-3 w-3 shrink-0 text-[#FB7185]" />
-            <span className="truncate">
-              {senderDisplay} &amp; {receiverDisplay}
-            </span>
-          </span>
-
-          <button
-            type="button"
-            onClick={handleReplayCover}
-            className="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/10 px-3.5 text-xs font-semibold text-[#FFF7F5] transition hover:bg-white/15 active:scale-95"
-          >
-            {getReplayLabel(language)}
-          </button>
-        </header>
-      ) : null}
-
-      {/* =====================================================================
-          STAGE 2: MOONLIT GARDEN — POETIC NOTE, POLAROIDS & CAT MEME ASK
-         ===================================================================== */}
-      {stage === 'question' ? (
-        <main className="wy-fade-up relative z-10 mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-4 pb-6 pt-5">
-          {/* Minimal Poetic Headline & Heartfelt Note */}
-          <section className="relative overflow-hidden rounded-[26px] border border-[#FDE68A]/25 bg-[#160B2A]/75 px-5 py-5 text-center shadow-[0_20px_50px_-18px_rgba(0,0,0,0.75)] backdrop-blur-md">
-            <h1
-              className={`break-words font-heading text-2xl font-bold leading-snug text-[#FFF7ED] sm:text-[26px] ${
-                hasDevanagari(headlineText) || isHindi ? 'not-italic tracking-normal' : 'italic'
+      {stage === 'proposal' ? (
+        <main className={`wy2-fade-up-${uid} relative z-10 mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-5 px-4 py-7 text-center text-[#3B181E]`}>
+          <section className="relative w-full rounded-[28px] border-[6px] border-double border-[#E6D0B1] bg-[#FFFDF8] px-5 py-7 shadow-[0_24px_54px_-16px_rgba(74,9,18,0.42)]">
+            <span
+              style={hindiSafe}
+              className={`inline-block rounded-full border border-[#DFC7A5] bg-[#FAF2E4] px-3.5 py-1 text-[10px] font-bold text-[#8F1522] ${
+                isHindi ? '' : 'font-mono uppercase tracking-[0.18em]'
               }`}
             >
-              {headlineText}
-            </h1>
-            <div
-              className="mx-auto my-3 h-px w-16 bg-gradient-to-r from-transparent via-[#FDA4AF]/75 to-transparent"
-              aria-hidden="true"
-            />
-            <p className="break-words text-sm leading-relaxed text-[#FDE8EF]/90">
-              {messageText}
+              {copy.proposalEyebrow}
+            </span>
+
+            <p
+              style={hindiSafe}
+              className="mt-2 font-serif text-xs font-semibold text-[#7A3B42]"
+            >
+              {copy.proposalBanner}
             </p>
-          </section>
 
-          {/* Interactive Constellation Reasons Deck ("Written in the Stars") */}
-          <section
-            aria-label={extraCopy.starsEyebrow}
-            className="space-y-2.5 rounded-[26px] border border-[#FDE68A]/25 bg-[#150A28]/78 p-4 backdrop-blur-md"
-          >
-            <div className="flex items-center justify-between gap-2 px-1">
-              <div className="min-w-0">
-                <p className={`text-[#FDE68A]/90 ${eyebrowClass}`}>{extraCopy.starsEyebrow}</p>
-                <h2 className="mt-0.5 font-heading text-base font-bold text-[#FFF7ED]">
-                  {extraCopy.starsTitle}
-                </h2>
-              </div>
-              <span className="shrink-0 rounded-full border border-[#FDE68A]/30 bg-[#FDE68A]/10 px-2.5 py-1 font-mono text-[10px] font-bold text-[#FDE68A]">
-                {extraCopy.starsProgress(litStars.length, starReasons.length)}
-              </span>
-            </div>
-
-            <div className="space-y-2">
-              {starReasons.map((reason, idx) => {
-                const isLit = litStars.includes(idx);
-                return (
-                  <button
-                    key={`star-reason-${idx}`}
-                    type="button"
-                    onClick={() => handleToggleStar(idx)}
-                    aria-pressed={isLit}
-                    className={`flex min-h-[54px] w-full items-start gap-3 rounded-2xl border px-3.5 py-3 text-left transition-all duration-300 active:scale-[0.98] ${
-                      isLit
-                        ? 'border-[#FDE68A]/55 bg-gradient-to-r from-[#2D144C]/90 to-[#1F0F38]/90 shadow-[0_10px_24px_-12px_rgba(253,230,138,0.45)]'
-                        : 'border-white/12 bg-white/[0.04] hover:border-[#FDA4AF]/40 hover:bg-white/[0.08]'
-                    }`}
-                  >
-                    <span
-                      aria-hidden="true"
-                      className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border transition-colors ${
-                        isLit
-                          ? 'border-[#FDE68A] bg-[#FDE68A]/20 text-[#FDE68A]'
-                          : 'border-white/20 bg-white/5 text-[#FBCFE8]/65'
-                      }`}
-                    >
-                      <svg viewBox="0 0 20 20" className="h-3.5 w-3.5" fill="currentColor">
-                        <path d="M10 1.5 L12.2 7.5 L18.5 10 L12.2 12.5 L10 18.5 L7.8 12.5 L1.5 10 L7.8 7.5 Z" />
-                      </svg>
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-bold text-[#FFF7ED]">
-                        {isLit ? reason.title : `${extraCopy.tapToRevealStar} 0${idx + 1}`}
-                      </p>
-                      {isLit ? (
-                        <p className="mt-1 break-words text-xs leading-relaxed text-[#FDE8EF]/90">
-                          {reason.detail}
-                        </p>
-                      ) : (
-                        <p className="mt-0.5 text-[11px] text-[#FBCFE8]/60">
-                          {extraCopy.starsHint}
-                        </p>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-
-          {/* Interactive Proposal Card with Expressive Cat Meme Companion */}
-          <section className="relative overflow-hidden rounded-[28px] border border-[#FDA4AF]/35 bg-gradient-to-b from-[#230F3A]/88 via-[#180B2C]/90 to-[#110722]/92 px-4 py-6 text-center shadow-[0_24px_56px_-16px_rgba(244,63,94,0.35)] backdrop-blur-md">
-            <p className={`text-[#FDE68A]/90 ${eyebrowClass}`}>{copy.questionEyebrow}</p>
-
-            {/* Expressive Illustrated Cat Meme Companion */}
             <div className="my-4">
-              <CatMemeSticker mood={catMood} caption={catCaption} />
+              <CozyCoupleIllustration mood={bearMood} caption={bearCaption} />
             </div>
 
             <h2
-              className={`break-words font-heading text-xl font-bold text-[#FFF7ED] sm:text-2xl ${
-                isHindi ? 'not-italic tracking-normal' : ''
+              style={hindiSafe}
+              className={`break-words font-heading text-2xl font-bold text-[#4A0912] sm:text-[28px] ${
+                isHindi ? 'not-italic' : 'italic'
               }`}
             >
-              {copy.questionTitle}
+              {copy.proposalQuestion}
             </h2>
 
             {/* Interactive Yes / Runaway No Stage */}
-            <div className="relative mt-5 flex min-h-[104px] flex-wrap items-center justify-center gap-3.5 px-2 py-3">
+            <div className="relative mt-6 flex min-h-[100px] flex-wrap items-center justify-center gap-3.5 px-2 py-2">
               <button
                 type="button"
                 onClick={handleSayYes}
-                style={{
-                  transform: `scale(${yesScale})`,
-                  boxShadow: `0 0 ${yesGlow}px rgba(244, 63, 94, 0.72)`,
-                }}
-                className="relative z-10 inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#F43F5E] via-[#E11D48] to-[#FB7185] px-7 py-2.5 text-sm font-bold text-white transition-all duration-300 hover:brightness-110 active:scale-95"
+                style={{ transform: `scale(${yesScale})` }}
+                className="relative z-10 inline-flex min-h-[48px] items-center justify-center rounded-full border-2 border-[#7A0B24] bg-gradient-to-r from-[#8F1522] via-[#BE123C] to-[#9F1239] px-7 py-2.5 text-sm font-bold text-[#FFF8EF] shadow-[0_12px_28px_-8px_rgba(143,21,34,0.65)] transition-all duration-300 hover:brightness-110 active:scale-95"
               >
-                <HeartPinSvg className="h-4 w-4 text-[#FFF1F2]" />
-                <span>{copy.yesLabel}</span>
+                {copy.yesLabel}
               </button>
 
               <button
                 type="button"
                 onClick={handleDodgeNo}
                 onMouseEnter={handleDodgeNo}
-                style={{
-                  transform: `translate(${dodgeSpot.x}px, ${dodgeSpot.y}px)`,
-                }}
-                className="relative z-10 inline-flex min-h-[44px] min-w-[78px] items-center justify-center rounded-full border border-[#FBCFE8]/35 bg-white/10 px-4 py-2 text-xs font-semibold text-[#FDE8EF]/90 backdrop-blur-xs transition-transform duration-300 ease-out hover:bg-white/15"
+                style={{ transform: `translate(${dodgeSpot.x}px, ${dodgeSpot.y}px)` }}
+                className="relative z-10 inline-flex min-h-[44px] min-w-[78px] items-center justify-center rounded-full border border-[#C6A984] bg-[#FAF2E4] px-4 py-2 text-xs font-semibold text-[#5C3136] transition-transform duration-300 ease-out hover:bg-[#F2E4CE]"
               >
                 {copy.noLabel}
               </button>
-            </div>
-          </section>
-
-          {/* 3-Polaroid Keepsake Strip with Washi Tape & Tiny Heart Pins */}
-          <section aria-label={copy.polaroidEyebrow} className="space-y-2.5 pt-1">
-            <p className={`text-center text-[#FDA4AF]/85 ${eyebrowClass}`}>
-              {copy.polaroidEyebrow}
-            </p>
-
-            <div className="grid grid-cols-3 gap-2.5 px-0.5">
-              {polaroids.map((item, idx) => {
-                const isFailed = Boolean(failedPhotos[item.src]);
-                return (
-                  <button
-                    key={`polaroid-${idx}`}
-                    type="button"
-                    onClick={() => !isFailed && setZoomIdx(idx)}
-                    aria-label={`${item.caption}`}
-                    className={`group relative flex flex-col rounded-xl bg-[#FFFDF8] p-1.5 pb-3 text-left shadow-[0_14px_28px_-10px_rgba(0,0,0,0.72)] transition-all duration-300 hover:z-10 hover:rotate-0 hover:scale-105 active:scale-95 ${polaroidTilts[idx % polaroidTilts.length]}`}
-                  >
-                    {/* Translucent Pastel Washi Tape Strip */}
-                    <span
-                      aria-hidden="true"
-                      className={`pointer-events-none absolute -top-2 left-1/2 h-3.5 w-10 -translate-x-1/2 rounded-[2px] backdrop-blur-[1px] ${washiTints[idx % washiTints.length]}`}
-                    />
-                    {/* Tiny Heart Pin */}
-                    <span
-                      aria-hidden="true"
-                      className="pointer-events-none absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#FFF1F2] text-[#E11D48] shadow-xs"
-                    >
-                      <HeartPinSvg className="h-3 w-3" />
-                    </span>
-
-                    <div className="aspect-square w-full overflow-hidden rounded-lg bg-[#241036]">
-                      {isFailed ? (
-                        <PolaroidBotanicalFallback index={idx} />
-                      ) : (
-                        /* eslint-disable-next-line @next/next/no-img-element */
-                        <img
-                          src={item.src}
-                          alt={item.caption}
-                          loading="lazy"
-                          decoding="async"
-                          onError={() =>
-                            setFailedPhotos((prev) => ({ ...prev, [item.src]: true }))
-                          }
-                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        />
-                      )}
-                    </div>
-
-                    <span
-                      className={`mt-1.5 block truncate text-center text-[10px] font-semibold text-[#4A2535] ${
-                        hasDevanagari(item.caption) ? 'tracking-normal' : 'italic'
-                      }`}
-                    >
-                      {item.caption}
-                    </span>
-                  </button>
-                );
-              })}
             </div>
           </section>
         </main>
       ) : null}
 
       {/* =====================================================================
-          STAGE 3: "YES!" GRAND STARLIGHT BLOOM & CONSTELLATION KEEPSAKE TICKET
+          STAGE 4: ACCEPTED GRAND VELVET BOUQUET & STAMPED DATE TICKET
          ===================================================================== */}
       {stage === 'accepted' ? (
-        <main className="wy-fade-up relative z-10 mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-5 px-4 pb-6 pt-5">
-          {/* Celebratory Purring Cat with Flower Crown */}
-          <div className="wy-float-slow">
-            <CatMemeSticker mood={5} caption={copy.yesLabel} />
+        <main className={`wy2-fade-up-${uid} relative z-10 mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-4 px-4 py-7 text-[#FAF2E4]`}>
+          <div className="rounded-2xl border border-[#DFC7A5]/45 bg-[#FFFDF8] px-5 py-3 shadow-lg">
+            <CozyCoupleIllustration mood={5} caption={copy.yesLabel} />
           </div>
 
-          {/* Constellation Promise Keepsake Ticket */}
-          <section
-            aria-label={copy.ticketEyebrow}
-            className="relative w-full overflow-hidden rounded-[28px] border border-[#FDE68A]/50 bg-gradient-to-br from-[#261142]/92 via-[#180B2D]/94 to-[#0E071D]/96 p-5 text-[#FFF7ED] shadow-[0_28px_64px_-14px_rgba(244,63,94,0.48),0_0_32px_-10px_rgba(253,230,138,0.3)] backdrop-blur-md"
-          >
-            {/* Header row with stamp */}
+          {/* Vintage Velvet & Cream Keepsake Date Ticket */}
+          <section className="relative w-full overflow-hidden rounded-[26px] border-2 border-[#E5CFAF]/75 bg-[#FAF2E4] p-5 text-[#3B181E] shadow-[0_28px_60px_-16px_rgba(0,0,0,0.75)]">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className={`inline-flex items-center gap-1.5 text-[#FDE68A] ${eyebrowClass}`}>
-                <span className="h-2 w-2 rounded-full bg-[#FB7185]" aria-hidden="true" />
-                {copy.ticketEyebrow}
-              </span>
-
               <span
-                className={`inline-block -rotate-2 rounded-md border border-[#FDA4AF]/65 bg-[#F43F5E]/20 px-2.5 py-0.5 text-[#FBCFE8] ${
-                  isHindi ? 'text-[10px] font-bold tracking-normal' : 'font-mono text-[9.5px] font-bold tracking-[0.14em]'
+                style={hindiSafe}
+                className={`text-[10px] font-bold text-[#8F1522] ${
+                  isHindi ? '' : 'font-mono uppercase tracking-[0.16em]'
                 }`}
               >
-                {copy.ticketStamp}
+                {copy.acceptedEyebrow}
+              </span>
+              <span className="-rotate-2 rounded border border-[#8F1522] bg-[#8F1522]/10 px-2 py-0.5 font-mono text-[9px] font-bold text-[#8F1522]">
+                {copy.acceptedStamp}
               </span>
             </div>
 
             <h2
-              className={`mt-3 break-words font-heading text-2xl font-bold leading-snug text-[#FFF7ED] ${
-                hasDevanagari(receiverDisplay) || isHindi ? 'not-italic tracking-normal' : 'italic'
+              style={hindiSafe}
+              className={`mt-2.5 break-words font-heading text-2xl font-bold leading-snug text-[#4A0912] ${
+                isHindi || hasDevanagari(receiverDisplay) ? 'not-italic' : 'italic'
               }`}
             >
-              {copy.ticketTitle(receiverDisplay)}
+              {copy.acceptedTitle(receiverDisplay)}
             </h2>
-            <p className="mt-1 break-words text-xs leading-relaxed text-[#FBCFE8]/90 sm:text-sm">
-              {copy.ticketSubtitle(senderDisplay)}
+            <p style={hindiSafe} className="mt-1 text-xs leading-relaxed text-[#6B3B40]">
+              {copy.acceptedSub(senderDisplay)}
             </p>
 
-            {/* Constellation Connection Art with Both Names */}
-            <div className="mt-4 rounded-2xl border border-[#FDE68A]/25 bg-black/30 px-4 py-4">
-              <svg viewBox="0 0 260 66" className="mx-auto h-14 w-full" aria-hidden="true">
-                <path
-                  d="M42 42 Q130 6 218 42"
-                  fill="none"
-                  stroke="#FDE68A"
-                  strokeOpacity="0.45"
-                  strokeWidth="1.2"
-                  strokeDasharray="3 4"
-                />
-                <circle cx="90" cy="24" r="2" fill="#FDE68A" fillOpacity="0.7" />
-                <circle cx="130" cy="18" r="3" fill="#FDA4AF" />
-                <circle cx="170" cy="24" r="2" fill="#FDE68A" fillOpacity="0.7" />
-                {/* Star nodes for sender & receiver */}
-                <circle cx="42" cy="42" r="14" fill="#2A1245" stroke="#FDE68A" strokeWidth="1.4" />
-                <text
-                  x="42"
-                  y="46"
-                  textAnchor="middle"
-                  fontSize="11"
-                  fontWeight="700"
-                  fill="#FFF7ED"
-                >
-                  {senderInitial}
-                </text>
-                <circle cx="218" cy="42" r="14" fill="#2A1245" stroke="#FDA4AF" strokeWidth="1.4" />
-                <text
-                  x="218"
-                  y="46"
-                  textAnchor="middle"
-                  fontSize="11"
-                  fontWeight="700"
-                  fill="#FFF7ED"
-                >
-                  {receiverInitial}
-                </text>
-              </svg>
-
-              <div className="mt-1 flex items-center justify-between gap-2 text-xs font-bold">
-                <span className="max-w-[44%] truncate text-[#FDE68A]">{senderDisplay}</span>
-                <HeartPinSvg className="h-3.5 w-3.5 shrink-0 text-[#FB7185]" />
-                <span className="max-w-[44%] truncate text-right text-[#FDA4AF]">
-                  {receiverDisplay}
-                </span>
-              </div>
-            </div>
-
-            {/* Dream Date Picker Stamped Live on Ticket */}
-            <div className="mt-4 space-y-2 rounded-2xl border border-[#FDA4AF]/25 bg-[#120724]/75 p-3">
-              <div className="flex items-center justify-between gap-2">
-                <span className={`text-[#FDE68A]/90 ${eyebrowClass}`}>
-                  {extraCopy.datePickerEyebrow}
-                </span>
-                <span className="rounded-full border border-[#FDE68A]/35 bg-[#FDE68A]/10 px-2 py-0.5 font-mono text-[9px] font-bold text-[#FDE68A]">
-                  {extraCopy.chosenDateStamp}
-                </span>
-              </div>
-              <p className="text-[11px] text-[#FBCFE8]/80">{extraCopy.datePickerTitle}</p>
+            {/* Dream Date Stamp Picker */}
+            <div className="mt-4 space-y-2 rounded-2xl border border-[#DFC7A5] bg-[#FFFDF9] p-3">
+              <p style={hindiSafe} className="text-[11px] font-bold text-[#4A0912]">
+                {copy.datePickerTitle}
+              </p>
               <div className="grid grid-cols-2 gap-2">
                 {DREAM_DATE_OPTIONS.map((opt, idx) => {
-                  const isPicked = opt.id === selectedDateId;
+                  const picked = opt.id === selectedDateId;
                   return (
                     <button
                       key={opt.id}
@@ -1634,17 +1464,21 @@ export function WillYouSite({
                         playPaperUnsealSfx(idx);
                         setSelectedDateId(opt.id);
                       }}
-                      aria-pressed={isPicked}
-                      className={`flex min-h-[54px] flex-col items-start justify-center rounded-xl border px-3 py-2 text-left transition active:scale-[0.98] ${
-                        isPicked
-                          ? 'border-[#FDE68A] bg-[#FDE68A]/15 text-[#FFF7ED] shadow-[0_6px_18px_-8px_rgba(253,230,138,0.55)]'
-                          : 'border-white/12 bg-white/[0.04] text-[#FBCFE8]/85 hover:border-[#FDA4AF]/40'
+                      aria-pressed={picked}
+                      className={`flex min-h-[56px] flex-col items-start justify-center rounded-xl border px-3 py-2 text-left transition active:scale-[0.98] ${
+                        picked
+                          ? 'border-[#8F1522] bg-[#8F1522] text-[#FFF8EF]'
+                          : 'border-[#DFC7A5] bg-[#FAF2E4]/75 text-[#4A0912] hover:border-[#8F1522]/50'
                       }`}
                     >
                       <span className="text-[11px] font-bold leading-snug">
                         {opt.label[coreLang]}
                       </span>
-                      <span className="mt-0.5 text-[10px] text-[#FDE68A]/75">
+                      <span
+                        className={`mt-0.5 text-[10px] ${
+                          picked ? 'text-[#FDE68A]' : 'text-[#7A4B50]'
+                        }`}
+                      >
                         {opt.vibe[coreLang]}
                       </span>
                     </button>
@@ -1653,69 +1487,69 @@ export function WillYouSite({
               </div>
             </div>
 
-            {/* Perforated Ticket Tear Line */}
+            {/* Perforated Tear Line */}
             <div className="relative my-4 flex items-center" aria-hidden="true">
-              <span className="-ml-8 h-6 w-6 shrink-0 rounded-full bg-[#0D071D]" />
-              <span className="w-full border-t-2 border-dashed border-[#FDE68A]/35" />
-              <span className="-mr-8 h-6 w-6 shrink-0 rounded-full bg-[#0D071D]" />
+              <span className="-ml-8 h-6 w-6 shrink-0 rounded-full bg-[#3A070F]" />
+              <span className="w-full border-t-2 border-dashed border-[#C6A984]" />
+              <span className="-mr-8 h-6 w-6 shrink-0 rounded-full bg-[#3A070F]" />
             </div>
 
-            {/* Promise Footer & Actions */}
-            <div className="text-center">
-              <p className={`text-[#FDE68A]/80 ${eyebrowClass}`}>{copy.promiseLabel}</p>
-              <p className="mt-1 break-words text-xs font-medium text-[#FFF1F2]/90">
-                {selectedDateObj.label[coreLang]} · {copy.promiseValue}
+            {/* Reserved Stamp Summary & Actions */}
+            <div className="space-y-2.5 text-center">
+              <p className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-[#8F1522]">
+                {selectedDateObj.code} · {selectedDateObj.label[coreLang]}
               </p>
 
-              <div className="mt-4 flex flex-col gap-2.5">
+              <button
+                type="button"
+                onClick={() => void handleCopyYesReply()}
+                className="inline-flex min-h-[46px] w-full items-center justify-center rounded-full bg-[#8F1522] px-5 py-2.5 text-xs font-bold text-[#FFF8EF] shadow-sm transition hover:bg-[#74101B] active:scale-[0.98]"
+              >
+                {copy.copyYesCta}
+              </button>
+
+              {copiedYes ? (
+                <p role="status" className="text-xs font-semibold text-emerald-800">
+                  {copy.copiedYesToast}
+                </p>
+              ) : null}
+
+              <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
-                  onClick={() => void handleCopyYesReply()}
-                  className="inline-flex min-h-[46px] w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#FDE68A] via-[#FDBA74] to-[#FDA4AF] px-5 py-2.5 text-xs font-bold text-[#1B0B2E] shadow-[0_10px_24px_-8px_rgba(253,230,138,0.55)] transition hover:brightness-105 active:scale-[0.98]"
+                  onClick={triggerPetalBurst}
+                  className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-full border border-[#8F1522]/35 bg-[#FFFDF8] px-4 text-xs font-bold text-[#8F1522] transition hover:bg-[#F5E9D6] active:scale-95"
                 >
-                  <HeartPinSvg className="h-3.5 w-3.5 text-[#BE123C]" />
-                  <span>{extraCopy.copyYesCta}</span>
+                  {copy.petalShowerCta}
                 </button>
-
-                {copiedYes ? (
-                  <p
-                    role="status"
-                    className="rounded-xl border border-[#FDE68A]/40 bg-[#FDE68A]/12 px-3 py-1.5 text-xs font-semibold text-[#FDE68A]"
-                  >
-                    {extraCopy.copiedYesToast}
-                  </p>
-                ) : null}
-
-                <div className="flex flex-wrap items-center justify-center gap-2.5">
-                  <button
-                    type="button"
-                    onClick={triggerPetalBurst}
-                    className="inline-flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#F43F5E] to-[#FB7185] px-5 py-2 text-xs font-bold text-white shadow-[0_0_22px_rgba(244,63,94,0.5)] transition hover:brightness-110 active:scale-95"
-                  >
-                    <svg viewBox="0 0 20 20" className="h-3.5 w-3.5" fill="currentColor" aria-hidden="true">
-                      <path d="M10 2 C15 4.5 17 11 10 18 C3 11 5 4.5 10 2 Z" />
-                    </svg>
-                    <span>{copy.petalShowerCta}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setNudgeCount(0);
-                      setStage('question');
-                    }}
-                    className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold text-[#FFF7ED] transition hover:bg-white/15 active:scale-95"
-                  >
-                    {copy.askAgainCta}
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setStage('keepsakes')}
+                  className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-full border border-[#C6A984] bg-[#FFFDF8] px-4 text-xs font-semibold text-[#5C3136] transition hover:bg-[#F5E9D6] active:scale-95"
+                >
+                  {copy.revisitKeepsakesCta}
+                </button>
               </div>
             </div>
           </section>
         </main>
       ) : null}
 
-      {/* Polaroid Lightbox Modal (Portaled to document.body) */}
+      {/* Bottom Scalloped Lace Trim on Gingham Stages */}
+      {isGinghamStage ? (
+        <div className="relative z-20 mt-auto">
+          <CrochetLaceTrim flip />
+          <footer className="bg-[#FAF2E4] px-4 py-3 text-center text-[11px] font-medium text-[#6B3B40]">
+            {getWebzyFooterLabel(language)}
+          </footer>
+        </div>
+      ) : (
+        <footer className="relative z-10 mt-auto border-t border-[#FAF2E4]/15 bg-[#2B050B]/70 px-4 py-3 text-center text-[11px] text-[#FAF2E4]/75">
+          {getWebzyFooterLabel(language)}
+        </footer>
+      )}
+
+      {/* Portaled Scrapbook Lightbox */}
       {zoomIdx !== null && polaroids[zoomIdx] && typeof document !== 'undefined'
         ? createPortal(
             <div
@@ -1723,30 +1557,26 @@ export function WillYouSite({
               aria-modal="true"
               aria-label={polaroids[zoomIdx].caption}
               onClick={() => setZoomIdx(null)}
-              className="fixed inset-0 z-[120] flex items-center justify-center bg-black/85 p-4 backdrop-blur-xs"
+              className="fixed inset-0 z-[120] flex items-center justify-center bg-[#2B050B]/85 p-4 backdrop-blur-xs"
             >
               <div
                 onClick={(e) => e.stopPropagation()}
-                className="wy-fade-up w-full max-w-sm rounded-2xl bg-[#FFFDF8] p-3 text-[#2B1424] shadow-2xl"
+                className="w-full max-w-sm rounded-2xl border border-[#DFC7A5] bg-[#FAF2E4] p-3 text-[#3B181E] shadow-2xl"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={polaroids[zoomIdx].src}
                   alt={polaroids[zoomIdx].caption}
-                  className="max-h-[65dvh] w-full rounded-xl bg-[#1A0D2E] object-cover"
+                  className="max-h-[65dvh] w-full rounded-xl bg-[#4A0912] object-cover"
                 />
                 <div className="mt-2.5 flex items-center justify-between gap-2 px-1">
-                  <span
-                    className={`truncate text-xs font-bold text-[#4A2535] ${
-                      hasDevanagari(polaroids[zoomIdx].caption) ? 'tracking-normal' : 'italic'
-                    }`}
-                  >
+                  <span className="truncate font-heading text-xs font-bold italic text-[#4A0912]">
                     {polaroids[zoomIdx].caption}
                   </span>
                   <button
                     type="button"
                     onClick={() => setZoomIdx(null)}
-                    className="min-h-[44px] rounded-full bg-[#E11D48] px-4 text-xs font-bold text-white transition hover:brightness-110 active:scale-95"
+                    className="min-h-[44px] rounded-full bg-[#8F1522] px-4 text-xs font-bold text-[#FFF8EF] transition hover:bg-[#74101B]"
                   >
                     {copy.closeLabel}
                   </button>
@@ -1756,11 +1586,6 @@ export function WillYouSite({
             document.body,
           )
         : null}
-
-      {/* Footer */}
-      <footer className="relative z-10 border-t border-white/10 bg-[#0B0617]/60 px-4 py-3 text-center text-[11px] text-[#FBCFE8]/75 backdrop-blur-xs">
-        {getWebzyFooterLabel(language)}
-      </footer>
     </div>
   );
 }

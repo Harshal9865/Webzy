@@ -550,7 +550,7 @@ const EN_SITE: SiteCopy = {
     pricingEyebrow: 'Transparent Atelier Tariff',
     pricingHeading: 'Honest One-Time Pricing',
     pricingSubtitle:
-      'One GST-inclusive payment for your complete wedding website. Add extra privacy, vertical status video export, or extended validity only if you wish at checkout.',
+      'One GST-inclusive payment for your complete wedding website. Add Secret PIN privacy or extended validity only if you wish at checkout.',
     optionalEnhancements: 'Optional Enhancements',
     tailorAtCheckout: 'Tailor at Checkout',
     beginCustomizing: 'Begin Customizing',

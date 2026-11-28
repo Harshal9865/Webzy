@@ -84,8 +84,8 @@ const OCCASION_COVER_ART: Record<string, CoverArtConfig> = {
   },
   'will-you-01': {
     src: '/templates/occasions/will-you/cover.jpg',
-    alt: 'Moonlit Victorian botanical conservatory with wax-sealed letter and white kitten holding a rose',
-    bg: 'linear-gradient(135deg, #1B1030 0%, #3A1944 100%)',
+    alt: 'Crimson velvet and red gingham keepsake box with wax-sealed letter, rose bouquet and polaroids',
+    bg: 'linear-gradient(135deg, #4A0912 0%, #8F1522 100%)',
     objectPosition: 'object-center',
     isDark: true,
   },
@@ -97,8 +97,8 @@ const OCCASION_COVER_ART: Record<string, CoverArtConfig> = {
   },
   'maan-jao-01': {
     src: '/templates/occasions/maan-jao/cover.jpg',
-    alt: 'Rainy cafe windowsill with glowing fairy lights, rainbow sky, steaming chai and kitten holding a daisy',
-    bg: 'linear-gradient(135deg, #1C2637 0%, #3C2C2A 100%)',
+    alt: 'Rain-to-sunshine meadow sky with pink gingham spiral apology notebook and clipped peace notes',
+    bg: 'linear-gradient(135deg, #2C3E5E 0%, #D47A92 100%)',
     objectPosition: 'object-center',
     isDark: true,
   },

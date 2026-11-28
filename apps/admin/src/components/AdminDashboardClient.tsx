@@ -1285,9 +1285,6 @@ export function AdminDashboardClient({
                       <span className="rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-indigo-900">
                         Secret PIN: {activeAddonStats.pinCount}
                       </span>
-                      <span className="rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-amber-900">
-                        Video Export: {activeAddonStats.videoCount}
-                      </span>
                       <span className="rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-emerald-900">
                         Extended Validity: {activeAddonStats.extendCount}
                       </span>

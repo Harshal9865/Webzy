@@ -17,8 +17,6 @@ interface SuccessClientProps {
   freeEditUntil?: string;
   isWedding?: boolean;
   coupleTitle?: string;
-  siteMessage?: string;
-  hasVideoAddon?: boolean;
   hasPinAddon?: boolean;
 }
 
@@ -35,8 +33,6 @@ export function SuccessClient({
   freeEditUntil,
   isWedding = false,
   coupleTitle,
-  siteMessage,
-  hasVideoAddon = false,
   hasPinAddon = false,
 }: SuccessClientProps) {
   const [copied, setCopied] = useState(false);
@@ -46,8 +42,6 @@ export function SuccessClient({
     'Sharma Family\nKapoor Family\nDr. Mehta & Family',
   );
   const [copiedBulkKey, setCopiedBulkKey] = useState<string | null>(null);
-  const [exportingVideo, setExportingVideo] = useState(false);
-  const [videoNotice, setVideoNotice] = useState('');
 
   useEffect(() => {
     try {
@@ -104,155 +98,6 @@ export function SuccessClient({
     await navigator.clipboard.writeText(personalizedUrl).catch(() => {});
     setGuestCopied(true);
     setTimeout(() => setGuestCopied(false), 2200);
-  }
-
-  async function handleExportStatusVideo() {
-    if (exportingVideo || typeof document === 'undefined') return;
-    setExportingVideo(true);
-    setVideoNotice('Rendering your 9:16 vertical keepsake...');
-
-    try {
-      const canvas = document.createElement('canvas');
-      canvas.width = 1080;
-      canvas.height = 1920;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) throw new Error('Canvas unavailable');
-
-      const titleText = coupleTitle || (isWedding ? 'Wedding Invitation' : 'A Special Webzy');
-      const bodyText =
-        siteMessage ||
-        (isWedding
-          ? 'With immense joy, we invite you and your family to celebrate with us.'
-          : 'Tap the link to open your personalized surprise.');
-
-      const drawFrame = (progress: number) => {
-        const bgGrad = ctx.createLinearGradient(0, 0, 1080, 1920);
-        if (isWedding) {
-          bgGrad.addColorStop(0, '#1B3322');
-          bgGrad.addColorStop(0.5, '#122417');
-          bgGrad.addColorStop(1, '#0C170F');
-        } else {
-          bgGrad.addColorStop(0, '#4A1030');
-          bgGrad.addColorStop(0.55, '#2A0B1D');
-          bgGrad.addColorStop(1, '#180711');
-        }
-        ctx.fillStyle = bgGrad;
-        ctx.fillRect(0, 0, 1080, 1920);
-
-        // Soft animated golden shimmer halo
-        const glowRadius = 460 + Math.sin(progress * Math.PI * 2) * 55;
-        const glow = ctx.createRadialGradient(540, 820, 40, 540, 820, glowRadius);
-        glow.addColorStop(0, 'rgba(229, 193, 88, 0.28)');
-        glow.addColorStop(1, 'rgba(229, 193, 88, 0)');
-        ctx.fillStyle = glow;
-        ctx.fillRect(0, 0, 1080, 1920);
-
-        // Ornamental double gold frame
-        ctx.strokeStyle = 'rgba(229, 193, 88, 0.72)';
-        ctx.lineWidth = 4;
-        ctx.strokeRect(64, 64, 952, 1792);
-        ctx.strokeStyle = 'rgba(229, 193, 88, 0.35)';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(86, 86, 908, 1748);
-
-        ctx.textAlign = 'center';
-        ctx.fillStyle = '#E5C158';
-        ctx.font = '600 32px Georgia, serif';
-        ctx.fillText(isWedding ? 'WEDDING INVITATION' : 'A PERSONAL WEBZY SURPRISE', 540, 420);
-
-        // Main title
-        ctx.fillStyle = '#FFF9EC';
-        ctx.font = 'bold 88px Georgia, serif';
-        const titleLines = titleText.length > 18 ? titleText.split(/\s*&\s*/).map((s, i) => (i === 0 ? `${s} &` : s)) : [titleText];
-        titleLines.slice(0, 2).forEach((line, idx) => {
-          ctx.fillText(line.slice(0, 26), 540, 680 + idx * 108);
-        });
-
-        // Message body wrapped nicely
-        ctx.fillStyle = 'rgba(255, 249, 236, 0.88)';
-        ctx.font = '400 40px system-ui, sans-serif';
-        const words = bodyText.split(/\s+/);
-        const lines: string[] = [];
-        let current = '';
-        for (const word of words) {
-          const test = current ? `${current} ${word}` : word;
-          if (test.length > 36 && current) {
-            lines.push(current);
-            current = word;
-          } else {
-            current = test;
-          }
-        }
-        if (current) lines.push(current);
-        lines.slice(0, 5).forEach((line, i) => {
-          ctx.fillText(line, 540, 1040 + i * 58);
-        });
-
-        // Footer link callout
-        ctx.fillStyle = '#E5C158';
-        ctx.font = 'bold 34px system-ui, sans-serif';
-        ctx.fillText('Tap our link to open the full experience', 540, 1560);
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.78)';
-        ctx.font = '500 28px monospace';
-        ctx.fillText(`webzy.in/s/${siteSlug}`.slice(0, 42), 540, 1625);
-      };
-
-      const canRecord =
-        typeof MediaRecorder !== 'undefined' && typeof canvas.captureStream === 'function';
-
-      if (canRecord) {
-        const mimeType = MediaRecorder.isTypeSupported('video/mp4')
-          ? 'video/mp4'
-          : MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
-            ? 'video/webm;codecs=vp9'
-            : 'video/webm';
-        const stream = canvas.captureStream(24);
-        const recorder = new MediaRecorder(stream, { mimeType });
-        const chunks: BlobPart[] = [];
-        recorder.ondataavailable = (ev) => {
-          if (ev.data.size > 0) chunks.push(ev.data);
-        };
-
-        const done = new Promise<Blob>((resolve) => {
-          recorder.onstop = () => resolve(new Blob(chunks, { type: mimeType }));
-        });
-
-        recorder.start();
-        const totalFrames = 96; // 4 seconds at 24fps
-        for (let f = 0; f < totalFrames; f++) {
-          drawFrame(f / totalFrames);
-          await new Promise((r) => setTimeout(r, 40));
-        }
-        recorder.stop();
-
-        const blob = await done;
-        const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `webzy-status-${siteSlug}.${ext}`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        setVideoNotice(`Status video downloaded (.${ext}) — ready to post on WhatsApp Status!`);
-      } else {
-        // High-res vertical poster fallback on browsers without MediaRecorder
-        drawFrame(0.5);
-        const dataUrl = canvas.toDataURL('image/png');
-        const a = document.createElement('a');
-        a.href = dataUrl;
-        a.download = `webzy-status-${siteSlug}.png`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setVideoNotice('1080×1920 vertical Status card downloaded — ready for WhatsApp Status!');
-      }
-    } catch {
-      setVideoNotice('Could not generate video on this browser. Please try in Chrome or Safari.');
-    } finally {
-      setExportingVideo(false);
-    }
   }
 
   return (
@@ -463,47 +308,18 @@ export function SuccessClient({
           </div>
         ) : null}
 
-        {/* Active Add-On Fulfillment Cards (PIN Lock + Status Video Export) */}
-        {!isProvisioning && (hasPinAddon || hasVideoAddon) ? (
+        {/* Active Add-On Fulfillment Card (PIN Lock) */}
+        {!isProvisioning && hasPinAddon ? (
           <div className="mt-6 space-y-4">
-            {hasPinAddon ? (
-              <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 text-xs leading-relaxed text-emerald-950">
-                <p className="font-bold uppercase tracking-wider text-emerald-800">
-                  Secret PIN Lock Active
-                </p>
-                <p className="mt-1">
-                  Your page is protected by the 4-digit PIN you set at checkout. Remember to share
-                  that 4-digit PIN with your recipient so they can unlock the page.
-                </p>
-              </div>
-            ) : null}
-
-            {hasVideoAddon ? (
-              <div className="rounded-2xl border border-webzy-primary/25 bg-webzy-surface/70 p-5">
-                <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-wider text-webzy-primary">
-                      Status Video Export Included
-                    </p>
-                    <p className="mt-1 text-xs leading-relaxed text-webzy-ink/75">
-                      Download your 9:16 vertical keepsake formatted for WhatsApp Status &amp;
-                      Instagram Stories.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    disabled={exportingVideo}
-                    onClick={() => void handleExportStatusVideo()}
-                    className="btn-spring inline-flex min-h-[46px] shrink-0 items-center justify-center rounded-full bg-webzy-primary px-5 text-xs font-bold text-white shadow-sm transition hover:opacity-95 disabled:opacity-60"
-                  >
-                    {exportingVideo ? 'Creating video...' : 'Download Status Video (9:16)'}
-                  </button>
-                </div>
-                {videoNotice ? (
-                  <p className="mt-2.5 text-xs font-semibold text-emerald-800">{videoNotice}</p>
-                ) : null}
-              </div>
-            ) : null}
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 text-xs leading-relaxed text-emerald-950">
+              <p className="font-bold uppercase tracking-wider text-emerald-800">
+                Secret PIN Lock Active
+              </p>
+              <p className="mt-1">
+                Your page is protected by the 4-digit PIN you set at checkout. Remember to share
+                that 4-digit PIN with your recipient so they can unlock the page.
+              </p>
+            </div>
           </div>
         ) : null}
 

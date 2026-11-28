@@ -20,7 +20,7 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
     mode: 'ready-made',
     occasion: 'birthday',
     languages: ['hinglish', 'hi', 'en'],
-    price: { base: 49, compareAt: 149, addons: ['pin', 'video', 'extend'] },
+    price: { base: 49, compareAt: 149, addons: ['pin', 'extend'] },
     isActive: true,
     name: {
       hinglish: 'Birthday Confetti',
@@ -132,7 +132,7 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
     mode: 'ready-made',
     occasion: 'birthday',
     languages: ['hinglish', 'hi', 'en'],
-    price: { base: 79, compareAt: 199, addons: ['pin', 'video', 'extend'] },
+    price: { base: 79, compareAt: 199, addons: ['pin', 'extend'] },
     isActive: true,
     name: {
       hinglish: 'Birthday Ashirwad',
@@ -244,7 +244,7 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
     mode: 'ready-made',
     occasion: 'love',
     languages: ['hinglish', 'hi', 'en'],
-    price: { base: 49, compareAt: 149, addons: ['pin', 'video', 'extend'] },
+    price: { base: 49, compareAt: 149, addons: ['pin', 'extend'] },
     isActive: true,
     name: {
       hinglish: 'Will You',
@@ -344,7 +344,7 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
     mode: 'ready-made',
     occasion: 'anniversary',
     languages: ['hinglish', 'hi', 'en'],
-    price: { base: 99, compareAt: 249, addons: ['pin', 'video', 'extend'] },
+    price: { base: 99, compareAt: 249, addons: ['pin', 'extend'] },
     isActive: true,
     name: {
       hinglish: 'Our Timeline',
@@ -631,7 +631,7 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
     mode: 'ready-made',
     occasion: 'portfolio',
     languages: ['hinglish', 'hi', 'en'],
-    price: { base: 79, compareAt: 199, addons: ['pin', 'video', 'extend'] },
+    price: { base: 79, compareAt: 199, addons: ['pin', 'extend'] },
     isActive: true,
     name: {
       hinglish: 'Creator & Designer Portfolio',
@@ -802,7 +802,7 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
     mode: 'ready-made',
     occasion: 'business',
     languages: ['hinglish', 'hi', 'en'],
-    price: { base: 79, compareAt: 249, addons: ['pin', 'video', 'extend'] },
+    price: { base: 79, compareAt: 249, addons: ['pin', 'extend'] },
     isActive: true,
     name: {
       hinglish: 'Small Business & Storefront',
@@ -954,7 +954,7 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
     mode: 'ready-made',
     occasion: 'travel',
     languages: ['hinglish', 'hi', 'en'],
-    price: { base: 99, compareAt: 299, addons: ['pin', 'video', 'extend'] },
+    price: { base: 99, compareAt: 299, addons: ['pin', 'extend'] },
     isActive: true,
     name: {
       hinglish: 'Serendipity & World Voyage',
@@ -1100,7 +1100,7 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
     mode: 'ready-made',
     occasion: 'business',
     languages: ['hinglish', 'hi', 'en'],
-    price: { base: 99, compareAt: 299, addons: ['pin', 'video', 'extend'] },
+    price: { base: 99, compareAt: 299, addons: ['pin', 'extend'] },
     isActive: true,
     name: {
       hinglish: 'Maison & Roast · Café & Floral',
@@ -1237,7 +1237,7 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
     mode: 'ready-made',
     occasion: 'portfolio',
     languages: ['hinglish', 'hi', 'en'],
-    price: { base: 99, compareAt: 299, addons: ['pin', 'video', 'extend'] },
+    price: { base: 99, compareAt: 299, addons: ['pin', 'extend'] },
     isActive: true,
     name: {
       hinglish: 'Blockfolio & 3D Kinetic Studio',
@@ -1382,7 +1382,7 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
     mode: 'ready-made',
     occasion: 'wedding',
     languages: ['hinglish', 'hi', 'en'],
-    price: { base: 499, compareAt: 1499, addons: ['pin', 'video', 'extend'] },
+    price: { base: 499, compareAt: 1499, addons: ['pin', 'extend'] },
     isActive: true,
     name: {
       hinglish: 'Swarna Vatika · Hindu Vivah',
@@ -1450,7 +1450,7 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
     mode: 'ready-made',
     occasion: 'wedding',
     languages: ['hinglish', 'hi', 'en'],
-    price: { base: 499, compareAt: 1499, addons: ['pin', 'video', 'extend'] },
+    price: { base: 499, compareAt: 1499, addons: ['pin', 'extend'] },
     isActive: true,
     name: {
       hinglish: 'Sindoora Mahal · Rajwada Vivah',
@@ -1518,7 +1518,7 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
     mode: 'ready-made',
     occasion: 'wedding',
     languages: ['hinglish', 'hi', 'en'],
-    price: { base: 499, compareAt: 1499, addons: ['pin', 'video', 'extend'] },
+    price: { base: 499, compareAt: 1499, addons: ['pin', 'extend'] },
     isActive: true,
     name: {
       hinglish: 'Neela Rajwada · Jodhpur Vivah',
@@ -1586,7 +1586,7 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
     mode: 'ready-made',
     occasion: 'wedding',
     languages: ['hinglish', 'hi', 'en'],
-    price: { base: 499, compareAt: 1499, addons: ['pin', 'video', 'extend'] },
+    price: { base: 499, compareAt: 1499, addons: ['pin', 'extend'] },
     isActive: true,
     name: {
       hinglish: 'Kashi Swarna · Temple Gold Vivah',
@@ -1654,7 +1654,7 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
     mode: 'ready-made',
     occasion: 'wedding',
     languages: ['hinglish', 'hi', 'en'],
-    price: { base: 499, compareAt: 1499, addons: ['pin', 'video', 'extend'] },
+    price: { base: 499, compareAt: 1499, addons: ['pin', 'extend'] },
     isActive: true,
     name: {
       hinglish: 'Gulab Bagh · Pastel Rose Vivah',
@@ -1722,7 +1722,7 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
     mode: 'ready-made',
     occasion: 'wedding',
     languages: ['hinglish', 'hi', 'en'],
-    price: { base: 499, compareAt: 1499, addons: ['pin', 'video', 'extend'] },
+    price: { base: 499, compareAt: 1499, addons: ['pin', 'extend'] },
     isActive: true,
     name: {
       hinglish: 'Grace Cathedral · Christian Wedding',

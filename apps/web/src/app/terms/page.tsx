@@ -33,7 +33,7 @@ export default function TermsPage() {
         </h2>
         <p>
           Webzy sells personalized ready-made digital celebration links (₹29–₹99), ready-made
-          wedding invitation suites (₹499), optional add-ons (Secret PIN Lock, Status Video Export,
+          wedding invitation suites (₹499), optional add-ons (Secret PIN Lock,
           Validity Extensions, Lifetime Hosting), and bespoke Custom Made studio websites (₹1,499+).
           All displayed INR prices are transparent and GST-inclusive. Payments are processed securely
           via Razorpay (UPI, Indian cards, netbanking, and eligible international cards).

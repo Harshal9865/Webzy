@@ -18,7 +18,7 @@ import {
 } from './weddingCatalog';
 import { WeddingEditionCard } from './WeddingEditionCard';
 
-type WeddingOptionalAddonId = 'pin' | 'video' | 'extend_14d' | 'extend_21d' | 'lifetime';
+type WeddingOptionalAddonId = 'pin' | 'extend_14d' | 'extend_21d' | 'lifetime';
 const PREFERRED_ADDONS_KEY = 'webzy_preferred_addons';
 
 export interface WeddingCapacityView {
@@ -91,13 +91,6 @@ const OPTIONAL_ADDONS: Array<{
     shortTag: '4-digit lock',
     fallbackPriceInr: 9,
     fallbackCompareAtInr: 19,
-  },
-  {
-    id: 'video',
-    shortTitle: 'Status Video',
-    shortTag: '1080p MP4',
-    fallbackPriceInr: 19,
-    fallbackCompareAtInr: 49,
   },
   {
     id: 'extend_14d',
@@ -247,7 +240,6 @@ export function WeddingsClient({
   const [copiedGuestLink, setCopiedGuestLink] = useState(false);
   const [selectedAddons, setSelectedAddons] = useState<Record<WeddingOptionalAddonId, boolean>>({
     pin: false,
-    video: false,
     extend_14d: false,
     extend_21d: false,
     lifetime: false,

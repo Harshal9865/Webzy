@@ -52,12 +52,7 @@ export default async function SuccessPage({
     typeof rawContent.receiverName === 'string' && rawContent.receiverName.trim()
       ? rawContent.receiverName.trim()
       : undefined;
-  const siteMessage =
-    typeof rawContent.message === 'string' && rawContent.message.trim()
-      ? rawContent.message.trim()
-      : undefined;
   const addonsList = Array.isArray(order.addons_json) ? (order.addons_json as string[]) : [];
-  const hasVideoAddon = addonsList.includes('video');
   const hasPinAddon = addonsList.includes('pin');
 
   const cfg = getWebzyPublicConfig();
@@ -78,8 +73,6 @@ export default async function SuccessPage({
       freeEditUntil={site?.free_edit_until || undefined}
       isWedding={isWedding}
       coupleTitle={coupleTitle}
-      siteMessage={siteMessage}
-      hasVideoAddon={hasVideoAddon}
       hasPinAddon={hasPinAddon}
     />
   );

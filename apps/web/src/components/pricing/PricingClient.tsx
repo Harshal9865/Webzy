@@ -37,7 +37,7 @@ interface PricingClientProps {
 
 type PricingTierId = 'ready_made' | 'semi_custom' | 'studio_bespoke';
 
-const FEATURE_ADDON_IDS: readonly AddonId[] = ['pin', 'video'];
+const FEATURE_ADDON_IDS: readonly AddonId[] = ['pin'];
 const PREFERRED_ADDONS_KEY = 'webzy_preferred_addons';
 
 const VALIDITY_PILL_META: Record<
@@ -189,7 +189,6 @@ export function PricingClient({ catalogPricing, capacity }: PricingClientProps) 
           (item): item is AddonId =>
             typeof item === 'string' &&
             (item === 'pin' ||
-              item === 'video' ||
               STOREFRONT_VALIDITY_ADDON_IDS.includes(item as StorefrontValidityAddonId)),
         );
         const chosenValidity = (['lifetime', 'extend_21d', 'extend_14d'] as const).find((vId) =>
@@ -365,8 +364,8 @@ export function PricingClient({ catalogPricing, capacity }: PricingClientProps) 
       values: [`${lifetimeLabel} one-time`, `${lifetimeLabel} one-time`, 'Not applicable'],
     },
     {
-      label: 'PIN lock and video',
-      values: ['Optional add-ons', 'Optional add-ons', 'Scoped in your quote'],
+      label: 'Secret PIN lock',
+      values: ['Optional add-on (+₹9)', 'Optional add-on (+₹9)', 'Scoped in your quote'],
     },
     {
       label: 'Custom domain',
@@ -829,8 +828,8 @@ export function PricingClient({ catalogPricing, capacity }: PricingClientProps) 
             </div>
           </div>
 
-          {/* Feature add-ons */}
-          <div className="mt-7 grid grid-cols-1 gap-2.5 border-t border-webzy-ink/[0.08] pt-6 sm:grid-cols-2 sm:gap-4">
+          {/* Feature add-on (Secret PIN Lock) */}
+          <div className="mt-7 grid grid-cols-1 gap-2.5 border-t border-webzy-ink/[0.08] pt-6 sm:gap-4">
             {FEATURE_ADDON_IDS.map((addonId) => {
               const addonCopy = p.addons[addonId];
               const catalog = ADDON_CATALOG[addonId];
