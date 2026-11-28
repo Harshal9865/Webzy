@@ -196,23 +196,23 @@ const SCRAPBOOK_COPY: Record<CoreLanguageCode, ScrapbookCopy> = {
 
 const CURATED_FALLBACK_PHOTOS: ReadonlyArray<{ src: string; gradient: string }> = [
   {
-    src: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=900&q=80',
+    src: '/templates/occasions/upgrades/running-meadow-love.jpg',
     gradient: 'linear-gradient(135deg, #F3D9B1 0%, #D99B66 52%, #8F5B3C 100%)',
   },
   {
-    src: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=80',
+    src: '/templates/cafe/rose-cottage.jpg',
     gradient: 'linear-gradient(135deg, #E8C7A0 0%, #B8845A 55%, #6A4832 100%)',
   },
   {
-    src: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80',
+    src: '/templates/travel/ocean-arch.jpg',
     gradient: 'linear-gradient(135deg, #F7D3A2 0%, #DF9A78 50%, #6D7D8C 100%)',
   },
   {
-    src: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=900&q=80',
+    src: '/templates/travel/train-window.jpg',
     gradient: 'linear-gradient(135deg, #D5DFC8 0%, #8FA382 52%, #475845 100%)',
   },
   {
-    src: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=900&q=80',
+    src: '/templates/occasions/upgrades/paris-moonlit-balcony.jpg',
     gradient: 'linear-gradient(135deg, #D9B69E 0%, #6D5D7B 54%, #2B2436 100%)',
   },
 ];

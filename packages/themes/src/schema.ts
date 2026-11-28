@@ -4,6 +4,7 @@ export type ThemeMode = 'ready-made' | 'semi-custom';
 
 export type ThemeOccasion =
   | 'wedding'
+  | 'travel'
   | 'birthday'
   | 'love'
   | 'anniversary'

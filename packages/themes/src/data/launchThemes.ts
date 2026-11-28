@@ -3,6 +3,7 @@ import { ThemeManifest, ThemeOccasion, validateThemeManifest } from '../schema';
 
 export const OCCASION_LABELS: Record<ThemeOccasion, LocalizedText> = {
   wedding: { hinglish: 'Wedding Vivah', hi: 'विवाह', en: 'Weddings', gu: 'લગ્ન', mr: 'लग्नपत्रिका', pa: 'ਵਿਆਹ', bn: 'বিবাহ', ta: 'திருமணம்', te: 'వివాహం', kn: 'ಮದುವೆ' },
+  travel: { hinglish: 'Travel & Voyages', hi: 'यात्रा और सफ़र', en: 'Travel', gu: 'પ્રવાસ', mr: 'प्रवास', pa: 'ਯਾਤਰਾ', bn: 'ভ্রমণ', ta: 'பயணம்', te: 'ప్రయాణం', kn: 'ಪ್ರಯಾಣ' },
   birthday: { hinglish: 'Birthday', hi: 'जन्मदिन', en: 'Birthday', gu: 'જન્મદિવસ', mr: 'वाढदिवस', pa: 'ਜਨਮਦਿਨ', bn: 'জন্মদিন', ta: 'பிறந்தநாள்', te: 'పుట్టినరోజు', kn: 'ಹುಟ್ಟುಹಬ್ಬ' },
   love: { hinglish: 'Love & Propose', hi: 'प्यार / प्रपोज़', en: 'Love & Invite', gu: 'પ્રેમ અને આમંત્રણ', mr: 'प्रेम व शुभेच्छा', pa: 'ਪਿਆਰ', bn: 'ভালোবাসা', ta: 'அன்பு', te: 'ప్రేమ', kn: 'ಪ್ರೀತಿ' },
   anniversary: { hinglish: 'Anniversary', hi: 'सालगिरह', en: 'Anniversary', gu: 'વર્ષગાંઠ', mr: 'लग्नाचा वाढदिवस', pa: 'ਵਰੇਗੰਢ', bn: 'বিবাহবার্ষিকী', ta: 'திருமண நாள்', te: 'వార్షికోత్సవం', kn: 'ವಾರ್ಷಿಕೋತ್ಸವ' },
@@ -295,9 +296,9 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
       receiverName: 'Meera',
       senderName: 'Kabir',
       photos: [
-        'https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&w=900&q=80',
-        'https://images.unsplash.com/photo-1516585427167-9f4af9627e6c?auto=format&fit=crop&w=900&q=80',
-        'https://images.unsplash.com/photo-1515260268569-9271009adfdb?auto=format&fit=crop&w=900&q=80',
+        '/templates/occasions/upgrades/paris-moonlit-balcony.jpg',
+        '/templates/occasions/upgrades/stained-glass-gate.jpg',
+        '/templates/cafe/rose-cottage.jpg',
       ],
       headline: {
         hinglish: 'Ek chota sa sawaal, Meera…',
@@ -395,9 +396,9 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
       receiverName: 'Naina & Dev',
       senderName: 'Dev',
       photos: [
-        'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=900&q=80',
-        'https://images.unsplash.com/photo-1529634806980-85c3dd6d34ac?auto=format&fit=crop&w=900&q=80',
-        'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=900&q=80',
+        '/templates/occasions/upgrades/running-meadow-love.jpg',
+        '/templates/travel/train-window.jpg',
+        '/templates/occasions/upgrades/city-window-dusk.jpg',
       ],
       headline: {
         hinglish: 'Happy Anniversary, Naina',
@@ -750,11 +751,11 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
       relation: 'editorial',
       whatsappPhone: '919800000000',
       photos: [
-        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=900&q=80',
-        'https://images.unsplash.com/photo-1558655146-9f40138edfeb?auto=format&fit=crop&w=900&q=80',
-        'https://images.unsplash.com/photo-1545235617-9465d2a55698?auto=format&fit=crop&w=900&q=80',
-        'https://images.unsplash.com/photo-1522542550221-31fd19575a2d?auto=format&fit=crop&w=900&q=80',
-        'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=900&q=80',
+        '/templates/creative/creatie-hills.jpg',
+        '/templates/creative/meadow-twilight.jpg',
+        '/templates/creative/bridge-valley.jpg',
+        '/templates/creative/crimson-statue.jpg',
+        '/templates/creative/particle-3d.jpg',
       ],
       headline: {
         hinglish: 'Digital products aur expressive web experiences jo yaad rahein.',
@@ -943,6 +944,436 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
         hinglish: 'Handcrafted daily · Direct WhatsApp order.',
         hi: 'हर दिन ताज़ा · सीधा WhatsApp ऑर्डर।',
         en: 'Handcrafted daily · Direct WhatsApp order.',
+      },
+      highlights: [],
+    },
+  },
+  {
+    id: 'travel-voyage-01',
+    version: '1.0.0',
+    mode: 'ready-made',
+    occasion: 'travel',
+    languages: ['hinglish', 'hi', 'en'],
+    price: { base: 99, compareAt: 299, addons: ['pin', 'video', 'extend'] },
+    isActive: true,
+    name: {
+      hinglish: 'Serendipity & World Voyage',
+      hi: 'सेरेंडिपिटी और वर्ल्ड वॉयेज',
+      en: 'Serendipity & World Voyage',
+    },
+    audience: {
+      hinglish: 'Travel agencies, trip journals, resorts aur destination curated guides ke liye',
+      hi: 'ट्रैवल एजेंसियों, ट्रिप जर्नल, रिज़ॉर्ट और डेस्टिनेशन गाइड्स के लिए',
+      en: 'For boutique travel agencies, trip journals, retreats, and destination curators',
+    },
+    signatureMoment: {
+      hinglish: 'Blank white canvas par mouse hover se hidden heritage painting + udte pakshi reveal hote hain',
+      hi: 'सफ़ेद कैनवास पर माउस घुमाते ही छिपा हुआ हेरिटेज दृश्य और उड़ते पक्षी जीवंत हो जाते हैं',
+      en: 'Interactive blank-canvas ink-wash hover reveal with soaring birds, 6-slice accordion & boarding pass',
+    },
+    palette: {
+      primary: '#1E3454',
+      secondary: '#D99B38',
+      surface: '#FAF9F6',
+      ink: '#152033',
+    },
+    fields: [
+      {
+        key: 'relation',
+        type: 'choice',
+        required: true,
+        label: { hinglish: 'Travel Style', hi: 'ट्रैवल स्टाइल', en: 'Travel Style' },
+        options: [
+          {
+            value: 'serendipity',
+            label: {
+              hinglish: 'Serendipity Ink & Heritage Reveal',
+              hi: 'सेरेंडिपिटी इंक और हेरिटेज रिवील',
+              en: 'Serendipity Ink & Heritage Reveal',
+            },
+          },
+          {
+            value: 'atlas',
+            label: {
+              hinglish: 'Editorial World Atlas — 6-Slice Hero',
+              hi: 'एडिटोरियल वर्ल्ड एटलस — 6-स्लाइस हीरो',
+              en: 'Editorial World Atlas — 6-Slice Hero',
+            },
+          },
+          {
+            value: 'capsule',
+            label: {
+              hinglish: 'Voyage Capsule — Boarding Pass & Magnets',
+              hi: 'वॉयेज कैप्सूल — बोर्डिंग पास और मैग्नेट्स',
+              en: 'Voyage Capsule — Boarding Pass & Magnets',
+            },
+          },
+        ],
+      },
+      {
+        key: 'receiverName',
+        type: 'text',
+        required: true,
+        max: 50,
+        label: {
+          hinglish: 'Travel Brand or Trip Title',
+          hi: 'ट्रैवल ब्रांड या यात्रा का नाम',
+          en: 'Travel Brand or Trip Title',
+        },
+      },
+      {
+        key: 'senderName',
+        type: 'text',
+        optional: true,
+        max: 50,
+        label: {
+          hinglish: 'Route or Base City (e.g. Jaipur · Tokyo · Amalfi)',
+          hi: 'रूट या शहर (जैसे जयपुर · टोक्यो · इटली)',
+          en: 'Route or Base City (e.g. Jaipur · Tokyo · Amalfi)',
+        },
+      },
+      {
+        key: 'message',
+        type: 'longtext',
+        required: true,
+        aiDraft: true,
+        max: 320,
+        label: {
+          hinglish: 'Travel Philosophy or Itinerary Summary',
+          hi: 'यात्रा की कहानी या पैकेज विवरण',
+          en: 'Travel Philosophy or Itinerary Summary',
+        },
+      },
+      {
+        key: 'photos',
+        type: 'images',
+        optional: true,
+        max: 5,
+        label: {
+          hinglish: 'Destination Photos (Up to 5)',
+          hi: 'यात्रा की फ़ोटो (अधिकतम 5)',
+          en: 'Destination Photos (Up to 5)',
+        },
+      },
+      {
+        key: 'whatsappPhone',
+        type: 'text',
+        optional: true,
+        max: 15,
+        label: {
+          hinglish: 'WhatsApp Concierge / Booking Number',
+          hi: 'WhatsApp बुकिंग नंबर',
+          en: 'WhatsApp Concierge / Booking Number',
+        },
+      },
+    ],
+    music: [{ id: 'track-travel-01', label: 'Dawn Horizon Acoustic', mood: 'cinematic', licenseStatus: 'verified' }],
+    demoData: {
+      receiverName: 'SERENDIPITY VOYAGES',
+      senderName: 'Jaipur · Tokyo · Amalfi · Paris',
+      relation: 'serendipity',
+      whatsappPhone: '919800000000',
+      photos: [
+        '/templates/travel/jaipur-slices.jpg',
+        '/templates/travel/tokyo-fuji.jpg',
+        '/templates/travel/italy-procida.jpg',
+        '/templates/travel/spain-coast.jpg',
+        '/templates/travel/paris-balcony.jpg',
+      ],
+      headline: {
+        hinglish: 'Duniya ke sabse yaadgaar safar — curated slow-travel experiences.',
+        hi: 'दुनिया के सबसे यादगार सफ़र — कलात्मक और सुकूनभरी यात्राएं।',
+        en: 'Slow-travel expeditions shaped for wonder, heritage, and quiet horizons.',
+      },
+      message: {
+        hinglish:
+          'Bespoke multi-city itineraries, boutique stays, aur hidden local gems — Jaipur se Tokyo aur Amalfi coast tak.',
+        hi: 'जयपुर से टोक्यो और अमाल्फ़ी तट तक — व्यक्तिगत यात्रा योजनाएं, बुटीक स्टे और अनदेखे नज़ारे।',
+        en: 'Handcrafted multi-city journeys from Jaipur courtyards and Kyoto lantern alleys to sunlit Amalfi harbors.',
+      },
+      highlights: [],
+    },
+  },
+  {
+    id: 'cafe-artisan-01',
+    version: '1.0.0',
+    mode: 'ready-made',
+    occasion: 'business',
+    languages: ['hinglish', 'hi', 'en'],
+    price: { base: 99, compareAt: 299, addons: ['pin', 'video', 'extend'] },
+    isActive: true,
+    name: {
+      hinglish: 'Maison & Roast · Café & Floral',
+      hi: 'मैसन और रोस्ट · कैफ़े और फ्लोरल',
+      en: 'Maison & Roast · Café & Floral',
+    },
+    audience: {
+      hinglish: 'Specialty cafes, matcha bars, luxury florists, patisseries aur catering studios ke liye',
+      hi: 'स्पेशलिटी कैफ़े, माचा बार, लग्ज़री फ्लोरिस्ट और केटरिंग स्टूडियो के लिए',
+      en: 'For specialty coffee bars, matcha cafes, luxury florists, and boutique caterers',
+    },
+    signatureMoment: {
+      hinglish: 'Kinetic coffee carousel, fluted-glass floral photography, aur live WhatsApp order basket',
+      hi: 'काइनेटिक कॉफ़ी कैरोसेल, फ्लूटेड-ग्लास फ्लोरल शोकेस और लाइव WhatsApp ऑर्डर बास्केट',
+      en: 'Kinetic drink carousel with color morphing, fluted-glass floral gallery & live WhatsApp basket',
+    },
+    palette: {
+      primary: '#590C15',
+      secondary: '#9DB038',
+      surface: '#FAF6F0',
+      ink: '#221614',
+    },
+    fields: [
+      {
+        key: 'relation',
+        type: 'choice',
+        required: true,
+        label: { hinglish: 'Flagship Mode', hi: 'फ्लैगशिप मोड', en: 'Flagship Mode' },
+        options: [
+          {
+            value: 'roast',
+            label: {
+              hinglish: 'Roast & Matcha Bar — Kinetic Coffee Menu',
+              hi: 'रोस्ट और माचा बार — काइनेटिक कॉफ़ी मेनू',
+              en: 'Roast & Matcha Bar — Kinetic Coffee Menu',
+            },
+          },
+          {
+            value: 'maison',
+            label: {
+              hinglish: 'Maison Rouge — Oxblood Floral & Patisserie',
+              hi: 'मैसन रूज — ऑक्सब्लड फ्लोरल और पेस्ट्री',
+              en: 'Maison Rouge — Oxblood Floral & Patisserie',
+            },
+          },
+        ],
+      },
+      {
+        key: 'receiverName',
+        type: 'text',
+        required: true,
+        max: 50,
+        label: {
+          hinglish: 'Café, Florist or Brand Name',
+          hi: 'कैफ़े, फ्लोरिस्ट या ब्रांड का नाम',
+          en: 'Café, Florist or Brand Name',
+        },
+      },
+      {
+        key: 'senderName',
+        type: 'text',
+        optional: true,
+        max: 50,
+        label: {
+          hinglish: 'City & Hours (e.g. Bandra, Mumbai · 8 AM – 11 PM)',
+          hi: 'शहर और समय (जैसे बांद्रा, मुंबई · सुबह 8 – रात 11)',
+          en: 'City & Hours (e.g. Bandra, Mumbai · 8 AM – 11 PM)',
+        },
+      },
+      {
+        key: 'message',
+        type: 'longtext',
+        required: true,
+        aiDraft: true,
+        max: 320,
+        label: {
+          hinglish: 'Brand Story & Signature Craft',
+          hi: 'ब्रांड की कहानी और ख़ासियत',
+          en: 'Brand Story & Signature Craft',
+        },
+      },
+      {
+        key: 'photos',
+        type: 'images',
+        optional: true,
+        max: 5,
+        label: {
+          hinglish: 'Menu & Atelier Photos (Up to 5)',
+          hi: 'मेनू और स्टूडियो की फ़ोटो (अधिकतम 5)',
+          en: 'Menu & Atelier Photos (Up to 5)',
+        },
+      },
+      {
+        key: 'whatsappPhone',
+        type: 'text',
+        required: true,
+        max: 15,
+        label: {
+          hinglish: 'WhatsApp Order Number',
+          hi: 'WhatsApp ऑर्डर नंबर',
+          en: 'WhatsApp Order Number',
+        },
+      },
+    ],
+    music: [{ id: 'track-cafe-01', label: 'Velvet Bossa Acoustic', mood: 'warm', licenseStatus: 'verified' }],
+    demoData: {
+      receiverName: 'ROAST & MAISON',
+      senderName: 'Small-Batch Roastery & Floral Atelier · Mumbai',
+      relation: 'roast',
+      whatsappPhone: '919800000000',
+      photos: [
+        '/templates/cafe/matcha-hero.jpg',
+        '/templates/cafe/maison-rouge.jpg',
+        '/templates/cafe/drinko-menu.jpg',
+        '/templates/cafe/artisan-catering.jpg',
+        '/templates/cafe/rose-cottage.jpg',
+      ],
+      headline: {
+        hinglish: 'Small-batch specialty coffee, ceremonial matcha & sculptural florals.',
+        hi: 'स्मॉल-बैच स्पेशलिटी कॉफ़ी, सेरेमोनियल माचा और कलात्मक पुष्प शिल्प।',
+        en: 'Ceremonial matcha, slow-poured espresso, and sculptural blooms crafted daily.',
+      },
+      message: {
+        hinglish:
+          'Har cup aur har bouquet haath se chune gaye ingredients se — direct menu se order karein ya private tasting book karein.',
+        hi: 'हर कप और हर गुलदस्ता चुनिंदा सामग्री से तैयार — सीधे मेनू से ऑर्डर करें या प्राइवेट टेस्टिंग बुक करें।',
+        en: 'Every pour and floral arrangement is crafted to linger long after the moment passes. Order directly from our live menu.',
+      },
+      highlights: [],
+    },
+  },
+  {
+    id: 'creative-voxel-01',
+    version: '1.0.0',
+    mode: 'ready-made',
+    occasion: 'portfolio',
+    languages: ['hinglish', 'hi', 'en'],
+    price: { base: 99, compareAt: 299, addons: ['pin', 'video', 'extend'] },
+    isActive: true,
+    name: {
+      hinglish: 'Blockfolio & 3D Kinetic Studio',
+      hi: 'ब्लॉकफोलियो और 3D काइनेटिक स्टूडियो',
+      en: 'Blockfolio & 3D Kinetic Studio',
+    },
+    audience: {
+      hinglish: '3D artists, game devs, creative studios, UGC creators aur standout portfolios ke liye',
+      hi: '3D आर्टिस्ट्स, गेम डेवलपर्स, क्रिएटिव स्टूडियो और UGC क्रिएटर्स के लिए',
+      en: 'For 3D studios, game builders, UGC creators, and interactive flagship portfolios',
+    },
+    signatureMoment: {
+      hinglish: 'Live 3D particle rocket canvas, chromatic Art Mode switch, voxel XP HUD & picnic scrapbook',
+      hi: 'लाइव 3D पार्टिकल रॉकेट कैनवास, क्रोमैटिक आर्ट मोड स्विच, वॉक्सेल XP HUD और स्क्रैपबुक',
+      en: 'Interactive 3D Canvas particle rocket, chromatic Art Mode toggle, Voxel XP HUD & Creator Scrapbook',
+    },
+    palette: {
+      primary: '#4F46E5',
+      secondary: '#F59E0B',
+      surface: '#0B0D14',
+      ink: '#F8FAFC',
+    },
+    fields: [
+      {
+        key: 'relation',
+        type: 'choice',
+        required: true,
+        label: { hinglish: 'Interactive World', hi: 'इंटरैक्टिव वर्ल्ड', en: 'Interactive World' },
+        options: [
+          {
+            value: 'particle3d',
+            label: {
+              hinglish: '3D Particle Studio — Rocket Canvas & Liquid UI',
+              hi: '3D पार्टिकल स्टूडियो — रॉकेट कैनवास और लिक्विड UI',
+              en: '3D Particle Studio — Rocket Canvas & Liquid UI',
+            },
+          },
+          {
+            value: 'voxel',
+            label: {
+              hinglish: 'Blockfolio & 8-Bit Quest — XP HUD & Biomes',
+              hi: 'ब्लॉकफोलियो और 8-बिट क्वेस्ट — XP HUD और बायोम्स',
+              en: 'Blockfolio & 8-Bit Quest — XP HUD & Biomes',
+            },
+          },
+          {
+            value: 'scrapbook',
+            label: {
+              hinglish: 'Creator Sky & Picnic Scrapbook — Floating Dock',
+              hi: 'क्रिएटर स्काई और पिकनिक स्क्रैपबुक — फ्लोटिंग डॉक',
+              en: 'Creator Sky & Picnic Scrapbook — Floating Dock',
+            },
+          },
+        ],
+      },
+      {
+        key: 'receiverName',
+        type: 'text',
+        required: true,
+        max: 50,
+        label: {
+          hinglish: 'Studio or Creator Name',
+          hi: 'स्टूडियो या क्रिएटर का नाम',
+          en: 'Studio or Creator Name',
+        },
+      },
+      {
+        key: 'senderName',
+        type: 'text',
+        optional: true,
+        max: 50,
+        label: {
+          hinglish: 'Role & Location (e.g. Creative Technologist · Pune)',
+          hi: 'भूमिका और शहर (जैसे क्रिएटिव डेवलपर · पुणे)',
+          en: 'Role & Location (e.g. Creative Technologist · Pune)',
+        },
+      },
+      {
+        key: 'message',
+        type: 'longtext',
+        required: true,
+        aiDraft: true,
+        max: 320,
+        label: {
+          hinglish: 'What You Build & Studio Pitch',
+          hi: 'आप क्या बनाते हैं और स्टूडियो परिचय',
+          en: 'What You Build & Studio Pitch',
+        },
+      },
+      {
+        key: 'photos',
+        type: 'images',
+        optional: true,
+        max: 5,
+        label: {
+          hinglish: 'Project Visuals (Up to 5)',
+          hi: 'प्रोजेक्ट विज़ुअल्स (अधिकतम 5)',
+          en: 'Project Visuals (Up to 5)',
+        },
+      },
+      {
+        key: 'whatsappPhone',
+        type: 'text',
+        optional: true,
+        max: 15,
+        label: {
+          hinglish: 'WhatsApp / Booking Contact',
+          hi: 'WhatsApp / संपर्क नंबर',
+          en: 'WhatsApp / Booking Contact',
+        },
+      },
+    ],
+    music: [{ id: 'track-creative-01', label: 'Chromatic Synth Pulse', mood: 'kinetic', licenseStatus: 'verified' }],
+    demoData: {
+      receiverName: 'NOVA CRAFT LAB',
+      senderName: 'Interactive 3D & Web Studio · Bengaluru',
+      relation: 'particle3d',
+      whatsappPhone: '919800000000',
+      photos: [
+        '/templates/creative/particle-3d.jpg',
+        '/templates/creative/blockfolio.jpg',
+        '/templates/creative/creatie-hills.jpg',
+        '/templates/creative/retro-forever.jpg',
+        '/templates/creative/scrapbook-ugc.jpg',
+      ],
+      headline: {
+        hinglish: 'Interactive 3D experiences, voxel worlds & scroll-stopping creator flagships.',
+        hi: 'इंटरैक्टिव 3D अनुभव, वॉक्सेल वर्ल्ड्स और आधुनिक क्रिएटर वेबसाइट्स।',
+        en: 'We build interactive digital flagships at the intersection of 3D art, motion, and engineering.',
+      },
+      message: {
+        hinglish:
+          '3D particle heroes se lekar playable voxel portfolios aur picnic creator decks tak — har website ek yaadgaar experience hai.',
+        hi: '3D पार्टिकल हीरो से लेकर वॉक्सेल पोर्टफोलियो और स्क्रैपबुक डेक तक — हर वेबसाइट एक जीवंत अनुभव है।',
+        en: 'From real-time 3D particle constellations and playable retro worlds to tactile creator scrapbooks built to convert.',
       },
       highlights: [],
     },

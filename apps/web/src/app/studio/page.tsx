@@ -12,9 +12,9 @@ import {
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Webzy Custom Made — Custom Websites for Coaching, Clinics, Shops & Weddings',
+  title: 'Webzy Custom Made — Bespoke Travel, Café, 3D Studio, Business & Wedding Websites',
   description:
-    'Request a custom website built personally by Webzy Custom Made for coaching institutes, medical clinics, retail shops, local businesses, and destination weddings.',
+    'Explore live interactive Webzy Custom Made flagships — ink-reveal travel sites, kinetic café & floral ateliers, 3D particle studios, clinics, coaching, and bespoke weddings.',
 };
 
 const FALLBACK_STUDIO_CAPACITY: StudioCapacityStatus = {
@@ -41,7 +41,7 @@ export default async function StudioPage() {
   }
 
   return (
-    <div className="min-h-screen bg-webzy-surface/30">
+    <div className="min-h-screen bg-[#F7F3EC]">
       <StudioWaitlistClient
         supportWhatsapp={cfg.business.supportWhatsapp}
         supportEmail={cfg.business.supportEmail}

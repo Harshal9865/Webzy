@@ -11,6 +11,11 @@ import {
 import { useAuth } from '../auth/AuthProvider';
 import { useLanguage } from '../shell/LanguageProvider';
 import { compressImageForMobileUpload } from '../../lib/compressImage';
+import { openCookieSettingsModal } from '../../lib/cookieConsent';
+import {
+  getSupabaseBrowserClient,
+  isBrowserSupabaseConfigured,
+} from '../../../../../infra/supabase/browser';
 
 export interface ProfileSavedDraftItem {
   id: string;
@@ -197,6 +202,54 @@ export function ProfileClient({
   const [isPurging, setIsPurging] = useState(false);
   const [purgeNotice, setPurgeNotice] = useState<string | null>(null);
   const [purgeError, setPurgeError] = useState<string | null>(null);
+
+  // Set / Change Password State
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [savingPassword, setSavingPassword] = useState(false);
+  const [passwordNotice, setPasswordNotice] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.search.includes('reset=1')) {
+      setShowPasswordForm(true);
+    }
+  }, []);
+
+  async function handleUpdatePassword(e: React.FormEvent) {
+    e.preventDefault();
+    setPasswordNotice(null);
+    setPasswordError(null);
+    if (newPassword.length < 8) {
+      setPasswordError('Password must be at least 8 characters long.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Passwords do not match.');
+      return;
+    }
+    if (!isBrowserSupabaseConfigured()) {
+      setPasswordError('Authentication is not configured in this environment.');
+      return;
+    }
+    setSavingPassword(true);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) {
+        setPasswordError(error.message || 'Could not update password.');
+        return;
+      }
+      setNewPassword('');
+      setConfirmPassword('');
+      setPasswordNotice('Password saved! You can now sign in anytime with your email and password.');
+    } catch (err) {
+      setPasswordError(err instanceof Error ? err.message : 'Could not update password.');
+    } finally {
+      setSavingPassword(false);
+    }
+  }
 
   useEffect(() => {
     return () => {
@@ -810,18 +863,86 @@ export function ProfileClient({
           </section>
 
           {/* Account Meta, Security & Quick Support */}
-          <div className="rounded-2xl border border-webzy-tint/70 bg-webzy-surface/40 p-4 text-xs text-webzy-ink/70 space-y-2">
+          <div className="rounded-2xl border border-webzy-tint/70 bg-webzy-surface/40 p-4 text-xs text-webzy-ink/70 space-y-2.5">
             <div className="flex items-center justify-between">
-              <span className="font-bold text-webzy-ink">Account Security</span>
+              <span className="font-bold text-webzy-ink">Account Security &amp; Cookies</span>
               <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
-                Email OTP Verified
+                Account Verified
               </span>
             </div>
             <p suppressHydrationWarning className="text-[11px]">
               Member since {formatDateIst(profile.created_at)} · {consentRecordsCount}{' '}
               {consentRecordsCount === 1 ? 'consent' : 'consents'} recorded
             </p>
+
+            {showPasswordForm ? (
+              <form
+                onSubmit={handleUpdatePassword}
+                className="space-y-2.5 rounded-xl border border-webzy-tint bg-white p-3"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-webzy-ink">Set or Change Password</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswordForm(false)}
+                    className="text-[11px] font-semibold text-webzy-ink/55 hover:text-webzy-ink"
+                  >
+                    Close
+                  </button>
+                </div>
+                <input
+                  type="password"
+                  required
+                  minLength={8}
+                  maxLength={72}
+                  autoComplete="new-password"
+                  placeholder="New password (min 8 characters)"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="min-h-[38px] w-full rounded-lg border border-webzy-tint px-3 text-xs text-webzy-ink outline-none focus:border-webzy-primary"
+                />
+                <input
+                  type="password"
+                  required
+                  minLength={8}
+                  maxLength={72}
+                  autoComplete="new-password"
+                  placeholder="Confirm new password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="min-h-[38px] w-full rounded-lg border border-webzy-tint px-3 text-xs text-webzy-ink outline-none focus:border-webzy-primary"
+                />
+                {passwordNotice ? (
+                  <p className="text-[11px] font-semibold text-emerald-700">{passwordNotice}</p>
+                ) : null}
+                {passwordError ? (
+                  <p className="text-[11px] font-semibold text-red-700">{passwordError}</p>
+                ) : null}
+                <button
+                  type="submit"
+                  disabled={savingPassword}
+                  className="inline-flex min-h-[36px] items-center rounded-full bg-webzy-primary px-4 text-[11px] font-bold text-white hover:opacity-95 disabled:opacity-50"
+                >
+                  {savingPassword ? 'Saving...' : 'Save New Password'}
+                </button>
+              </form>
+            ) : null}
+
             <div className="flex flex-wrap gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setShowPasswordForm((prev) => !prev)}
+                className="inline-flex h-8 items-center rounded-full border border-webzy-tint bg-white px-3 text-[11px] font-bold text-webzy-ink hover:border-webzy-primary/40"
+              >
+                {showPasswordForm ? 'Hide Password Form' : 'Set / Change Password'}
+              </button>
+              <button
+                type="button"
+                onClick={openCookieSettingsModal}
+                className="inline-flex h-8 items-center rounded-full border border-webzy-tint bg-white px-3 text-[11px] font-bold text-webzy-ink hover:border-webzy-primary/40"
+              >
+                Cookie Preferences
+              </button>
               <Link
                 href="/contact"
                 className="inline-flex h-8 items-center rounded-full border border-webzy-tint bg-white px-3 text-[11px] font-bold text-webzy-ink hover:border-webzy-primary/40"

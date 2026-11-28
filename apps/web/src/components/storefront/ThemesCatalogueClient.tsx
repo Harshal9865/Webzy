@@ -14,9 +14,10 @@ interface ThemesCatalogueClientProps {
 
 const OCCASIONS: Array<'all' | ThemeOccasion> = [
   'all',
-  'birthday',
-  'portfolio',
+  'travel',
   'business',
+  'portfolio',
+  'birthday',
   'love',
   'anniversary',
   'family',

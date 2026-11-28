@@ -21,7 +21,7 @@ interface PolaroidSample {
 
 const SAMPLE_POLAROIDS: readonly PolaroidSample[] = [
   {
-    src: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=600&q=80',
+    src: '/templates/occasions/upgrades/paris-moonlit-balcony.jpg',
     caption: {
       en: 'starlight glow',
       hinglish: 'sitaron ki raat',
@@ -29,15 +29,15 @@ const SAMPLE_POLAROIDS: readonly PolaroidSample[] = [
     },
   },
   {
-    src: 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&w=600&q=80',
+    src: '/templates/occasions/upgrades/stained-glass-gate.jpg',
     caption: {
-      en: 'hand in hand',
-      hinglish: 'haathon mein haath',
-      hi: 'हाथों में हाथ',
+      en: 'secret garden',
+      hinglish: 'khwabon ka baag',
+      hi: 'ख्वाबों का बाग़',
     },
   },
   {
-    src: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=600&q=80',
+    src: '/templates/cafe/rose-cottage.jpg',
     caption: {
       en: 'sunset blooms',
       hinglish: 'shaam ke phool',

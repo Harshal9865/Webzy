@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import React from 'react';
 import { getSiteCopy, getStorefrontCopy, WebzyPublicConfig } from '@webzy/core';
+import { openCookieSettingsModal } from '../../lib/cookieConsent';
 import { useLanguage } from './LanguageProvider';
 
 interface SiteFooterProps {
@@ -73,6 +74,13 @@ export function SiteFooter({ config }: SiteFooterProps) {
             <Link href="/studio" className="inline-flex min-h-[44px] items-center text-[11px] font-semibold text-webzy-ink/65 hover:text-webzy-primary">
               {copy.nav.studio}
             </Link>
+            <button
+              type="button"
+              onClick={openCookieSettingsModal}
+              className="inline-flex min-h-[44px] items-center text-[11px] font-semibold text-webzy-ink/65 hover:text-webzy-primary"
+            >
+              Cookie Preferences
+            </button>
             <Link href="/admin" className="inline-flex min-h-[44px] items-center text-[11px] font-semibold text-webzy-ink/60 hover:text-webzy-primary">
               Admin Console
             </Link>

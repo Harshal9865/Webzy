@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import React from 'react';
 import type { WebzyPublicConfig } from '@webzy/core';
+import { CookieConsentBanner } from './CookieConsentBanner';
 import { SiteFooter } from './SiteFooter';
 import { SiteHeader } from './SiteHeader';
 import { WhatsAppHelpButton } from './WhatsAppHelpButton';
@@ -30,6 +31,7 @@ export function StorefrontChrome({ config, children }: StorefrontChromeProps) {
       <main className="flex-1">{children}</main>
       <SiteFooter config={config} />
       <WhatsAppHelpButton whatsappPhone={config.business.supportWhatsapp} />
+      <CookieConsentBanner />
     </>
   );
 }

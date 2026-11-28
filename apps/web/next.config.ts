@@ -5,10 +5,11 @@ const supabaseWsOrigin = supabaseOrigin.replace(/^http(s?):\/\//i, (_, s) => (s 
 
 const cspDirectives = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com",
   "style-src 'self' 'unsafe-inline'",
   `img-src 'self' ${supabaseOrigin} data: blob: https:`,
-  `connect-src 'self' ${supabaseOrigin} ${supabaseWsOrigin} wss://*.supabase.co`,
+  `connect-src 'self' ${supabaseOrigin} ${supabaseWsOrigin} wss://*.supabase.co https://api.razorpay.com https://lumberjack.razorpay.com`,
+  "frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com",
   "font-src 'self' https://fonts.gstatic.com data:",
   "object-src 'none'",
   "base-uri 'self'",
@@ -36,18 +37,19 @@ const nextConfig: NextConfig = {
         source: '/(.*)',
         headers: [
           { key: 'Content-Security-Policy', value: cspDirectives },
+          { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
-          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=()' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=(self)' },
         ],
       },
       {
-        source: '/(s|mock-pay|success|account|login|create|preview|checkout|edit|admin)',
+        source: '/(s|i|mock-pay|success|account|orders|profile|login|create|preview|checkout|edit|admin)',
         headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' }],
       },
       {
-        source: '/(s|mock-pay|success|account|login|create|preview|checkout|edit|admin)/:path*',
+        source: '/(s|i|mock-pay|success|account|orders|profile|login|create|preview|checkout|edit|admin)/:path*',
         headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' }],
       },
     ];

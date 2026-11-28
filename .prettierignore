@@ -1,0 +1,13 @@
+node_modules/
+.next/
+apps/*/.next/
+dist/
+build/
+coverage/
+package-lock.json
+public/
+apps/*/public/
+*.sql
+*.tsbuildinfo
+next-env.d.ts
+.vercel/

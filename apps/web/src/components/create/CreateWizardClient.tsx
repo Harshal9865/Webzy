@@ -18,9 +18,9 @@ import {
   ThemeRenderer,
 } from '@webzy/themes';
 import { compressImageForMobileUpload } from '../../lib/compressImage';
+import { useAuth } from '../auth/AuthProvider';
 import { AdaptivePreviewStage } from '../shell/AdaptivePreviewStage';
 import { useLanguage } from '../shell/LanguageProvider';
-import { getSupabaseBrowserClient } from '../../../../../infra/supabase/browser';
 
 export interface UploadedPhotoItem {
   assetId: string;
@@ -66,7 +66,6 @@ export function CreateWizardClient({
   theme,
   supabaseConfigured,
   isAuthenticated = false,
-  userEmail = '',
   initialDraftToken,
   initialLanguage,
   initialContent,
@@ -75,6 +74,12 @@ export function CreateWizardClient({
 }: CreateWizardClientProps) {
   const router = useRouter();
   const { language: siteLang } = useLanguage();
+  const {
+    isAuthenticated: clientAuthenticated,
+    loading: authLoading,
+    openAuthModal,
+  } = useAuth();
+  const effectiveAuthenticated = authLoading ? isAuthenticated : clientAuthenticated;
   const [step, setStep] = useState(1);
   const [draftLang, setDraftLang] = useState<LanguageCode>(initialLanguage ?? siteLang);
   const [draftToken, setDraftToken] = useState(initialDraftToken || '');
@@ -83,15 +88,6 @@ export function CreateWizardClient({
   useEffect(() => {
     setDraftLang(siteLang);
   }, [siteLang]);
-
-  // Authentication gating state
-  const [isClientAuthed, setIsClientAuthed] = useState(Boolean(isAuthenticated));
-  const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [authTargetAction, setAuthTargetAction] = useState<'preview' | 'checkout' | null>(null);
-  const [authEmail, setAuthEmail] = useState(userEmail || '');
-  const [authOtpCode, setAuthOtpCode] = useState('');
-  const [authStatus, setAuthStatus] = useState<'idle' | 'sending' | 'sent' | 'verifying' | 'error'>('idle');
-  const [authErrorMessage, setAuthErrorMessage] = useState('');
 
   // Birthday & Event reveal helper
   const [revealMode, setRevealMode] = useState<'instant' | 'midnight' | 'morning' | 'custom'>(() => {
@@ -169,7 +165,8 @@ export function CreateWizardClient({
   const relationField = theme.fields.find((f) => f.key === 'relation');
   const messageField = theme.fields.find((f) => f.key === 'message');
   const maxMessageLen = messageField?.max ?? 300;
-  const isBusinessTheme = theme.occasion === 'business';
+  const whatsappField = theme.fields.find((f) => f.key === 'whatsappPhone');
+  const isBusinessTheme = theme.occasion === 'business' || Boolean(whatsappField);
 
   // Local backup storage key so Instagram/WhatsApp In-App Browser never loses typed progress
   const localKey = `webzy_draft_${theme.id}`;
@@ -338,9 +335,14 @@ export function CreateWizardClient({
 
     document.cookie = `webzy_pending_draft=${encodeURIComponent(token)}; path=/; max-age=3600; SameSite=Lax`;
 
-    if (!isClientAuthed && supabaseConfigured) {
-      setAuthTargetAction('preview');
-      setAuthModalOpen(true);
+    if (!effectiveAuthenticated && supabaseConfigured) {
+      openAuthModal({
+        reason: 'Sign in or create a free account to preview and save your customized Webzy.',
+        draftToken: token,
+        onSuccess: () => {
+          router.push(`/preview/${encodeURIComponent(token)}`);
+        },
+      });
       return;
     }
 
@@ -365,9 +367,14 @@ export function CreateWizardClient({
 
     document.cookie = `webzy_pending_draft=${encodeURIComponent(token)}; path=/; max-age=3600; SameSite=Lax`;
 
-    if (!isClientAuthed && supabaseConfigured) {
-      setAuthTargetAction('checkout');
-      setAuthModalOpen(true);
+    if (!effectiveAuthenticated && supabaseConfigured) {
+      openAuthModal({
+        reason: 'Sign in or create a free account to publish your customized Webzy and receive your live link.',
+        draftToken: token,
+        onSuccess: () => {
+          router.push(`/checkout?draft=${encodeURIComponent(token)}`);
+        },
+      });
       return;
     }
 
@@ -389,116 +396,6 @@ export function CreateWizardClient({
     setStep(targetStep);
     if (targetStep === 4 && supabaseConfigured && !draftToken && receiverName.trim() && message.trim()) {
       await handleSaveDraft();
-    }
-  }
-
-  async function handleSendInlineOtp(e: React.FormEvent) {
-    e.preventDefault();
-    if (!supabaseConfigured) return;
-    const cleanEmail = authEmail.trim().toLowerCase();
-    if (!cleanEmail || !cleanEmail.includes('@')) {
-      setAuthStatus('error');
-      setAuthErrorMessage('Please enter a valid email address.');
-      return;
-    }
-
-    setAuthStatus('sending');
-    setAuthErrorMessage('');
-
-    try {
-      if (draftToken) {
-        document.cookie = `webzy_pending_draft=${encodeURIComponent(draftToken)}; path=/; max-age=3600; SameSite=Lax`;
-      }
-      const supabase = getSupabaseBrowserClient();
-      const targetNext =
-        authTargetAction === 'checkout'
-          ? `/checkout?draft=${encodeURIComponent(draftToken)}`
-          : `/preview/${encodeURIComponent(draftToken)}`;
-      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(targetNext)}`;
-
-      const { error } = await supabase.auth.signInWithOtp({
-        email: cleanEmail,
-        options: {
-          shouldCreateUser: true,
-          emailRedirectTo: redirectTo,
-        },
-      });
-
-      if (error) {
-        const lower = (error.message || '').toLowerCase();
-        setAuthStatus('error');
-        setAuthErrorMessage(
-          lower.includes('rate limit') || lower.includes('too many')
-            ? 'Hourly email limit reached on Supabase default mailer. If you already received a code, tap "Already have a code?" below (or connect Custom SMTP in Supabase to lift the 2-email/hr limit).'
-            : error.message || 'Failed to send OTP code.',
-        );
-        return;
-      }
-
-      setAuthStatus('sent');
-    } catch (err) {
-      setAuthStatus('error');
-      setAuthErrorMessage(err instanceof Error ? err.message : 'Failed to send OTP code.');
-    }
-  }
-
-  async function handleVerifyInlineOtp(e: React.FormEvent) {
-    e.preventDefault();
-    const cleanEmail = authEmail.trim().toLowerCase();
-    const cleanCode = authOtpCode.replace(/\D/g, '');
-    if (cleanCode.length < 6) {
-      setAuthErrorMessage('Please enter the 6 to 8 digit code from your email.');
-      return;
-    }
-
-    setAuthStatus('verifying');
-    setAuthErrorMessage('');
-
-    try {
-      const supabase = getSupabaseBrowserClient();
-      const attemptTypes = ['email', 'magiclink', 'signup'] as const;
-      let verified = false;
-      let lastErrMsg = '';
-      for (const otpType of attemptTypes) {
-        const { data: verifyData, error } = await supabase.auth.verifyOtp({
-          email: cleanEmail,
-          token: cleanCode,
-          type: otpType,
-        });
-        if (!error && verifyData.session) {
-          verified = true;
-          break;
-        }
-        lastErrMsg = error?.message || lastErrMsg;
-      }
-
-      if (!verified) {
-        setAuthStatus('sent');
-        setAuthErrorMessage(lastErrMsg || 'Invalid or expired code. Please check or resend.');
-        return;
-      }
-
-      setIsClientAuthed(true);
-      const activeToken = draftTokenRef.current || draftToken;
-      if (activeToken) {
-        await fetch('/api/auth/attach-draft', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ draftToken: activeToken }),
-        }).catch(() => {});
-      }
-
-      window.dispatchEvent(new Event('webzy_auth_updated'));
-      window.dispatchEvent(new Event('webzy_orders_updated'));
-      setAuthModalOpen(false);
-      if (authTargetAction === 'checkout') {
-        router.push(`/checkout?draft=${encodeURIComponent(activeToken)}`);
-      } else {
-        router.push(`/preview/${encodeURIComponent(activeToken)}`);
-      }
-    } catch (err) {
-      setAuthStatus('sent');
-      setAuthErrorMessage(err instanceof Error ? err.message : 'Could not verify code.');
     }
   }
 
@@ -869,7 +766,11 @@ export function CreateWizardClient({
               {isBusinessTheme ? (
                 <div>
                   <label htmlFor="cw-wa" className="block text-xs font-bold text-webzy-ink">
-                    Business WhatsApp number (10 digits, optional)
+                    {pickLocalizedText(
+                      whatsappField?.label,
+                      draftLang,
+                      'WhatsApp contact / booking number (10 digits, optional)',
+                    )}
                   </label>
                   <input
                     id="cw-wa"
@@ -1195,133 +1096,6 @@ export function CreateWizardClient({
           </AdaptivePreviewStage>
         </aside>
       </div>
-
-      {/* Auth Gate Inline Modal */}
-      {authModalOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-          <div className="max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-3xl bg-white p-5 shadow-2xl sm:p-8 animate-scale-in">
-            <div className="flex items-center justify-between gap-2">
-              <h3 className="font-heading text-xl font-bold text-webzy-ink sm:text-2xl">
-                {authTargetAction === 'checkout' ? 'Sign in to finish & publish' : 'Sign in to preview & save'}
-              </h3>
-              <button
-                type="button"
-                onClick={() => setAuthModalOpen(false)}
-                aria-label="Close"
-                className="flex h-11 w-11 -mr-2 shrink-0 items-center justify-center rounded-xl text-webzy-ink/60 hover:bg-webzy-surface hover:text-webzy-ink"
-              >
-                ✕
-              </button>
-            </div>
-            <p className="mt-1 text-xs leading-relaxed text-webzy-ink/75">
-              Enter your email to receive a 6-digit verification code. Your customized Webzy will be safely saved to your account.
-            </p>
-
-            {authStatus === 'sent' || authStatus === 'verifying' ? (
-              <form onSubmit={handleVerifyInlineOtp} className="mt-5 space-y-4">
-                <div>
-                  <label htmlFor="auth-otp-code" className="block text-xs font-bold text-webzy-ink">
-                    6-digit code sent to {authEmail}
-                  </label>
-                  <input
-                    id="auth-otp-code"
-                    type="text"
-                    inputMode="numeric"
-                    autoComplete="one-time-code"
-                    maxLength={8}
-                    value={authOtpCode}
-                    onChange={(e) => setAuthOtpCode(e.target.value.replace(/[^\d]/g, '').slice(0, 8))}
-                    placeholder="123456"
-                    className="mt-1.5 min-h-[48px] w-full rounded-xl border border-webzy-tint bg-white px-4 text-center font-mono text-xl tracking-widest text-webzy-ink focus:border-webzy-primary"
-                    autoFocus
-                  />
-                </div>
-
-                {authErrorMessage ? (
-                  <p className="text-xs text-red-600">{authErrorMessage}</p>
-                ) : null}
-
-                <div className="flex gap-2">
-                  <button
-                    type="submit"
-                    disabled={authStatus === 'verifying' || authOtpCode.trim().length < 6}
-                    className="flex-1 min-h-[44px] rounded-full bg-webzy-primary px-4 text-xs font-bold text-white shadow-sm hover:opacity-95 disabled:opacity-50"
-                  >
-                    {authStatus === 'verifying' ? 'Verifying...' : 'Verify & Continue →'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setAuthStatus('idle')}
-                    className="min-h-[44px] rounded-full border border-webzy-tint px-4 text-xs font-bold text-webzy-ink hover:bg-webzy-surface"
-                  >
-                    Change Email
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <form onSubmit={handleSendInlineOtp} className="mt-5 space-y-4">
-                <div>
-                  <label htmlFor="auth-email-input" className="block text-xs font-bold text-webzy-ink">
-                    Email address
-                  </label>
-                  <input
-                    id="auth-email-input"
-                    type="email"
-                    required
-                    value={authEmail}
-                    onChange={(e) => setAuthEmail(e.target.value)}
-                    placeholder="you@gmail.com"
-                    className="mt-1.5 min-h-[48px] w-full rounded-xl border border-webzy-tint bg-white px-4 text-sm text-webzy-ink focus:border-webzy-primary"
-                    autoFocus
-                  />
-                </div>
-
-                {authErrorMessage ? (
-                  <p className="text-xs text-red-600">{authErrorMessage}</p>
-                ) : null}
-
-                <button
-                  type="submit"
-                  disabled={authStatus === 'sending'}
-                  className="min-h-[44px] w-full rounded-full bg-webzy-primary px-4 text-xs font-bold text-white shadow-sm hover:opacity-95 disabled:opacity-50"
-                >
-                  {authStatus === 'sending' ? 'Sending code...' : 'Send 6-digit code →'}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    const clean = authEmail.trim().toLowerCase();
-                    if (!clean || !clean.includes('@')) {
-                      setAuthErrorMessage('Enter your email address first.');
-                      return;
-                    }
-                    setAuthErrorMessage('');
-                    setAuthStatus('sent');
-                  }}
-                  className="min-h-[38px] w-full rounded-full border border-webzy-tint bg-webzy-surface/60 px-4 text-xs font-bold text-webzy-ink/80 hover:border-webzy-primary/40 hover:text-webzy-primary"
-                >
-                  Already have a code? Enter it here
-                </button>
-
-                <p className="text-center text-[11px] text-webzy-ink/60">
-                  Or{' '}
-                  <Link
-                    href={`/login?next=${encodeURIComponent(
-                      authTargetAction === 'checkout'
-                        ? `/checkout?draft=${encodeURIComponent(draftToken)}`
-                        : `/preview/${encodeURIComponent(draftToken)}`,
-                    )}&draftToken=${encodeURIComponent(draftToken)}`}
-                    className="font-bold text-webzy-primary underline"
-                  >
-                    open full login page
-                  </Link>
-                </p>
-              </form>
-            )}
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }

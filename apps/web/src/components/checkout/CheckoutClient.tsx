@@ -184,15 +184,134 @@ export function CheckoutClient({
     setPhone((prev) => (prev.trim() ? prev : clientProfile.phone || ''));
   }, [clientProfile]);
 
-  // Inline email OTP auth state for unauthenticated users
+  // Inline Email & Password (+ optional Email Link) auth state for unauthenticated users
+  const [authMode, setAuthMode] = useState<'signin' | 'signup' | 'magic'>('signin');
+  const [authFullName, setAuthFullName] = useState(initialFullName || '');
   const [authEmail, setAuthEmail] = useState('');
-  const [authOtp, setAuthOtp] = useState('');
-  const [authSent, setAuthSent] = useState(false);
+  const [authPassword, setAuthPassword] = useState('');
+  const [authShowPassword, setAuthShowPassword] = useState(false);
   const [authBusy, setAuthBusy] = useState(false);
   const [authNotice, setAuthNotice] = useState('');
   const [authError, setAuthError] = useState('');
 
-  async function handleSendInlineOtp(e: React.FormEvent) {
+  async function finalizeInlineAuth() {
+    await fetch('/api/auth/attach-draft', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ draftToken }),
+    }).catch(() => {});
+    await refreshAuth();
+    window.dispatchEvent(new Event('webzy_auth_updated'));
+    window.dispatchEvent(new Event('webzy_orders_updated'));
+    router.refresh();
+  }
+
+  async function handleInlinePasswordSignIn(e: React.FormEvent) {
+    e.preventDefault();
+    if (!supabaseConfigured) {
+      setAuthError('Authentication keys are not configured in this environment.');
+      return;
+    }
+    const cleanEmail = authEmail.trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      setAuthError('Please enter a valid email address.');
+      return;
+    }
+    if (authPassword.length < 6) {
+      setAuthError('Please enter your password.');
+      return;
+    }
+    setAuthBusy(true);
+    setAuthNotice('');
+    setAuthError('');
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { error } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password: authPassword,
+      });
+      if (error) {
+        const lower = (error.message || '').toLowerCase();
+        setAuthError(
+          lower.includes('invalid login') || lower.includes('invalid credentials')
+            ? 'Incorrect email or password. New to Webzy? Switch to "Create Account" above.'
+            : error.message || 'Unable to sign in right now.',
+        );
+        return;
+      }
+      await finalizeInlineAuth();
+    } catch (err) {
+      setAuthError(err instanceof Error ? err.message : 'Unable to sign in right now.');
+    } finally {
+      setAuthBusy(false);
+    }
+  }
+
+  async function handleInlineSignUp(e: React.FormEvent) {
+    e.preventDefault();
+    if (!supabaseConfigured) {
+      setAuthError('Authentication keys are not configured in this environment.');
+      return;
+    }
+    const cleanName = authFullName.trim();
+    const cleanEmail = authEmail.trim().toLowerCase();
+    if (cleanName.length < 2) {
+      setAuthError('Please enter your full name (at least 2 characters).');
+      return;
+    }
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      setAuthError('Please enter a valid email address.');
+      return;
+    }
+    if (authPassword.length < 8) {
+      setAuthError('Password must be at least 8 characters.');
+      return;
+    }
+    setAuthBusy(true);
+    setAuthNotice('');
+    setAuthError('');
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName: cleanName,
+          email: cleanEmail,
+          password: authPassword,
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        setAuthError(
+          data.error ||
+            (res.status === 409
+              ? 'An account with this email already exists. Switch to Sign In.'
+              : 'Could not create your account.'),
+        );
+        return;
+      }
+      if (!fullName.trim()) {
+        setFullName(cleanName);
+      }
+      const supabase = getSupabaseBrowserClient();
+      const { error: signInErr } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password: authPassword,
+      });
+      if (signInErr) {
+        setAuthNotice('Account created! Please sign in with your password.');
+        setAuthMode('signin');
+        return;
+      }
+      await finalizeInlineAuth();
+    } catch (err) {
+      setAuthError(err instanceof Error ? err.message : 'Could not create account right now.');
+    } finally {
+      setAuthBusy(false);
+    }
+  }
+
+  async function handleInlineMagicLink(e: React.FormEvent) {
     e.preventDefault();
     if (!supabaseConfigured) {
       setAuthError('Authentication keys are not configured in this environment.');
@@ -218,65 +337,19 @@ export function CheckoutClient({
         },
       });
       if (error) {
-        setAuthError(error.message);
+        const lower = (error.message || '').toLowerCase();
+        setAuthError(
+          lower.includes('rate limit') || lower.includes('too many')
+            ? 'Email sending limit reached for this hour. Use Email & Password above for instant access.'
+            : error.message,
+        );
         return;
       }
-      setAuthSent(true);
-      setAuthNotice(`Verification code sent to ${cleanEmail}. Enter the 6-digit code below.`);
+      setAuthNotice(
+        `One-click sign-in link sent to ${cleanEmail}. Open your email and tap the button to return right here.`,
+      );
     } catch (err) {
-      setAuthError(err instanceof Error ? err.message : 'Unable to send code right now.');
-    } finally {
-      setAuthBusy(false);
-    }
-  }
-
-  async function handleVerifyInlineOtp(e: React.FormEvent) {
-    e.preventDefault();
-    if (!supabaseConfigured) {
-      setAuthError('Authentication keys are not configured in this environment.');
-      return;
-    }
-    const cleanEmail = authEmail.trim().toLowerCase();
-    const cleanCode = authOtp.replace(/\s+/g, '');
-    if (cleanCode.length < 6) {
-      setAuthError('Please enter the 6-digit code from your email.');
-      return;
-    }
-    setAuthBusy(true);
-    setAuthNotice('');
-    setAuthError('');
-    try {
-      const supabase = getSupabaseBrowserClient();
-      const attemptTypes = ['email', 'magiclink', 'signup'] as const;
-      let verified = false;
-      let lastErrMsg = '';
-      for (const otpType of attemptTypes) {
-        const { data: verifyData, error } = await supabase.auth.verifyOtp({
-          email: cleanEmail,
-          token: cleanCode,
-          type: otpType,
-        });
-        if (!error && verifyData.session) {
-          verified = true;
-          break;
-        }
-        lastErrMsg = error?.message || lastErrMsg;
-      }
-      if (!verified) {
-        setAuthError(lastErrMsg || 'Invalid or expired code. Please retry.');
-        return;
-      }
-      await fetch('/api/auth/attach-draft', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ draftToken }),
-      }).catch(() => {});
-      await refreshAuth();
-      window.dispatchEvent(new Event('webzy_auth_updated'));
-      window.dispatchEvent(new Event('webzy_orders_updated'));
-      router.refresh();
-    } catch (err) {
-      setAuthError(err instanceof Error ? err.message : 'Verification failed.');
+      setAuthError(err instanceof Error ? err.message : 'Unable to send sign-in link right now.');
     } finally {
       setAuthBusy(false);
     }
@@ -362,7 +435,7 @@ export function CheckoutClient({
       };
       if (res.status === 401 || data.code === 'AUTH_REQUIRED') {
         await refreshAuth();
-        setErrorMsg('Your session expired. Please verify your email code above to continue.');
+        setErrorMsg('Your session expired. Please sign in above to continue.');
         return;
       }
       if (!res.ok || !data.redirectUrl) {
@@ -403,128 +476,252 @@ export function CheckoutClient({
           <p className="text-xs font-semibold text-webzy-primary">
             Step 1 of 2
           </p>
-          <h2 className="mt-2 font-heading text-xl font-bold text-webzy-ink sm:text-2xl">
-            Where should we send your receipt and live link?
+          <h2 className="mt-1.5 font-heading text-xl font-bold text-webzy-ink sm:text-2xl">
+            Sign in or create an account for your receipt &amp; live link
           </h2>
-          <p className="mt-2 text-sm leading-relaxed text-webzy-ink/80">
-            No password needed. Enter your email below to verify with a quick 6-digit code, and finish checkout right here.
+          <p className="mt-1.5 text-sm leading-relaxed text-webzy-ink/75">
+            Works with any email address. Your draft is saved and ready to publish as soon as you sign in.
           </p>
 
-          {!authSent ? (
-            <form onSubmit={handleSendInlineOtp} className="mt-6 max-w-md space-y-3">
+          <div className="mt-5 grid max-w-md grid-cols-2 rounded-2xl border border-webzy-tint bg-webzy-surface/60 p-1">
+            <button
+              type="button"
+              onClick={() => {
+                setAuthMode('signin');
+                setAuthError('');
+                setAuthNotice('');
+              }}
+              className={`min-h-[38px] rounded-xl text-xs font-bold transition ${
+                authMode === 'signin'
+                  ? 'bg-white text-webzy-primary shadow-sm'
+                  : 'text-webzy-ink/65 hover:text-webzy-ink'
+              }`}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setAuthMode('signup');
+                setAuthError('');
+                setAuthNotice('');
+              }}
+              className={`min-h-[38px] rounded-xl text-xs font-bold transition ${
+                authMode === 'signup'
+                  ? 'bg-white text-webzy-primary shadow-sm'
+                  : 'text-webzy-ink/65 hover:text-webzy-ink'
+              }`}
+            >
+              Create Account
+            </button>
+          </div>
+
+          {authNotice ? (
+            <div className="mt-4 max-w-md rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs font-semibold text-emerald-900">
+              {authNotice}
+            </div>
+          ) : null}
+
+          {authError ? (
+            <div role="alert" className="mt-4 max-w-md rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-900">
+              {authError}
+            </div>
+          ) : null}
+
+          {authMode === 'signin' ? (
+            <form onSubmit={handleInlinePasswordSignIn} className="mt-5 max-w-md space-y-3.5">
               <div>
                 <label htmlFor="chk-auth-email" className="block text-xs font-bold text-webzy-ink">
-                  Your email address
+                  Email address
                 </label>
                 <input
                   suppressHydrationWarning
                   id="chk-auth-email"
                   type="email"
                   required
+                  autoComplete="email"
                   value={authEmail}
                   onChange={(e) => setAuthEmail(e.target.value)}
                   placeholder="name@example.com"
-                  className="mt-1 min-h-[48px] w-full rounded-xl border border-webzy-tint bg-white px-4 text-sm text-webzy-ink outline-none focus:border-webzy-primary"
+                  className="mt-1 min-h-[46px] w-full rounded-xl border border-webzy-tint bg-white px-4 text-sm text-webzy-ink outline-none focus:border-webzy-primary"
                 />
               </div>
 
-              {authError ? (
-                <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-900">
-                  {authError}
+              <div>
+                <label htmlFor="chk-auth-password" className="block text-xs font-bold text-webzy-ink">
+                  Password
+                </label>
+                <div className="relative mt-1">
+                  <input
+                    suppressHydrationWarning
+                    id="chk-auth-password"
+                    type={authShowPassword ? 'text' : 'password'}
+                    required
+                    autoComplete="current-password"
+                    value={authPassword}
+                    onChange={(e) => setAuthPassword(e.target.value)}
+                    placeholder="Enter your password"
+                    className="min-h-[46px] w-full rounded-xl border border-webzy-tint bg-white pl-4 pr-14 text-sm text-webzy-ink outline-none focus:border-webzy-primary"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setAuthShowPassword((prev) => !prev)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 px-2 py-1 text-[11px] font-bold text-webzy-ink/60 hover:text-webzy-ink"
+                  >
+                    {authShowPassword ? 'Hide' : 'Show'}
+                  </button>
                 </div>
-              ) : null}
+              </div>
 
               <div className="flex flex-wrap items-center gap-3 pt-1">
                 <button
                   suppressHydrationWarning
                   type="submit"
                   disabled={authBusy}
-                  className="inline-flex min-h-[48px] items-center justify-center rounded-full bg-webzy-primary px-6 text-sm font-bold text-white shadow-sm disabled:opacity-50"
+                  className="inline-flex min-h-[46px] items-center justify-center rounded-full bg-webzy-primary px-6 text-sm font-bold text-white shadow-sm disabled:opacity-50"
                 >
-                  {authBusy ? 'Sending code...' : 'Send 6-Digit Code →'}
+                  {authBusy ? 'Signing in...' : 'Sign In & Continue →'}
                 </button>
                 <button
                   type="button"
                   onClick={() => {
-                    const clean = authEmail.trim().toLowerCase();
-                    if (!clean || !clean.includes('@')) {
-                      setAuthError('Enter your email address first.');
-                      return;
-                    }
+                    setAuthMode('magic');
                     setAuthError('');
-                    setAuthNotice(`Enter the verification code sent to ${clean}.`);
-                    setAuthSent(true);
+                    setAuthNotice('');
                   }}
-                  className="text-xs font-bold text-webzy-primary hover:underline"
+                  className="text-xs font-semibold text-webzy-ink/70 hover:text-webzy-primary hover:underline"
                 >
-                  Already have a code?
+                  Use Email Link instead
                 </button>
                 <Link
                   href={`/login?next=${encodeURIComponent(`/checkout?draft=${draftToken}`)}&draftToken=${encodeURIComponent(draftToken)}`}
                   className="text-xs text-webzy-ink/65 hover:text-webzy-primary hover:underline"
                 >
-                  Or open separate sign-in page →
+                  Forgot password?
                 </Link>
               </div>
             </form>
-          ) : (
-            <form onSubmit={handleVerifyInlineOtp} className="mt-6 max-w-md space-y-3">
-              {authNotice ? (
-                <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs font-semibold text-emerald-900">
-                  {authNotice}
-                </div>
-              ) : null}
+          ) : null}
 
+          {authMode === 'signup' ? (
+            <form onSubmit={handleInlineSignUp} className="mt-5 max-w-md space-y-3.5">
               <div>
-                <label htmlFor="chk-auth-code" className="block text-xs font-bold text-webzy-ink">
-                  Enter 6-digit verification code
+                <label htmlFor="chk-signup-name" className="block text-xs font-bold text-webzy-ink">
+                  Full Name
                 </label>
                 <input
                   suppressHydrationWarning
-                  id="chk-auth-code"
+                  id="chk-signup-name"
                   type="text"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  maxLength={8}
                   required
-                  autoFocus
-                  value={authOtp}
-                  onChange={(e) => setAuthOtp(e.target.value)}
-                  placeholder="123456"
-                  className="mt-1 min-h-[48px] w-full rounded-xl border border-webzy-tint bg-white px-4 font-mono text-center text-lg tracking-widest text-webzy-ink outline-none focus:border-webzy-primary"
+                  minLength={2}
+                  maxLength={80}
+                  autoComplete="name"
+                  value={authFullName}
+                  onChange={(e) => setAuthFullName(e.target.value)}
+                  placeholder="Your full name"
+                  className="mt-1 min-h-[46px] w-full rounded-xl border border-webzy-tint bg-white px-4 text-sm text-webzy-ink outline-none focus:border-webzy-primary"
                 />
               </div>
 
-              {authError ? (
-                <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-900">
-                  {authError}
+              <div>
+                <label htmlFor="chk-signup-email" className="block text-xs font-bold text-webzy-ink">
+                  Email address
+                </label>
+                <input
+                  suppressHydrationWarning
+                  id="chk-signup-email"
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={authEmail}
+                  onChange={(e) => setAuthEmail(e.target.value)}
+                  placeholder="name@example.com"
+                  className="mt-1 min-h-[46px] w-full rounded-xl border border-webzy-tint bg-white px-4 text-sm text-webzy-ink outline-none focus:border-webzy-primary"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="chk-signup-password" className="block text-xs font-bold text-webzy-ink">
+                  Create Password (min 8 characters)
+                </label>
+                <div className="relative mt-1">
+                  <input
+                    suppressHydrationWarning
+                    id="chk-signup-password"
+                    type={authShowPassword ? 'text' : 'password'}
+                    required
+                    minLength={8}
+                    maxLength={72}
+                    autoComplete="new-password"
+                    value={authPassword}
+                    onChange={(e) => setAuthPassword(e.target.value)}
+                    placeholder="Choose a password"
+                    className="min-h-[46px] w-full rounded-xl border border-webzy-tint bg-white pl-4 pr-14 text-sm text-webzy-ink outline-none focus:border-webzy-primary"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setAuthShowPassword((prev) => !prev)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 px-2 py-1 text-[11px] font-bold text-webzy-ink/60 hover:text-webzy-ink"
+                  >
+                    {authShowPassword ? 'Hide' : 'Show'}
+                  </button>
                 </div>
-              ) : null}
+              </div>
+
+              <button
+                suppressHydrationWarning
+                type="submit"
+                disabled={authBusy}
+                className="inline-flex min-h-[46px] items-center justify-center rounded-full bg-webzy-primary px-6 text-sm font-bold text-white shadow-sm disabled:opacity-50"
+              >
+                {authBusy ? 'Creating account...' : 'Create Account & Continue →'}
+              </button>
+            </form>
+          ) : null}
+
+          {authMode === 'magic' ? (
+            <form onSubmit={handleInlineMagicLink} className="mt-5 max-w-md space-y-3.5">
+              <div>
+                <label htmlFor="chk-magic-email" className="block text-xs font-bold text-webzy-ink">
+                  Email address
+                </label>
+                <input
+                  suppressHydrationWarning
+                  id="chk-magic-email"
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={authEmail}
+                  onChange={(e) => setAuthEmail(e.target.value)}
+                  placeholder="name@example.com"
+                  className="mt-1 min-h-[46px] w-full rounded-xl border border-webzy-tint bg-white px-4 text-sm text-webzy-ink outline-none focus:border-webzy-primary"
+                />
+              </div>
 
               <div className="flex flex-wrap items-center gap-3 pt-1">
                 <button
                   suppressHydrationWarning
                   type="submit"
                   disabled={authBusy}
-                  className="inline-flex min-h-[48px] items-center justify-center rounded-full bg-webzy-primary px-6 text-sm font-bold text-white shadow-sm disabled:opacity-50"
+                  className="inline-flex min-h-[46px] items-center justify-center rounded-full bg-webzy-primary px-6 text-sm font-bold text-white shadow-sm disabled:opacity-50"
                 >
-                  {authBusy ? 'Verifying...' : 'Verify Code & Continue →'}
+                  {authBusy ? 'Sending link...' : 'Email Me a Sign-In Link →'}
                 </button>
                 <button
                   type="button"
                   onClick={() => {
-                    setAuthSent(false);
-                    setAuthOtp('');
+                    setAuthMode('signin');
                     setAuthError('');
                     setAuthNotice('');
                   }}
-                  className="text-xs text-webzy-ink/65 hover:text-webzy-primary hover:underline"
+                  className="text-xs font-semibold text-webzy-ink/70 hover:text-webzy-primary hover:underline"
                 >
-                  Change email
+                  Back to Email &amp; Password
                 </button>
               </div>
             </form>
-          )}
+          ) : null}
         </div>
       ) : (
         <form onSubmit={handleCheckout} className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-12">

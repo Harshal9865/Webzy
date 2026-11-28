@@ -9,8 +9,8 @@ import {
 } from '../index';
 
 describe('@webzy/themes Phase 1 Theme Engine', () => {
-  it('ships all 14 launch theme manifests (8 occasions + 6 weddings) conforming to schema', () => {
-    expect(LAUNCH_THEMES.length).toBe(14);
+  it('ships all 17 launch theme manifests (11 occasions/flagships + 6 weddings) conforming to schema', () => {
+    expect(LAUNCH_THEMES.length).toBe(17);
     for (const theme of LAUNCH_THEMES) {
       expect(validateThemeManifest(theme).id).toBe(theme.id);
       expect(theme.languages).toContain('hinglish');
@@ -22,11 +22,11 @@ describe('@webzy/themes Phase 1 Theme Engine', () => {
 
   it('respects FEATURE_MAAN_JAO flag when listing active themes', () => {
     const defaultActive = getActiveThemes({ includeMaanJao: false });
-    expect(defaultActive.length).toBe(13);
+    expect(defaultActive.length).toBe(16);
     expect(defaultActive.some((t) => t.id === 'maan-jao-01')).toBe(false);
 
     const withMaanJao = getActiveThemes({ includeMaanJao: true });
-    expect(withMaanJao.length).toBe(14);
+    expect(withMaanJao.length).toBe(17);
     expect(getThemeById('maan-jao-01', { includeMaanJao: true })?.id).toBe('maan-jao-01');
   });
 
@@ -34,6 +34,7 @@ describe('@webzy/themes Phase 1 Theme Engine', () => {
     const under100 = filterThemes({ maxPrice: 99, includeMaanJao: false });
     expect(under100.every((t) => t.price.base <= 99)).toBe(true);
     expect(filterThemes({ occasion: 'birthday' }).length).toBe(2);
+    expect(filterThemes({ occasion: 'travel' }).length).toBe(1);
     expect(filterThemes({ occasion: 'wedding' }).length).toBe(6);
   });
 

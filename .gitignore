@@ -28,9 +28,12 @@ apps/*/.env*
 
 # Hosting & OS artifacts
 .vercel
+apps/*/.vercel
+.turbo/
 .netlify
 .wrangler
 .DS_Store
 Thumbs.db
 *.pem
+*.dump
 npm-debug.log*

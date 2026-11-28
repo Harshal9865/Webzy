@@ -6,9 +6,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const publicTemplatesDir = path.resolve(__dirname, '..', 'public', 'templates');
 
-const ARTIFACT_DIR =
-  process.env.WEBZY_ART_SOURCE_DIR ||
-  'C:\\Users\\Harsh\\.gemini\\antigravity\\brain\\476f492d-d08f-42aa-8d1a-3cd7be448fe3';
+const ARTIFACT_DIR = process.env.WEBZY_ART_SOURCE_DIR?.trim() || '';
 
 const ARTWORK_MAP = [
   // Edition I: Swarna Vatika (Emerald)
@@ -192,22 +190,31 @@ const ARTWORK_MAP = [
 
 let copied = 0;
 let alreadyPresent = 0;
+const missing = [];
 
 for (const item of ARTWORK_MAP) {
   const targetPath = path.join(publicTemplatesDir, item.dest);
-  const sourcePath = path.join(ARTIFACT_DIR, item.src);
+  const sourcePath = ARTIFACT_DIR ? path.join(ARTIFACT_DIR, item.src) : '';
 
-  if (fs.existsSync(sourcePath)) {
+  if (sourcePath && fs.existsSync(sourcePath)) {
     fs.mkdirSync(path.dirname(targetPath), { recursive: true });
     fs.copyFileSync(sourcePath, targetPath);
     copied += 1;
   } else if (fs.existsSync(targetPath)) {
     alreadyPresent += 1;
+  } else {
+    missing.push(item.dest);
   }
 }
 
 if (copied > 0) {
-  console.log(`[webzy] Synced ${copied} wedding artworks into apps/web/public/templates.`);
-} else if (alreadyPresent === ARTWORK_MAP.length) {
-  // All artworks already exist in public/templates (CI or already synced)
+  console.log(`[webzy] Synced ${copied} artworks into apps/web/public/templates.`);
+}
+if (missing.length > 0) {
+  console.warn(
+    `[webzy] Warning: ${missing.length} template artwork(s) missing from apps/web/public/templates:`,
+    missing.join(', '),
+  );
+} else if (copied === 0 && alreadyPresent === ARTWORK_MAP.length) {
+  // All artworks already exist in public/templates (CI/Vercel or already synced)
 }

@@ -40,6 +40,15 @@ const SmallBusinessSite = lazy(() =>
 const WillYouSite = lazy(() =>
   import('../occasions/WillYouSite').then((m) => ({ default: m.WillYouSite })),
 );
+const TravelVoyageSite = lazy(() =>
+  import('../occasions/TravelVoyageSite').then((m) => ({ default: m.TravelVoyageSite })),
+);
+const CafeArtisanSite = lazy(() =>
+  import('../occasions/CafeArtisanSite').then((m) => ({ default: m.CafeArtisanSite })),
+);
+const CreativeVoxelSite = lazy(() =>
+  import('../occasions/CreativeVoxelSite').then((m) => ({ default: m.CreativeVoxelSite })),
+);
 const WeddingScroll = lazy(() =>
   import('../weddings/shared/WeddingScroll').then((m) => ({ default: m.WeddingScroll })),
 );
@@ -104,6 +113,12 @@ function renderOccasionMiniSite({
       return <SmallBusinessSite {...sharedProps} />;
     case 'business-greeting-01':
       return <BusinessGreetingSite {...sharedProps} />;
+    case 'travel-voyage-01':
+      return <TravelVoyageSite {...sharedProps} />;
+    case 'cafe-artisan-01':
+      return <CafeArtisanSite {...sharedProps} />;
+    case 'creative-voxel-01':
+      return <CreativeVoxelSite {...sharedProps} />;
     default:
       return <BirthdayConfettiSite {...sharedProps} />;
   }

@@ -2,14 +2,27 @@ name: Webzy Watchdog & Lifecycle Automation
 
 on:
   schedule:
-    # Run watchdog every 15 minutes
+    # Run payment watchdog every 15 minutes
     - cron: '*/15 * * * *'
+    # Run daily lifecycle maintenance at 18:30 UTC (00:00 IST)
+    - cron: '30 18 * * *'
   workflow_dispatch:
     inputs:
       target_job:
-        description: 'Target job to run (watchdog, lifecycle, or all)'
+        description: 'Target job to run'
         required: true
         default: 'all'
+        type: choice
+        options:
+          - all
+          - watchdog
+          - lifecycle
+
+permissions: {}
+
+concurrency:
+  group: cron-${{ github.event.schedule || github.event.inputs.target_job || 'manual' }}
+  cancel-in-progress: false
 
 jobs:
   run-cron:
@@ -19,32 +32,55 @@ jobs:
 
     steps:
       - name: Execute Watchdog Recoveries
-        if: ${{ github.event.inputs.target_job == 'watchdog' || github.event.inputs.target_job == 'all' || github.event_name == 'schedule' }}
+        if: ${{ github.event.inputs.target_job == 'watchdog' || github.event.inputs.target_job == 'all' || (github.event_name == 'schedule' && github.event.schedule == '*/15 * * * *') }}
+        env:
+          BASE_URL: ${{ secrets.PRODUCTION_WEB_URL }}
+          UPTIME_SECRET: ${{ secrets.UPTIME_PING_SECRET }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
-          if [ -z "${{ secrets.PRODUCTION_WEB_URL }}" ]; then
-            echo "PRODUCTION_WEB_URL secret not set. Skipping scheduled watchdog ping."
+          set -euo pipefail
+          if [ -z "$BASE_URL" ]; then
+            echo "::notice::PRODUCTION_WEB_URL secret not set. Skipping scheduled watchdog ping."
             exit 0
           fi
-          AUTH_HEADER=""
-          if [ -n "${{ secrets.UPTIME_PING_SECRET }}" ]; then
-            AUTH_HEADER="Authorization: Bearer ${{ secrets.UPTIME_PING_SECRET }}"
+          TARGET_URL="${BASE_URL%/}/api/cron/watchdog"
+          SECRET_TOKEN="${UPTIME_SECRET:-$CRON_SECRET}"
+          TMP_BODY=$(mktemp)
+          CURL_ARGS=(-sS --max-time 30 --retry 2 --retry-delay 5 -o "$TMP_BODY" -w "%{http_code}" -X POST "$TARGET_URL" -H "Content-Type: application/json" -d "{}")
+          if [ -n "$SECRET_TOKEN" ]; then
+            CURL_ARGS+=(-H "Authorization: Bearer $SECRET_TOKEN")
           fi
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST "${{ secrets.PRODUCTION_WEB_URL }}/api/cron/watchdog" -H "$AUTH_HEADER" -H "Content-Type: application/json")
-          echo "Watchdog response code: $HTTP_STATUS"
+          HTTP_STATUS=$(curl "${CURL_ARGS[@]}")
+          echo "Watchdog HTTP status: $HTTP_STATUS"
           if [ "$HTTP_STATUS" -ne 200 ] && [ "$HTTP_STATUS" -ne 204 ]; then
-            echo "Warning: Watchdog responded with status $HTTP_STATUS"
+            echo "::error::Watchdog failed with HTTP $HTTP_STATUS"
+            head -c 500 "$TMP_BODY" || true
+            exit 1
           fi
 
-      - name: Execute Midnight IST Lifecycle Maintenance (Once daily at 18:30 UTC / 00:00 IST)
-        if: ${{ github.event.inputs.target_job == 'lifecycle' || github.event.inputs.target_job == 'all' }}
+      - name: Execute Midnight IST Lifecycle Maintenance (18:30 UTC / 00:00 IST)
+        if: ${{ github.event.inputs.target_job == 'lifecycle' || github.event.inputs.target_job == 'all' || (github.event_name == 'schedule' && github.event.schedule == '30 18 * * *') }}
+        env:
+          BASE_URL: ${{ secrets.PRODUCTION_WEB_URL }}
+          UPTIME_SECRET: ${{ secrets.UPTIME_PING_SECRET }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
-          if [ -z "${{ secrets.PRODUCTION_WEB_URL }}" ]; then
-            echo "PRODUCTION_WEB_URL secret not set. Skipping scheduled lifecycle ping."
+          set -euo pipefail
+          if [ -z "$BASE_URL" ]; then
+            echo "::notice::PRODUCTION_WEB_URL secret not set. Skipping scheduled lifecycle ping."
             exit 0
           fi
-          AUTH_HEADER=""
-          if [ -n "${{ secrets.UPTIME_PING_SECRET }}" ]; then
-            AUTH_HEADER="Authorization: Bearer ${{ secrets.UPTIME_PING_SECRET }}"
+          TARGET_URL="${BASE_URL%/}/api/cron/lifecycle"
+          SECRET_TOKEN="${UPTIME_SECRET:-$CRON_SECRET}"
+          TMP_BODY=$(mktemp)
+          CURL_ARGS=(-sS --max-time 45 --retry 2 --retry-delay 5 -o "$TMP_BODY" -w "%{http_code}" -X POST "$TARGET_URL" -H "Content-Type: application/json" -d "{}")
+          if [ -n "$SECRET_TOKEN" ]; then
+            CURL_ARGS+=(-H "Authorization: Bearer $SECRET_TOKEN")
           fi
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST "${{ secrets.PRODUCTION_WEB_URL }}/api/cron/lifecycle" -H "$AUTH_HEADER" -H "Content-Type: application/json")
-          echo "Lifecycle response code: $HTTP_STATUS"
+          HTTP_STATUS=$(curl "${CURL_ARGS[@]}")
+          echo "Lifecycle HTTP status: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" -ne 200 ] && [ "$HTTP_STATUS" -ne 204 ]; then
+            echo "::error::Lifecycle maintenance failed with HTTP $HTTP_STATUS"
+            head -c 500 "$TMP_BODY" || true
+            exit 1
+          fi

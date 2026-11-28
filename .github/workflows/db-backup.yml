@@ -11,6 +11,13 @@ on:
         required: false
         default: 'true'
 
+permissions:
+  contents: read
+
+concurrency:
+  group: db-backup
+  cancel-in-progress: false
+
 jobs:
   backup:
     runs-on: ubuntu-latest
@@ -23,31 +30,65 @@ jobs:
       - name: Check SQL migrations are additive-only
         run: node infra/backup/check-migrations.mjs
 
-      - name: Install PostgreSQL client (pg_dump)
+      - name: Verify backup secrets are configured
+        id: secrets_check
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
         run: |
+          set -euo pipefail
+          if [ -z "$DB_URL" ] || [ -z "$R2_BUCKET" ] || [ -z "$R2_ENDPOINT" ] || [ -z "$R2_ACCESS_KEY_ID" ] || [ -z "$R2_SECRET_ACCESS_KEY" ]; then
+            if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+              echo "::error::Missing required backup secrets (SUPABASE_DB_URL, R2_BUCKET, R2_ENDPOINT, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY)."
+              exit 1
+            fi
+            echo "::notice::Backup secrets not configured yet. Skipping scheduled backup until SUPABASE_DB_URL and R2 secrets are added."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+
+      - name: Install PostgreSQL 17 client (matching Supabase server)
+        if: steps.secrets_check.outputs.ready == 'true'
+        run: |
+          set -euo pipefail
           sudo apt-get update
-          sudo apt-get install -y postgresql-client
+          sudo apt-get install -y curl ca-certificates gnupg
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-17
 
       - name: Create compressed custom-format Postgres backup
+        if: steps.secrets_check.outputs.ready == 'true'
         env:
           DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
-          if [ -z "$DB_URL" ]; then
-            echo "ERROR: SUPABASE_DB_URL secret (Session Pooler URI, port 5432) is required."
-            exit 1
-          fi
+          set -euo pipefail
           TIMESTAMP=$(date -u +'%Y-%m-%d_%H-%M-%S')
           FILENAME="webzy-db-$TIMESTAMP.dump"
           pg_dump "$DB_URL" -F c --no-owner --no-acl -f "$FILENAME"
-          pg_restore --list "$FILENAME" > /dev/null
+          if [ ! -s "$FILENAME" ]; then
+            echo "::error::Generated backup dump is empty."
+            exit 1
+          fi
+          if [ "${{ github.event.inputs.verify_restore_check || 'true' }}" = "true" ]; then
+            pg_restore --list "$FILENAME" > /dev/null
+          fi
           echo "BACKUP_FILE=$FILENAME" >> "$GITHUB_ENV"
 
       - name: Upload Backup #1 to Cloudflare R2 Primary Backup Bucket
+        if: steps.secrets_check.outputs.ready == 'true'
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: auto
         run: |
+          set -euo pipefail
           DATE_FOLDER=$(date -u +'%Y-%m-%d')
           aws s3 cp "$BACKUP_FILE" "s3://${{ secrets.R2_BUCKET }}/daily/$DATE_FOLDER/$BACKUP_FILE" \
             --endpoint-url "${{ secrets.R2_ENDPOINT }}"

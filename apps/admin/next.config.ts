@@ -7,7 +7,7 @@ const cspDirectives = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
   "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' ${supabaseOrigin} data:`,
+  `img-src 'self' ${supabaseOrigin} data: blob: https:`,
   `connect-src 'self' ${supabaseOrigin} ${supabaseWsOrigin} wss://*.supabase.co`,
   "font-src 'self' https://fonts.gstatic.com data:",
   "object-src 'none'",
@@ -30,6 +30,7 @@ const nextConfig: NextConfig = {
         source: '/(.*)',
         headers: [
           { key: 'Content-Security-Policy', value: cspDirectives },
+          { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
           { key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
