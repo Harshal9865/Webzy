@@ -956,6 +956,45 @@ export function MaanJaoSite({
   const [burstTreat, setBurstTreat] = useState<TreatId | null>(null);
   const [forgiven, setForgiven] = useState(false);
   const [poutCount, setPoutCount] = useState(0);
+  const [pickedCouponId, setPickedCouponId] = useState<'chai' | 'food' | 'movie'>('chai');
+  const [copiedVerdict, setCopiedVerdict] = useState(false);
+  const copyTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    };
+  }, []);
+
+  const MAKEUP_COUPONS = [
+    {
+      id: 'chai' as const,
+      label: {
+        en: 'Hot Chai & Long Walk',
+        hinglish: 'Garam Chai & Long Walk',
+        hi: 'गरम चाय और लंबी सैर',
+      },
+      code: 'TRUCE-01',
+    },
+    {
+      id: 'food' as const,
+      label: {
+        en: 'Your Fav Food Order',
+        hinglish: 'Tumhara Fav Food Order',
+        hi: 'तुम्हारा पसंदीदा खाना',
+      },
+      code: 'TRUCE-02',
+    },
+    {
+      id: 'movie' as const,
+      label: {
+        en: 'Zero-Phone Movie Night',
+        hinglish: 'No-Phone Movie Night',
+        hi: 'बिना फ़ोन मूवी नाइट',
+      },
+      code: 'TRUCE-03',
+    },
+  ];
 
   const coreLang = toCoreLanguageCode(language);
   const copy = CAFE_COPY[coreLang] ?? CAFE_COPY.en;
@@ -1386,13 +1425,93 @@ export function MaanJaoSite({
                 {copy.forgivenBannerSub(sender)}
               </p>
 
-              <button
-                type="button"
-                onClick={handleReplayWeather}
-                className="inline-flex min-h-[42px] items-center justify-center rounded-full border border-rose-300/70 bg-rose-50 px-4 py-2 text-xs font-semibold text-rose-800 transition hover:bg-rose-100 active:scale-[0.98]"
-              >
-                {copy.replayWeatherCta}
-              </button>
+              {/* Perforated Make-Up Date Coupon Selector */}
+              <div className="space-y-2 rounded-2xl border border-dashed border-amber-800/25 bg-[#FFFBF2] p-3 text-left">
+                <p className="font-mono text-[9.5px] font-bold uppercase tracking-[0.16em] text-amber-900/75">
+                  {coreLang === 'hi'
+                    ? 'अपना मनपसंद सुलह कूपन चुनें'
+                    : coreLang === 'hinglish'
+                      ? 'Apna Make-Up Date Coupon Chuno'
+                      : 'Pick Your Make-Up Date Coupon'}
+                </p>
+                <div className="space-y-1.5">
+                  {MAKEUP_COUPONS.map((coupon, idx) => {
+                    const active = pickedCouponId === coupon.id;
+                    return (
+                      <button
+                        key={coupon.id}
+                        type="button"
+                        onClick={() => {
+                          playRaindropPluck(idx);
+                          setPickedCouponId(coupon.id);
+                        }}
+                        aria-pressed={active}
+                        className={`flex min-h-[44px] w-full items-center justify-between gap-2 rounded-xl border px-3 py-2 text-left transition active:scale-[0.98] ${
+                          active
+                            ? 'border-rose-400 bg-rose-50 text-[#7C2D12] shadow-2xs'
+                            : 'border-amber-900/12 bg-white text-[#5C4033] hover:border-rose-300'
+                        }`}
+                      >
+                        <span className="text-xs font-bold">{coupon.label[coreLang]}</span>
+                        <span className="shrink-0 rounded-full border border-amber-900/15 bg-amber-50 px-2 py-0.5 font-mono text-[9px] font-bold text-amber-900">
+                          {coupon.code}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const chosen =
+                      MAKEUP_COUPONS.find((c) => c.id === pickedCouponId) ?? MAKEUP_COUPONS[0];
+                    const text =
+                      coreLang === 'hi'
+                        ? `माफ़ किया ${sender}! अब "${chosen.label.hi}" (${chosen.code}) पक्का रहा।`
+                        : coreLang === 'hinglish'
+                          ? `Theek hai maaf kiya ${sender}! "${chosen.label.hinglish}" (${chosen.code}) redeem kar liya hai.`
+                          : `Peace treaty signed, ${sender}! Redeeming my "${chosen.label.en}" coupon (${chosen.code}).`;
+                    try {
+                      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+                        await navigator.clipboard.writeText(text);
+                      }
+                    } catch {
+                      // Safe fallback
+                    }
+                    setCopiedVerdict(true);
+                    if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+                    copyTimerRef.current = setTimeout(() => setCopiedVerdict(false), 3000);
+                  }}
+                  className="inline-flex min-h-[44px] w-full items-center justify-center rounded-full bg-gradient-to-r from-[#FB7185] to-[#F59E0B] px-5 py-2.5 text-xs font-bold text-white shadow-sm transition hover:brightness-105 active:scale-[0.98]"
+                >
+                  {coreLang === 'hi'
+                    ? 'मेरा फ़ैसला कॉपी करें (WhatsApp)'
+                    : coreLang === 'hinglish'
+                      ? 'Mera Truce Verdict Copy Karo'
+                      : 'Copy Truce Verdict for WhatsApp'}
+                </button>
+
+                {copiedVerdict ? (
+                  <p role="status" className="text-xs font-semibold text-emerald-700">
+                    {coreLang === 'hi'
+                      ? 'कॉपी हो गया! अब WhatsApp पर भेज दें।'
+                      : coreLang === 'hinglish'
+                        ? 'Copy ho gaya! WhatsApp par bhej do.'
+                        : 'Copied! Ready to paste on WhatsApp.'}
+                  </p>
+                ) : null}
+
+                <button
+                  type="button"
+                  onClick={handleReplayWeather}
+                  className="inline-flex min-h-[42px] items-center justify-center rounded-full border border-rose-300/70 bg-rose-50 px-4 py-2 text-xs font-semibold text-rose-800 transition hover:bg-rose-100 active:scale-[0.98]"
+                >
+                  {copy.replayWeatherCta}
+                </button>
+              </div>
             </div>
           )}
         </section>

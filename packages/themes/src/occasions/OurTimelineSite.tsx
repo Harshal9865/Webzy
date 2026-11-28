@@ -2,7 +2,15 @@
 
 import React, { useCallback, useId, useMemo, useRef, useState } from 'react';
 import { type CoreLanguageCode, pickLocalizedText, toCoreLanguageCode } from '@webzy/core';
-import { getWebzyFooterLabel, type OccasionSiteProps } from './shared/OccasionPrimitives';
+import {
+  getWebzyFooterLabel,
+  OccasionCassettePlayer,
+  type OccasionSiteProps,
+} from './shared/OccasionPrimitives';
+import {
+  playLanternPullChime,
+  playPaperUnsealSfx,
+} from './shared/OccasionCraftPrimitives';
 
 interface ScrapbookCopy {
   previewBanner: string;
@@ -491,6 +499,179 @@ function PressedPetalSvg({ size, color }: { size: number; color: string }) {
   );
 }
 
+interface MilestoneChapterMood {
+  id: '6m' | '1y' | '2y' | 'forever';
+  pill: Record<CoreLanguageCode, string>;
+  statChapters: string;
+  statSunsets: string;
+  statJokes: string;
+  vow: Record<CoreLanguageCode, string>;
+}
+
+const MILESTONE_CHAPTER_MOODS: readonly MilestoneChapterMood[] = [
+  {
+    id: '6m',
+    pill: { en: '6 Months', hinglish: '6 Mahine', hi: '6 महीने' },
+    statChapters: '180+ Days',
+    statSunsets: '42 Chai Dates',
+    statJokes: '99+ Jokes',
+    vow: {
+      en: 'Six months in and every small catch-up still feels like the best part of the week.',
+      hinglish: '6 mahine beet gaye aur abhi bhi tumse milna poore hafte ka sabse pyara hissa lagta hai.',
+      hi: 'छह महीने बीत गए और आज भी तुमसे मिलना हर सप्ताह का सबसे सुंदर पल लगता है।',
+    },
+  },
+  {
+    id: '1y',
+    pill: { en: '1 Year', hinglish: '1 Saal', hi: '1 वर्ष' },
+    statChapters: '365 Days',
+    statSunsets: '4 Seasons',
+    statJokes: '300+ Laughs',
+    vow: {
+      en: 'One full turn around the sun — every season brighter because we walked through it together.',
+      hinglish: 'Ek poora saal saath — har mausam aur khubsurat laga kyunki hum saath the.',
+      hi: 'साथ बिताया एक पूरा वर्ष — हर मौसम इसलिए और भी उजला रहा क्योंकि हम साथ चले।',
+    },
+  },
+  {
+    id: '2y',
+    pill: { en: '2+ Years', hinglish: '2+ Saal', hi: '2+ वर्ष' },
+    statChapters: '730+ Days',
+    statSunsets: '12+ Trips',
+    statJokes: 'Endless',
+    vow: {
+      en: 'Years of shared playlists, quiet routines, and still choosing each other every single morning.',
+      hinglish: 'Kai saalon ki playlists, chhoti aadatein, aur har subah phir se ek-doosre ko chunna.',
+      hi: 'साझा गीत, छोटी-छोटी आदतें और हर सुबह फिर से एक-दूसरे का हाथ थामना।',
+    },
+  },
+  {
+    id: 'forever',
+    pill: { en: 'Always', hinglish: 'Hamesha', hi: 'सदैव' },
+    statChapters: 'All Chapters',
+    statSunsets: 'Infinite',
+    statJokes: 'Lifetime',
+    vow: {
+      en: 'No matter how many film rolls we fill, my favorite frame will always be the next one with you.',
+      hinglish: 'Chahe jitni bhi film rolls bhar jayein, meri sabse pyari tasveer hamesha agali wali hogi.',
+      hi: 'चाहे जितनी भी यादें संजो लें, मेरी सबसे प्रिय तस्वीर हमेशा तुम्हारे साथ आने वाला कल होगी।',
+    },
+  },
+];
+
+interface BucketStampItem {
+  id: 'sunrise' | 'cook' | 'rain' | 'letter';
+  code: string;
+  label: Record<CoreLanguageCode, string>;
+}
+
+const BUCKET_LIST_STAMPS: readonly BucketStampItem[] = [
+  {
+    id: 'sunrise',
+    code: '01 · AM',
+    label: { en: 'Sunrise Drive', hinglish: 'Subah Ki Drive', hi: 'सुबह की सैर' },
+  },
+  {
+    id: 'cook',
+    code: '02 · PM',
+    label: { en: 'Cook Our Meal', hinglish: 'Saath Khana Banayein', hi: 'साथ भोजन बनाएँ' },
+  },
+  {
+    id: 'rain',
+    code: '03 · RAIN',
+    label: { en: 'Watch the Rain', hinglish: 'Baarish & Chai', hi: 'बारिश और चाय' },
+  },
+  {
+    id: 'letter',
+    code: '04 · NEXT',
+    label: { en: 'Write Again Next Year', hinglish: 'Agle Saal Phir Khat', hi: 'अगले वर्ष फिर पत्र' },
+  },
+];
+
+const EXTRA_TIMELINE_COPY: Record<
+  CoreLanguageCode,
+  {
+    ledgerEyebrow: string;
+    ledgerTitle: string;
+    statFramesLabel: string;
+    statTimeLabel: string;
+    statMomentsLabel: string;
+    soundtrackTitle: string;
+    soundtrackTap: string;
+    soundtrackPlaying: string;
+    capsuleEyebrow: string;
+    capsuleClosedTitle: string;
+    capsuleClosedHint: string;
+    capsuleBreakCta: string;
+    capsuleOpenTitle: string;
+    capsuleVowLine: string;
+    stampsHeading: string;
+    stampsProgress: (count: number, total: number) => string;
+    stampedWord: string;
+  }
+> = {
+  en: {
+    ledgerEyebrow: 'CHAPTER LEDGER · KEEPSAKE STATS',
+    ledgerTitle: 'Our Milestone Chapter',
+    statFramesLabel: '35MM FRAMES',
+    statTimeLabel: 'TOGETHER',
+    statMomentsLabel: 'MEMORIES',
+    soundtrackTitle: 'Golden-Hour Vinyl · Side A',
+    soundtrackTap: 'Play Our Soundtrack',
+    soundtrackPlaying: 'Spinning Side A...',
+    capsuleEyebrow: 'WAX-SEALED TIME CAPSULE',
+    capsuleClosedTitle: 'A Promise Sealed For Our Next Chapter',
+    capsuleClosedHint: 'Tap the crimson wax seal to open our future vow & stamp our next-year bucket list.',
+    capsuleBreakCta: 'Break Wax Seal',
+    capsuleOpenTitle: 'Opened · Our Next Year Together',
+    capsuleVowLine:
+      'Here is to slow mornings, unhurried trips, and collecting many more 35mm frames side by side.',
+    stampsHeading: 'Stamp Our Next-Year Bucket List',
+    stampsProgress: (count, total) => `${count} / ${total} stamped`,
+    stampedWord: 'STAMPED',
+  },
+  hinglish: {
+    ledgerEyebrow: 'CHAPTER LEDGER · YAADON KA HISAB',
+    ledgerTitle: 'Hamara Safar Ab Tak',
+    statFramesLabel: '35MM FRAMES',
+    statTimeLabel: 'SAATH KA WAQT',
+    statMomentsLabel: 'YAADEIN',
+    soundtrackTitle: 'Sunahri Shaam · Side A',
+    soundtrackTap: 'Hamara Gaana Chalao',
+    soundtrackPlaying: 'Side A Chal Raha Hai...',
+    capsuleEyebrow: 'WAX-SEALED TIME CAPSULE',
+    capsuleClosedTitle: 'Agle Chapter Ka Ek Chhupa Waada',
+    capsuleClosedHint: 'Future vow padhne aur agle saal ki bucket list stamp karne ke liye seal todo.',
+    capsuleBreakCta: 'Wax Seal Kholo',
+    capsuleOpenTitle: 'Khul Gaya · Agla Saal Saath',
+    capsuleVowLine:
+      'Aane wale har din mein sukoon bhari subah, lambe safar aur dher saari nayi tasveerein hamare naam.',
+    stampsHeading: 'Agle Saal Ki Bucket List Stamp Karo',
+    stampsProgress: (count, total) => `${count} / ${total} stamped`,
+    stampedWord: 'LOCKED',
+  },
+  hi: {
+    ledgerEyebrow: 'स्मृति अध्याय · सफ़रनामा',
+    ledgerTitle: 'हमारा अब तक का सफ़र',
+    statFramesLabel: '35MM फ़्रेम्स',
+    statTimeLabel: 'साथ का समय',
+    statMomentsLabel: 'मधुर पल',
+    soundtrackTitle: 'सुनहरी शाम · साइड A',
+    soundtrackTap: 'हमारी धुन सुनें',
+    soundtrackPlaying: 'धुन बज रही है...',
+    capsuleEyebrow: 'मोहरबंद भविष्य पत्र',
+    capsuleClosedTitle: 'अगले अध्याय के लिए एक ख़ास वादा',
+    capsuleClosedHint: 'भविष्य का वादा पढ़ने और अगले वर्ष के सपने चुनने के लिए मोहर खोलें।',
+    capsuleBreakCta: 'मोहर खोलें',
+    capsuleOpenTitle: 'अनावरित · हमारा आने वाला वर्ष',
+    capsuleVowLine:
+      'आने वाले हर दिन में सुकून भरी सुबहें, साथ की यात्राएँ और अनगिनत नई यादें हमारे नाम हों।',
+    stampsHeading: 'अगले वर्ष के सपनों पर मोहर लगाएँ',
+    stampsProgress: (count, total) => `${count} / ${total} चयनित`,
+    stampedWord: 'चयनित',
+  },
+};
+
 /**
  * Analog 35mm Film-Strip & Pressed-Flower Travel/Memory Scrapbook ("Our Timeline").
  * Features animated sunlit meadow & pressed-flower paper texture, an interactive 35mm
@@ -510,11 +691,17 @@ export function OurTimelineSite({
   const [flipped, setFlipped] = useState(false);
   const [failedPhotos, setFailedPhotos] = useState<Record<string, boolean>>({});
   const [pressedCount, setPressedCount] = useState(0);
+  const [milestoneMoodId, setMilestoneMoodId] = useState<MilestoneChapterMood['id']>('1y');
+  const [capsuleOpen, setCapsuleOpen] = useState(false);
+  const [stampedGoals, setStampedGoals] = useState<string[]>([]);
   const openedNotifiedRef = useRef(false);
 
   const coreLang = toCoreLanguageCode(language);
   const isDevanagari = coreLang === 'hi';
   const copy = SCRAPBOOK_COPY[coreLang] ?? SCRAPBOOK_COPY.en;
+  const extraCopy = EXTRA_TIMELINE_COPY[coreLang] ?? EXTRA_TIMELINE_COPY.en;
+  const activeMood =
+    MILESTONE_CHAPTER_MOODS.find((m) => m.id === milestoneMoodId) ?? MILESTONE_CHAPTER_MOODS[1];
 
   const themeLabel = pickLocalizedText(manifest.name, language);
   const headlineText = pickLocalizedText(data.headline, language);
@@ -584,14 +771,27 @@ export function OurTimelineSite({
   );
 
   const handleToggleFlip = useCallback(() => {
+    playPaperUnsealSfx(activeIdx);
     setFlipped((prev) => !prev);
     notifyOpenedOnce();
-  }, [notifyOpenedOnce]);
+  }, [activeIdx, notifyOpenedOnce]);
 
   const handlePressFlower = useCallback(() => {
+    playLanternPullChime();
     setPressedCount((prev) => prev + 1);
     notifyOpenedOnce();
   }, [notifyOpenedOnce]);
+
+  const handleToggleGoalStamp = useCallback(
+    (goalId: string, idx: number) => {
+      playPaperUnsealSfx(idx + 2);
+      setStampedGoals((prev) =>
+        prev.includes(goalId) ? prev.filter((item) => item !== goalId) : [...prev, goalId],
+      );
+      notifyOpenedOnce();
+    },
+    [notifyOpenedOnce],
+  );
 
   const markPhotoFailed = useCallback((src: string) => {
     setFailedPhotos((prev) => (prev[src] ? prev : { ...prev, [src]: true }));
@@ -1193,6 +1393,195 @@ export function OurTimelineSite({
               />
             ))}
           </div>
+        </section>
+
+        {/* ANALOG CHAPTER LEDGER & MILESTONE SWITCHER */}
+        <section
+          aria-label={extraCopy.ledgerEyebrow}
+          className="rounded-[20px] border border-[#D4C2A8]/80 bg-[#FFFDF8]/92 p-4 shadow-[0_14px_30px_-18px_rgba(46,36,30,0.18)] sm:p-5"
+        >
+          <div className="text-center">
+            <span
+              className={`font-mono text-[9.5px] font-bold text-[#8F5B3C] ${
+                isDevanagari ? 'tracking-normal' : 'uppercase tracking-[0.18em]'
+              }`}
+            >
+              {extraCopy.ledgerEyebrow}
+            </span>
+            <h2 className="mt-1 font-royal-serif text-xl font-semibold text-[#2E241E]">
+              {extraCopy.ledgerTitle}
+            </h2>
+          </div>
+
+          {/* 4 Milestone Mood Selector Pills */}
+          <div className="mt-3.5 grid grid-cols-4 gap-1.5">
+            {MILESTONE_CHAPTER_MOODS.map((mood, idx) => {
+              const active = mood.id === milestoneMoodId;
+              return (
+                <button
+                  key={mood.id}
+                  type="button"
+                  onClick={() => {
+                    playPaperUnsealSfx(idx);
+                    setMilestoneMoodId(mood.id);
+                  }}
+                  aria-pressed={active}
+                  className={`min-h-[40px] rounded-full border px-2 text-[11px] font-semibold transition active:scale-95 ${
+                    active
+                      ? 'border-[#8F4D3E] bg-[#231D19] text-[#F1BE6B] shadow-2xs'
+                      : 'border-[#D4C2A8] bg-[#FAF4E8] text-[#5C4535] hover:border-[#B85A56]/50'
+                  }`}
+                >
+                  {mood.pill[coreLang]}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* 3 Brass-Framed Archival Flip-Stats */}
+          <div className="mt-3.5 grid grid-cols-3 gap-2 text-center">
+            <div className="rounded-xl border border-[#DFD0B8] bg-[#FAF4E8] px-2 py-2.5">
+              <p className="font-mono text-[8.5px] font-bold tracking-[0.12em] text-[#8F5B3C]">
+                {extraCopy.statFramesLabel}
+              </p>
+              <p className="mt-1 font-royal-serif text-sm font-bold text-[#2E241E]">
+                0{frames.length} Rolls
+              </p>
+            </div>
+            <div className="rounded-xl border border-[#DFD0B8] bg-[#FAF4E8] px-2 py-2.5">
+              <p className="font-mono text-[8.5px] font-bold tracking-[0.12em] text-[#8F5B3C]">
+                {extraCopy.statTimeLabel}
+              </p>
+              <p className="mt-1 font-royal-serif text-sm font-bold text-[#2E241E]">
+                {activeMood.statChapters}
+              </p>
+            </div>
+            <div className="rounded-xl border border-[#DFD0B8] bg-[#FAF4E8] px-2 py-2.5">
+              <p className="font-mono text-[8.5px] font-bold tracking-[0.12em] text-[#8F5B3C]">
+                {extraCopy.statMomentsLabel}
+              </p>
+              <p className="mt-1 font-royal-serif text-sm font-bold text-[#2E241E]">
+                {activeMood.statSunsets}
+              </p>
+            </div>
+          </div>
+
+          <p
+            className={`mt-3.5 rounded-xl border border-[#E5D7C1] bg-[#FBF6EC] px-3.5 py-3 text-center text-[#4B3B31] ${
+              isDevanagari
+                ? 'text-xs leading-relaxed'
+                : 'font-royal-serif text-[14px] italic leading-relaxed'
+            }`}
+          >
+            {activeMood.vow[coreLang]}
+          </p>
+        </section>
+
+        {/* GOLDEN-HOUR VINYL SOUNDTRACK CASSETTE */}
+        <OccasionCassettePlayer
+          trackTitle={extraCopy.soundtrackTitle}
+          mood="romantic"
+          tapLabel={extraCopy.soundtrackTap}
+          playingLabel={extraCopy.soundtrackPlaying}
+          accentColor="#B85A56"
+        />
+
+        {/* WAX-SEALED FUTURE TIME CAPSULE & BUCKET-LIST POSTMARKS */}
+        <section
+          aria-label={extraCopy.capsuleEyebrow}
+          className="relative overflow-hidden rounded-[20px] border border-[#C7A97E]/70 bg-gradient-to-b from-[#FBF4E5] to-[#F3E6CE] p-5 text-center shadow-[0_14px_30px_-18px_rgba(46,36,30,0.25)] sm:p-6"
+        >
+          <span
+            className={`font-mono text-[9.5px] font-bold text-[#8F4D3E] ${
+              isDevanagari ? 'tracking-normal' : 'uppercase tracking-[0.18em]'
+            }`}
+          >
+            {extraCopy.capsuleEyebrow}
+          </span>
+
+          {!capsuleOpen ? (
+            <div className="mt-3 flex flex-col items-center">
+              <h3 className="font-royal-serif text-xl font-semibold text-[#2E241E]">
+                {extraCopy.capsuleClosedTitle}
+              </h3>
+              <p className="mt-1.5 max-w-sm text-xs leading-relaxed text-[#6B5647]">
+                {extraCopy.capsuleClosedHint}
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  playLanternPullChime();
+                  setCapsuleOpen(true);
+                  notifyOpenedOnce();
+                }}
+                className="mt-4 inline-flex min-h-[48px] items-center justify-center gap-2.5 rounded-full border-2 border-[#E6B8A2]/60 bg-gradient-to-br from-[#B85A56] via-[#9E3E3B] to-[#7A2A28] px-6 py-2.5 text-xs font-bold tracking-[0.08em] text-[#FFFDF9] shadow-[0_12px_26px_-10px_rgba(122,42,40,0.7)] transition hover:brightness-110 active:scale-95"
+              >
+                <span className="h-2 w-2 rounded-full bg-[#F6C86E]" aria-hidden="true" />
+                <span>{extraCopy.capsuleBreakCta}</span>
+              </button>
+            </div>
+          ) : (
+            <div className="mt-3 space-y-4">
+              <div>
+                <h3 className="font-royal-serif text-xl font-semibold text-[#2E241E]">
+                  {extraCopy.capsuleOpenTitle}
+                </h3>
+                <p
+                  className={`mx-auto mt-2 max-w-md text-[#3B2B20] ${
+                    isDevanagari
+                      ? 'text-xs leading-relaxed'
+                      : 'font-royal-serif text-[14.5px] italic leading-relaxed'
+                  }`}
+                >
+                  {extraCopy.capsuleVowLine}
+                </p>
+              </div>
+
+              <div className="border-t border-dashed border-[#B89B72]/60 pt-3.5 text-left">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-mono text-[9.5px] font-bold uppercase tracking-[0.14em] text-[#7A5438]">
+                    {extraCopy.stampsHeading}
+                  </p>
+                  <span className="rounded-full bg-[#231D19] px-2.5 py-0.5 font-mono text-[9.5px] font-bold text-[#F1BE6B]">
+                    {extraCopy.stampsProgress(stampedGoals.length, BUCKET_LIST_STAMPS.length)}
+                  </span>
+                </div>
+
+                <div className="mt-2.5 grid grid-cols-2 gap-2">
+                  {BUCKET_LIST_STAMPS.map((goal, idx) => {
+                    const isStamped = stampedGoals.includes(goal.id);
+                    return (
+                      <button
+                        key={goal.id}
+                        type="button"
+                        onClick={() => handleToggleGoalStamp(goal.id, idx)}
+                        aria-pressed={isStamped}
+                        className={`relative flex min-h-[60px] flex-col justify-between rounded-xl border px-3 py-2.5 text-left transition active:scale-[0.98] ${
+                          isStamped
+                            ? 'border-[#B85A56] bg-[#FFFDF8] shadow-xs'
+                            : 'border-[#C7A97E]/55 bg-[#FAF4E8]/85 hover:border-[#8F5B3C]'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="font-mono text-[8.5px] font-bold tracking-[0.12em] text-[#8F5B3C]">
+                            {goal.code}
+                          </span>
+                          {isStamped ? (
+                            <span className="-rotate-3 rounded border border-[#B85A56]/70 bg-[#B85A56]/10 px-1.5 py-0.5 font-mono text-[8px] font-bold text-[#9A3F3B]">
+                              {extraCopy.stampedWord}
+                            </span>
+                          ) : null}
+                        </div>
+                        <span className="mt-1 text-xs font-semibold text-[#2E241E]">
+                          {goal.label[coreLang]}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
         </section>
 
         {/* MINIMAL ARCHIVAL LOVE LETTER FOOTER CARD */}

@@ -279,60 +279,83 @@ export function HomeClient({ themes }: HomeClientProps) {
     <div className="bg-white">
       {/* 1. Hero + Switchable Live Interactive Sample */}
       <section className="relative overflow-hidden border-b border-webzy-ink/[0.08] bg-gradient-to-b from-[#FFF7FA] via-[#FDFBF8] to-white">
-        <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-8 px-4 py-8 sm:gap-10 sm:px-6 sm:py-12 lg:grid-cols-12 lg:py-16">
-          <div className="lg:col-span-7">
-            <p className="inline-flex items-center gap-2 rounded-full border border-webzy-primary/20 bg-white px-3.5 py-1 font-mono text-[10.5px] font-bold uppercase tracking-[0.14em] text-webzy-primary shadow-2xs">
-              {copy.hero.badge}
-            </p>
-            <h1 className="mt-4 font-heading text-3xl font-bold leading-[1.1] tracking-tight-display text-webzy-ink sm:text-4xl md:text-5xl lg:text-[54px]">
-              {copy.hero.headline}
-            </h1>
-            <p className="mt-3.5 max-w-2xl text-sm leading-relaxed text-webzy-ink/75 sm:mt-4 sm:text-lg">
-              {copy.hero.subheadline}
-            </p>
+        <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-6 px-4 py-6 sm:gap-8 sm:px-6 sm:py-9 lg:grid-cols-12 lg:gap-10 lg:py-10">
+          <div className="flex flex-col justify-between lg:col-span-7">
+            <div>
+              <p className="inline-flex items-center gap-2 rounded-full border border-webzy-primary/20 bg-white px-3.5 py-1 font-mono text-[10.5px] font-bold uppercase tracking-[0.14em] text-webzy-primary shadow-2xs">
+                {copy.hero.badge}
+              </p>
+              <h1 className="mt-3.5 font-heading text-3xl font-bold leading-[1.1] tracking-tight-display text-webzy-ink sm:text-4xl md:text-5xl lg:text-[52px]">
+                {copy.hero.headline}
+              </h1>
+              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-webzy-ink/75 sm:mt-3.5 sm:text-base lg:text-lg">
+                {copy.hero.subheadline}
+              </p>
 
-            <div className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3.5">
-              <Link
-                href="/themes"
-                className="btn-spring inline-flex min-h-[48px] w-full items-center justify-center rounded-full bg-webzy-primary px-7 py-3 text-sm font-bold text-white shadow-btn-primary hover:opacity-95 sm:w-auto"
-              >
-                {copy.hero.primaryCta}
-              </Link>
-              <Link
-                href={sampleDemoHref}
-                className="btn-spring inline-flex min-h-[48px] w-full items-center justify-center rounded-full border border-webzy-ink/15 bg-white px-6 py-3 text-sm font-bold text-webzy-ink shadow-2xs transition hover:border-webzy-primary/40 hover:text-webzy-primary sm:w-auto"
-              >
-                {copy.hero.secondaryCta}
-              </Link>
-              <Link
-                href="/studio"
-                className="inline-flex min-h-[44px] items-center justify-center px-3 text-xs font-bold text-webzy-ink/70 underline-offset-4 transition hover:text-webzy-ink hover:underline sm:justify-start"
-              >
-                Need a custom website? →
-              </Link>
+              <div className="mt-5 flex flex-col gap-2.5 sm:mt-6 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
+                <Link
+                  href="/themes"
+                  className="btn-spring inline-flex min-h-[46px] w-full items-center justify-center rounded-full bg-webzy-primary px-7 py-2.5 text-sm font-bold text-white shadow-btn-primary hover:opacity-95 sm:w-auto"
+                >
+                  {copy.hero.primaryCta}
+                </Link>
+                <Link
+                  href={sampleDemoHref}
+                  className="btn-spring inline-flex min-h-[46px] w-full items-center justify-center rounded-full border border-webzy-ink/15 bg-white px-6 py-2.5 text-sm font-bold text-webzy-ink shadow-2xs transition hover:border-webzy-primary/40 hover:text-webzy-primary sm:w-auto"
+                >
+                  {copy.hero.secondaryCta}
+                </Link>
+                <Link
+                  href="/studio"
+                  className="inline-flex min-h-[42px] items-center justify-center px-2.5 text-xs font-bold text-webzy-ink/70 underline-offset-4 transition hover:text-webzy-ink hover:underline sm:justify-start"
+                >
+                  Need a custom website? →
+                </Link>
+              </div>
             </div>
 
-            {/* Quiet Trust Markers */}
-            <dl className="mt-7 grid max-w-xl grid-cols-3 gap-3 border-t border-webzy-ink/[0.08] pt-5 sm:gap-5">
-              <div>
-                <dt className="text-[11px] font-medium text-webzy-ink/55">Receiver experience</dt>
-                <dd className="mt-0.5 font-heading text-sm font-bold text-webzy-ink sm:text-base">
-                  Zero app or login
-                </dd>
+            {/* Quiet Trust Markers + Direct Quick-Jump Strip (fills desktop rhythm cleanly) */}
+            <div className="mt-6 max-w-xl space-y-3 border-t border-webzy-ink/[0.08] pt-4 lg:mt-7">
+              <dl className="grid grid-cols-3 gap-3 sm:gap-5">
+                <div>
+                  <dt className="text-[11px] font-medium text-webzy-ink/55">Receiver experience</dt>
+                  <dd className="mt-0.5 font-heading text-sm font-bold text-webzy-ink sm:text-base">
+                    Zero app or login
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] font-medium text-webzy-ink/55">Ready-made pricing</dt>
+                  <dd className="mt-0.5 font-heading text-sm font-bold text-webzy-ink sm:text-base font-tabular">
+                    From ₹29 · GST incl.
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] font-medium text-webzy-ink/55">Languages</dt>
+                  <dd className="mt-0.5 font-heading text-sm font-bold text-webzy-ink sm:text-base">
+                    10 Indian scripts
+                  </dd>
+                </div>
+              </dl>
+
+              <div className="hidden items-center gap-2 pt-1 lg:flex">
+                <span className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-webzy-ink/45">
+                  Popular:
+                </span>
+                {[
+                  { label: 'Wedding Suites · ₹499', href: '/weddings' },
+                  { label: 'Travel Ink · ₹99', href: '/themes/travel-voyage-01' },
+                  { label: 'Birthday 3-in-1 · ₹49', href: '/themes/birthday-confetti-01' },
+                ].map((chip) => (
+                  <Link
+                    key={chip.href}
+                    href={chip.href}
+                    className="rounded-full border border-webzy-ink/10 bg-white px-3 py-1 text-[11px] font-semibold text-webzy-ink/80 transition hover:border-webzy-primary/40 hover:text-webzy-primary"
+                  >
+                    {chip.label}
+                  </Link>
+                ))}
               </div>
-              <div>
-                <dt className="text-[11px] font-medium text-webzy-ink/55">Ready-made pricing</dt>
-                <dd className="mt-0.5 font-heading text-sm font-bold text-webzy-ink sm:text-base font-tabular">
-                  From ₹29 · GST incl.
-                </dd>
-              </div>
-              <div>
-                <dt className="text-[11px] font-medium text-webzy-ink/55">Languages</dt>
-                <dd className="mt-0.5 font-heading text-sm font-bold text-webzy-ink sm:text-base">
-                  10 Indian scripts
-                </dd>
-              </div>
-            </dl>
+            </div>
           </div>
 
           <div className="relative flex flex-col items-center lg:col-span-5">
@@ -340,7 +363,7 @@ export function HomeClient({ themes }: HomeClientProps) {
               <div
                 role="tablist"
                 aria-label="Switch live sample"
-                className="mb-3 flex max-w-full flex-nowrap items-center gap-1 overflow-x-auto rounded-full border border-webzy-ink/10 bg-white/90 p-1 shadow-2xs scrollbar-none"
+                className="mb-2.5 flex max-w-full flex-nowrap items-center gap-1 overflow-x-auto rounded-full border border-webzy-ink/10 bg-white/90 p-1 shadow-2xs scrollbar-none"
               >
                 {heroCandidates.map((entry) => {
                   const active = sampleTheme?.id === entry.theme.id;
@@ -371,7 +394,7 @@ export function HomeClient({ themes }: HomeClientProps) {
                   caption={copy.hero.sampleLabel}
                   accentColor={sampleTheme.palette.primary || '#E11D63'}
                   externalFullScreenHref={sampleDemoHref}
-                  mobileHeightClassName="h-[410px] sm:h-[470px]"
+                  mobileHeightClassName="h-[385px] sm:h-[430px]"
                   fullscreenChildren={
                     <ThemeRenderer
                       key={`hero-fs-${sampleTheme.id}-${language}`}

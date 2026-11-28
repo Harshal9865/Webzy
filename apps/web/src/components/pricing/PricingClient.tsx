@@ -379,110 +379,139 @@ export function PricingClient({ catalogPricing, capacity }: PricingClientProps) 
   ];
 
   return (
-    <div className="relative overflow-x-clip bg-[#FFFBF8]">
-      {/* ===== 1. HERO: Editorial split with art collage ===== */}
-      <section className="relative border-b border-webzy-tint/70">
+    <div className="relative overflow-x-clip bg-[#FCF9F4]">
+      {/* ===== 1. HERO: Editorial split with interactive printed-folio collage ===== */}
+      <section className="relative border-b border-webzy-ink/[0.08] bg-gradient-to-b from-white via-[#FCF9F4] to-[#FAF4EC]">
         <div
-          className="pointer-events-none absolute inset-0 opacity-70"
+          className="pointer-events-none absolute inset-0 opacity-65"
           aria-hidden="true"
           style={{
             background:
-              'radial-gradient(60% 50% at 85% 10%, rgba(225,29,99,0.10) 0%, transparent 60%), radial-gradient(45% 40% at 5% 90%, rgba(201,162,67,0.14) 0%, transparent 65%)',
+              'radial-gradient(55% 48% at 84% 12%, rgba(225,29,99,0.07) 0%, transparent 60%), radial-gradient(45% 40% at 8% 88%, rgba(201,162,67,0.12) 0%, transparent 65%)',
           }}
         />
-        <div className="relative mx-auto grid max-w-6xl grid-cols-1 items-center gap-8 px-4 py-9 sm:px-6 sm:py-14 lg:grid-cols-12 lg:gap-10 lg:py-20">
+        <div className="relative mx-auto grid max-w-6xl grid-cols-1 items-center gap-7 px-4 py-8 sm:px-6 sm:py-11 lg:grid-cols-12 lg:gap-10 lg:py-14">
           <div className="lg:col-span-6">
-            <p className="inline-flex items-center gap-2 rounded-full border border-webzy-primary/25 bg-white/80 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-webzy-primary">
-              <span className="h-1.5 w-1.5 rounded-full bg-webzy-primary" aria-hidden="true" />
-              Launch tariff, GST inclusive
+            <p className="inline-flex items-center gap-2 rounded-full border border-webzy-ink/12 bg-white px-3.5 py-1 font-mono text-[10.5px] font-bold uppercase tracking-[0.16em] text-webzy-primary shadow-2xs">
+              ONE-TIME PRICING · GST INCLUDED
             </p>
-            <h1 className="mt-4 font-heading text-[34px] font-extrabold leading-[1.05] tracking-tight text-webzy-ink sm:text-5xl lg:text-6xl">
+            <h1 className="mt-3.5 font-heading text-[32px] font-extrabold leading-[1.06] tracking-tight text-webzy-ink sm:text-5xl lg:text-[52px]">
               {p.headline}
             </h1>
-            <p className="mt-3.5 max-w-xl text-sm leading-relaxed text-webzy-ink/75 sm:mt-5 sm:text-lg">
+            <p className="mt-3 max-w-xl text-sm leading-relaxed text-webzy-ink/70 sm:mt-4 sm:text-base lg:text-lg">
               {p.subtitle}
             </p>
 
-            <div className="mt-6 grid grid-cols-3 gap-2 sm:mt-8 sm:gap-3">
-              {tierDefinitions.map((tier) => (
-                <button
-                  key={tier.id}
-                  type="button"
-                  onClick={() => jumpToPath(tier.id)}
-                  className="group rounded-2xl border border-webzy-ink/10 bg-white/90 p-2.5 text-left shadow-xs transition hover:-translate-y-0.5 hover:border-webzy-primary/45 hover:shadow-md sm:p-4"
-                >
-                  <span className="block text-[10px] font-bold uppercase tracking-wider text-webzy-ink/55 sm:text-[11px]">
-                    {tier.shortName}
-                  </span>
-                  <span className="mt-1 block text-[10px] font-semibold text-webzy-ink/50 sm:text-xs">
-                    from
-                  </span>
-                  <span className="block font-heading text-lg font-extrabold leading-none text-webzy-ink sm:text-3xl">
-                    {tier.fromLabel}
-                  </span>
-                  <span className="mt-1.5 hidden text-[11px] font-semibold text-webzy-primary group-hover:underline sm:block">
-                    See what is inside
-                  </span>
-                </button>
-              ))}
+            <div className="mt-6 grid grid-cols-3 gap-2 sm:mt-7 sm:gap-3">
+              {tierDefinitions.map((tier) => {
+                const isSelected = selectedTierId === tier.id;
+                return (
+                  <button
+                    key={tier.id}
+                    type="button"
+                    onClick={() => jumpToPath(tier.id)}
+                    className={`group rounded-2xl border p-2.5 text-left transition-all duration-200 hover:-translate-y-0.5 sm:p-4 ${
+                      isSelected
+                        ? 'border-webzy-ink bg-webzy-ink text-white shadow-md'
+                        : 'border-webzy-ink/10 bg-white text-webzy-ink shadow-2xs hover:border-webzy-primary/45 hover:shadow-md'
+                    }`}
+                  >
+                    <span
+                      className={`block font-mono text-[9.5px] font-bold uppercase tracking-[0.14em] sm:text-[10.5px] ${
+                        isSelected ? 'text-[#F5E0A3]' : 'text-webzy-ink/50'
+                      }`}
+                    >
+                      {tier.shortName}
+                    </span>
+                    <span
+                      className={`mt-1 block text-[10px] font-medium sm:text-[11px] ${
+                        isSelected ? 'text-white/70' : 'text-webzy-ink/45'
+                      }`}
+                    >
+                      from
+                    </span>
+                    <span className="block font-heading text-lg font-extrabold leading-none font-tabular sm:text-[26px]">
+                      {tier.fromLabel}
+                    </span>
+                    <span
+                      className={`mt-2 hidden text-[11px] font-semibold group-hover:underline sm:block ${
+                        isSelected ? 'text-white/90' : 'text-webzy-primary'
+                      }`}
+                    >
+                      Inspect plan →
+                    </span>
+                  </button>
+                );
+              })}
             </div>
 
-            <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-1.5 text-xs font-semibold text-webzy-ink/70 sm:text-sm">
+            <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-1.5 text-xs font-semibold text-webzy-ink/75 sm:text-[13px]">
               <li className="flex items-center gap-1.5">
-                <CheckIcon /> One-time payment
+                <CheckIcon /> One-time UPI or Card
               </li>
               <li className="flex items-center gap-1.5">
-                <CheckIcon /> No subscriptions
+                <CheckIcon /> Zero monthly renewals
               </li>
               <li className="flex items-center gap-1.5">
-                <CheckIcon /> {baseDays} days hosting included
+                <CheckIcon /> Free 24h post-publish edits
               </li>
             </ul>
           </div>
 
-          {/* Collage of three art plates, printed-photo style */}
+          {/* Interactive printed-photo collage (tap any plate to inspect that tier) */}
           <div className="lg:col-span-6">
-            <div className="relative mx-auto h-[290px] w-full max-w-[440px] sm:h-[380px] sm:max-w-[520px] lg:h-[440px]">
-              <div className="absolute left-0 top-8 w-[56%] -rotate-6 rounded-xl bg-white p-1.5 shadow-[0_20px_40px_-18px_rgba(31,20,25,0.35)] sm:p-2">
-                <ArtPlate tierId="ready_made" className="aspect-[4/3] rounded-lg" />
-                <p className="px-1 pb-0.5 pt-1.5 text-center font-handwritten text-sm text-webzy-ink/70 sm:text-lg">
-                  Occasions
+            <div className="relative mx-auto h-[270px] w-full max-w-[430px] sm:h-[360px] sm:max-w-[500px] lg:h-[400px]">
+              <button
+                type="button"
+                onClick={() => jumpToPath('ready_made')}
+                className="group absolute left-0 top-7 w-[55%] -rotate-6 rounded-2xl border border-webzy-ink/[0.08] bg-white p-1.5 text-left shadow-[0_20px_40px_-18px_rgba(31,20,25,0.32)] transition duration-300 hover:z-30 hover:-rotate-2 hover:scale-[1.03] sm:p-2"
+              >
+                <ArtPlate tierId="ready_made" className="aspect-[4/3] rounded-xl" />
+                <p className="px-1 pb-0.5 pt-1.5 text-center font-handwritten text-sm text-webzy-ink/75 sm:text-lg">
+                  Occasions · from {tierDefinitions[0].fromLabel}
                 </p>
-              </div>
-              <div className="absolute right-0 top-0 z-10 w-[58%] rotate-3 rounded-xl bg-white p-1.5 shadow-[0_24px_46px_-18px_rgba(140,107,34,0.45)] sm:p-2">
-                <ArtPlate tierId="semi_custom" className="aspect-[4/3] rounded-lg" />
+              </button>
+              <button
+                type="button"
+                onClick={() => jumpToPath('semi_custom')}
+                className="group absolute right-0 top-0 z-10 w-[57%] rotate-3 rounded-2xl border border-[#C9A243]/40 bg-white p-1.5 text-left shadow-[0_24px_46px_-18px_rgba(140,107,34,0.42)] transition duration-300 hover:z-30 hover:rotate-1 hover:scale-[1.03] sm:p-2"
+              >
+                <ArtPlate tierId="semi_custom" className="aspect-[4/3] rounded-xl" />
                 <p className="px-1 pb-0.5 pt-1.5 text-center font-handwritten text-sm text-[#6B4E12] sm:text-lg">
-                  Royal Weddings
+                  Royal Weddings · {tierDefinitions[1].fromLabel}
                 </p>
-              </div>
-              <div className="absolute bottom-0 left-[16%] z-20 w-[56%] -rotate-1 rounded-xl bg-white p-1.5 shadow-[0_24px_46px_-18px_rgba(31,20,25,0.4)] sm:p-2">
-                <ArtPlate tierId="studio_bespoke" className="aspect-[4/3] rounded-lg" />
-                <p className="px-1 pb-0.5 pt-1.5 text-center font-handwritten text-sm text-webzy-ink/70 sm:text-lg">
-                  Custom Made
+              </button>
+              <button
+                type="button"
+                onClick={() => jumpToPath('studio_bespoke')}
+                className="group absolute bottom-0 left-[17%] z-20 w-[55%] -rotate-1 rounded-2xl border border-webzy-ink/[0.08] bg-white p-1.5 text-left shadow-[0_24px_46px_-18px_rgba(31,20,25,0.38)] transition duration-300 hover:z-30 hover:rotate-0 hover:scale-[1.03] sm:p-2"
+              >
+                <ArtPlate tierId="studio_bespoke" className="aspect-[4/3] rounded-xl" />
+                <p className="px-1 pb-0.5 pt-1.5 text-center font-handwritten text-sm text-webzy-ink/75 sm:text-lg">
+                  Custom Made · from {tierDefinitions[2].fromLabel}
                 </p>
-              </div>
+              </button>
             </div>
           </div>
         </div>
       </section>
 
       {/* ===== 2. CHOOSE YOUR PATH: tabbed showcase ===== */}
-      <section id="pricing-paths" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-9 sm:px-6 sm:py-16">
+      <section id="pricing-paths" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-9 sm:px-6 sm:py-14">
         <div className="text-center">
           <OrnamentDivider />
           <h2 className="mt-3 font-heading text-2xl font-bold text-webzy-ink sm:text-4xl">
             Choose your path
           </h2>
-          <p className="mx-auto mt-2 max-w-xl text-xs text-webzy-ink/70 sm:text-base">
-            Three ways to build with Webzy. Tap one to see exactly what it includes, then go
-            straight to it.
+          <p className="mx-auto mt-2 max-w-xl text-xs text-webzy-ink/65 sm:text-base">
+            Three clear ways to build with Webzy. Switch tabs to inspect every inclusion before you begin.
           </p>
         </div>
 
         <div
           role="tablist"
           aria-label="Product families"
-          className="mx-auto mt-6 grid max-w-xl grid-cols-3 gap-1 rounded-full border border-webzy-ink/10 bg-white p-1 shadow-xs sm:mt-8"
+          className="mx-auto mt-6 grid max-w-xl grid-cols-3 gap-1 rounded-full border border-webzy-ink/10 bg-white p-1 shadow-2xs sm:mt-7"
         >
           {tierDefinitions.map((tier) => {
             const isActive = selectedTierId === tier.id;
@@ -496,7 +525,7 @@ export function PricingClient({ catalogPricing, capacity }: PricingClientProps) 
                 className={`min-h-[42px] rounded-full px-2 text-xs font-bold transition sm:text-sm ${
                   isActive
                     ? 'bg-webzy-ink text-white shadow-sm'
-                    : 'text-webzy-ink/70 hover:bg-webzy-surface hover:text-webzy-ink'
+                    : 'text-webzy-ink/70 hover:bg-[#FAF6F0] hover:text-webzy-ink'
                 }`}
               >
                 {tier.shortName}
@@ -507,7 +536,7 @@ export function PricingClient({ catalogPricing, capacity }: PricingClientProps) 
 
         <div
           key={activeTierConfig.id}
-          className={`mx-auto mt-5 grid max-w-5xl grid-cols-1 overflow-hidden rounded-2xl border bg-white shadow-[0_22px_48px_-26px_rgba(31,20,25,0.26)] animate-fade-in sm:mt-6 sm:rounded-3xl lg:grid-cols-12 ${
+          className={`mx-auto mt-5 grid max-w-5xl grid-cols-1 overflow-hidden rounded-2xl border bg-white shadow-[0_22px_48px_-26px_rgba(31,20,25,0.22)] animate-fade-in sm:mt-6 sm:rounded-3xl lg:grid-cols-12 ${
             activeTierConfig.id === 'semi_custom' ? 'border-[#C9A243]/55' : 'border-webzy-ink/10'
           }`}
         >
@@ -515,19 +544,19 @@ export function PricingClient({ catalogPricing, capacity }: PricingClientProps) 
           <div className="relative lg:col-span-5">
             <ArtPlate
               tierId={activeTierConfig.id}
-              className="h-[140px] w-full sm:h-[200px] lg:h-full lg:min-h-[380px]"
+              className="h-[170px] w-full sm:h-[220px] lg:h-full lg:min-h-[380px]"
               imgClassName="transition-transform duration-700 hover:scale-[1.04]"
             />
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/10" />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-black/15" />
             <div className="absolute inset-x-3 top-3 flex items-center justify-between gap-2 sm:inset-x-4 sm:top-4">
-              <span className="rounded-full bg-white/95 px-3 py-1 text-[11px] font-bold text-webzy-ink shadow-xs">
+              <span className="rounded-full bg-white/95 px-3 py-1 text-[10.5px] font-bold text-webzy-ink shadow-xs">
                 {activeTierCopy.badge}
               </span>
               <span
-                className={`rounded-full px-3 py-1 text-[11px] font-bold shadow-xs ${
+                className={`rounded-full px-3 py-1 text-[10.5px] font-bold shadow-xs ${
                   activeTierConfig.id === 'studio_bespoke' && !capacity.studio.acceptingOrders
                     ? 'border border-amber-300 bg-amber-50 text-amber-900'
-                    : 'border border-emerald-200 bg-emerald-50 text-emerald-900'
+                    : 'border border-white/25 bg-black/45 text-white backdrop-blur-xs'
                 }`}
               >
                 {activeTierConfig.meta}
@@ -546,36 +575,46 @@ export function PricingClient({ catalogPricing, capacity }: PricingClientProps) 
           {/* Details side */}
           <div className="flex flex-col justify-between p-4 sm:p-6 lg:col-span-7 lg:p-8">
             <div>
-              <p className="text-xs leading-relaxed text-webzy-ink/80 sm:text-sm">
+              <p className="text-xs leading-relaxed text-webzy-ink/75 sm:text-sm">
                 {activeTierConfig.blurb}
               </p>
 
-              <div className="mt-3.5 flex flex-wrap items-end gap-x-4 gap-y-1 border-y border-webzy-ink/[0.08] py-3 font-tabular sm:mt-4">
-                <div>
-                  <span className="block text-[10px] font-bold uppercase tracking-wider text-webzy-ink/50 sm:text-[11px]">
-                    {activeTierConfig.id === 'studio_bespoke' ? 'Business sites' : 'Price'}
-                  </span>
-                  <span className="font-heading text-3xl font-extrabold leading-none text-webzy-ink sm:text-4xl">
-                    {activeTierConfig.priceLabel}
-                  </span>
+              <div className="mt-4 flex flex-wrap items-end justify-between gap-x-4 gap-y-2 border-y border-webzy-ink/[0.08] py-3.5 font-tabular">
+                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                  <div>
+                    <span className="block font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-webzy-ink/50">
+                      {activeTierConfig.id === 'studio_bespoke' ? 'Business builds' : 'One-time price'}
+                    </span>
+                    <span className="font-heading text-3xl font-extrabold leading-none text-webzy-ink sm:text-4xl">
+                      {activeTierConfig.priceLabel}
+                    </span>
+                  </div>
+                  {activeTierConfig.id === 'semi_custom' ? (
+                    <span className="text-xs font-medium text-webzy-ink/40 line-through sm:text-sm">
+                      {activeTierConfig.compareLabel}
+                    </span>
+                  ) : activeTierConfig.id === 'studio_bespoke' ? (
+                    <span className="text-xs font-semibold text-webzy-ink/70 sm:text-sm">
+                      · {activeTierConfig.compareLabel}
+                    </span>
+                  ) : (
+                    <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700">
+                      Launch pricing · GST incl.
+                    </span>
+                  )}
                 </div>
-                <span className="pb-1 text-xs font-medium text-webzy-ink/45 line-through sm:text-sm">
-                  {activeTierConfig.id === 'studio_bespoke' ? '' : activeTierConfig.compareLabel}
+                <span className="text-[11px] font-semibold text-webzy-ink/55">
+                  {activeTierConfig.delivery}
                 </span>
-                {activeTierConfig.id === 'studio_bespoke' ? (
-                  <span className="pb-1 text-xs font-semibold text-webzy-ink/70 sm:text-sm">
-                    {activeTierConfig.compareLabel}
-                  </span>
-                ) : null}
               </div>
 
               <p className="mt-3 text-xs font-medium text-webzy-ink/65 sm:text-sm">
                 {activeTierConfig.supportsAddons
-                  ? `${baseDays} days hosting included. Optional ${lifetimeLabel} Lifetime Hosting.`
-                  : `Lifetime ${lifetimeLabel} applies to Ready-Made sites only. Custom Made is quoted per build.`}
+                  ? `${baseDays} days hosting included. Optional ${lifetimeLabel} Lifetime Hosting available at checkout.`
+                  : `Lifetime ${lifetimeLabel} applies to Ready-Made sites only. Custom Made sites include dedicated deployment options.`}
               </p>
 
-              <ul className="mt-4 grid grid-cols-1 gap-x-6 gap-y-1.5 text-xs text-webzy-ink/85 sm:grid-cols-2 sm:gap-y-2 sm:text-[13px]">
+              <ul className="mt-4 grid grid-cols-1 gap-x-6 gap-y-2 text-xs text-webzy-ink/85 sm:grid-cols-2 sm:text-[13px]">
                 {activeTierCopy.features.map((feat) => (
                   <li key={feat} className="flex items-start gap-2">
                     <CheckIcon className="mt-0.5 h-3.5 w-3.5 text-emerald-600" />
@@ -593,25 +632,25 @@ export function PricingClient({ catalogPricing, capacity }: PricingClientProps) 
               ) : null}
             </div>
 
-            <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:items-center">
+            <div className="mt-6 flex flex-col gap-2.5 sm:flex-row sm:items-center">
               <Link
                 href={activeTierConfig.ctaHref}
                 onClick={() => persistPreferredAddons(selectedAddons)}
-                className={`btn-spring inline-flex min-h-[46px] flex-1 items-center justify-center rounded-full px-6 text-sm font-bold shadow-md transition hover:opacity-95 ${
+                className={`btn-spring inline-flex min-h-[48px] flex-1 items-center justify-center rounded-full px-6 text-sm font-bold shadow-md transition hover:opacity-95 ${
                   activeTierConfig.id === 'semi_custom'
                     ? 'bg-[#1A1317] text-[#F5E0A3]'
                     : 'bg-webzy-primary text-white'
                 }`}
               >
                 {activeTierConfig.id === 'studio_bespoke' && !capacity.studio.acceptingOrders
-                  ? 'Check batch status'
+                  ? 'Join Priority Waitlist →'
                   : activeTierCopy.ctaLabel}
               </Link>
               {activeTierConfig.id === 'semi_custom' ? (
                 <Link
                   href="/weddings#custom-wedding"
                   onClick={() => persistPreferredAddons(selectedAddons)}
-                  className="inline-flex min-h-[50px] items-center justify-center rounded-full border border-[#C9A243]/45 bg-[#FAF6EE] px-5 text-xs font-bold text-[#5D4314] transition hover:border-[#8C6B22] sm:text-sm"
+                  className="inline-flex min-h-[48px] items-center justify-center rounded-full border border-[#C9A243]/45 bg-[#FAF6EE] px-5 text-xs font-bold text-[#5D4314] transition hover:border-[#8C6B22] sm:text-sm"
                 >
                   Bespoke from {formatInr(catalogPricing.customMade.customWeddingStartingInr)}
                 </Link>
@@ -622,20 +661,25 @@ export function PricingClient({ catalogPricing, capacity }: PricingClientProps) 
       </section>
 
       {/* ===== 3. SIDE-BY-SIDE COMPARISON ===== */}
-      <section className="border-y border-webzy-tint/70 bg-white/70">
-        <div className="mx-auto max-w-6xl px-4 py-9 sm:px-6 sm:py-16">
-          <div className="max-w-2xl">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-webzy-primary">
-              Side by side
+      <section className="border-y border-webzy-ink/[0.08] bg-white">
+        <div className="mx-auto max-w-6xl px-4 py-9 sm:px-6 sm:py-14">
+          <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
+            <div className="max-w-2xl">
+              <p className="font-mono text-[10.5px] font-bold uppercase tracking-[0.2em] text-webzy-primary">
+                SIDE BY SIDE
+              </p>
+              <h2 className="mt-1 font-heading text-2xl font-bold text-webzy-ink sm:text-4xl">
+                Compare in one glance
+              </h2>
+            </div>
+            <p className="text-xs font-medium text-webzy-ink/55">
+              All prices include 18% GST · No hidden setup fees
             </p>
-            <h2 className="mt-1.5 font-heading text-2xl font-bold text-webzy-ink sm:text-4xl">
-              Compare in one glance
-            </h2>
           </div>
 
           <div className="-mx-4 mt-5 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-            <div className="min-w-[620px] overflow-hidden rounded-2xl border border-webzy-ink/10 bg-white shadow-xs sm:rounded-3xl">
-              <div className="grid grid-cols-[1.05fr_1fr_1fr_1fr] border-b border-webzy-ink/10 bg-webzy-surface/60 text-xs font-bold text-webzy-ink sm:text-sm">
+            <div className="min-w-[620px] overflow-hidden rounded-2xl border border-webzy-ink/10 bg-white shadow-2xs sm:rounded-3xl">
+              <div className="grid grid-cols-[1.05fr_1fr_1fr_1fr] border-b border-webzy-ink/10 bg-[#FAF6F0] text-xs font-bold text-webzy-ink sm:text-sm">
                 <div className="p-3.5 sm:p-5" />
                 {tierDefinitions.map((tier) => (
                   <button
@@ -643,12 +687,19 @@ export function PricingClient({ catalogPricing, capacity }: PricingClientProps) 
                     type="button"
                     onClick={() => navigateToTier(tier.ctaHref)}
                     className={`p-3.5 text-left transition hover:text-webzy-primary sm:p-5 ${
-                      tier.id === 'semi_custom' ? 'bg-[#FAF3E2]/70' : ''
+                      tier.id === 'semi_custom' ? 'bg-[#F7EEDB]/80' : ''
                     }`}
                   >
-                    <span className="block font-heading text-sm sm:text-lg">{tier.shortName}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-heading text-sm sm:text-lg">{tier.shortName}</span>
+                      {tier.id === 'semi_custom' ? (
+                        <span className="rounded-full bg-[#1A1317] px-2 py-0.5 font-mono text-[8.5px] font-bold uppercase tracking-wider text-[#F5E0A3]">
+                          Popular
+                        </span>
+                      ) : null}
+                    </div>
                     <span className="mt-0.5 block text-[11px] font-semibold text-webzy-primary">
-                      Open page
+                      Explore collection →
                     </span>
                   </button>
                 ))}
@@ -657,7 +708,7 @@ export function PricingClient({ catalogPricing, capacity }: PricingClientProps) 
                 <div
                   key={row.label}
                   className={`grid grid-cols-[1.05fr_1fr_1fr_1fr] text-xs text-webzy-ink/85 sm:text-sm ${
-                    rowIdx % 2 === 1 ? 'bg-webzy-surface/30' : ''
+                    rowIdx % 2 === 1 ? 'bg-[#FCF9F4]/70' : ''
                   }`}
                 >
                   <div className="p-3.5 font-bold text-webzy-ink sm:p-5">{row.label}</div>
@@ -665,7 +716,7 @@ export function PricingClient({ catalogPricing, capacity }: PricingClientProps) 
                     <div
                       key={`${row.label}-${colIdx}`}
                       className={`p-3.5 leading-snug sm:p-5 ${
-                        colIdx === 1 ? 'bg-[#FAF3E2]/45' : ''
+                        colIdx === 1 ? 'bg-[#FAF3E2]/45 font-medium' : ''
                       }`}
                     >
                       {value}
@@ -679,38 +730,40 @@ export function PricingClient({ catalogPricing, capacity }: PricingClientProps) 
       </section>
 
       {/* ===== 4. HOSTING TIMELINE + ADD-ONS ESTIMATOR ===== */}
-      <section className="mx-auto max-w-6xl px-4 py-9 sm:px-6 sm:py-16">
-        <div className="max-w-2xl">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-webzy-primary">
-            {p.optionalExtrasEyebrow}
-          </p>
-          <h2 className="mt-1.5 font-heading text-2xl font-bold text-webzy-ink sm:text-4xl">
-            How long should your link live?
-          </h2>
-          <p className="mt-2 text-xs leading-relaxed text-webzy-ink/70 sm:text-base">
-            {p.addonsSubhead}
-          </p>
+      <section className="mx-auto max-w-6xl px-4 py-9 sm:px-6 sm:py-14">
+        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+          <div className="max-w-2xl">
+            <p className="font-mono text-[10.5px] font-bold uppercase tracking-[0.2em] text-webzy-primary">
+              {p.optionalExtrasEyebrow}
+            </p>
+            <h2 className="mt-1 font-heading text-2xl font-bold text-webzy-ink sm:text-4xl">
+              How long should your link live?
+            </h2>
+            <p className="mt-2 text-xs leading-relaxed text-webzy-ink/65 sm:text-base">
+              {p.addonsSubhead}
+            </p>
+          </div>
+
+          <div className="inline-flex w-full shrink-0 gap-1 rounded-full border border-webzy-ink/10 bg-white p-1 sm:w-auto">
+            {tierDefinitions.map((tier) => (
+              <button
+                key={tier.id}
+                type="button"
+                aria-pressed={selectedTierId === tier.id}
+                onClick={() => setSelectedTierId(tier.id)}
+                className={`min-h-[36px] flex-1 rounded-full px-3.5 text-xs font-bold transition sm:flex-initial ${
+                  selectedTierId === tier.id
+                    ? 'bg-webzy-ink text-white'
+                    : 'text-webzy-ink/70 hover:bg-[#FAF6F0]'
+                }`}
+              >
+                {tier.shortName}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="mt-5 inline-flex w-full flex-wrap gap-1 rounded-2xl border border-webzy-tint bg-white p-1 sm:w-auto">
-          {tierDefinitions.map((tier) => (
-            <button
-              key={tier.id}
-              type="button"
-              aria-pressed={selectedTierId === tier.id}
-              onClick={() => setSelectedTierId(tier.id)}
-              className={`min-h-[38px] flex-1 rounded-xl px-4 text-xs font-bold transition sm:flex-initial ${
-                selectedTierId === tier.id
-                  ? 'bg-webzy-primary text-white'
-                  : 'text-webzy-ink/70 hover:bg-webzy-surface'
-              }`}
-            >
-              {tier.shortName}
-            </button>
-          ))}
-        </div>
-
-        <div className="mt-5 rounded-3xl border border-webzy-ink/10 bg-white p-4 shadow-sm sm:p-8">
+        <div className="mt-5 rounded-3xl border border-webzy-ink/10 bg-white p-4 shadow-xs sm:p-8">
           {!activeTierConfig.supportsAddons ? (
             <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50/80 px-4 py-3 text-xs font-medium leading-relaxed text-amber-950">
               The {lifetimeLabel} Lifetime Hosting option and checkout extras apply to Ready-Made
@@ -792,15 +845,15 @@ export function PricingClient({ catalogPricing, capacity }: PricingClientProps) 
                   onClick={() => toggleFeatureAddon(addonId)}
                   className={`flex items-start justify-between gap-3 rounded-2xl border-2 p-3.5 text-left transition disabled:cursor-not-allowed disabled:opacity-55 sm:p-5 ${
                     isSelected && !disabledForTier
-                      ? 'border-emerald-600 bg-emerald-50/60 ring-4 ring-emerald-500/15'
-                      : 'border-webzy-ink/10 bg-white hover:border-emerald-500/50'
+                      ? 'border-emerald-600 bg-emerald-50/50 ring-4 ring-emerald-500/12'
+                      : 'border-webzy-ink/10 bg-[#FCF9F4]/50 hover:border-emerald-500/50 hover:bg-white'
                   }`}
                 >
                   <div className="min-w-0">
-                    <span className="text-[11px] font-semibold text-webzy-ink/55">
+                    <span className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-webzy-ink/50">
                       {addonCopy.badge}
                     </span>
-                    <h3 className="font-heading text-sm font-bold text-webzy-ink sm:text-lg">
+                    <h3 className="mt-0.5 font-heading text-sm font-bold text-webzy-ink sm:text-lg">
                       {addonCopy.title}
                     </h3>
                     <p className="mt-1 text-xs leading-relaxed text-webzy-ink/70 sm:text-sm">
@@ -832,21 +885,21 @@ export function PricingClient({ catalogPricing, capacity }: PricingClientProps) 
 
         {/* Live estimate bar */}
         <div className="sticky bottom-3 z-20 mt-5">
-          <div className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-webzy-ink/10 bg-white/95 p-4 shadow-[0_18px_40px_-16px_rgba(31,20,25,0.3)] backdrop-blur-sm sm:flex-row sm:items-center sm:p-5">
+          <div className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-webzy-ink/12 bg-white/95 p-4 shadow-[0_18px_40px_-16px_rgba(31,20,25,0.28)] backdrop-blur-md sm:flex-row sm:items-center sm:p-5">
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-webzy-primary">
+              <p className="font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-webzy-primary">
                 {p.yourSelectedPlan}
               </p>
               <p className="font-heading text-lg font-bold text-webzy-ink sm:text-xl">
                 {activeTierCopy.title}
                 {activeTierConfig.supportsAddons && selectedAddons.length > 0
-                  ? ` (+${selectedAddons.length})`
+                  ? ` (+${selectedAddons.length} extra${selectedAddons.length === 1 ? '' : 's'})`
                   : ''}
               </p>
             </div>
             <div className="flex w-full items-center justify-between gap-4 sm:w-auto">
               <div className="font-tabular sm:text-right">
-                <p className="text-[11px] font-semibold text-webzy-ink/60">{p.estimatedTotal}</p>
+                <p className="text-[11px] font-semibold text-webzy-ink/55">{p.estimatedTotal}</p>
                 <p className="font-heading text-2xl font-extrabold text-emerald-700">
                   {activeTierConfig.id === 'studio_bespoke' || activeTierConfig.id === 'ready_made'
                     ? `${p.fromPrefix} ${formatInr(estimatedTotalInr)}`
@@ -856,9 +909,9 @@ export function PricingClient({ catalogPricing, capacity }: PricingClientProps) 
               <button
                 type="button"
                 onClick={() => navigateToTier(activeTierConfig.ctaHref)}
-                className="btn-spring inline-flex min-h-[48px] items-center justify-center rounded-full bg-webzy-primary px-5 text-sm font-bold text-white shadow-md transition hover:opacity-95 sm:px-6"
+                className="btn-spring inline-flex min-h-[46px] items-center justify-center rounded-full bg-webzy-primary px-6 text-sm font-bold text-white shadow-md transition hover:opacity-95"
               >
-                Continue
+                Continue →
               </button>
             </div>
           </div>
@@ -877,57 +930,60 @@ export function PricingClient({ catalogPricing, capacity }: PricingClientProps) 
         ) : null}
       </section>
 
-      {/* ===== 5. LAUNCH ECONOMICS: dark editorial band ===== */}
-      <section className="bg-webzy-ink text-white">
+      {/* ===== 5. TRANSPARENT CRAFT ECONOMICS: obsidian editorial band ===== */}
+      <section className="bg-[#1A1614] text-white">
         <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-16">
           <div className="max-w-2xl">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#F5E0A3]">
-              Where your rupee goes
+            <p className="font-mono text-[10.5px] font-bold uppercase tracking-[0.2em] text-[#E4C285]">
+              BUILT FOR CRAFT, NOT SUBSCRIPTIONS
             </p>
             <h2 className="mt-1.5 font-heading text-2xl font-bold sm:text-4xl">
-              Why launch prices start this low
+              Simple, honest one-time pricing
             </h2>
             <p className="mt-2 text-xs leading-relaxed text-white/70 sm:text-base">
-              Every rupee is split between the craft of the build and the infrastructure that keeps
-              your link online. Nothing hidden, nothing recurring.
+              Pay once for the design and hosting window you actually need. No auto-renewals, no watermarks on paid pages, and zero hidden charges at checkout.
             </p>
           </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-2.5 sm:mt-8 sm:gap-4 md:grid-cols-3">
-            <div className="rounded-2xl border border-white/10 bg-white/[0.05] p-3 sm:p-6">
+          <div className="mt-6 grid grid-cols-1 gap-3 sm:mt-8 sm:gap-4 md:grid-cols-3">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 sm:p-6">
               <div className="flex items-center justify-between gap-3">
                 <span className="font-heading text-2xl font-extrabold text-white/20 sm:text-4xl">01</span>
                 <CraftMarginArtSvg />
               </div>
-              <h3 className="mt-2 font-heading text-sm font-bold leading-snug sm:mt-3 sm:text-lg">Accessible first, no retainers</h3>
-              <p className="mt-1 text-xs leading-snug text-white/70 sm:mt-1.5 sm:text-sm sm:leading-relaxed">
-                Occasions start at {formatInr(catalogPricing.occasions.minInr)} and wedding suites
-                at {formatInr(catalogPricing.weddings.minInr)}, kept at minimal margin so anyone can
-                send a crafted page instead of a generic forward.
+              <h3 className="mt-3 font-heading text-base font-bold leading-snug sm:text-lg">
+                Handcrafted at accessible rates
+              </h3>
+              <p className="mt-1.5 text-xs leading-relaxed text-white/70 sm:text-sm">
+                Occasion websites start at {formatInr(catalogPricing.occasions.minInr)} and royal wedding suites at {formatInr(catalogPricing.weddings.minInr)} — designed so anyone can gift a bespoke interactive page instead of a generic forward.
               </p>
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-white/[0.05] p-3 sm:p-6">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 sm:p-6">
               <div className="flex items-center justify-between gap-3">
                 <span className="font-heading text-2xl font-extrabold text-white/20 sm:text-4xl">02</span>
                 <HostingLinkArtSvg />
               </div>
-              <h3 className="mt-2 font-heading text-sm font-bold leading-snug sm:mt-3 sm:text-lg">Free standard link hosting</h3>
-              <p className="mt-1 text-xs leading-snug text-white/70 sm:mt-1.5 sm:text-sm sm:leading-relaxed">
-                Clean <code className="font-mono text-xs text-[#F5E0A3]">/s/slug</code> and{' '}
-                <code className="font-mono text-xs text-[#F5E0A3]">/i/slug</code> links stay free
-                for {baseDays} days. Extend to 14 or 21 days, or keep a Ready-Made site forever
-                for {lifetimeLabel}.
+              <h3 className="mt-3 font-heading text-base font-bold leading-snug sm:text-lg">
+                Clean shareable links included
+              </h3>
+              <p className="mt-1.5 text-xs leading-relaxed text-white/70 sm:text-sm">
+                Private <code className="font-mono text-xs text-[#F5E0A3]">/s/slug</code> and{' '}
+                <code className="font-mono text-xs text-[#F5E0A3]">/i/slug</code> links stay live
+                for {baseDays} days at no extra cost. Extend to 14 or 21 days, or keep a Ready-Made
+                keepsake forever for {lifetimeLabel}.
               </p>
             </div>
 
-            <div className="col-span-2 rounded-2xl border border-white/10 bg-white/[0.05] p-3 sm:p-6 md:col-span-1">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 sm:p-6">
               <div className="flex items-center justify-between gap-3">
                 <span className="font-heading text-2xl font-extrabold text-white/20 sm:text-4xl">03</span>
                 <DomainCompassArtSvg />
               </div>
-              <h3 className="mt-2 font-heading text-sm font-bold leading-snug sm:mt-3 sm:text-lg">Custom domains at actuals</h3>
-              <p className="mt-1 text-xs leading-snug text-white/70 sm:mt-1.5 sm:text-sm sm:leading-relaxed">
+              <h3 className="mt-3 font-heading text-base font-bold leading-snug sm:text-lg">
+                Custom domains at actuals
+              </h3>
+              <p className="mt-1.5 text-xs leading-relaxed text-white/70 sm:text-sm">
                 {catalogPricing.customMade.domainPassThroughNote}
               </p>
             </div>
@@ -935,12 +991,12 @@ export function PricingClient({ catalogPricing, capacity }: PricingClientProps) 
         </div>
       </section>
 
-      {/* ===== 6. PROMISES + FINAL CTA ===== */}
-      <section className="mx-auto max-w-6xl px-4 py-9 sm:px-6 sm:py-16">
+      {/* ===== 6. PROMISES + PRICING FAQ + FINAL CTA ===== */}
+      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-16">
         <div className="text-center">
           <OrnamentDivider />
           <h2 className="mt-3 font-heading text-2xl font-bold text-webzy-ink sm:text-4xl">
-            Our promises
+            Included with every Webzy
           </h2>
         </div>
 
@@ -948,7 +1004,7 @@ export function PricingClient({ catalogPricing, capacity }: PricingClientProps) 
           {p.guarantees.map((item) => (
             <div
               key={item.title}
-              className="rounded-2xl border border-webzy-ink/10 bg-white p-3.5 shadow-xs sm:p-5"
+              className="rounded-2xl border border-webzy-ink/[0.09] bg-white p-3.5 shadow-2xs sm:p-5"
             >
               <CheckIcon className="h-5 w-5 text-emerald-600" />
               <p className="mt-2 text-xs font-bold text-webzy-ink sm:text-base">{item.title}</p>
@@ -959,42 +1015,87 @@ export function PricingClient({ catalogPricing, capacity }: PricingClientProps) 
           ))}
         </div>
 
-        <div className="relative mt-8 overflow-hidden rounded-3xl bg-gradient-to-br from-webzy-primary via-[#C2185B] to-[#7A1040] p-6 text-white shadow-[0_28px_60px_-24px_rgba(225,29,99,0.5)] sm:mt-12 sm:p-12">
+        {/* Common Pricing Questions */}
+        <div className="mx-auto mt-10 max-w-3xl sm:mt-14">
+          <p className="text-center font-mono text-[10.5px] font-bold uppercase tracking-[0.2em] text-webzy-primary">
+            COMMON QUESTIONS
+          </p>
+          <h3 className="mt-1 text-center font-heading text-xl font-bold text-webzy-ink sm:text-2xl">
+            Pricing &amp; hosting details
+          </h3>
+          <div className="mt-5 space-y-2.5">
+            {[
+              {
+                q: 'Are there any recurring monthly or hidden fees?',
+                a: 'Never. Every Ready-Made Occasion and Royal Wedding purchase is a single GST-inclusive payment via UPI or Card. You only pay again if you voluntarily choose to extend hosting.',
+              },
+              {
+                q: 'What happens after the included 7 days?',
+                a: 'Your page gracefully shows an archived message after 7 days unless you choose 14 Days (+₹9), 21 Days (+₹14), or Lifetime Hosting (+₹500 for Ready-Made sites) during checkout.',
+              },
+              {
+                q: 'Can I preview my personalized site before paying?',
+                a: 'Yes. You can add all your photos, names, and messages and interact with a full live preview on your phone before paying a single rupee.',
+              },
+              {
+                q: 'How does payment work for Custom Made websites?',
+                a: 'Start with a free brief or 15-minute call — zero advance needed to inquire. We share an exact fixed quote and interactive prototype before you commit.',
+              },
+            ].map((item) => (
+              <details
+                key={item.q}
+                className="group rounded-2xl border border-webzy-ink/[0.09] bg-white px-5 py-3 shadow-2xs"
+              >
+                <summary className="flex min-h-[42px] cursor-pointer list-none items-center justify-between gap-4 text-sm font-bold text-webzy-ink">
+                  <span>{item.q}</span>
+                  <span className="text-webzy-primary transition-transform duration-200 group-open:rotate-45">+</span>
+                </summary>
+                <p className="pb-1.5 pt-1 text-xs leading-relaxed text-webzy-ink/70 sm:text-sm">
+                  {item.a}
+                </p>
+              </details>
+            ))}
+          </div>
+        </div>
+
+        {/* Architectural Final CTA */}
+        <div className="relative mt-10 overflow-hidden rounded-3xl bg-[#1A1614] p-6 text-white shadow-xl sm:mt-14 sm:p-11">
           <div
-            className="pointer-events-none absolute -right-10 -top-10 h-44 w-44 rounded-full bg-white/10"
+            className="pointer-events-none absolute -right-12 -top-12 h-52 w-52 rounded-full bg-webzy-primary/20 blur-3xl"
             aria-hidden="true"
           />
-          <div
-            className="pointer-events-none absolute -bottom-14 left-1/3 h-40 w-40 rounded-full bg-white/10"
-            aria-hidden="true"
-          />
-          <div className="relative max-w-xl">
-            <h2 className="font-heading text-2xl font-bold sm:text-4xl">
-              Ready when you are.
-            </h2>
-            <p className="mt-2 text-sm text-white/85 sm:text-base">
-              Start with a theme from {formatInr(catalogPricing.occasions.minInr)}, or tell us what
-              you want built.
-            </p>
-            <div className="mt-5 flex flex-col gap-2.5 sm:flex-row">
+          <div className="relative flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-center">
+            <div className="max-w-xl">
+              <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[#E4C285]">
+                START IN MINUTES
+              </p>
+              <h2 className="mt-1.5 font-heading text-2xl font-bold sm:text-4xl">
+                Ready when you are.
+              </h2>
+              <p className="mt-2 text-sm text-white/75 sm:text-base">
+                Personalize a ready-made keepsake from {formatInr(catalogPricing.occasions.minInr)},
+                or commission our atelier for a custom-built website.
+              </p>
+            </div>
+            <div className="flex w-full flex-col gap-2.5 sm:w-auto sm:flex-row sm:flex-wrap">
               <button
                 type="button"
                 onClick={() => navigateToTier('/themes')}
-                className="btn-spring inline-flex min-h-[48px] items-center justify-center rounded-full bg-white px-6 text-sm font-bold text-webzy-primary shadow-md transition hover:bg-zinc-50"
+                className="btn-spring inline-flex min-h-[48px] items-center justify-center rounded-full bg-white px-6 text-sm font-bold text-[#1A1614] shadow-md transition hover:bg-[#F5EFE6]"
               >
                 Browse occasion themes
               </button>
               <button
                 type="button"
                 onClick={() => navigateToTier('/weddings')}
-                className="inline-flex min-h-[48px] items-center justify-center rounded-full border border-white/40 px-6 text-sm font-bold text-white transition hover:bg-white/10"
+                className="inline-flex min-h-[48px] items-center justify-center rounded-full border border-[#E4C285]/45 px-6 text-sm font-bold text-[#F5E0A3] transition hover:bg-white/10"
               >
                 See wedding editions
               </button>
               <button
                 type="button"
                 onClick={() => navigateToTier('/studio')}
-                className="inline-flex min-h-[48px] items-center justify-center rounded-full border border-white/40 px-6 text-sm font-bold text-white transition hover:bg-white/10"
+                className="inline-flex min-h-[48px] items-center justify-center rounded-full border border-white/25 px-6 text-sm font-bold text-white transition hover:bg-white/10"
               >
                 Talk about a custom build
               </button>

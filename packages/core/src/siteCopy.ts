@@ -593,11 +593,11 @@ const EN_SITE: SiteCopy = {
     profileSubtitle: 'Manage your name, WhatsApp number, and preferred language.',
     preferredLanguageTitle: 'Website Language',
     preferredLanguageSubtitle: 'Choose your preferred language for the entire Webzy website.',
-    signInTitle: 'Sign in with your email',
+    signInTitle: 'Sign in to your account',
     signInSubtitle:
-      'We will send a 6-digit verification code to your email — no password needed.',
-    sendCodeBtn: 'Send 6-Digit Code →',
-    verifyCodeBtn: 'Verify Code & Sign In →',
+      'Use your email and password to access your saved drafts, published links, and receipts.',
+    sendCodeBtn: 'Sign In →',
+    verifyCodeBtn: 'Continue →',
     customRequestEyebrow: 'Custom Made Requests',
     customRequestTitle: 'Need something built specially for you?',
     customRequestSubtitle:

@@ -8,6 +8,10 @@ import {
   getReplayLabel,
   getWebzyFooterLabel,
 } from './shared/OccasionPrimitives';
+import {
+  playLanternPullChime,
+  playPaperUnsealSfx,
+} from './shared/OccasionCraftPrimitives';
 
 const DEVANAGARI_RE = /[\u0900-\u097F]/;
 
@@ -159,6 +163,164 @@ const COPY_BY_LANG: Record<CoreLanguageCode, LocalizedCopy> = {
     petalShowerCta: 'फूल बरसाएँ',
     askAgainCta: 'फिर से देखें',
     closeLabel: 'बंद करें',
+  },
+};
+
+interface StarReasonDefault {
+  title: Record<CoreLanguageCode, string>;
+  detail: Record<CoreLanguageCode, string>;
+}
+
+const STAR_REASONS_DEFAULT: readonly StarReasonDefault[] = [
+  {
+    title: {
+      en: 'Your Laugh',
+      hinglish: 'Tumhari Hansi',
+      hi: 'तुम्हारी मुस्कान',
+    },
+    detail: {
+      en: 'The way even a crowded, tiring day goes quiet the moment you smile.',
+      hinglish: 'Bhaag-daud bhare din mein bhi tumhari ek muskaan sab shaant kar deti hai.',
+      hi: 'सबसे थके हुए दिन में भी तुम्हारी एक मुस्कान सब कुछ सुकून से भर देती है।',
+    },
+  },
+  {
+    title: {
+      en: 'Our Easy Silence',
+      hinglish: 'Hamari Khaamoshi',
+      hi: 'हमारा सुकून भरा साथ',
+    },
+    detail: {
+      en: 'Talking for hours feels effortless, and saying nothing beside you feels just as right.',
+      hinglish: 'Ghanton baatein karna bhi aasaan hai, aur chup rehna bhi utna hi sukoon deta hai.',
+      hi: 'तुम्हारे साथ घंटों बातें करना भी आसान है और चुपचाप बैठना भी उतना ही सुकून देता है।',
+    },
+  },
+  {
+    title: {
+      en: 'How You Make Home',
+      hinglish: 'Tumhare Saath Ghar',
+      hi: 'तुम्हारे संग हर जगह घर',
+    },
+    detail: {
+      en: 'Any ordinary street, rain shower, or coffee table feels like a place worth remembering.',
+      hinglish: 'Chhoti si chai ki tapri ho ya baarish wali shaam, tumhare saath sab yaadgaar ban jaata hai.',
+      hi: 'कोई भी साधारण शाम, बारिश की बूँदें या चाय की मेज़ तुम्हारे साथ खास बन जाती है।',
+    },
+  },
+];
+
+interface DreamDateOption {
+  id: 'coffee' | 'gelato' | 'stargaze' | 'bookstore';
+  label: Record<CoreLanguageCode, string>;
+  vibe: Record<CoreLanguageCode, string>;
+}
+
+const DREAM_DATE_OPTIONS: readonly DreamDateOption[] = [
+  {
+    id: 'coffee',
+    label: {
+      en: 'Rainy Window Coffee',
+      hinglish: 'Barish Wali Coffee',
+      hi: 'बारिश और कॉफ़ी',
+    },
+    vibe: {
+      en: 'Warm mugs & slow talks',
+      hinglish: 'Garam cup & lambi baatein',
+      hi: 'गर्म कॉफ़ी और लंबी बातें',
+    },
+  },
+  {
+    id: 'gelato',
+    label: {
+      en: 'Midnight Dessert Walk',
+      hinglish: 'Late Night Ice-Cream Walk',
+      hi: 'रात की मीठी सैर',
+    },
+    vibe: {
+      en: 'Quiet lights & sweet stops',
+      hinglish: 'Street lights & meethi baatein',
+      hi: 'धीमी रोशनी और मीठे पल',
+    },
+  },
+  {
+    id: 'stargaze',
+    label: {
+      en: 'Rooftop Stargazing',
+      hinglish: 'Chhat Par Sitare',
+      hi: 'छत पर सितारों की शाम',
+    },
+    vibe: {
+      en: 'Cool breeze & playlist',
+      hinglish: 'Thandi hawa & favourite gaane',
+      hi: 'ठंडी हवा और पसंदीदा गीत',
+    },
+  },
+  {
+    id: 'bookstore',
+    label: {
+      en: 'Bookstore & Chai',
+      hinglish: 'Kitabein & Chai Date',
+      hi: 'किताबें और चाय',
+    },
+    vibe: {
+      en: 'Notes tucked in pages',
+      hinglish: 'Pannon mein chhupi yaadein',
+      hi: 'पन्नों में छिपे प्यारे नोट्स',
+    },
+  },
+];
+
+const EXTRA_WILLYOU_COPY: Record<
+  CoreLanguageCode,
+  {
+    starsEyebrow: string;
+    starsTitle: string;
+    starsHint: string;
+    starsProgress: (lit: number, total: number) => string;
+    tapToRevealStar: string;
+    datePickerEyebrow: string;
+    datePickerTitle: string;
+    chosenDateStamp: string;
+    copyYesCta: string;
+    copiedYesToast: string;
+  }
+> = {
+  en: {
+    starsEyebrow: 'WRITTEN IN THE STARS',
+    starsTitle: 'Three Reasons I Chose You',
+    starsHint: 'Tap each star to light up a little secret.',
+    starsProgress: (lit, total) => `${lit} / ${total} stars lit`,
+    tapToRevealStar: 'Tap to light star',
+    datePickerEyebrow: 'PICK OUR DREAM DATE',
+    datePickerTitle: 'Stamp our first celebration onto the ticket',
+    chosenDateStamp: 'FIRST DATE RESERVED',
+    copyYesCta: 'Copy My YES Reply',
+    copiedYesToast: 'Copied! Paste it right back on WhatsApp.',
+  },
+  hinglish: {
+    starsEyebrow: 'SITARON MEIN LIKHA',
+    starsTitle: 'Teen Wajah Jo Tum Khaas Ho',
+    starsHint: 'Har sitare par tap karo aur chhupa hua note padho.',
+    starsProgress: (lit, total) => `${lit} / ${total} sitare roshan`,
+    tapToRevealStar: 'Sitara roshan karo',
+    datePickerEyebrow: 'APNI DREAM DATE CHUNO',
+    datePickerTitle: 'Ticket par hamari pehli date stamp karo',
+    chosenDateStamp: 'DATE RESERVED',
+    copyYesCta: 'Mera YES Reply Copy Karo',
+    copiedYesToast: 'Copy ho gaya! Seedha WhatsApp par bhej do.',
+  },
+  hi: {
+    starsEyebrow: 'सितारों में लिखा',
+    starsTitle: 'तुम्हें चुनने के तीन कारण',
+    starsHint: 'हर सितारे पर टैप करें और छिपी हुई बात पढ़ें।',
+    starsProgress: (lit, total) => `${lit} / ${total} सितारे रोशन`,
+    tapToRevealStar: 'सितारा रोशन करें',
+    datePickerEyebrow: 'हमारी ख़ास डेट चुनें',
+    datePickerTitle: 'टिकट पर हमारी पहली मुलाक़ात चुनें',
+    chosenDateStamp: 'तय की गई मुलाक़ात',
+    copyYesCta: 'मेरा हाँ जवाब कॉपी करें',
+    copiedYesToast: 'कॉपी हो गया! सीधे WhatsApp पर भेज दें।',
   },
 };
 
@@ -723,13 +885,18 @@ export function WillYouSite({
   const [showBurst, setShowBurst] = useState(false);
   const [failedPhotos, setFailedPhotos] = useState<Record<string, boolean>>({});
   const [zoomIdx, setZoomIdx] = useState<number | null>(null);
+  const [litStars, setLitStars] = useState<number[]>([]);
+  const [selectedDateId, setSelectedDateId] = useState<DreamDateOption['id']>('coffee');
+  const [copiedYes, setCopiedYes] = useState(false);
 
   const openTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const burstTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastDodgeRef = useRef<number>(0);
 
   const coreLang = toCoreLanguageCode(language);
   const copy = COPY_BY_LANG[coreLang] ?? COPY_BY_LANG.en;
+  const extraCopy = EXTRA_WILLYOU_COPY[coreLang] ?? EXTRA_WILLYOU_COPY.en;
   const isHindi = coreLang === 'hi';
 
   const senderDisplay = (data.senderName || 'A').trim();
@@ -770,10 +937,36 @@ export function WillYouSite({
     }));
   }, [copy.photoLabel, coreLang, data.photos]);
 
+  const starReasons = useMemo(() => {
+    const customHighlights = data.highlights ?? [];
+    return [0, 1, 2].map((idx) => {
+      const h = customHighlights[idx];
+      const fallback = STAR_REASONS_DEFAULT[idx];
+      if (h) {
+        const title = pickLocalizedText(h.title, language).trim();
+        const detail = pickLocalizedText(h.detail, language).trim();
+        if (title || detail) {
+          return {
+            title: title || fallback.title[coreLang],
+            detail: detail || fallback.detail[coreLang],
+          };
+        }
+      }
+      return {
+        title: fallback.title[coreLang],
+        detail: fallback.detail[coreLang],
+      };
+    });
+  }, [coreLang, data.highlights, language]);
+
+  const selectedDateObj =
+    DREAM_DATE_OPTIONS.find((opt) => opt.id === selectedDateId) ?? DREAM_DATE_OPTIONS[0];
+
   useEffect(() => {
     return () => {
       if (openTimerRef.current) clearTimeout(openTimerRef.current);
       if (burstTimerRef.current) clearTimeout(burstTimerRef.current);
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
     };
   }, []);
 
@@ -797,6 +990,7 @@ export function WillYouSite({
 
   const handleUnfoldEnvelope = useCallback(() => {
     if (stage !== 'cover') return;
+    playPaperUnsealSfx(0);
     if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
       navigator.vibrate(25);
     }
@@ -806,6 +1000,11 @@ export function WillYouSite({
       onOpened?.();
     }, 540);
   }, [onOpened, stage]);
+
+  const handleToggleStar = useCallback((idx: number) => {
+    playPaperUnsealSfx(idx + 1);
+    setLitStars((prev) => (prev.includes(idx) ? prev : [...prev, idx]));
+  }, []);
 
   const handleDodgeNo = useCallback(() => {
     const now = Date.now();
@@ -818,12 +1017,33 @@ export function WillYouSite({
   }, []);
 
   const handleSayYes = useCallback(() => {
+    playLanternPullChime();
     if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
       navigator.vibrate([25, 40, 35]);
     }
     setStage('accepted');
     triggerPetalBurst();
   }, [triggerPetalBurst]);
+
+  const handleCopyYesReply = useCallback(async () => {
+    const chosenDateLabel = selectedDateObj.label[coreLang];
+    const reply =
+      coreLang === 'hi'
+        ? `हाँ, बिल्कुल ${senderDisplay}! मैंने टिकट पर "${chosenDateLabel}" चुन लिया है।`
+        : coreLang === 'hinglish'
+          ? `Haan bilkul ${senderDisplay}! Ticket par "${chosenDateLabel}" lock kar diya hai.`
+          : `YES, always ${senderDisplay}! I stamped "${chosenDateLabel}" onto our keepsake ticket.`;
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(reply);
+      }
+    } catch {
+      // Silent clipboard fallback
+    }
+    setCopiedYes(true);
+    if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    copyTimerRef.current = setTimeout(() => setCopiedYes(false), 3200);
+  }, [coreLang, selectedDateObj, senderDisplay]);
 
   const handleReplayCover = useCallback(() => {
     if (openTimerRef.current) clearTimeout(openTimerRef.current);
@@ -1129,6 +1349,70 @@ export function WillYouSite({
             </p>
           </section>
 
+          {/* Interactive Constellation Reasons Deck ("Written in the Stars") */}
+          <section
+            aria-label={extraCopy.starsEyebrow}
+            className="space-y-2.5 rounded-[26px] border border-[#FDE68A]/25 bg-[#150A28]/78 p-4 backdrop-blur-md"
+          >
+            <div className="flex items-center justify-between gap-2 px-1">
+              <div className="min-w-0">
+                <p className={`text-[#FDE68A]/90 ${eyebrowClass}`}>{extraCopy.starsEyebrow}</p>
+                <h2 className="mt-0.5 font-heading text-base font-bold text-[#FFF7ED]">
+                  {extraCopy.starsTitle}
+                </h2>
+              </div>
+              <span className="shrink-0 rounded-full border border-[#FDE68A]/30 bg-[#FDE68A]/10 px-2.5 py-1 font-mono text-[10px] font-bold text-[#FDE68A]">
+                {extraCopy.starsProgress(litStars.length, starReasons.length)}
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              {starReasons.map((reason, idx) => {
+                const isLit = litStars.includes(idx);
+                return (
+                  <button
+                    key={`star-reason-${idx}`}
+                    type="button"
+                    onClick={() => handleToggleStar(idx)}
+                    aria-pressed={isLit}
+                    className={`flex min-h-[54px] w-full items-start gap-3 rounded-2xl border px-3.5 py-3 text-left transition-all duration-300 active:scale-[0.98] ${
+                      isLit
+                        ? 'border-[#FDE68A]/55 bg-gradient-to-r from-[#2D144C]/90 to-[#1F0F38]/90 shadow-[0_10px_24px_-12px_rgba(253,230,138,0.45)]'
+                        : 'border-white/12 bg-white/[0.04] hover:border-[#FDA4AF]/40 hover:bg-white/[0.08]'
+                    }`}
+                  >
+                    <span
+                      aria-hidden="true"
+                      className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border transition-colors ${
+                        isLit
+                          ? 'border-[#FDE68A] bg-[#FDE68A]/20 text-[#FDE68A]'
+                          : 'border-white/20 bg-white/5 text-[#FBCFE8]/65'
+                      }`}
+                    >
+                      <svg viewBox="0 0 20 20" className="h-3.5 w-3.5" fill="currentColor">
+                        <path d="M10 1.5 L12.2 7.5 L18.5 10 L12.2 12.5 L10 18.5 L7.8 12.5 L1.5 10 L7.8 7.5 Z" />
+                      </svg>
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold text-[#FFF7ED]">
+                        {isLit ? reason.title : `${extraCopy.tapToRevealStar} 0${idx + 1}`}
+                      </p>
+                      {isLit ? (
+                        <p className="mt-1 break-words text-xs leading-relaxed text-[#FDE8EF]/90">
+                          {reason.detail}
+                        </p>
+                      ) : (
+                        <p className="mt-0.5 text-[11px] text-[#FBCFE8]/60">
+                          {extraCopy.starsHint}
+                        </p>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
           {/* Interactive Proposal Card with Expressive Cat Meme Companion */}
           <section className="relative overflow-hidden rounded-[28px] border border-[#FDA4AF]/35 bg-gradient-to-b from-[#230F3A]/88 via-[#180B2C]/90 to-[#110722]/92 px-4 py-6 text-center shadow-[0_24px_56px_-16px_rgba(244,63,94,0.35)] backdrop-blur-md">
             <p className={`text-[#FDE68A]/90 ${eyebrowClass}`}>{copy.questionEyebrow}</p>
@@ -1328,6 +1612,47 @@ export function WillYouSite({
               </div>
             </div>
 
+            {/* Dream Date Picker Stamped Live on Ticket */}
+            <div className="mt-4 space-y-2 rounded-2xl border border-[#FDA4AF]/25 bg-[#120724]/75 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <span className={`text-[#FDE68A]/90 ${eyebrowClass}`}>
+                  {extraCopy.datePickerEyebrow}
+                </span>
+                <span className="rounded-full border border-[#FDE68A]/35 bg-[#FDE68A]/10 px-2 py-0.5 font-mono text-[9px] font-bold text-[#FDE68A]">
+                  {extraCopy.chosenDateStamp}
+                </span>
+              </div>
+              <p className="text-[11px] text-[#FBCFE8]/80">{extraCopy.datePickerTitle}</p>
+              <div className="grid grid-cols-2 gap-2">
+                {DREAM_DATE_OPTIONS.map((opt, idx) => {
+                  const isPicked = opt.id === selectedDateId;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => {
+                        playPaperUnsealSfx(idx);
+                        setSelectedDateId(opt.id);
+                      }}
+                      aria-pressed={isPicked}
+                      className={`flex min-h-[54px] flex-col items-start justify-center rounded-xl border px-3 py-2 text-left transition active:scale-[0.98] ${
+                        isPicked
+                          ? 'border-[#FDE68A] bg-[#FDE68A]/15 text-[#FFF7ED] shadow-[0_6px_18px_-8px_rgba(253,230,138,0.55)]'
+                          : 'border-white/12 bg-white/[0.04] text-[#FBCFE8]/85 hover:border-[#FDA4AF]/40'
+                      }`}
+                    >
+                      <span className="text-[11px] font-bold leading-snug">
+                        {opt.label[coreLang]}
+                      </span>
+                      <span className="mt-0.5 text-[10px] text-[#FDE68A]/75">
+                        {opt.vibe[coreLang]}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Perforated Ticket Tear Line */}
             <div className="relative my-4 flex items-center" aria-hidden="true">
               <span className="-ml-8 h-6 w-6 shrink-0 rounded-full bg-[#0D071D]" />
@@ -1339,31 +1664,51 @@ export function WillYouSite({
             <div className="text-center">
               <p className={`text-[#FDE68A]/80 ${eyebrowClass}`}>{copy.promiseLabel}</p>
               <p className="mt-1 break-words text-xs font-medium text-[#FFF1F2]/90">
-                {copy.promiseValue}
+                {selectedDateObj.label[coreLang]} · {copy.promiseValue}
               </p>
 
-              <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5">
+              <div className="mt-4 flex flex-col gap-2.5">
                 <button
                   type="button"
-                  onClick={triggerPetalBurst}
-                  className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#F43F5E] to-[#FB7185] px-5 py-2 text-xs font-bold text-white shadow-[0_0_22px_rgba(244,63,94,0.5)] transition hover:brightness-110 active:scale-95"
+                  onClick={() => void handleCopyYesReply()}
+                  className="inline-flex min-h-[46px] w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#FDE68A] via-[#FDBA74] to-[#FDA4AF] px-5 py-2.5 text-xs font-bold text-[#1B0B2E] shadow-[0_10px_24px_-8px_rgba(253,230,138,0.55)] transition hover:brightness-105 active:scale-[0.98]"
                 >
-                  <svg viewBox="0 0 20 20" className="h-3.5 w-3.5" fill="currentColor" aria-hidden="true">
-                    <path d="M10 2 C15 4.5 17 11 10 18 C3 11 5 4.5 10 2 Z" />
-                  </svg>
-                  <span>{copy.petalShowerCta}</span>
+                  <HeartPinSvg className="h-3.5 w-3.5 text-[#BE123C]" />
+                  <span>{extraCopy.copyYesCta}</span>
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setNudgeCount(0);
-                    setStage('question');
-                  }}
-                  className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold text-[#FFF7ED] transition hover:bg-white/15 active:scale-95"
-                >
-                  {copy.askAgainCta}
-                </button>
+                {copiedYes ? (
+                  <p
+                    role="status"
+                    className="rounded-xl border border-[#FDE68A]/40 bg-[#FDE68A]/12 px-3 py-1.5 text-xs font-semibold text-[#FDE68A]"
+                  >
+                    {extraCopy.copiedYesToast}
+                  </p>
+                ) : null}
+
+                <div className="flex flex-wrap items-center justify-center gap-2.5">
+                  <button
+                    type="button"
+                    onClick={triggerPetalBurst}
+                    className="inline-flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#F43F5E] to-[#FB7185] px-5 py-2 text-xs font-bold text-white shadow-[0_0_22px_rgba(244,63,94,0.5)] transition hover:brightness-110 active:scale-95"
+                  >
+                    <svg viewBox="0 0 20 20" className="h-3.5 w-3.5" fill="currentColor" aria-hidden="true">
+                      <path d="M10 2 C15 4.5 17 11 10 18 C3 11 5 4.5 10 2 Z" />
+                    </svg>
+                    <span>{copy.petalShowerCta}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNudgeCount(0);
+                      setStage('question');
+                    }}
+                    className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold text-[#FFF7ED] transition hover:bg-white/15 active:scale-95"
+                  >
+                    {copy.askAgainCta}
+                  </button>
+                </div>
               </div>
             </div>
           </section>

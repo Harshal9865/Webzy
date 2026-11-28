@@ -9,8 +9,13 @@ import {
 } from '@webzy/core';
 import {
   type OccasionSiteProps,
+  OccasionCassettePlayer,
   getWebzyFooterLabel,
 } from './shared/OccasionPrimitives';
+import {
+  playLanternPullChime,
+  playPaperUnsealSfx,
+} from './shared/OccasionCraftPrimitives';
 
 interface AshirwadCopy {
   courtyardEyebrow: string;
@@ -116,6 +121,227 @@ const RELATION_LABELS: Record<string, Record<CoreLanguageCode, string>> = {
     hi: 'दादा-दादी · नाना-नानी',
   },
 };
+
+interface ThaliOfferingItem {
+  id: 'marigold' | 'tilak' | 'mithai' | 'tulsi';
+  label: Record<CoreLanguageCode, string>;
+  couplet: Record<CoreLanguageCode, string>;
+}
+
+const SHUBH_OFFERINGS: readonly ThaliOfferingItem[] = [
+  {
+    id: 'marigold',
+    label: {
+      en: 'Marigold Garland',
+      hinglish: 'Genda Haar',
+      hi: 'गेंदा पुष्पमाला',
+    },
+    couplet: {
+      en: 'May every doorway of your home bloom with morning sunlight and warmth.',
+      hinglish: 'Aapke ghar ka har aangan subah ki dhoop aur khushiyon se mehakta rahe.',
+      hi: 'आपका हर दिन प्रातःकालीन सूर्य की स्वर्णिम आभा और मंगल से खिलता रहे।',
+    },
+  },
+  {
+    id: 'tilak',
+    label: {
+      en: 'Sandalwood Tilak',
+      hinglish: 'Chandan Tilak',
+      hi: 'चंदन तिलक',
+    },
+    couplet: {
+      en: 'May quiet serenity, clarity, and grace surround every step you take.',
+      hinglish: 'Aapke jeevan mein hamesha shanti, sehat aur sukoon bana rahe.',
+      hi: 'आपके जीवन में सदैव शीतल शांति, उत्तम स्वास्थ्य और सद्भाव बना रहे।',
+    },
+  },
+  {
+    id: 'mithai',
+    label: {
+      en: 'Kesar Mithai',
+      hinglish: 'Kesar Mithai',
+      hi: 'केसर मिठाई',
+    },
+    couplet: {
+      en: 'May the coming year taste as sweet as every meal you have shared with us.',
+      hinglish: 'Aane wala saal har us muskaan ki tarah meetha ho jo aapne sabko di hai.',
+      hi: 'आने वाला प्रत्येक वर्ष मधुरता, आनंद और परिवार के स्नेह से परिपूर्ण हो।',
+    },
+  },
+  {
+    id: 'tulsi',
+    label: {
+      en: 'Sacred Tulsi Leaf',
+      hinglish: 'Pavitra Tulsi',
+      hi: 'पावन तुलसी दल',
+    },
+    couplet: {
+      en: 'May long life, vitality, and timeless protection rest upon our family.',
+      hinglish: 'Aapki lambi umar aur achhi sehat hamare parivar ki sabse badi daulat hai.',
+      hi: 'आपका दीर्घायु और स्वस्थ जीवन हमारे पूरे परिवार की सबसे अनमोल धरोहर है।',
+    },
+  },
+];
+
+interface FamilyBlessingPillar {
+  id: 'health' | 'serenity' | 'pillar';
+  title: Record<CoreLanguageCode, string>;
+  blessing: Record<CoreLanguageCode, string>;
+}
+
+const FAMILY_BLESSING_PILLARS: readonly FamilyBlessingPillar[] = [
+  {
+    id: 'health',
+    title: {
+      en: 'Ayushman · Long & Healthy Life',
+      hinglish: 'Achhi Sehat · Lambi Umar',
+      hi: 'आयुष्मान · उत्तम स्वास्थ्य',
+    },
+    blessing: {
+      en: 'May every season bring gentle mornings, strong health, and unhurried days.',
+      hinglish: 'Har mausam aapke liye achhi sehat, halka man aur sukhdayi subah laaye.',
+      hi: 'हर ऋतु आपके लिए उत्तम स्वास्थ्य, प्रसन्न मन और सुखद प्रभात लेकर आए।',
+    },
+  },
+  {
+    id: 'serenity',
+    title: {
+      en: 'Shanti · Courtyard of Peace',
+      hinglish: 'Sukoon · Ghar ki Raunak',
+      hi: 'शांति · घर की रौनक',
+    },
+    blessing: {
+      en: 'Your voice turns every room into home — may your heart always stay at ease.',
+      hinglish: 'Aapki maujoodgi se hi ghar ghar lagta hai — aap hamesha muskuraate rahein.',
+      hi: 'आपकी उपस्थिति से ही घर में रौनक रहती है — आपका हृदय सदैव प्रसन्न रहे।',
+    },
+  },
+  {
+    id: 'pillar',
+    title: {
+      en: 'Samman · Guiding Light',
+      hinglish: 'Margdarshak · Hamari Shakti',
+      hi: 'सम्मान · मार्गदर्शक ज्योति',
+    },
+    blessing: {
+      en: 'Everything good in us carries the quiet imprint of your patience and values.',
+      hinglish: 'Hamari har achhi aadat mein aapke sanskaar aur pyaar ki jhalak hai.',
+      hi: 'हमारे हर अच्छे संस्कार में आपके धैर्य, त्याग और आशीर्वाद की पावन छाप है।',
+    },
+  },
+];
+
+const EXTRA_ASHIRWAD_COPY: Record<
+  CoreLanguageCode,
+  {
+    thaliEyebrow: string;
+    thaliTitle: string;
+    thaliHint: string;
+    thaliProgress: (done: number, total: number) => string;
+    thaliComplete: string;
+    chimeTrackTitle: string;
+    chimeTapLabel: string;
+    chimePlayingLabel: string;
+    pillarsEyebrow: string;
+    pillarsTitle: string;
+    sealCta: string;
+    sealedBadge: string;
+    sealedMotto: string;
+    copyThanksCta: string;
+    copiedThanksToast: string;
+  }
+> = {
+  en: {
+    thaliEyebrow: 'Shubh Arpan · Courtyard Thali',
+    thaliTitle: 'Tap to Place Sacred Offerings',
+    thaliHint: 'Tap each heirloom offering to light its blessing on the thali.',
+    thaliProgress: (done, total) => `${done} / ${total} offerings placed`,
+    thaliComplete: 'All 4 auspicious offerings placed with reverence.',
+    chimeTrackTitle: 'Morning Courtyard Flute & Brass Chime',
+    chimeTapLabel: 'Play Courtyard Chime',
+    chimePlayingLabel: 'Playing Morning Chime...',
+    pillarsEyebrow: 'Parivar ki Duaayein',
+    pillarsTitle: 'Three Wishes From Our Home',
+    sealCta: 'Accept Blessings & Seal Keepsake',
+    sealedBadge: 'ASHIRWAD KEEPSAKE SEALED',
+    sealedMotto: 'Sada Sukhi Bhava · Wishing You Health, Grace & Peace',
+    copyThanksCta: 'Copy Thank-You Note',
+    copiedThanksToast: 'Copied! Ready to paste on WhatsApp.',
+  },
+  hinglish: {
+    thaliEyebrow: 'Shubh Arpan · Aangan ki Thali',
+    thaliTitle: 'Shubh Bhent Arpit Karein',
+    thaliHint: 'Har pavitra bhent par tap karein aur mangal kamna padhein.',
+    thaliProgress: (done, total) => `${done} / ${total} bhent arpit`,
+    thaliComplete: 'Sabhi 4 shubh bhent aadar ke saath arpit hui.',
+    chimeTrackTitle: 'Subah ki Bansuri aur Mandir Ghanti',
+    chimeTapLabel: 'Mangal Dhun Suniye',
+    chimePlayingLabel: 'Mangal Dhun Chal Rahi Hai...',
+    pillarsEyebrow: 'Parivar ki Duaayein',
+    pillarsTitle: 'Ghar Se Teen Khaas Kaamnayein',
+    sealCta: 'Ashirwad Sweekar Karein · Seal Lagayein',
+    sealedBadge: 'MANGAL KEEPSAKE SEALED',
+    sealedMotto: 'Sada Sukhi Bhava · Uttam Sehat, Shanti aur Sneh',
+    copyThanksCta: 'Dhanyavaad Sandesh Copy Karein',
+    copiedThanksToast: 'Copy ho gaya! WhatsApp par bhej sakte hain.',
+  },
+  hi: {
+    thaliEyebrow: 'शुभ अर्पण · मंगल थाली',
+    thaliTitle: 'मंगल भेंट अर्पित करें',
+    thaliHint: 'प्रत्येक पावन भेंट पर टैप करें और मंगलकामना पढ़ें।',
+    thaliProgress: (done, total) => `${done} / ${total} भेंट अर्पित`,
+    thaliComplete: 'सभी 4 पावन भेंट सादर अर्पित हुईं।',
+    chimeTrackTitle: 'प्रातःकालीन बाँसुरी एवं मंगल ध्वनि',
+    chimeTapLabel: 'मंगल ध्वनि सुनें',
+    chimePlayingLabel: 'मंगल ध्वनि बज रही है...',
+    pillarsEyebrow: 'परिवार की मंगलकामनाएँ',
+    pillarsTitle: 'हृदय से तीन विशेष शुभकामनाएँ',
+    sealCta: 'आशीर्वाद स्वीकार करें · स्मृति मुहर लगाएँ',
+    sealedBadge: 'मंगल स्मृति पत्र सुरक्षित',
+    sealedMotto: 'सदा सुखी भव · उत्तम स्वास्थ्य, शांति एवं दीर्घायु',
+    copyThanksCta: 'धन्यवाद संदेश कॉपी करें',
+    copiedThanksToast: 'कॉपी हो गया! अब WhatsApp पर साझा करें।',
+  },
+};
+
+function ThaliOfferingSvg({ id, active }: { id: ThaliOfferingItem['id']; active: boolean }) {
+  const stroke = active ? '#9A3412' : '#B45309';
+  if (id === 'marigold') {
+    return (
+      <svg viewBox="0 0 40 40" className="h-9 w-9" fill="none" aria-hidden="true">
+        <circle cx="20" cy="20" r="14" stroke={stroke} strokeOpacity="0.3" strokeWidth="1.2" strokeDasharray="3 3" />
+        <circle cx="20" cy="20" r="9.5" fill={active ? '#F59E0B' : '#FDE68A'} />
+        <circle cx="20" cy="20" r="5.5" fill={active ? '#EA580C' : '#F59E0B'} />
+        <circle cx="20" cy="20" r="2.2" fill="#FEF3C7" />
+      </svg>
+    );
+  }
+  if (id === 'tilak') {
+    return (
+      <svg viewBox="0 0 40 40" className="h-9 w-9" fill="none" aria-hidden="true">
+        <path d="M20 6 C25 14 27 22 20 33 C13 22 15 14 20 6 Z" fill={active ? '#DC2626' : '#F87171'} fillOpacity="0.9" />
+        <path d="M20 11 C22.8 16.5 23.5 21.5 20 28 C16.5 21.5 17.2 16.5 20 11 Z" fill="#FDE68A" />
+        <circle cx="20" cy="20" r="2.3" fill="#B91C1C" />
+      </svg>
+    );
+  }
+  if (id === 'mithai') {
+    return (
+      <svg viewBox="0 0 40 40" className="h-9 w-9" fill="none" aria-hidden="true">
+        <path d="M20 7 L33 20 L20 33 L7 20 Z" fill={active ? '#F59E0B' : '#FDE68A'} stroke={stroke} strokeWidth="1.4" />
+        <path d="M20 12 L28 20 L20 28 L12 20 Z" fill="#FFFBEB" fillOpacity="0.55" />
+        <circle cx="20" cy="20" r="2.4" fill="#DC2626" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 40 40" className="h-9 w-9" fill="none" aria-hidden="true">
+      <path d="M20 33 V12" stroke="#15803D" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M20 26 C12 25 9 19 10 13 C16 14 20 18 20 26 Z" fill={active ? '#16A34A' : '#4ADE80'} fillOpacity="0.85" />
+      <path d="M20 22 C28 21 31 15 30 9 C24 10 20 14 20 22 Z" fill={active ? '#15803D' : '#22C55E'} fillOpacity="0.85" />
+    </svg>
+  );
+}
 
 const FALLBACK_HERITAGE_PHOTOS: readonly string[] = [
   '/templates/occasions/birthday-ashirwad/cover.jpg',
@@ -768,13 +994,20 @@ export function BirthdayAshirwadSite({
   const [burstParticles, setBurstParticles] = useState<BurstParticle[]>([]);
   const [failedPhotos, setFailedPhotos] = useState<Record<string, boolean>>({});
   const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
+  const [placedOfferings, setPlacedOfferings] = useState<string[]>([]);
+  const [activeOfferingId, setActiveOfferingId] = useState<ThaliOfferingItem['id'] | null>(null);
+  const [openPillarId, setOpenPillarId] = useState<FamilyBlessingPillar['id']>('health');
+  const [keepsakeSealed, setKeepsakeSealed] = useState(false);
+  const [copiedReply, setCopiedReply] = useState(false);
 
   const openedNotifiedRef = useRef(false);
   const waveCounterRef = useRef(0);
   const burstTimeoutRef = useRef<number | null>(null);
+  const copyTimeoutRef = useRef<number | null>(null);
 
   const coreLang = toCoreLanguageCode(language);
   const copy = ASHIRWAD_COPY[coreLang] ?? ASHIRWAD_COPY.en;
+  const extraCopy = EXTRA_ASHIRWAD_COPY[coreLang] ?? EXTRA_ASHIRWAD_COPY.en;
   const isHindi = coreLang === 'hi';
   const hindiSafeStyle: React.CSSProperties | undefined = isHindi
     ? { fontStyle: 'normal', letterSpacing: '0em' }
@@ -821,6 +1054,9 @@ export function BirthdayAshirwadSite({
       if (burstTimeoutRef.current !== null) {
         window.clearTimeout(burstTimeoutRef.current);
       }
+      if (copyTimeoutRef.current !== null) {
+        window.clearTimeout(copyTimeoutRef.current);
+      }
     };
   }, []);
 
@@ -845,6 +1081,7 @@ export function BirthdayAshirwadSite({
 
   function handleLightDiya() {
     setDiyaLit(true);
+    playLanternPullChime();
     triggerPetalShower();
     if (!openedNotifiedRef.current) {
       openedNotifiedRef.current = true;
@@ -854,12 +1091,67 @@ export function BirthdayAshirwadSite({
 
   function handleShowerBlessings() {
     setBlessingWaves((prev) => prev + 1);
+    playPaperUnsealSfx(blessingWaves);
     triggerPetalShower();
     if (!openedNotifiedRef.current) {
       openedNotifiedRef.current = true;
       onOpened?.();
     }
   }
+
+  function handlePlaceOffering(id: ThaliOfferingItem['id'], idx: number) {
+    playPaperUnsealSfx(idx);
+    setActiveOfferingId(id);
+    setPlacedOfferings((prev) => {
+      const next = prev.includes(id) ? prev : [...prev, id];
+      if (next.length === SHUBH_OFFERINGS.length && !prev.includes(id)) {
+        playLanternPullChime();
+        triggerPetalShower();
+      }
+      return next;
+    });
+    if (!openedNotifiedRef.current) {
+      openedNotifiedRef.current = true;
+      onOpened?.();
+    }
+  }
+
+  function handleSealKeepsake() {
+    setKeepsakeSealed(true);
+    playLanternPullChime();
+    triggerPetalShower();
+    if (!openedNotifiedRef.current) {
+      openedNotifiedRef.current = true;
+      onOpened?.();
+    }
+  }
+
+  async function handleCopyThankYou() {
+    const replyText =
+      coreLang === 'hi'
+        ? `बहुत-बहुत धन्यवाद ${data.senderName}! आपका स्नेह भरा जन्मदिन आशीर्वाद पत्र हृदय को छू गया। सदा खुश रहें।`
+        : coreLang === 'hinglish'
+          ? `Dil se shukriya ${data.senderName}! Aapka pyaara birthday ashirwad card dekh kar bahut khushi hui. Hamesha khush raho!`
+          : `Thank you so much, ${data.senderName}! Reading your warm birthday blessing card truly made my day. Wishing you joy always.`;
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(replyText);
+      }
+    } catch {
+      // Safe fallback
+    }
+    setCopiedReply(true);
+    if (copyTimeoutRef.current !== null) {
+      window.clearTimeout(copyTimeoutRef.current);
+    }
+    copyTimeoutRef.current = window.setTimeout(() => setCopiedReply(false), 3200);
+  }
+
+  const activeOfferingObj =
+    SHUBH_OFFERINGS.find((o) => o.id === activeOfferingId) ??
+    (placedOfferings.length > 0
+      ? SHUBH_OFFERINGS.find((o) => o.id === placedOfferings[placedOfferings.length - 1]) ?? null
+      : null);
 
   const activePhoto = activePhotoIndex !== null ? galleryItems[activePhotoIndex] ?? null : null;
 
@@ -1116,6 +1408,124 @@ export function BirthdayAshirwadSite({
           </p>
         </section>
 
+        {/* 2.5. Sacred Courtyard Thali Offerings ("Shubh Arpan") */}
+        <section
+          aria-label={extraCopy.thaliEyebrow}
+          className="relative overflow-hidden rounded-[24px] border border-[#E6D3B3] bg-[#FFFDF8]/90 p-5 shadow-[0_10px_28px_-14px_rgba(120,53,15,0.16)] sm:p-6"
+        >
+          <div className="text-center">
+            <span
+              style={hindiSafeStyle}
+              className={`inline-block rounded-full border border-[#D97706]/30 bg-[#FEF3C7]/70 px-3.5 py-1 text-[10.5px] font-semibold text-[#9A3412] ${
+                isHindi ? '' : 'uppercase tracking-[0.14em]'
+              }`}
+            >
+              {extraCopy.thaliEyebrow}
+            </span>
+            <h2
+              style={hindiSafeStyle}
+              className="mt-2 font-heading text-lg font-bold text-[#3B1F16] sm:text-xl"
+            >
+              {extraCopy.thaliTitle}
+            </h2>
+            <p
+              style={hindiSafeStyle}
+              className="mt-1 font-serif text-xs text-[#7C4A2D]"
+            >
+              {placedOfferings.length === SHUBH_OFFERINGS.length
+                ? extraCopy.thaliComplete
+                : extraCopy.thaliHint}
+            </p>
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 gap-2.5">
+            {SHUBH_OFFERINGS.map((item, idx) => {
+              const isPlaced = placedOfferings.includes(item.id);
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => handlePlaceOffering(item.id, idx)}
+                  aria-pressed={isPlaced}
+                  className={`group relative flex min-h-[98px] flex-col items-center justify-center gap-1.5 rounded-2xl border px-3 py-3 text-center transition duration-300 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B45309] motion-reduce:transition-none ${
+                    isPlaced
+                      ? 'border-[#D97706]/65 bg-gradient-to-b from-[#FFFBEB] to-[#FEF3C7]/85 shadow-[0_10px_24px_-12px_rgba(217,119,6,0.4)]'
+                      : 'border-[#E7D3AD] bg-[#FFFDF9] hover:border-[#D97706]/45 hover:bg-[#FFFBEB]/60'
+                  }`}
+                >
+                  <span
+                    aria-hidden="true"
+                    className={`absolute right-2.5 top-2.5 flex h-5 w-5 items-center justify-center rounded-full border text-[10px] font-bold transition ${
+                      isPlaced
+                        ? 'border-[#B45309] bg-[#B45309] text-white'
+                        : 'border-[#D97706]/30 bg-white/80 text-transparent'
+                    }`}
+                  >
+                    <svg viewBox="0 0 16 16" className="h-3 w-3" fill="none">
+                      <path
+                        d="M3.5 8.2L6.6 11.3L12.5 4.8"
+                        stroke="currentColor"
+                        strokeWidth="2.2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
+                  <ThaliOfferingSvg id={item.id} active={isPlaced} />
+                  <span
+                    style={hindiSafeStyle}
+                    className="font-serif text-xs font-bold text-[#3B1F16]"
+                  >
+                    {item.label[coreLang]}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="mt-3.5 flex items-center justify-between gap-2 rounded-xl border border-[#EBD8B7] bg-[#FAF2E2]/80 px-3.5 py-2">
+            <span
+              style={hindiSafeStyle}
+              className="font-serif text-xs font-semibold text-[#78350F]"
+            >
+              {extraCopy.thaliProgress(placedOfferings.length, SHUBH_OFFERINGS.length)}
+            </span>
+            <div className="flex items-center gap-1" aria-hidden="true">
+              {SHUBH_OFFERINGS.map((item) => (
+                <span
+                  key={`dot-${item.id}`}
+                  className={`h-2 w-2 rounded-full transition-colors duration-300 ${
+                    placedOfferings.includes(item.id) ? 'bg-[#D97706]' : 'bg-[#D97706]/25'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+
+          {activeOfferingObj ? (
+            <div
+              role="status"
+              className="mt-3 rounded-xl border border-[#D97706]/30 bg-[#FFFBEB] px-4 py-3 text-center"
+            >
+              <p
+                style={hindiSafeStyle}
+                className="font-serif text-[13.5px] leading-relaxed text-[#4A2B1D]"
+              >
+                {activeOfferingObj.couplet[coreLang]}
+              </p>
+            </div>
+          ) : null}
+        </section>
+
+        {/* Morning Courtyard Chime Cassette */}
+        <OccasionCassettePlayer
+          trackTitle={extraCopy.chimeTrackTitle}
+          mood="warm"
+          tapLabel={extraCopy.chimeTapLabel}
+          playingLabel={extraCopy.chimePlayingLabel}
+          accentColor="#B45309"
+        />
+
         {/* 3. Serene Silk Blessing Scroll */}
         <section aria-label={copy.scrollEyebrow}>
           <div className="rounded-[24px] border border-[#E2CCA6] bg-[#FBF3E4]/85 p-1.5 shadow-[0_12px_30px_-14px_rgba(120,53,15,0.16)]">
@@ -1294,6 +1704,128 @@ export function BirthdayAshirwadSite({
                 </button>
               );
             })}
+          </div>
+        </section>
+
+        {/* 5. Family Blessing Pillars & Golden Ashirwad Keepsake Seal */}
+        <section
+          aria-label={extraCopy.pillarsEyebrow}
+          className="space-y-4 rounded-[24px] border border-[#E2CCA6] bg-[#FFFDF8]/92 p-5 shadow-[0_12px_30px_-14px_rgba(120,53,15,0.16)] sm:p-6"
+        >
+          <div className="text-center">
+            <span
+              style={hindiSafeStyle}
+              className={`inline-block rounded-full border border-[#D97706]/30 bg-[#FEF3C7]/70 px-3.5 py-1 text-[10.5px] font-semibold text-[#9A3412] ${
+                isHindi ? '' : 'uppercase tracking-[0.14em]'
+              }`}
+            >
+              {extraCopy.pillarsEyebrow}
+            </span>
+            <h2
+              style={hindiSafeStyle}
+              className="mt-2 font-heading text-lg font-bold text-[#3B1F16] sm:text-xl"
+            >
+              {extraCopy.pillarsTitle}
+            </h2>
+          </div>
+
+          <div className="space-y-2">
+            {FAMILY_BLESSING_PILLARS.map((pillar, idx) => {
+              const isOpen = openPillarId === pillar.id;
+              return (
+                <button
+                  key={pillar.id}
+                  type="button"
+                  onClick={() => {
+                    playPaperUnsealSfx(idx);
+                    setOpenPillarId(pillar.id);
+                  }}
+                  aria-expanded={isOpen}
+                  className={`flex min-h-[48px] w-full flex-col rounded-2xl border px-4 py-3 text-left transition duration-200 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B45309] ${
+                    isOpen
+                      ? 'border-[#D97706]/55 bg-[#FFFBEB]'
+                      : 'border-[#EBD8B7] bg-[#FFFDF9] hover:border-[#D97706]/35'
+                  }`}
+                >
+                  <div className="flex w-full items-center justify-between gap-2">
+                    <span
+                      style={hindiSafeStyle}
+                      className="font-heading text-sm font-bold text-[#92400E]"
+                    >
+                      {pillar.title[coreLang]}
+                    </span>
+                    <span
+                      aria-hidden="true"
+                      className={`inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs font-bold transition ${
+                        isOpen
+                          ? 'border-[#D97706]/50 bg-[#D97706] text-white'
+                          : 'border-[#D97706]/25 bg-[#FEF3C7]/60 text-[#92400E]'
+                      }`}
+                    >
+                      {isOpen ? '-' : '+'}
+                    </span>
+                  </div>
+                  {isOpen ? (
+                    <p
+                      style={hindiSafeStyle}
+                      className="mt-2 font-serif text-[13.5px] leading-relaxed text-[#573524]"
+                    >
+                      {pillar.blessing[coreLang]}
+                    </p>
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Brass Ashirwad Keepsake Seal & WhatsApp Thank-You Copy */}
+          <div className="rounded-2xl border border-[#D97706]/35 bg-gradient-to-b from-[#FFFBEB] to-[#FBF0D9] p-4 text-center">
+            {!keepsakeSealed ? (
+              <button
+                type="button"
+                onClick={handleSealKeepsake}
+                style={hindiSafeStyle}
+                className="inline-flex min-h-[46px] w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#B45309] via-[#D97706] to-[#B45309] px-5 py-2.5 font-serif text-xs font-bold text-[#FFFDF8] shadow-[0_10px_22px_-8px_rgba(180,83,9,0.55)] transition hover:brightness-105 active:scale-[0.98]"
+              >
+                <MarigoldPetalIcon />
+                <span>{extraCopy.sealCta}</span>
+              </button>
+            ) : (
+              <div role="status" className="space-y-3">
+                <span
+                  style={hindiSafeStyle}
+                  className={`inline-flex items-center gap-1.5 rounded-full border border-[#B45309]/40 bg-[#FFFDF8] px-3.5 py-1 text-[10px] font-bold text-[#9A3412] ${
+                    isHindi ? '' : 'uppercase tracking-[0.16em]'
+                  }`}
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#15803D]" aria-hidden="true" />
+                  {extraCopy.sealedBadge}
+                </span>
+                <p
+                  style={hindiSafeStyle}
+                  className="font-heading text-base font-bold text-[#3B1F16]"
+                >
+                  {extraCopy.sealedMotto}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => void handleCopyThankYou()}
+                  style={hindiSafeStyle}
+                  className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full border border-[#B45309]/45 bg-[#FFFDF8] px-4 py-2 font-serif text-xs font-bold text-[#92400E] shadow-2xs transition hover:bg-[#FEF3C7] active:scale-[0.98]"
+                >
+                  <span>{extraCopy.copyThanksCta}</span>
+                </button>
+                {copiedReply ? (
+                  <p
+                    role="status"
+                    style={hindiSafeStyle}
+                    className="font-serif text-xs font-semibold text-[#15803D]"
+                  >
+                    {extraCopy.copiedThanksToast}
+                  </p>
+                ) : null}
+              </div>
+            )}
           </div>
         </section>
 
