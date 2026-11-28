@@ -19,9 +19,9 @@ const AUTO_HIDE_CATEGORIES = new Set(['privacy', 'impersonation', 'harassment', 
 function extractSlugFromInput(raw: string): string {
   const trimmed = raw.trim();
   if (!trimmed) return '';
-  const match = trimmed.match(/\/s\/([A-Za-z0-9_-]{6,64})/);
+  const match = trimmed.match(/\/(?:i|s)\/([A-Za-z0-9_-]{3,64})/);
   if (match?.[1]) return match[1];
-  if (/^[A-Za-z0-9_-]{6,64}$/.test(trimmed)) return trimmed;
+  if (/^[A-Za-z0-9_-]{4,64}$/.test(trimmed)) return trimmed;
   return '';
 }
 

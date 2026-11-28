@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
 
     if (!session.user) {
       return NextResponse.json(
-        { error: 'Please sign in via magic link before paying.', code: 'AUTH_REQUIRED' },
+        { error: 'Please sign in to your account before paying.', code: 'AUTH_REQUIRED' },
         { status: 401 },
       );
     }

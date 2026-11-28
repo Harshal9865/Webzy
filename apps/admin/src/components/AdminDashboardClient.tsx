@@ -135,7 +135,7 @@ export function AdminDashboardClient({
   const [copiedOrderId, setCopiedOrderId] = useState<string | null>(null);
   const [logSearch, setLogSearch] = useState('');
   const [revenueScope, setRevenueScope] = useState<'all' | 'live'>(() =>
-    counts.liveRevenuePaise === 0 && counts.testRevenuePaise > 0 ? 'all' : 'all',
+    counts.liveRevenuePaise === 0 && counts.testRevenuePaise > 0 ? 'all' : 'live',
   );
 
   // Global Quick-Jump Search
@@ -720,6 +720,19 @@ export function AdminDashboardClient({
     return Boolean(tid && tid.startsWith('wedding-'));
   }).length;
 
+  const flagshipSitesCount = liveSites.filter((s) => {
+    const rel = s.theme_versions;
+    const tid = Array.isArray(rel) ? rel[0]?.theme_id : rel?.theme_id;
+    return tid === 'travel-voyage-01' || tid === 'cafe-artisan-01' || tid === 'creative-voxel-01';
+  }).length;
+
+  const lifetimeSitesCount = liveSites.filter((s) => Boolean(s.is_lifetime)).length;
+
+  const celebrationSitesCount = Math.max(
+    0,
+    liveSites.length - weddingSitesCount - flagshipSitesCount,
+  );
+
   const totalWeddingRsvps = useMemo(() => {
     return liveSites.reduce((sum, site) => {
       const rsvps = (site.content_json as Record<string, unknown> | null)?.rsvpResponses;
@@ -861,7 +874,7 @@ export function AdminDashboardClient({
                 setCommandQuery(e.target.value);
                 setCommandOpen(true);
               }}
-              placeholder="Quick jump: /s/slug, buyer, email..."
+              placeholder="Quick jump: /s/ or /i/ slug, buyer, email..."
               className="min-h-[44px] w-full rounded-xl border border-webzy-tint bg-webzy-surface/75 px-3.5 text-xs text-webzy-ink outline-none transition placeholder:text-webzy-ink/45 focus:border-webzy-primary focus:bg-white"
             />
             {commandOpen && commandQuery.trim().length > 0 ? (
@@ -1119,7 +1132,7 @@ export function AdminDashboardClient({
                     {liveCounts.liveSites}
                   </p>
                   <p className="mt-1 text-[11px] text-sky-950/65 font-tabular">
-                    {weddingSitesCount} weddings · {totalWeddingRsvps} RSVPs
+                    {weddingSitesCount} weddings · {flagshipSitesCount} flagship · {lifetimeSitesCount} lifetime
                   </p>
                 </button>
 
@@ -1335,6 +1348,77 @@ export function AdminDashboardClient({
                     >
                       Open Studio Pipeline →
                     </button>
+                  </div>
+                </div>
+              </section>
+
+              {/* Catalog & Product Mix Breakdown (Synced with Flagship & Lifetime Editions) */}
+              <section className="rounded-3xl border border-webzy-tint bg-white p-5 shadow-xs sm:p-6">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-webzy-tint/60 pb-3">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-webzy-primary">
+                      Catalog &amp; Product Mix
+                    </span>
+                    <h2 className="mt-0.5 font-heading text-base font-bold text-webzy-ink">
+                      Active Storefront Editions &amp; Hosting Tier Breakdown
+                    </h2>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => selectTab('sites')}
+                    className="inline-flex min-h-[44px] items-center rounded-full border border-webzy-tint bg-webzy-surface/70 px-3.5 text-xs font-bold text-webzy-ink transition hover:border-webzy-primary hover:text-webzy-primary"
+                  >
+                    Inspect All Sites →
+                  </button>
+                </div>
+
+                <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  <div className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-3.5">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                      Flagship Studio (₹99)
+                    </p>
+                    <p className="mt-1.5 font-heading text-xl font-bold text-slate-900 font-tabular">
+                      {flagshipSitesCount}
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-slate-600">
+                      Travel · Cafe · 3D Voxel
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-rose-200/80 bg-rose-50/60 p-3.5">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-rose-800">
+                      Wedding Suites (₹499)
+                    </p>
+                    <p className="mt-1.5 font-heading text-xl font-bold text-rose-950 font-tabular">
+                      {weddingSitesCount}
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-rose-900/75 font-tabular">
+                      {totalWeddingRsvps} guest RSVPs logged
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-amber-200/80 bg-amber-50/60 p-3.5">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-amber-800">
+                      Celebrations (₹29–₹99)
+                    </p>
+                    <p className="mt-1.5 font-heading text-xl font-bold text-amber-950 font-tabular">
+                      {celebrationSitesCount}
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-amber-900/75">
+                      Ashirwad · Will You · Timeline
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-emerald-200/80 bg-emerald-50/60 p-3.5">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">
+                      Lifetime Hosted (+₹500)
+                    </p>
+                    <p className="mt-1.5 font-heading text-xl font-bold text-emerald-950 font-tabular">
+                      {lifetimeSitesCount}
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-emerald-900/75">
+                      Zero-expiry ready-made links
+                    </p>
                   </div>
                 </div>
               </section>

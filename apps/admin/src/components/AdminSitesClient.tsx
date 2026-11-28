@@ -126,7 +126,13 @@ function extractSiteParticipants(site: AdminSiteItem): {
   };
 }
 
-type QuickPillFilter = 'all' | 'wedding' | 'occasion' | 'pin_locked' | 'expiring_7d';
+const FLAGSHIP_THEME_IDS = new Set([
+  'travel-voyage-01',
+  'cafe-artisan-01',
+  'creative-voxel-01',
+]);
+
+type SiteTypeFilter = 'all' | 'wedding' | 'flagship' | 'occasion' | 'lifetime' | 'pin_locked';
 
 export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps) {
   const [sites, setSites] = useState<AdminSiteItem[]>(initialSites);
@@ -135,7 +141,7 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
   const [loadingMore, setLoadingMore] = useState(false);
   const [query, setQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [typeFilter, setTypeFilter] = useState<'all' | 'wedding' | 'occasion'>('all');
+  const [typeFilter, setTypeFilter] = useState<SiteTypeFilter>('all');
   const [busyId, setBusyId] = useState<string | null>(null);
   const [confirmPurgeId, setConfirmPurgeId] = useState<string | null>(null);
   const [notice, setNotice] = useState('');
@@ -217,8 +223,12 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
   const filtered = sites.filter((site) => {
     const themeId = getThemeId(site);
     const isWedding = themeId.startsWith('wedding-');
+    const isFlagship = FLAGSHIP_THEME_IDS.has(themeId);
     if (typeFilter === 'wedding' && !isWedding) return false;
-    if (typeFilter === 'occasion' && isWedding) return false;
+    if (typeFilter === 'flagship' && !isFlagship) return false;
+    if (typeFilter === 'occasion' && (isWedding || isFlagship)) return false;
+    if (typeFilter === 'lifetime' && !site.is_lifetime) return false;
+    if (typeFilter === 'pin_locked' && !hasSecretPin(site)) return false;
     if (filterStatus !== 'all' && site.status !== filterStatus) return false;
     if (!query.trim()) return true;
     const q = query.toLowerCase();
@@ -390,12 +400,15 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
           <select
             aria-label="Filter site type"
             value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value as 'all' | 'wedding' | 'occasion')}
+            onChange={(e) => setTypeFilter(e.target.value as SiteTypeFilter)}
             className="min-h-[44px] flex-1 sm:flex-none rounded-xl border border-slate-200 bg-slate-50/70 px-3 text-xs font-semibold text-webzy-ink outline-none focus:border-webzy-primary focus:bg-white"
           >
             <option value="all">All types</option>
+            <option value="flagship">Flagship (Travel / Cafe / Voxel)</option>
             <option value="wedding">Weddings only</option>
-            <option value="occasion">Occasions only</option>
+            <option value="occasion">Celebration occasions</option>
+            <option value="lifetime">Lifetime Hosted</option>
+            <option value="pin_locked">Secret PIN Locked</option>
           </select>
 
           <select
@@ -465,7 +478,10 @@ export function AdminSitesClient({ initialSites, webUrl }: AdminSitesClientProps
                 const hasPin = typeof content.secretPinHash === 'string' && content.secretPinHash.length >= 32;
                 const rsvpList = isWedding ? extractRsvpResponses(site) : [];
                 const cleanBase = webUrl.trim().replace(/\/+$/, '');
-                const liveUrl = cleanBase ? `${cleanBase}/s/${site.slug}` : `/s/${site.slug}`;
+                const routePrefix = isWedding ? '/i/' : '/s/';
+                const liveUrl = cleanBase
+                  ? `${cleanBase}${routePrefix}${site.slug}`
+                  : `${routePrefix}${site.slug}`;
                 const isHidden = site.hidden || site.status === 'hidden';
 
                 return (

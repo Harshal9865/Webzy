@@ -7,8 +7,29 @@ import { getCustomOrderCapacity } from '../../../../../../infra/supabase/capacit
 import { getSupabaseEnv } from '../../../../../../infra/supabase/env';
 import { createSupabaseAdminClient } from '../../../../../../infra/supabase/server';
 
-const ALLOWED_OCCASIONS = new Set(['wedding', 'birthday', 'anniversary', 'family', 'business', 'other']);
-const ALLOWED_BUDGETS = new Set(['1999', '3499', '5999', '2999-4999', '5000-9999', '10000+']);
+const ALLOWED_OCCASIONS = new Set([
+  'wedding',
+  'travel',
+  'birthday',
+  'love',
+  'anniversary',
+  'family',
+  'festival',
+  'portfolio',
+  'business',
+  'other',
+]);
+const ALLOWED_BUDGETS = new Set([
+  '1499',
+  '1999',
+  '2499',
+  '2999',
+  '3499',
+  '5999',
+  '2999-4999',
+  '5000-9999',
+  '10000+',
+]);
 
 export async function POST(request: NextRequest) {
   try {

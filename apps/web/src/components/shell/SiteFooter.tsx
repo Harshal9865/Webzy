@@ -44,6 +44,9 @@ export function SiteFooter({ config }: SiteFooterProps) {
             <Link href="/refund" className="inline-flex min-h-[44px] items-center hover:text-webzy-primary">
               {copy.footer.refund}
             </Link>
+            <Link href="/shipping" className="inline-flex min-h-[44px] items-center hover:text-webzy-primary">
+              Delivery Policy
+            </Link>
             <Link
               href="/content-policy"
               className="inline-flex min-h-[44px] items-center hover:text-webzy-primary"
@@ -81,9 +84,11 @@ export function SiteFooter({ config }: SiteFooterProps) {
             >
               Cookie Preferences
             </button>
-            <Link href="/admin" className="inline-flex min-h-[44px] items-center text-[11px] font-semibold text-webzy-ink/60 hover:text-webzy-primary">
-              Admin Console
-            </Link>
+            {config.appEnv !== 'production' ? (
+              <Link href="/admin" className="inline-flex min-h-[44px] items-center text-[11px] font-semibold text-webzy-ink/60 hover:text-webzy-primary">
+                Admin Console
+              </Link>
+            ) : null}
           </div>
         </div>
       </div>

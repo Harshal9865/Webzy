@@ -18,6 +18,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: '/terms', priority: 0.5 },
     { path: '/privacy', priority: 0.5 },
     { path: '/refund', priority: 0.5 },
+    { path: '/shipping', priority: 0.5 },
     { path: '/content-policy', priority: 0.5 },
     { path: '/takedown', priority: 0.5 },
   ];
