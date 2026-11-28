@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   type CoreLanguageCode,
   pickLocalizedText,
@@ -95,15 +96,15 @@ interface OsCopy {
 const COPY: Record<CoreLanguageCode, OsCopy> = {
   en: {
     previewBanner: 'WEBZY FREE PREVIEW',
-    osTitle: 'Her.OS',
+    osTitle: 'Smile.OS',
     moodPill: '100% loved',
     forLabel: (name) => `for ${name}`,
     desktopHint: 'Tap a folder or pet the kitty',
     apps: {
-      her: { label: 'Her', windowTitle: 'Her / Polaroids' },
-      dream: { label: 'Dream', windowTitle: 'Dream / Travel Board' },
+      her: { label: 'Moments', windowTitle: 'Moments / Polaroids' },
+      dream: { label: 'Dreams', windowTitle: 'Dreams / Travel Board' },
       game: { label: 'Pixel Game', windowTitle: 'Boba & Heart Catcher' },
-      love: { label: 'Love.txt', windowTitle: 'Love.txt — Mixtape' },
+      love: { label: 'Note.txt', windowTitle: 'Note.txt — Mixtape' },
     },
     catBubbles: ['10/10 cutie', 'free hugs!', 'my fav human', 'boop!', 'purrfect smile'],
     catTapHint: 'Pet kitty',
@@ -144,15 +145,15 @@ const COPY: Record<CoreLanguageCode, OsCopy> = {
   },
   hinglish: {
     previewBanner: 'WEBZY FREE PREVIEW',
-    osTitle: 'Her.OS',
+    osTitle: 'Smile.OS',
     moodPill: '100% loved',
     forLabel: (name) => `${name} ke liye`,
     desktopHint: 'Koi folder kholo ya kitty ko pet karo',
     apps: {
-      her: { label: 'Her', windowTitle: 'Her / Polaroids' },
-      dream: { label: 'Dream', windowTitle: 'Dream / Travel Board' },
+      her: { label: 'Yaadein', windowTitle: 'Yaadein / Polaroids' },
+      dream: { label: 'Sapne', windowTitle: 'Sapne / Travel Board' },
       game: { label: 'Pixel Game', windowTitle: 'Boba & Heart Catcher' },
-      love: { label: 'Love.txt', windowTitle: 'Love.txt — Mixtape' },
+      love: { label: 'Note.txt', windowTitle: 'Note.txt — Mixtape' },
     },
     catBubbles: ['10/10 cutie', 'free hugs!', 'my fav human', 'boop!', 'sabse pyaari'],
     catTapHint: 'Kitty ko tap karo',
@@ -248,22 +249,22 @@ const SAMPLE_HER_PHOTOS: readonly {
   gradient: string;
 }[] = [
   {
-    url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=600&q=80',
+    url: '/templates/cafe/rose-cottage.jpg',
     caption: 'golden hour glow',
     gradient: 'linear-gradient(135deg, #FDE2C4 0%, #F9A8D4 100%)',
   },
   {
-    url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=600&q=80',
-    caption: 'favorite smile',
+    url: '/templates/occasions/upgrades/paris-moonlit-balcony.jpg',
+    caption: 'favorite evening',
     gradient: 'linear-gradient(135deg, #FCE7F3 0%, #DDD6FE 100%)',
   },
   {
-    url: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=600&q=80',
+    url: '/templates/creative/creatie-hills.jpg',
     caption: 'cozy afternoon',
     gradient: 'linear-gradient(135deg, #FEF3C7 0%, #FBCFE8 100%)',
   },
   {
-    url: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=600&q=80',
+    url: '/templates/occasions/our-timeline/cover.jpg',
     caption: 'softest vibes',
     gradient: 'linear-gradient(135deg, #E0E7FF 0%, #FCE7F3 100%)',
   },
@@ -281,24 +282,22 @@ const TRAVEL_STOPS: readonly TravelStop[] = [
       hinglish: 'Do garam coffee, corner window seat, aur bina kisi jaldi ke sukoon bhari subah.',
       hi: 'दो गरम कॉफ़ी, खिड़की के पास की मेज़ और बिना किसी जल्दी के सुकून भरी सुबह।',
     },
-    imageUrl:
-      'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80',
+    imageUrl: '/templates/travel/paris-balcony.jpg',
     fallbackGradient: 'linear-gradient(135deg, #FDE2C4 0%, #E899A8 100%)',
     tiltClass: '-rotate-2',
   },
   {
     id: 'alps',
-    city: 'Swiss Alps Train',
+    city: 'Alpine Express',
     tag: 'WINDOW SEAT',
     stampCode: 'ZRH',
     dateCode: '02 · WINTER',
     note: {
-      en: 'Snowy pines flying past the glass while we share one pair of headphones.',
-      hinglish: 'Khidki ke bahar barf wale pahad aur ek hi headphones mein humare favorite gaane.',
-      hi: 'खिड़की के बाहर बर्फीले पहाड़ और एक ही हेडफ़ोन में हमारी पसंदीदा धुनें।',
+      en: 'Sunlit peaks flying past the glass while we share one pair of headphones.',
+      hinglish: 'Khidki ke bahar sunahre pahad aur ek hi headphones mein humare favorite gaane.',
+      hi: 'खिड़की के बाहर सुनहरे पहाड़ और एक ही हेडफ़ोन में हमारी पसंदीदा धुनें।',
     },
-    imageUrl:
-      'https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?auto=format&fit=crop&w=600&q=80',
+    imageUrl: '/templates/travel/train-window.jpg',
     fallbackGradient: 'linear-gradient(135deg, #C7D2FE 0%, #FBCFE8 100%)',
     tiltClass: 'rotate-2',
   },
@@ -309,40 +308,53 @@ const TRAVEL_STOPS: readonly TravelStop[] = [
     stampCode: 'KYO',
     dateCode: '03 · BLOOM',
     note: {
-      en: 'Slow evening walks under pink lanterns and drifting cherry blossoms.',
+      en: 'Slow evening walks under warm lanterns and drifting cherry blossoms.',
       hinglish: 'Gulabi lanterns aur udte sakura petals ke neeche shaant shaam ki walk.',
       hi: 'गुलाबी लालटेन और उड़ती पंखुड़ियों के नीचे सुकून भरी शाम की सैर।',
     },
-    imageUrl:
-      'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=600&q=80',
+    imageUrl: '/templates/travel/tokyo-fuji.jpg',
     fallbackGradient: 'linear-gradient(135deg, #FBCFE8 0%, #FDE68A 100%)',
     tiltClass: '-rotate-1',
   },
   {
     id: 'seaside',
-    city: 'Seaside Sunset',
+    city: 'Seaside Cove',
     tag: 'GOLDEN TIDE',
     stampCode: 'SEA',
     dateCode: '04 · SUMMER',
     note: {
-      en: 'Barefoot on warm sand watching the sky melt from peach into starlight.',
-      hinglish: 'Nange pair garam ret par aur aasmaan ko peach se taaron mein badalte dekhna.',
-      hi: 'गर्म रेत पर नंगे पैर चलते हुए आसमान को सुनहरे से तारों में ढलते देखना।',
+      en: 'Barefoot by turquoise coves watching the sky melt from peach into starlight.',
+      hinglish: 'Nange pair samandar kinare aur aasmaan ko peach se taaron mein badalte dekhna.',
+      hi: 'सागर किनारे चलते हुए आसमान को सुनहरे से तारों में ढलते देखना।',
     },
-    imageUrl:
-      'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80',
+    imageUrl: '/templates/travel/spain-coast.jpg',
     fallbackGradient: 'linear-gradient(135deg, #FDBA74 0%, #F472B6 100%)',
     tiltClass: 'rotate-1',
   },
 ];
 
+let sharedChimeAudioCtx: AudioContext | null = null;
+
+function getSharedChimeContext(): AudioContext | null {
+  if (typeof window === 'undefined') return null;
+  if (sharedChimeAudioCtx && sharedChimeAudioCtx.state !== 'closed') {
+    if (sharedChimeAudioCtx.state === 'suspended') {
+      void sharedChimeAudioCtx.resume().catch(() => {});
+    }
+    return sharedChimeAudioCtx;
+  }
+  const AudioCtx =
+    window.AudioContext ||
+    (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  if (!AudioCtx) return null;
+  sharedChimeAudioCtx = new AudioCtx();
+  return sharedChimeAudioCtx;
+}
+
 function playSoftChime(freq: number, duration = 0.22) {
   try {
-    const AudioCtx =
-      window.AudioContext ||
-      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-    if (!AudioCtx) return;
-    const ctx = new AudioCtx();
+    const ctx = getSharedChimeContext();
+    if (!ctx) return;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = 'triangle';
@@ -1028,50 +1040,53 @@ function HerFolderApp({
         ))}
       </div>
 
-      {/* Fullscreen Lightbox Zoom */}
-      {zoomIdx !== null && galleryItems[zoomIdx] ? (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[#1E1B3A]/80 p-4 backdrop-blur-xs"
-          onClick={() => setZoomIdx(null)}
-        >
-          <div
-            className="mts-window-pop relative w-full max-w-sm rounded-2xl border-2 border-[#4A2545] bg-[#FFFBF5] p-3 shadow-[0_8px_0_#4A2545]"
-            onClick={(e) => e.stopPropagation()}
-          >
+      {/* Fullscreen Lightbox Zoom (Portaled to document.body) */}
+      {zoomIdx !== null && galleryItems[zoomIdx] && typeof document !== 'undefined'
+        ? createPortal(
             <div
-              className="aspect-square w-full overflow-hidden rounded-xl border border-[#4A2545]/15"
-              style={{ background: galleryItems[zoomIdx].gradient }}
+              role="dialog"
+              aria-modal="true"
+              className="fixed inset-0 z-[120] flex items-center justify-center bg-[#1E1B3A]/80 p-4 backdrop-blur-xs"
+              onClick={() => setZoomIdx(null)}
             >
-              {!failedIdx[zoomIdx] ? (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img
-                  src={galleryItems[zoomIdx].url}
-                  alt={galleryItems[zoomIdx].caption}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center">
-                  <PixelHeartSvg className="h-14 w-14" fill="#EC4899" />
-                </div>
-              )}
-            </div>
-            <div className="mt-2.5 flex items-center justify-between gap-2">
-              <span className="text-sm font-extrabold text-[#4A2545]">
-                {galleryItems[zoomIdx].caption}
-              </span>
-              <button
-                type="button"
-                onClick={() => setZoomIdx(null)}
-                className="min-h-[40px] rounded-lg border-2 border-[#4A2545] bg-[#FCE7F3] px-3.5 text-xs font-extrabold text-[#4A2545] shadow-[0_2px_0_#4A2545] active:translate-y-0.5"
+              <div
+                className="mts-window-pop relative w-full max-w-sm rounded-2xl border-2 border-[#4A2545] bg-[#FFFBF5] p-3 shadow-[0_8px_0_#4A2545]"
+                onClick={(e) => e.stopPropagation()}
               >
-                {copy.closeLabel}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+                <div
+                  className="aspect-square w-full overflow-hidden rounded-xl border border-[#4A2545]/15"
+                  style={{ background: galleryItems[zoomIdx].gradient }}
+                >
+                  {!failedIdx[zoomIdx] ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={galleryItems[zoomIdx].url}
+                      alt={galleryItems[zoomIdx].caption}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center">
+                      <PixelHeartSvg className="h-14 w-14" fill="#EC4899" />
+                    </div>
+                  )}
+                </div>
+                <div className="mt-2.5 flex items-center justify-between gap-2">
+                  <span className="text-sm font-extrabold text-[#4A2545]">
+                    {galleryItems[zoomIdx].caption}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setZoomIdx(null)}
+                    className="min-h-[40px] rounded-lg border-2 border-[#4A2545] bg-[#FCE7F3] px-3.5 text-xs font-extrabold text-[#4A2545] shadow-[0_2px_0_#4A2545] active:translate-y-0.5"
+                  >
+                    {copy.closeLabel}
+                  </button>
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

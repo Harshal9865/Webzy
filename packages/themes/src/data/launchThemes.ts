@@ -84,9 +84,9 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
       senderName: 'Aarav',
       relation: 'friend',
       photos: [
-        'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=900&q=80',
-        'https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&w=900&q=80',
-        'https://images.unsplash.com/photo-1464349153735-7db50ed83c84?auto=format&fit=crop&w=900&q=80',
+        '/templates/occasions/birthday-confetti/cover.jpg',
+        '/templates/cafe/rose-cottage.jpg',
+        '/templates/travel/paris-balcony.jpg',
       ],
       headline: {
         hinglish: 'Happy Birthday, Priya!',
@@ -196,9 +196,9 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
       senderName: 'Ananya',
       relation: 'mummy',
       photos: [
-        'https://images.unsplash.com/photo-1544517175-98e4cc2b461b?auto=format&fit=crop&w=900&q=80',
-        'https://images.unsplash.com/photo-1605207086986-3eab0256c331?auto=format&fit=crop&w=900&q=80',
-        'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=80',
+        '/templates/occasions/birthday-ashirwad/cover.jpg',
+        '/templates/travel/jaipur-slices.jpg',
+        '/templates/occasions/upgrades/stained-glass-gate.jpg',
       ],
       headline: {
         hinglish: 'Janamdin Mubarak, Mummy',
@@ -396,7 +396,7 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
       receiverName: 'Naina & Dev',
       senderName: 'Dev',
       photos: [
-        '/templates/occasions/upgrades/running-meadow-love.jpg',
+        '/templates/creative/creatie-hills.jpg',
         '/templates/travel/train-window.jpg',
         '/templates/occasions/upgrades/city-window-dusk.jpg',
       ],
@@ -490,9 +490,9 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
       receiverName: 'Tara',
       senderName: 'Rohan',
       photos: [
-        'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=900&q=80',
-        'https://images.unsplash.com/photo-1579722821273-0f6c7d44362f?auto=format&fit=crop&w=900&q=80',
-        'https://images.unsplash.com/photo-1444418776041-9c7e33cc5a9c?auto=format&fit=crop&w=900&q=80',
+        '/templates/occasions/maan-jao/cover.jpg',
+        '/templates/cafe/rose-cottage.jpg',
+        '/templates/occasions/upgrades/paris-moonlit-balcony.jpg',
       ],
       headline: {
         hinglish: 'Ab gussa thoda kam karo na, Tara',
@@ -583,9 +583,9 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
       receiverName: 'Didi',
       senderName: 'Kunal',
       photos: [
-        'https://images.unsplash.com/photo-1494719019271-7bfff81660d2?auto=format&fit=crop&w=900&q=80',
-        'https://images.unsplash.com/photo-1510255877864-16a7f9202a39?auto=format&fit=crop&w=900&q=80',
-        'https://images.unsplash.com/photo-1529634002551-f0d0d940c0e5?auto=format&fit=crop&w=900&q=80',
+        '/templates/cafe/rose-cottage.jpg',
+        '/templates/travel/paris-balcony.jpg',
+        '/templates/creative/creatie-hills.jpg',
       ],
       headline: {
         hinglish: 'Sirf aapko thank you kehna tha, Didi',
@@ -752,10 +752,10 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
       whatsappPhone: '919800000000',
       photos: [
         '/templates/creative/creatie-hills.jpg',
-        '/templates/creative/meadow-twilight.jpg',
-        '/templates/creative/bridge-valley.jpg',
-        '/templates/creative/crimson-statue.jpg',
-        '/templates/creative/particle-3d.jpg',
+        '/templates/studio/atelier-hero.jpg',
+        '/templates/studio/craft-fluted.jpg',
+        '/templates/occasions/portfolio/cover.jpg',
+        '/templates/occasions/our-year/cover.jpg',
       ],
       headline: {
         hinglish: 'Digital products aur expressive web experiences jo yaad rahein.',
@@ -1076,7 +1076,7 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
       photos: [
         '/templates/travel/jaipur-slices.jpg',
         '/templates/travel/tokyo-fuji.jpg',
-        '/templates/travel/italy-procida.jpg',
+        '/templates/cafe/rose-cottage.jpg',
         '/templates/travel/spain-coast.jpg',
         '/templates/travel/paris-balcony.jpg',
       ],
@@ -1212,11 +1212,10 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
       relation: 'roast',
       whatsappPhone: '919800000000',
       photos: [
-        '/templates/cafe/matcha-hero.jpg',
         '/templates/cafe/maison-rouge.jpg',
-        '/templates/cafe/drinko-menu.jpg',
-        '/templates/cafe/artisan-catering.jpg',
         '/templates/cafe/rose-cottage.jpg',
+        '/templates/studio/craft-fluted.jpg',
+        '/templates/occasions/small-business/cover.jpg',
       ],
       headline: {
         hinglish: 'Small-batch specialty coffee, ceremonial matcha & sculptural florals.',
@@ -1358,11 +1357,10 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
       relation: 'particle3d',
       whatsappPhone: '919800000000',
       photos: [
-        '/templates/creative/particle-3d.jpg',
-        '/templates/creative/blockfolio.jpg',
+        '/templates/occasions/our-year/cover.jpg',
         '/templates/creative/creatie-hills.jpg',
-        '/templates/creative/retro-forever.jpg',
-        '/templates/creative/scrapbook-ugc.jpg',
+        '/templates/studio/craft-fluted.jpg',
+        '/templates/occasions/our-timeline/cover.jpg',
       ],
       headline: {
         hinglish: 'Interactive 3D experiences, voxel worlds & scroll-stopping creator flagships.',

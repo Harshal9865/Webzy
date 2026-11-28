@@ -9,12 +9,16 @@ import { createSupabaseAdminClient } from '../../../../../../infra/supabase/serv
 
 export const dynamic = 'force-dynamic';
 
+const EDGE_CACHE_HEADERS = {
+  'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+};
+
 export async function GET() {
   try {
     if (!getSupabaseEnv().adminConfigured) {
       return NextResponse.json(
         { ok: true, capacity: buildDefaultCapacityState() },
-        { headers: { 'Cache-Control': 'no-store' } },
+        { headers: EDGE_CACHE_HEADERS },
       );
     }
 
@@ -22,7 +26,7 @@ export async function GET() {
     const capacity = await getCustomOrderCapacity(admin);
     return NextResponse.json(
       { ok: true, capacity },
-      { headers: { 'Cache-Control': 'no-store' } },
+      { headers: EDGE_CACHE_HEADERS },
     );
   } catch (err) {
     logEvent('warn', 'web.capacity.get_failed', {
@@ -30,7 +34,7 @@ export async function GET() {
     });
     return NextResponse.json(
       { ok: true, capacity: buildDefaultCapacityState() },
-      { headers: { 'Cache-Control': 'no-store' } },
+      { headers: EDGE_CACHE_HEADERS },
     );
   }
 }

@@ -2,75 +2,174 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import type { ThemeManifest } from '../schema';
-import { ThemeRenderer } from './ThemeRenderer';
 
 interface ThemeCardArtProps {
   theme: ThemeManifest;
+  priority?: boolean;
 }
 
-const VIRTUAL_VIEWPORT_WIDTH = 390;
+interface CoverArtConfig {
+  src: string;
+  alt: string;
+  bg: string;
+  objectPosition?: string;
+  isDark?: boolean;
+  eyebrow?: string;
+  couple?: string;
+}
 
-const WEDDING_ART_PREVIEW: Record<
-  string,
-  { scene: string; couple: string; city: string; eyebrow: string; bg: string; isDark: boolean }
-> = {
+const WEDDING_ART_PREVIEW: Record<string, CoverArtConfig> = {
   'wedding-emerald-01': {
-    scene: '/templates/wedding-emerald-01/art/jharokha-scene-wide.jpg',
+    src: '/templates/wedding-emerald-01/art/jharokha-scene-wide.jpg',
+    alt: 'Emerald palace jharokha garden wedding invitation suite',
     couple: 'Aanya & Kabir',
-    city: 'Udaipur',
     eyebrow: 'Udaipur · Hindu Vivah',
     bg: 'linear-gradient(155deg, #2D4F35 0%, #1E3524 100%)',
     isDark: false,
   },
   'wedding-royal-red-01': {
-    scene: '/templates/wedding-royal-red-01/art/mughal-scene-wide.jpg',
+    src: '/templates/wedding-royal-red-01/art/mughal-scene-wide.jpg',
+    alt: 'Crimson Mughal courtyard royal wedding invitation suite',
     couple: 'Riya & Siddharth',
-    city: 'Jaipur',
     eyebrow: 'Jaipur · Royal Vivah',
     bg: 'linear-gradient(155deg, #6B0F1E 0%, #3A0710 100%)',
     isDark: true,
   },
   'wedding-royal-blue-01': {
-    scene: '/templates/wedding-royal-blue-01/art/jodhpur-scene-wide.jpg',
+    src: '/templates/wedding-royal-blue-01/art/jodhpur-scene-wide.jpg',
+    alt: 'Indigo Jodhpur palace doors wedding invitation suite',
     couple: 'Meera & Dev',
-    city: 'Jodhpur',
     eyebrow: 'Jodhpur · Marwar Vivah',
     bg: 'linear-gradient(155deg, #132447 0%, #091326 100%)',
     isDark: true,
   },
   'wedding-temple-gold-01': {
-    scene: '/templates/wedding-temple-gold-01/art/temple-gold-scene-wide.jpg',
+    src: '/templates/wedding-temple-gold-01/art/temple-gold-scene-wide.jpg',
+    alt: 'South Indian temple gold muhurtham invitation suite',
     couple: 'Ananya & Karthik',
-    city: 'Chennai',
     eyebrow: 'Chennai · Temple Muhurtham',
     bg: 'linear-gradient(155deg, #5A1812 0%, #310C09 100%)',
     isDark: false,
   },
   'wedding-rose-ivory-01': {
-    scene: '/templates/wedding-rose-ivory-01/art/rose-palace-scene-wide.jpg',
+    src: '/templates/wedding-rose-ivory-01/art/rose-palace-scene-wide.jpg',
+    alt: 'Rose ivory Samode palace garden wedding invitation suite',
     couple: 'Tara & Vihaan',
-    city: 'Jaipur',
     eyebrow: 'Samode · Rose Garden Vivah',
     bg: 'linear-gradient(155deg, #6E3044 0%, #46202C 100%)',
     isDark: false,
   },
   'wedding-christian-ivory-01': {
-    scene: '/templates/wedding-christian-ivory-01/art/chapel-scene-wide.jpg',
+    src: '/templates/wedding-christian-ivory-01/art/chapel-scene-wide.jpg',
+    alt: 'Ivory Goa chapel matrimony wedding invitation suite',
     couple: 'Claire & Aaron',
-    city: 'South Goa',
     eyebrow: 'South Goa · Holy Matrimony',
     bg: 'linear-gradient(155deg, #2F3F33 0%, #202C24 100%)',
     isDark: false,
   },
 };
 
-export function ThemeCardArt({ theme }: ThemeCardArtProps) {
+const OCCASION_COVER_ART: Record<string, CoverArtConfig> = {
+  'birthday-confetti-01': {
+    src: '/templates/occasions/birthday-confetti/cover.jpg',
+    alt: 'Handcrafted birthday keepsake with cake, velvet ribbon, filmstrip and watercolor balloon tree',
+    bg: 'linear-gradient(135deg, #FBF6EE 0%, #F4E9DC 100%)',
+    objectPosition: 'object-center',
+  },
+  'birthday-ashirwad-01': {
+    src: '/templates/occasions/birthday-ashirwad/cover.jpg',
+    alt: 'Sunlit sandstone jharokha courtyard with marigold toran and glowing brass diya',
+    bg: 'linear-gradient(135deg, #FAF1DF 0%, #EBD6B3 100%)',
+    objectPosition: 'object-center',
+  },
+  'will-you-01': {
+    src: '/templates/occasions/will-you/cover.jpg',
+    alt: 'Moonlit Victorian botanical conservatory with wax-sealed letter and white kitten holding a rose',
+    bg: 'linear-gradient(135deg, #1B1030 0%, #3A1944 100%)',
+    objectPosition: 'object-center',
+    isDark: true,
+  },
+  'our-timeline-01': {
+    src: '/templates/occasions/our-timeline/cover.jpg',
+    alt: 'Archival 35mm film strip, taped polaroids, brass compass and pressed lavender on handmade paper',
+    bg: 'linear-gradient(135deg, #F4ECE1 0%, #E6D9C7 100%)',
+    objectPosition: 'object-center',
+  },
+  'maan-jao-01': {
+    src: '/templates/occasions/maan-jao/cover.jpg',
+    alt: 'Rainy cafe windowsill with glowing fairy lights, rainbow sky, steaming chai and kitten holding a daisy',
+    bg: 'linear-gradient(135deg, #1C2637 0%, #3C2C2A 100%)',
+    objectPosition: 'object-center',
+    isDark: true,
+  },
+  'make-them-smile-01': {
+    src: '/templates/occasions/make-them-smile/cover.jpg',
+    alt: 'Cozy pastel twilight retro desktop with pixel folders, polaroids, fairy lights and tabby cat',
+    bg: 'linear-gradient(135deg, #2F2449 0%, #583F6E 100%)',
+    objectPosition: 'object-center',
+    isDark: true,
+  },
+  'our-year-01': {
+    src: '/templates/occasions/our-year/cover.jpg',
+    alt: 'Prismatic luminous 3D glass crystal waves drifting over obsidian night sky',
+    bg: 'linear-gradient(135deg, #120B24 0%, #261447 100%)',
+    objectPosition: 'object-center',
+    isDark: true,
+  },
+  'harvest-greeting-01': {
+    src: '/templates/occasions/harvest-greeting/cover.jpg',
+    alt: 'Festive kites, marigold garland, brass pongal pot and golden sugarcane harvest illustration',
+    bg: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)',
+    objectPosition: 'object-center',
+  },
+  'portfolio-01': {
+    src: '/templates/occasions/portfolio/cover.jpg',
+    alt: 'Minimalist architectural monograph, matte black rangefinder camera and fountain pen on linen',
+    bg: 'linear-gradient(135deg, #F5F0E6 0%, #E7DCCB 100%)',
+    objectPosition: 'object-center',
+  },
+  'small-business-01': {
+    src: '/templates/occasions/small-business/cover.jpg',
+    alt: 'Artisan dark chocolate berry tart, crystal light prism and boutique cotton garment on travertine',
+    bg: 'linear-gradient(135deg, #F4EFE7 0%, #E6DDD0 100%)',
+    objectPosition: 'object-center',
+  },
+  'business-greeting-01': {
+    src: '/templates/occasions/business-greeting/cover.jpg',
+    alt: 'Ivory gift box tied with royal navy satin ribbon, gold wax seal and artisanal truffles',
+    bg: 'linear-gradient(135deg, #0D1B35 0%, #1B2D4E 100%)',
+    objectPosition: 'object-center',
+    isDark: true,
+  },
+  'travel-voyage-01': {
+    src: '/templates/travel/serendipity-vista.jpg',
+    alt: 'Woodblock heritage temple eaves beneath indigo clouds and a warm glowing hanging lantern',
+    bg: 'linear-gradient(135deg, #15233A 0%, #2C4160 100%)',
+    objectPosition: 'object-center',
+    isDark: true,
+  },
+  'cafe-artisan-01': {
+    src: '/templates/cafe/maison-rouge.jpg',
+    alt: 'Sculptural ivory ranunculus and deep crimson garden roses in an oxblood luxury floral studio',
+    bg: 'linear-gradient(135deg, #3D0810 0%, #5B0E1A 100%)',
+    objectPosition: 'object-center',
+    isDark: true,
+  },
+  'creative-voxel-01': {
+    src: '/templates/creative/creatie-hills.jpg',
+    alt: 'Sunlit rolling emerald hills dotted with wildflowers beneath a cerulean sky and cumulus cloud',
+    bg: 'linear-gradient(135deg, #2D5A82 0%, #4E6D28 100%)',
+    objectPosition: 'object-center',
+  },
+};
+
+export function ThemeCardArt({ theme, priority = false }: ThemeCardArtProps) {
   const [imgLoaded, setImgLoaded] = useState(false);
   const [imgFailed, setImgFailed] = useState(false);
-  const [previewScale, setPreviewScale] = useState(0.58);
   const imgRef = useRef<HTMLImageElement | null>(null);
-  const stageRef = useRef<HTMLDivElement | null>(null);
+
   const weddingPreview = WEDDING_ART_PREVIEW[theme.id];
+  const occasionCover = OCCASION_COVER_ART[theme.id];
 
   useEffect(() => {
     setImgFailed(false);
@@ -82,77 +181,34 @@ export function ThemeCardArt({ theme }: ThemeCardArtProps) {
     }
   }, [theme.id]);
 
-  // Measure card width so the live occasion website preview scales crisply to fill the exact card frame.
-  useEffect(() => {
-    if (weddingPreview) return;
-    const node = stageRef.current;
-    if (!node) return;
-
-    const updateScale = () => {
-      const width = node.clientWidth;
-      if (width > 0) {
-        setPreviewScale(width / VIRTUAL_VIEWPORT_WIDTH);
-      }
-    };
-
-    updateScale();
-
-    if (typeof ResizeObserver === 'function') {
-      const ro = new ResizeObserver(updateScale);
-      ro.observe(node);
-      return () => ro.disconnect();
-    }
-
-    window.addEventListener('resize', updateScale);
-    return () => window.removeEventListener('resize', updateScale);
-  }, [weddingPreview, theme.id]);
-
   if (weddingPreview) {
     const showLightOverlay = imgLoaded && !weddingPreview.isDark;
 
     return (
       <div
-        className="relative aspect-[5/4] w-full overflow-hidden rounded-2xl border border-[#D4AF37]/40"
+        className="relative aspect-[4/3] w-full overflow-hidden rounded-xl border border-[#D4AF37]/35 sm:rounded-2xl"
         style={{ background: weddingPreview.bg }}
         aria-hidden="true"
       >
         {!imgFailed ? (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
-            key={weddingPreview.scene}
+            key={weddingPreview.src}
             ref={imgRef}
-            src={weddingPreview.scene}
-            alt=""
+            src={weddingPreview.src}
+            alt={weddingPreview.alt}
+            loading={priority ? 'eager' : 'lazy'}
+            decoding="async"
+            fetchPriority={priority ? 'high' : 'auto'}
             onLoad={() => setImgLoaded(true)}
             onError={() => {
               setImgLoaded(false);
               setImgFailed(true);
             }}
-            className={`absolute inset-0 h-full w-full object-cover object-bottom transition-all duration-500 group-hover:scale-105 ${
+            className={`absolute inset-0 h-full w-full object-cover object-bottom transition-transform duration-700 ease-out group-hover:scale-[1.04] ${
               imgLoaded ? 'opacity-100' : 'opacity-0'
             }`}
           />
-        ) : null}
-
-        {!imgLoaded ? (
-          <svg
-            className="pointer-events-none absolute inset-0 h-full w-full opacity-45"
-            viewBox="0 0 240 192"
-            preserveAspectRatio="none"
-            fill="none"
-          >
-            <path
-              d="M16 178 L16 64 C16 42, 42 28, 72 24 C92 20, 108 15, 120 10 C132 15, 148 20, 168 24 C198 28, 224 42, 224 64 L224 178 Z"
-              stroke="#E5C158"
-              strokeWidth="1.2"
-            />
-            <path
-              d="M24 170 L24 68 C24 50, 46 37, 74 33 C94 30, 108 25, 120 20 C132 25, 146 30, 166 33 C194 37, 216 50, 216 68 L216 170 Z"
-              stroke="#F5D67B"
-              strokeWidth="0.7"
-              strokeDasharray="3 3"
-            />
-          </svg>
         ) : null}
 
         <div
@@ -161,8 +217,8 @@ export function ThemeCardArt({ theme }: ThemeCardArtProps) {
           }`}
           style={{
             background: showLightOverlay
-              ? 'linear-gradient(180deg, rgba(255, 253, 246, 0.72) 0%, rgba(255, 253, 246, 0.25) 45%, rgba(20, 38, 24, 0.08) 100%)'
-              : 'linear-gradient(180deg, rgba(24, 4, 9, 0.56) 0%, rgba(24, 4, 9, 0.18) 48%, rgba(0, 0, 0, 0.14) 100%)',
+              ? 'linear-gradient(180deg, rgba(255, 253, 246, 0.72) 0%, rgba(255, 253, 246, 0.22) 45%, rgba(20, 38, 24, 0.08) 100%)'
+              : 'linear-gradient(180deg, rgba(24, 4, 9, 0.56) 0%, rgba(24, 4, 9, 0.16) 48%, rgba(0, 0, 0, 0.14) 100%)',
           }}
         >
           <span
@@ -179,73 +235,63 @@ export function ThemeCardArt({ theme }: ThemeCardArtProps) {
           >
             {weddingPreview.couple}
           </p>
-          <span
-            className={`mt-1 rounded-full border px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.16em] sm:mt-1.5 sm:tracking-[0.18em] ${
-              showLightOverlay
-                ? 'border-[#C9A243]/70 bg-white/85 text-[#2D4F35]'
-                : 'border-[#E5C158]/60 bg-black/35 text-[#F8DF94]'
-            }`}
-          >
-            Tap to Open
-          </span>
         </div>
       </div>
     );
   }
 
   const { primary, surface } = theme.palette;
+  const coverSrc = occasionCover?.src ?? '';
+  const coverBg = occasionCover?.bg ?? surface;
 
   return (
     <div
-      ref={stageRef}
-      className="relative aspect-[5/4] w-full overflow-hidden rounded-xl border border-black/10 sm:rounded-2xl"
+      className="relative aspect-[4/3] w-full overflow-hidden rounded-xl border border-black/[0.07] sm:rounded-2xl"
       style={{
-        backgroundColor: surface,
+        background: coverBg,
         contain: 'layout style paint',
-        contentVisibility: 'auto',
       }}
       aria-hidden="true"
     >
-      {/* Live scaled miniature of the exact website opened when clicking this card */}
-      <div
-        className="pointer-events-none absolute left-0 top-0 select-none overflow-hidden"
-        style={{
-          width: `${VIRTUAL_VIEWPORT_WIDTH}px`,
-          height: '520px',
-          transform: `scale(${previewScale})`,
-          transformOrigin: 'top left',
-        }}
-      >
-        <div className="h-full w-full transition-transform duration-500 ease-out group-hover:scale-[1.03]">
-          <ThemeRenderer
-            manifest={theme}
-            data={theme.demoData}
-            language="en"
-            watermarked={false}
-          />
-        </div>
-      </div>
-
-      {/* Subtle top/bottom edge scrim + clean occasion pill & tap prompt */}
-      <div className="pointer-events-none relative z-10 flex h-full flex-col justify-between bg-gradient-to-t from-black/40 via-transparent to-black/15 p-2 sm:p-2.5">
-        <div className="flex items-start justify-between">
+      {coverSrc && !imgFailed ? (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img
+          key={coverSrc}
+          ref={imgRef}
+          src={coverSrc}
+          alt={occasionCover?.alt ?? ''}
+          loading={priority ? 'eager' : 'lazy'}
+          decoding="async"
+          fetchPriority={priority ? 'high' : 'auto'}
+          onLoad={() => setImgLoaded(true)}
+          onError={() => {
+            setImgLoaded(false);
+            setImgFailed(true);
+          }}
+          className={`h-full w-full object-cover ${occasionCover?.objectPosition ?? 'object-center'} transition-all duration-700 ease-out group-hover:scale-[1.045] ${
+            imgLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
+        />
+      ) : (
+        <div
+          className="flex h-full w-full items-center justify-center p-4 text-center"
+          style={{
+            background: `radial-gradient(circle at 30% 25%, ${primary}28 0%, ${surface} 72%)`,
+          }}
+        >
           <span
-            className="rounded-full px-2 py-0.5 text-[8.5px] font-bold uppercase tracking-wider text-white shadow-xs backdrop-blur-[2px] sm:text-[9.5px]"
-            style={{ backgroundColor: `${primary}E6` }}
-          >
-            {theme.occasion}
-          </span>
-        </div>
-
-        <div className="flex items-end justify-end">
-          <span
-            className="rounded-full bg-white/95 px-2.5 py-0.5 text-[9px] font-bold shadow-xs backdrop-blur-xs sm:text-[10px]"
+            className="font-heading text-base font-bold tracking-tight"
             style={{ color: primary }}
           >
-            Tap to open
+            {theme.name.en}
           </span>
         </div>
-      </div>
+      )}
+
+      {/* Subtle architectural vignette on hover for tactile gallery depth */}
+      <div
+        className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-black/[0.04] opacity-70 transition-opacity duration-300 group-hover:opacity-45"
+      />
     </div>
   );
 }

@@ -453,7 +453,7 @@ export function PortfolioLuxuryTheme({
                 </div>
                 <div className="flex items-center justify-between px-3.5 py-2 font-mono text-[9.5px] uppercase tracking-[0.16em] text-[#5F5549]">
                   <span>BESPOKE COMMISSIONS</span>
-                  <span>2026 SLOTS OPEN</span>
+                  <span>BY APPOINTMENT</span>
                 </div>
               </div>
             </div>

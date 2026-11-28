@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { type LanguageCode } from '@webzy/core';
 import type { ThemeDemoPayload, ThemeManifest } from '../../schema';
 
@@ -353,37 +354,40 @@ export function OccasionFilmstripGallery({
         </p>
       </div>
 
-      {zoomIdx !== null ? (
-        <div
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setZoomIdx(null)}
-          className="fixed inset-0 z-[120] flex items-center justify-center bg-black/85 p-4 backdrop-blur-xs animate-fade-in"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md rounded-2xl bg-white p-2.5 shadow-2xl"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={sources[zoomIdx]}
-              alt={frameLabels[zoomIdx] || `Frame ${zoomIdx + 1}`}
-              className="max-h-[68dvh] w-full rounded-xl bg-stone-50 object-contain"
-            />
-            <div className="mt-2 flex items-center justify-between px-1 text-xs font-bold text-[#2B1B2E]">
-              <span>{frameLabels[zoomIdx] || `Frame ${zoomIdx + 1}`}</span>
-              <button
-                type="button"
-                onClick={() => setZoomIdx(null)}
-                className="min-h-[40px] rounded-xl px-4 text-white"
-                style={{ backgroundColor: accentColor }}
+      {zoomIdx !== null && typeof document !== 'undefined'
+        ? createPortal(
+            <div
+              role="dialog"
+              aria-modal="true"
+              onClick={() => setZoomIdx(null)}
+              className="fixed inset-0 z-[120] flex items-center justify-center bg-black/85 p-4 backdrop-blur-xs animate-fade-in"
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="w-full max-w-md rounded-2xl bg-white p-2.5 shadow-2xl"
               >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={sources[zoomIdx]}
+                  alt={frameLabels[zoomIdx] || `Frame ${zoomIdx + 1}`}
+                  className="max-h-[68dvh] w-full rounded-xl bg-stone-50 object-contain"
+                />
+                <div className="mt-2 flex items-center justify-between px-1 text-xs font-bold text-[#2B1B2E]">
+                  <span>{frameLabels[zoomIdx] || `Frame ${zoomIdx + 1}`}</span>
+                  <button
+                    type="button"
+                    onClick={() => setZoomIdx(null)}
+                    className="min-h-[40px] rounded-xl px-4 text-white"
+                    style={{ backgroundColor: accentColor }}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </>
   );
 }
@@ -398,6 +402,24 @@ const MELODY_PRESETS: Record<
   festive: [440, 523.25, 587.33, 659.25, 783.99, 880],
   uplifting: [440, 554.37, 659.25, 880, 659.25, 554.37],
 };
+
+let sharedCassetteAudioCtx: AudioContext | null = null;
+
+function getCassetteAudioContext(): AudioContext | null {
+  if (typeof window === 'undefined') return null;
+  if (sharedCassetteAudioCtx && sharedCassetteAudioCtx.state !== 'closed') {
+    if (sharedCassetteAudioCtx.state === 'suspended') {
+      void sharedCassetteAudioCtx.resume().catch(() => {});
+    }
+    return sharedCassetteAudioCtx;
+  }
+  const AudioCtx =
+    window.AudioContext ||
+    (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  if (!AudioCtx) return null;
+  sharedCassetteAudioCtx = new AudioCtx();
+  return sharedCassetteAudioCtx;
+}
 
 /**
  * Tactile clickable retro cassette widget (from birthday/picnic references)
@@ -434,11 +456,8 @@ export function OccasionCassettePlayer({
 
     setPlaying(true);
     try {
-      const AudioCtx =
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-      if (AudioCtx) {
-        const ctx = new AudioCtx();
+      const ctx = getCassetteAudioContext();
+      if (ctx) {
         const notes = MELODY_PRESETS[mood] ?? MELODY_PRESETS.birthday;
         notes.forEach((freq, idx) => {
           const osc = ctx.createOscillator();
@@ -774,74 +793,79 @@ export function OccasionAdaptiveGallery({
         </div>
       )}
 
-      {zoomIdx !== null && validPhotos[zoomIdx] ? (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label={`${captionPrefix} lightbox`}
-          onClick={() => setZoomIdx(null)}
-          className="fixed inset-0 z-[120] flex items-center justify-center bg-black/85 p-4 backdrop-blur-xs animate-fade-in"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className={`relative max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-2xl p-2.5 shadow-2xl animate-pop-bounce ${
-              dark
-                ? 'border border-white/15 bg-[#12101B] text-white'
-                : 'bg-white text-[#2B1B2E]'
-            }`}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={validPhotos[zoomIdx]}
-              alt={`Expanded ${captionPrefix.toLowerCase()} ${zoomIdx + 1}`}
-              className={`max-h-[68dvh] w-full rounded-xl object-contain ${
-                dark ? 'bg-black/40' : 'bg-stone-50'
-              }`}
-            />
-            <div className="mt-2.5 flex items-center justify-between gap-2 px-1.5 pb-1 text-xs font-bold">
-              <span>
-                {captionPrefix} {zoomIdx + 1} / {count}
-              </span>
-              <div className="flex items-center gap-1.5">
-                {count > 1 ? (
-                  <>
+      {zoomIdx !== null && validPhotos[zoomIdx] && typeof document !== 'undefined'
+        ? createPortal(
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-label={`${captionPrefix} lightbox`}
+              onClick={() => setZoomIdx(null)}
+              className="fixed inset-0 z-[120] flex items-center justify-center bg-black/85 p-4 backdrop-blur-xs animate-fade-in"
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className={`relative max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-2xl p-2.5 shadow-2xl animate-pop-bounce ${
+                  dark
+                    ? 'border border-white/15 bg-[#12101B] text-white'
+                    : 'bg-white text-[#2B1B2E]'
+                }`}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={validPhotos[zoomIdx]}
+                  alt={`Expanded ${captionPrefix.toLowerCase()} ${zoomIdx + 1}`}
+                  className={`max-h-[68dvh] w-full rounded-xl object-contain ${
+                    dark ? 'bg-black/40' : 'bg-stone-50'
+                  }`}
+                />
+                <div className="mt-2.5 flex items-center justify-between gap-2 px-1.5 pb-1 text-xs font-bold">
+                  <span>
+                    {captionPrefix} {zoomIdx + 1} / {count}
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    {count > 1 ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setZoomIdx((prev) => (prev === null ? 0 : (prev - 1 + count) % count))
+                          }
+                          className={`min-h-[44px] rounded-xl border px-3.5 transition ${
+                            dark
+                              ? 'border-white/15 hover:bg-white/10'
+                              : 'border-black/10 hover:bg-stone-50'
+                          }`}
+                        >
+                          Prev
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setZoomIdx((prev) => (prev === null ? 0 : (prev + 1) % count))}
+                          className={`min-h-[44px] rounded-xl border px-3.5 transition ${
+                            dark
+                              ? 'border-white/15 hover:bg-white/10'
+                              : 'border-black/10 hover:bg-stone-50'
+                          }`}
+                        >
+                          Next
+                        </button>
+                      </>
+                    ) : null}
                     <button
                       type="button"
-                      onClick={() => setZoomIdx((prev) => (prev === null ? 0 : (prev - 1 + count) % count))}
-                      className={`min-h-[44px] rounded-xl border px-3.5 transition ${
-                        dark
-                          ? 'border-white/15 hover:bg-white/10'
-                          : 'border-black/10 hover:bg-stone-50'
-                      }`}
+                      onClick={() => setZoomIdx(null)}
+                      className="min-h-[44px] rounded-xl px-4 text-white shadow-xs transition active:scale-95"
+                      style={{ backgroundColor: accentColor }}
                     >
-                      Prev
+                      Close
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => setZoomIdx((prev) => (prev === null ? 0 : (prev + 1) % count))}
-                      className={`min-h-[44px] rounded-xl border px-3.5 transition ${
-                        dark
-                          ? 'border-white/15 hover:bg-white/10'
-                          : 'border-black/10 hover:bg-stone-50'
-                      }`}
-                    >
-                      Next
-                    </button>
-                  </>
-                ) : null}
-                <button
-                  type="button"
-                  onClick={() => setZoomIdx(null)}
-                  className="min-h-[44px] rounded-xl px-4 text-white shadow-xs transition active:scale-95"
-                  style={{ backgroundColor: accentColor }}
-                >
-                  Close
-                </button>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        </div>
-      ) : null}
+            </div>,
+            document.body,
+          )
+        : null}
     </>
   );
 }

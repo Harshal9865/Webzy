@@ -39,7 +39,7 @@ export async function POST(
     const admin = createSupabaseAdminClient();
     const { data: site } = await admin
       .from('sites')
-      .select('id, status, hidden, first_opened_at, views_count, reveal_at, expires_at, deleted_at')
+      .select('id, status, hidden, first_opened_at, views_count, reveal_at, expires_at, is_lifetime, deleted_at')
       .eq('slug', slug)
       .maybeSingle();
 
@@ -48,7 +48,7 @@ export async function POST(
     }
 
     const nowMs = Date.now();
-    if (site.expires_at && Date.parse(site.expires_at) <= nowMs) {
+    if (!site.is_lifetime && site.expires_at && Date.parse(site.expires_at) <= nowMs) {
       return NextResponse.json({ ok: false }, { status: 410 });
     }
 
@@ -57,20 +57,21 @@ export async function POST(
     }
 
     const nowIso = new Date().toISOString();
-    await admin
-      .from('sites')
-      .update({
-        status: 'live',
-        first_opened_at: site.first_opened_at ?? nowIso,
-        views_count: (site.views_count ?? 0) + 1,
-      })
-      .eq('id', site.id);
-
-    await admin.from('site_events').insert({
-      site_id: site.id,
-      type: 'open',
-      meta: { firstOpen: !site.first_opened_at },
-    });
+    await Promise.all([
+      admin
+        .from('sites')
+        .update({
+          status: 'live',
+          first_opened_at: site.first_opened_at ?? nowIso,
+          views_count: (site.views_count ?? 0) + 1,
+        })
+        .eq('id', site.id),
+      admin.from('site_events').insert({
+        site_id: site.id,
+        type: 'open',
+        meta: { firstOpen: !site.first_opened_at },
+      }),
+    ]);
 
     return NextResponse.json({ ok: true, firstOpen: !site.first_opened_at });
   } catch (err) {

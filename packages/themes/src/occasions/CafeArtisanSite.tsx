@@ -1425,7 +1425,7 @@ export function CafeArtisanSite({
         src: '/templates/cafe/maison-rouge.jpg',
         label: 'Blanc Ranunculus',
         caption: 'Maison Rouge · Sculptural Floral Study',
-        cropClass: 'object-cover object-top origin-[72%_58%] scale-[2.1]',
+        cropClass: 'object-cover object-center',
       },
     ];
 

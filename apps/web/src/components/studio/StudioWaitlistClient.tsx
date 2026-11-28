@@ -93,7 +93,7 @@ const ATELIER_PLATES: readonly ShowcasePlate[] = [
     subtitle:
       'Two switchable worlds: a color-morphing kinetic coffee carousel with bean parallax, and Maison Rouge vertical fluted-glass optical curtains over crimson florals with a working WhatsApp basket.',
     coverImage: '/templates/cafe/maison-rouge.jpg',
-    secondaryImage: '/templates/cafe/matcha-hero.jpg',
+    secondaryImage: '/templates/cafe/rose-cottage.jpg',
     customPrice: '₹2,499+',
     readyPrice: '₹99',
     craftPoints: [
@@ -115,8 +115,8 @@ const ATELIER_PLATES: readonly ShowcasePlate[] = [
     title: 'Blockfolio & 3D Kinetic Studio',
     subtitle:
       'Real-time 3D HTML5 Canvas particle rocket responding to touch & cursor, prismatic liquid-glass ART MODE switch, playable 8-bit Voxel XP HUD, and sunlit hills creator scrapbook.',
-    coverImage: '/templates/creative/particle-3d.jpg',
-    secondaryImage: '/templates/creative/blockfolio.jpg',
+    coverImage: '/templates/occasions/our-year/cover.jpg',
+    secondaryImage: '/templates/creative/creatie-hills.jpg',
     customPrice: '₹2,999+',
     readyPrice: '₹99',
     craftPoints: [
@@ -138,8 +138,8 @@ const ATELIER_PLATES: readonly ShowcasePlate[] = [
     title: 'Royal Heritage & Couture Vivah',
     subtitle:
       'Custom illustrated palace or villa gates opening in 3D, multi-day ceremony itinerary, live guest RSVP management, hospitality & travel guide, and 10 Indian language editions.',
-    coverImage: '/templates/occasions/upgrades/tuscany-garden.jpg',
-    secondaryImage: '/templates/occasions/upgrades/kyoto-swiss-wedding.jpg',
+    coverImage: '/templates/wedding-emerald-01/art/jharokha-scene-wide.jpg',
+    secondaryImage: '/templates/weddings/art/ceremony-rose-wide.jpg',
     customPrice: '₹1,999+',
     readyPrice: '₹499',
     craftPoints: [
@@ -251,11 +251,11 @@ const AESTHETIC_MOODBOARD = [
   { id: 'ink_reveal', label: 'Ink-Reveal & Birds', thumb: '/templates/travel/serendipity-vista.jpg' },
   { id: 'editorial_slices', label: '6-Slice Travel Atlas', thumb: '/templates/travel/jaipur-slices.jpg' },
   { id: 'fluted_luxury', label: 'Fluted Glass Luxury', thumb: '/templates/cafe/maison-rouge.jpg' },
-  { id: 'kinetic_cafe', label: 'Kinetic Coffee Bar', thumb: '/templates/cafe/matcha-hero.jpg' },
-  { id: 'particle_3d', label: '3D Particle Studio', thumb: '/templates/creative/particle-3d.jpg' },
-  { id: 'voxel_retro', label: 'Voxel & 8-Bit Quest', thumb: '/templates/creative/blockfolio.jpg' },
+  { id: 'kinetic_cafe', label: 'Kinetic Coffee Bar', thumb: '/templates/cafe/rose-cottage.jpg' },
+  { id: 'particle_3d', label: '3D Particle Studio', thumb: '/templates/occasions/our-year/cover.jpg' },
+  { id: 'voxel_retro', label: 'Voxel & 8-Bit Quest', thumb: '/templates/occasions/make-them-smile/cover.jpg' },
   { id: 'sky_scrapbook', label: 'Sunlit Sky Scrapbook', thumb: '/templates/creative/creatie-hills.jpg' },
-  { id: 'botanical_tuscany', label: 'Tuscany Editorial', thumb: '/templates/occasions/upgrades/tuscany-garden.jpg' },
+  { id: 'botanical_tuscany', label: 'Royal Heritage Vivah', thumb: '/templates/wedding-emerald-01/art/jharokha-scene-wide.jpg' },
 ] as const;
 
 const ATELIER_CADENCE = [
@@ -529,17 +529,11 @@ export function StudioWaitlistClient({
                 </span>
               </div>
 
-              {capacity.acceptingOrders ? (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-800/20 bg-emerald-50/90 px-3 py-1 font-mono text-[10px] font-bold text-emerald-950 backdrop-blur-sm">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" aria-hidden="true" />
-                  {capacity.remainingSlots} / {capacity.limit} Slots Open
-                </span>
-              ) : (
+              {!capacity.acceptingOrders ? (
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-800/25 bg-amber-50/95 px-3 py-1 font-mono text-[10px] font-bold text-amber-950 backdrop-blur-sm">
-                  <span className="h-1.5 w-1.5 rounded-full bg-amber-600" aria-hidden="true" />
-                  {capacity.paused ? 'Intake Paused' : 'Batch Full'}
+                  {capacity.paused ? 'Commissions Paused' : 'Currently Booked'}
                 </span>
-              )}
+              ) : null}
             </div>
 
             {/* Main Monumental Serif Headline & Actions */}
@@ -888,11 +882,6 @@ export function StudioWaitlistClient({
             <h2 className="mt-3 font-editorial text-2xl text-[#171315] sm:text-3xl">
               {s.successTitlePrefix} {activeSpecialty.title}
             </h2>
-            {result.queuePosition ? (
-              <p className="mt-1.5 font-mono text-xs font-bold uppercase tracking-widest text-[#9F184B]">
-                Atelier Queue #{result.queuePosition}
-              </p>
-            ) : null}
             <p className="mx-auto mt-2.5 max-w-lg text-xs leading-relaxed text-[#171315]/75 sm:text-sm">
               {result.message}
             </p>

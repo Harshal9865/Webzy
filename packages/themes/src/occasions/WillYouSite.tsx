@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { type CoreLanguageCode, pickLocalizedText, toCoreLanguageCode } from '@webzy/core';
 import {
   type OccasionSiteProps,
@@ -1369,44 +1370,47 @@ export function WillYouSite({
         </main>
       ) : null}
 
-      {/* Polaroid Lightbox Modal */}
-      {zoomIdx !== null && polaroids[zoomIdx] ? (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label={polaroids[zoomIdx].caption}
-          onClick={() => setZoomIdx(null)}
-          className="fixed inset-0 z-[120] flex items-center justify-center bg-black/85 p-4 backdrop-blur-xs"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="wy-fade-up w-full max-w-sm rounded-2xl bg-[#FFFDF8] p-3 text-[#2B1424] shadow-2xl"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={polaroids[zoomIdx].src}
-              alt={polaroids[zoomIdx].caption}
-              className="max-h-[65dvh] w-full rounded-xl bg-[#1A0D2E] object-cover"
-            />
-            <div className="mt-2.5 flex items-center justify-between gap-2 px-1">
-              <span
-                className={`truncate text-xs font-bold text-[#4A2535] ${
-                  hasDevanagari(polaroids[zoomIdx].caption) ? 'tracking-normal' : 'italic'
-                }`}
+      {/* Polaroid Lightbox Modal (Portaled to document.body) */}
+      {zoomIdx !== null && polaroids[zoomIdx] && typeof document !== 'undefined'
+        ? createPortal(
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-label={polaroids[zoomIdx].caption}
+              onClick={() => setZoomIdx(null)}
+              className="fixed inset-0 z-[120] flex items-center justify-center bg-black/85 p-4 backdrop-blur-xs"
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="wy-fade-up w-full max-w-sm rounded-2xl bg-[#FFFDF8] p-3 text-[#2B1424] shadow-2xl"
               >
-                {polaroids[zoomIdx].caption}
-              </span>
-              <button
-                type="button"
-                onClick={() => setZoomIdx(null)}
-                className="min-h-[44px] rounded-full bg-[#E11D48] px-4 text-xs font-bold text-white transition hover:brightness-110 active:scale-95"
-              >
-                {copy.closeLabel}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={polaroids[zoomIdx].src}
+                  alt={polaroids[zoomIdx].caption}
+                  className="max-h-[65dvh] w-full rounded-xl bg-[#1A0D2E] object-cover"
+                />
+                <div className="mt-2.5 flex items-center justify-between gap-2 px-1">
+                  <span
+                    className={`truncate text-xs font-bold text-[#4A2535] ${
+                      hasDevanagari(polaroids[zoomIdx].caption) ? 'tracking-normal' : 'italic'
+                    }`}
+                  >
+                    {polaroids[zoomIdx].caption}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setZoomIdx(null)}
+                    className="min-h-[44px] rounded-full bg-[#E11D48] px-4 text-xs font-bold text-white transition hover:brightness-110 active:scale-95"
+                  >
+                    {copy.closeLabel}
+                  </button>
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
 
       {/* Footer */}
       <footer className="relative z-10 border-t border-white/10 bg-[#0B0617]/60 px-4 py-3 text-center text-[11px] text-[#FBCFE8]/75 backdrop-blur-xs">

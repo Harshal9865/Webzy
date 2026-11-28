@@ -196,7 +196,7 @@ const SCRAPBOOK_COPY: Record<CoreLanguageCode, ScrapbookCopy> = {
 
 const CURATED_FALLBACK_PHOTOS: ReadonlyArray<{ src: string; gradient: string }> = [
   {
-    src: '/templates/occasions/upgrades/running-meadow-love.jpg',
+    src: '/templates/creative/creatie-hills.jpg',
     gradient: 'linear-gradient(135deg, #F3D9B1 0%, #D99B66 52%, #8F5B3C 100%)',
   },
   {
@@ -204,7 +204,7 @@ const CURATED_FALLBACK_PHOTOS: ReadonlyArray<{ src: string; gradient: string }> 
     gradient: 'linear-gradient(135deg, #E8C7A0 0%, #B8845A 55%, #6A4832 100%)',
   },
   {
-    src: '/templates/travel/ocean-arch.jpg',
+    src: '/templates/travel/spain-coast.jpg',
     gradient: 'linear-gradient(135deg, #F7D3A2 0%, #DF9A78 50%, #6D7D8C 100%)',
   },
   {
@@ -768,7 +768,7 @@ export function OurTimelineSite({
         <div
           key={`petal-burst-${pressedCount}`}
           aria-hidden="true"
-          className="pointer-events-none fixed inset-0 z-40 overflow-hidden motion-reduce:hidden sm:absolute"
+          className="pointer-events-none absolute inset-0 z-40 overflow-hidden motion-reduce:hidden"
         >
           {SCATTER_PETALS.map((petal, idx) => (
             <span

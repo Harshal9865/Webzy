@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   type CoreLanguageCode,
   pickLocalizedText,
@@ -117,8 +118,8 @@ const RELATION_LABELS: Record<string, Record<CoreLanguageCode, string>> = {
 };
 
 const FALLBACK_HERITAGE_PHOTOS: readonly string[] = [
-  'https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=800&q=80',
-  'https://images.unsplash.com/photo-1605649487212-47bdab064df7?auto=format&fit=crop&w=800&q=80',
+  '/templates/occasions/birthday-ashirwad/cover.jpg',
+  '/templates/travel/jaipur-slices.jpg',
 ];
 
 interface AmbientPetal {
@@ -1305,15 +1306,16 @@ export function BirthdayAshirwadSite({
         </footer>
       </main>
 
-      {/* Tap-to-inspect Arched Keepsake Modal */}
-      {activePhoto && activePhotoIndex !== null ? (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label={activePhoto.caption}
-          onClick={() => setActivePhotoIndex(null)}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[#2A160E]/75 p-4 backdrop-blur-xs"
-        >
+      {/* Tap-to-inspect Arched Keepsake Modal (Portaled for PhoneFrame / @container safety) */}
+      {activePhoto && activePhotoIndex !== null && typeof document !== 'undefined'
+        ? createPortal(
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-label={activePhoto.caption}
+              onClick={() => setActivePhotoIndex(null)}
+              className="fixed inset-0 z-[120] flex items-center justify-center bg-[#2A160E]/75 p-4 backdrop-blur-xs"
+            >
           <div
             onClick={(event) => event.stopPropagation()}
             className="relative w-full max-w-sm rounded-[26px] border border-[#D97706]/45 bg-[#FFFDF8] p-3.5 shadow-[0_24px_60px_rgba(24,10,5,0.45)]"
@@ -1386,8 +1388,10 @@ export function BirthdayAshirwadSite({
               )}
             </div>
           </div>
-        </div>
-      ) : null}
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

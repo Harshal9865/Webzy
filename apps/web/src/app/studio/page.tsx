@@ -9,7 +9,7 @@ import {
   StudioWaitlistClient,
 } from '../../components/studio/StudioWaitlistClient';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: 'Webzy Custom Made — Bespoke Travel, Café, 3D Studio, Business & Wedding Websites',

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { getSiteCopy, getStorefrontCopy, LanguageCode, pickLocalizedText } from '@webzy/core';
 import { OCCASION_LABELS, ThemeManifest, ThemeOccasion } from '@webzy/themes';
 import { useLanguage } from '../shell/LanguageProvider';
@@ -14,13 +14,14 @@ interface ThemesCatalogueClientProps {
 
 const OCCASIONS: Array<'all' | ThemeOccasion> = [
   'all',
-  'travel',
-  'business',
-  'portfolio',
   'birthday',
   'love',
   'anniversary',
   'family',
+  'travel',
+  'business',
+  'portfolio',
+  'festival',
 ];
 
 const ALL_LANGUAGES_LABEL: Record<string, string> = {
@@ -29,6 +30,8 @@ const ALL_LANGUAGES_LABEL: Record<string, string> = {
   hi: 'सभी भाषाएँ',
 };
 
+type SortMode = 'featured' | 'price_asc' | 'price_desc';
+
 export function ThemesCatalogueClient({
   themes,
   initialOccasion = 'all',
@@ -36,278 +39,393 @@ export function ThemesCatalogueClient({
   const { language } = useLanguage();
   const copy = getStorefrontCopy(language);
   const site = getSiteCopy(language);
-  const [occasion, setOccasion] = useState<string>(
-    OCCASIONS.includes(initialOccasion as 'all' | ThemeOccasion) ? initialOccasion : 'all',
-  );
+
+  const normalizedInitial = OCCASIONS.includes(initialOccasion as 'all' | ThemeOccasion)
+    ? initialOccasion
+    : 'all';
+
+  const [occasion, setOccasion] = useState<string>(normalizedInitial);
   const [langFilter, setLangFilter] = useState<'all' | LanguageCode>('all');
   const [maxPrice, setMaxPrice] = useState<number>(0);
+  const [sortBy, setSortBy] = useState<SortMode>('featured');
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
-  const activeExtraFilterCount = (langFilter !== 'all' ? 1 : 0) + (maxPrice > 0 ? 1 : 0);
+  // Sync URL query navigation (e.g. clicking a hub link to /themes?occasion=love)
+  useEffect(() => {
+    setOccasion(normalizedInitial);
+  }, [normalizedInitial]);
+
+  const nonWeddingThemes = useMemo(
+    () => themes.filter((t) => t.occasion !== 'wedding'),
+    [themes],
+  );
+
+  // Live counts per occasion pill so visitors immediately know what is inside each shelf
+  const occasionCounts = useMemo(() => {
+    const counts: Record<string, number> = { all: nonWeddingThemes.length };
+    for (const item of nonWeddingThemes) {
+      counts[item.occasion] = (counts[item.occasion] ?? 0) + 1;
+    }
+    return counts;
+  }, [nonWeddingThemes]);
+
+  const visibleOccasions = useMemo(
+    () => OCCASIONS.filter((item) => item === 'all' || (occasionCounts[item] ?? 0) > 0),
+    [occasionCounts],
+  );
+
+  const activeExtraFilterCount =
+    (langFilter !== 'all' ? 1 : 0) + (maxPrice > 0 ? 1 : 0) + (sortBy !== 'featured' ? 1 : 0);
   const hasAnyFilter =
-    occasion !== 'all' || langFilter !== 'all' || maxPrice > 0 || searchQuery.trim().length > 0;
+    occasion !== 'all' ||
+    langFilter !== 'all' ||
+    maxPrice > 0 ||
+    sortBy !== 'featured' ||
+    searchQuery.trim().length > 0;
 
   const filtered = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    return themes.filter((t) => {
-      if (t.occasion === 'wedding') return false;
+    const list = nonWeddingThemes.filter((t) => {
       if (occasion !== 'all' && t.occasion !== occasion) return false;
       if (langFilter !== 'all' && !t.languages.includes(langFilter)) return false;
       if (maxPrice > 0 && t.price.base > maxPrice) return false;
       if (q) {
-        const hay = `${t.id} ${t.occasion} ₹${t.price.base} ${t.price.base} ${pickLocalizedText(t.name, language)} ${pickLocalizedText(t.audience, language)}`.toLowerCase();
+        const hay = `${t.id} ${t.occasion} ₹${t.price.base} ${t.price.base} ${pickLocalizedText(t.name, language)} ${pickLocalizedText(t.audience, language)} ${pickLocalizedText(t.signatureMoment, language)}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
     });
-  }, [themes, occasion, langFilter, maxPrice, searchQuery, language]);
+
+    if (sortBy === 'price_asc') {
+      return [...list].sort((a, b) => a.price.base - b.price.base);
+    }
+    if (sortBy === 'price_desc') {
+      return [...list].sort((a, b) => b.price.base - a.price.base);
+    }
+    return list;
+  }, [nonWeddingThemes, occasion, langFilter, maxPrice, sortBy, searchQuery, language]);
 
   function resetFilters() {
     setOccasion('all');
     setLangFilter('all');
     setMaxPrice(0);
+    setSortBy('featured');
     setSearchQuery('');
   }
 
   const allLanguagesText = ALL_LANGUAGES_LABEL[language] || 'All languages';
 
   return (
-    <div className="mx-auto max-w-7xl px-3.5 pb-12 pt-4 sm:px-6 sm:pt-6">
-      {/* Compact Top Header Row: Title + Live Count + Quick Weddings Link */}
-      <div className="flex items-center justify-between gap-2">
-        <div className="min-w-0">
-          <div className="flex items-baseline gap-2">
-            <h1 className="truncate font-heading text-xl font-bold tracking-tight text-webzy-ink sm:text-3xl">
-              {copy.featuredTitle}
-            </h1>
-            <span className="shrink-0 rounded-full bg-webzy-surface px-2 py-0.5 text-[11px] font-bold text-webzy-primary font-tabular">
-              {filtered.length}
-            </span>
-          </div>
-          <p className="mt-0.5 hidden text-xs text-webzy-ink/65 sm:block sm:text-sm">
-            {copy.featuredSubtitle}
-          </p>
-        </div>
+    <div className="min-h-screen bg-[#FCFAF7]">
+      {/* Editorial Header Band */}
+      <section className="border-b border-webzy-ink/[0.08] bg-white">
+        <div className="mx-auto max-w-7xl px-3.5 pb-4 pt-5 sm:px-6 sm:pb-6 sm:pt-7">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div className="min-w-0 max-w-2xl">
+              <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-webzy-primary sm:text-[11px]">
+                READY-MADE COLLECTION
+              </p>
+              <div className="mt-1 flex items-baseline gap-2.5">
+                <h1 className="font-heading text-2xl font-bold tracking-tight text-webzy-ink sm:text-4xl">
+                  {copy.featuredTitle}
+                </h1>
+                <span className="shrink-0 rounded-full border border-webzy-ink/10 bg-[#FAF6F0] px-2.5 py-0.5 font-mono text-[11px] font-bold text-webzy-ink/70 font-tabular">
+                  {filtered.length}
+                </span>
+              </div>
+              <p className="mt-1 text-xs leading-relaxed text-webzy-ink/65 sm:text-sm">
+                {copy.featuredSubtitle}
+              </p>
+            </div>
 
-        <Link
-          href="/weddings"
-          className="btn-spring inline-flex h-8 shrink-0 items-center gap-1 rounded-full border border-[#C9A243]/50 bg-[#1A1317] px-3 text-[11px] font-bold text-[#F5E0A3] shadow-2xs transition hover:bg-[#2B1F26] sm:h-9 sm:px-4 sm:text-xs"
-        >
-          <span>Weddings</span>
-          <span aria-hidden="true">→</span>
-        </Link>
-      </div>
-
-      {/* Sleek Compact Filter Bar (Zero bloated container; mobile-first collapsible drawer for secondary filters) */}
-      <div className="mt-3 space-y-2 sm:mt-4 sm:space-y-2.5">
-        {/* Row 1: Search + Inline Selects (Desktop) / Filter Toggle Pill (Mobile) */}
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1 sm:max-w-xs">
-            <svg
-              className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-webzy-ink/45"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.2}
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"
-              />
-            </svg>
-            <input
-              type="search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search birthday, shop, ₹29..."
-              aria-label="Search themes"
-              className="h-9 w-full rounded-full border border-webzy-tint bg-white pl-8 pr-8 text-xs font-medium text-webzy-ink shadow-2xs outline-none transition focus:border-webzy-primary sm:h-9"
-            />
-            {searchQuery ? (
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                aria-label="Clear search"
-                className="absolute right-2 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full bg-slate-100 text-[10px] font-bold text-slate-600 hover:bg-slate-200"
+            <div className="flex items-center gap-2">
+              <Link
+                href="/weddings"
+                className="btn-spring inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-[#C9A243]/50 bg-[#1A1317] px-3.5 text-[11.5px] font-bold text-[#F5E0A3] shadow-2xs transition hover:bg-[#2B1F26] sm:h-10 sm:px-4 sm:text-xs"
               >
-                ×
-              </button>
-            ) : null}
+                <span>Wedding Suites</span>
+                <span aria-hidden="true">→</span>
+              </Link>
+              <Link
+                href="/studio"
+                className="btn-spring hidden h-10 shrink-0 items-center gap-1.5 rounded-full border border-webzy-ink/15 bg-white px-4 text-xs font-bold text-webzy-ink transition hover:border-webzy-primary/40 hover:text-webzy-primary sm:inline-flex"
+              >
+                <span>Custom Made</span>
+              </Link>
+            </div>
           </div>
 
-          {/* Mobile Secondary Filter Toggle Button */}
-          <button
-            type="button"
-            onClick={() => setMobileFiltersOpen((prev) => !prev)}
-            aria-expanded={mobileFiltersOpen}
-            className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-bold transition sm:hidden ${
-              mobileFiltersOpen || activeExtraFilterCount > 0
-                ? 'border-webzy-primary bg-webzy-surface text-webzy-primary'
-                : 'border-webzy-tint bg-white text-webzy-ink/80'
-            }`}
-          >
-            <svg
-              className="h-3.5 w-3.5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-              aria-hidden="true"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 6h18M6 12h12m-9 6h6" />
-            </svg>
-            <span>Filter</span>
-            {activeExtraFilterCount > 0 ? (
-              <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-webzy-primary px-1 text-[10px] text-white">
-                {activeExtraFilterCount}
-              </span>
-            ) : null}
-          </button>
+          {/* Search + Controls Row */}
+          <div className="mt-4 flex items-center gap-2">
+            <div className="relative flex-1 sm:max-w-sm">
+              <svg
+                className="pointer-events-none absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-webzy-ink/45"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.2}
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"
+                />
+              </svg>
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search birthday, love, travel, cafe, ₹29..."
+                aria-label="Search themes"
+                className="h-10 w-full rounded-full border border-webzy-ink/[0.12] bg-[#FAF8F5] pl-9 pr-8 text-xs font-medium text-webzy-ink outline-none transition placeholder:text-webzy-ink/40 focus:border-webzy-primary focus:bg-white"
+              />
+              {searchQuery ? (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  aria-label="Clear search"
+                  className="absolute right-2.5 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full bg-stone-200/80 text-[11px] font-bold text-stone-700 hover:bg-stone-300"
+                >
+                  ×
+                </button>
+              ) : null}
+            </div>
 
-          {/* Desktop Inline Language & Budget Dropdowns (Same Row — Zero Extra Vertical Height) */}
-          <div className="hidden items-center gap-2 sm:flex">
-            <select
-              aria-label={site.common.languageLabel}
-              value={langFilter}
-              onChange={(e) => setLangFilter(e.target.value as 'all' | LanguageCode)}
-              className="h-9 rounded-full border border-webzy-tint bg-white px-3 text-xs font-semibold text-webzy-ink outline-none transition hover:border-webzy-primary/50 focus:border-webzy-primary"
+            {/* Mobile Filter Drawer Trigger */}
+            <button
+              type="button"
+              onClick={() => setMobileFiltersOpen((prev) => !prev)}
+              aria-expanded={mobileFiltersOpen}
+              className={`inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-xs font-bold transition sm:hidden ${
+                mobileFiltersOpen || activeExtraFilterCount > 0
+                  ? 'border-webzy-primary bg-webzy-surface text-webzy-primary'
+                  : 'border-webzy-ink/[0.12] bg-white text-webzy-ink/80'
+              }`}
             >
-              <option value="all">{allLanguagesText}</option>
-              <option value="hinglish">Hinglish</option>
-              <option value="hi">हिन्दी</option>
-              <option value="en">English</option>
-            </select>
+              <svg
+                className="h-3.5 w-3.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                aria-hidden="true"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 6h18M6 12h12m-9 6h6" />
+              </svg>
+              <span>Filter</span>
+              {activeExtraFilterCount > 0 ? (
+                <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-webzy-primary px-1 text-[10px] text-white">
+                  {activeExtraFilterCount}
+                </span>
+              ) : null}
+            </button>
 
-            <select
-              aria-label={site.common.budgetLabel}
-              value={maxPrice}
-              onChange={(e) => setMaxPrice(Number(e.target.value))}
-              className="h-9 rounded-full border border-webzy-tint bg-white px-3 text-xs font-semibold text-webzy-ink outline-none transition hover:border-webzy-primary/50 focus:border-webzy-primary"
-            >
-              <option value={0}>{site.common.anyPrice}</option>
-              <option value={29}>₹29</option>
-              <option value={49}>≤ ₹49</option>
-              <option value={79}>≤ ₹79</option>
-              <option value={99}>≤ ₹99</option>
-            </select>
+            {/* Desktop Inline Filters */}
+            <div className="hidden items-center gap-2 sm:flex">
+              <select
+                aria-label={site.common.languageLabel}
+                value={langFilter}
+                onChange={(e) => setLangFilter(e.target.value as 'all' | LanguageCode)}
+                className="h-10 rounded-full border border-webzy-ink/[0.12] bg-white px-3.5 text-xs font-semibold text-webzy-ink outline-none transition hover:border-webzy-primary/50 focus:border-webzy-primary"
+              >
+                <option value="all">{allLanguagesText}</option>
+                <option value="hinglish">Hinglish</option>
+                <option value="hi">हिन्दी</option>
+                <option value="en">English</option>
+              </select>
 
+              <select
+                aria-label={site.common.budgetLabel}
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(Number(e.target.value))}
+                className="h-10 rounded-full border border-webzy-ink/[0.12] bg-white px-3.5 text-xs font-semibold text-webzy-ink outline-none transition hover:border-webzy-primary/50 focus:border-webzy-primary"
+              >
+                <option value={0}>{site.common.anyPrice}</option>
+                <option value={29}>₹29</option>
+                <option value={49}>Up to ₹49</option>
+                <option value={79}>Up to ₹79</option>
+                <option value={99}>Up to ₹99</option>
+              </select>
+
+              <select
+                aria-label="Sort themes"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as SortMode)}
+                className="h-10 rounded-full border border-webzy-ink/[0.12] bg-white px-3.5 text-xs font-semibold text-webzy-ink outline-none transition hover:border-webzy-primary/50 focus:border-webzy-primary"
+              >
+                <option value="featured">Curated order</option>
+                <option value="price_asc">Price: Low to High</option>
+                <option value="price_desc">Price: High to Low</option>
+              </select>
+
+              {hasAnyFilter ? (
+                <button
+                  type="button"
+                  onClick={resetFilters}
+                  className="h-10 rounded-full px-3 text-xs font-bold text-webzy-primary transition hover:bg-webzy-surface"
+                >
+                  Reset
+                </button>
+              ) : null}
+            </div>
+          </div>
+
+          {/* Mobile Secondary Filter Drawer */}
+          {mobileFiltersOpen ? (
+            <div className="mt-2.5 grid grid-cols-3 gap-2 rounded-2xl border border-webzy-ink/[0.08] bg-[#FAF6F0] p-2.5 sm:hidden">
+              <select
+                aria-label={site.common.languageLabel}
+                value={langFilter}
+                onChange={(e) => setLangFilter(e.target.value as 'all' | LanguageCode)}
+                className="h-9 w-full rounded-xl border border-webzy-ink/[0.1] bg-white px-2 text-[11px] font-semibold text-webzy-ink"
+              >
+                <option value="all">{allLanguagesText}</option>
+                <option value="hinglish">Hinglish</option>
+                <option value="hi">हिन्दी</option>
+                <option value="en">English</option>
+              </select>
+
+              <select
+                aria-label={site.common.budgetLabel}
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(Number(e.target.value))}
+                className="h-9 w-full rounded-xl border border-webzy-ink/[0.1] bg-white px-2 text-[11px] font-semibold text-webzy-ink"
+              >
+                <option value={0}>{site.common.anyPrice}</option>
+                <option value={29}>₹29</option>
+                <option value={49}>≤ ₹49</option>
+                <option value={79}>≤ ₹79</option>
+                <option value={99}>≤ ₹99</option>
+              </select>
+
+              <select
+                aria-label="Sort themes"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as SortMode)}
+                className="h-9 w-full rounded-xl border border-webzy-ink/[0.1] bg-white px-2 text-[11px] font-semibold text-webzy-ink"
+              >
+                <option value="featured">Curated</option>
+                <option value="price_asc">Low → High</option>
+                <option value="price_desc">High → Low</option>
+              </select>
+            </div>
+          ) : null}
+
+          {/* Occasion Category Rail with Live Counts */}
+          <div className="-mx-3.5 mt-3.5 flex flex-nowrap items-center gap-1.5 overflow-x-auto px-3.5 pb-0.5 scrollbar-none sm:mx-0 sm:px-0">
+            {visibleOccasions.map((item) => {
+              const active = occasion === item;
+              const count = occasionCounts[item] ?? 0;
+              return (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => setOccasion(item)}
+                  aria-pressed={active}
+                  className={`inline-flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-[11.5px] font-bold transition sm:h-9 sm:px-3.5 sm:text-xs ${
+                    active
+                      ? 'bg-webzy-ink text-white shadow-2xs'
+                      : 'border border-webzy-ink/[0.1] bg-white text-webzy-ink/80 hover:border-webzy-ink/30 hover:text-webzy-ink'
+                  }`}
+                >
+                  <span>
+                    {item === 'all'
+                      ? 'All Occasions'
+                      : pickLocalizedText(OCCASION_LABELS[item], language)}
+                  </span>
+                  <span
+                    className={`rounded-full px-1.5 py-0.2 text-[10px] font-tabular ${
+                      active ? 'bg-white/20 text-white' : 'bg-stone-100 text-webzy-ink/55'
+                    }`}
+                  >
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
             {hasAnyFilter ? (
               <button
                 type="button"
                 onClick={resetFilters}
-                className="h-9 rounded-full px-2.5 text-xs font-bold text-webzy-primary hover:bg-webzy-surface"
+                className="inline-flex h-8 shrink-0 items-center whitespace-nowrap rounded-full px-2.5 text-[11px] font-bold text-webzy-primary hover:bg-webzy-surface sm:hidden"
               >
                 Reset
               </button>
             ) : null}
           </div>
         </div>
+      </section>
 
-        {/* Collapsible Mobile Secondary Filters (Hidden by default so cards show above the fold) */}
-        {mobileFiltersOpen ? (
-          <div className="grid grid-cols-2 gap-2 rounded-2xl border border-webzy-tint bg-webzy-surface/60 p-2.5 sm:hidden">
-            <select
-              aria-label={site.common.languageLabel}
-              value={langFilter}
-              onChange={(e) => setLangFilter(e.target.value as 'all' | LanguageCode)}
-              className="h-9 w-full rounded-xl border border-webzy-tint bg-white px-2.5 text-xs font-semibold text-webzy-ink"
-            >
-              <option value="all">{allLanguagesText}</option>
-              <option value="hinglish">Hinglish</option>
-              <option value="hi">हिन्दी</option>
-              <option value="en">English</option>
-            </select>
-
-            <select
-              aria-label={site.common.budgetLabel}
-              value={maxPrice}
-              onChange={(e) => setMaxPrice(Number(e.target.value))}
-              className="h-9 w-full rounded-xl border border-webzy-tint bg-white px-2.5 text-xs font-semibold text-webzy-ink"
-            >
-              <option value={0}>{site.common.anyPrice}</option>
-              <option value={29}>₹29</option>
-              <option value={49}>≤ ₹49</option>
-              <option value={79}>≤ ₹79</option>
-              <option value={99}>≤ ₹99</option>
-            </select>
-          </div>
-        ) : null}
-
-        {/* Row 2: Single Compact Horizontal Scroll Rail of Occasion Chips */}
-        <div className="-mx-3.5 flex flex-nowrap items-center gap-1.5 overflow-x-auto px-3.5 pb-0.5 scrollbar-none sm:mx-0 sm:px-0">
-          {OCCASIONS.map((item) => {
-            const active = occasion === item;
-            return (
-              <button
-                key={item}
-                type="button"
-                onClick={() => setOccasion(item)}
-                aria-pressed={active}
-                className={`inline-flex h-8 shrink-0 items-center whitespace-nowrap rounded-full px-3 text-[11.5px] font-bold transition sm:h-8 sm:px-3.5 sm:text-xs ${
-                  active
-                    ? 'bg-webzy-primary text-white shadow-2xs'
-                    : 'border border-webzy-tint bg-white text-webzy-ink/85 hover:border-webzy-primary/60 hover:text-webzy-ink'
-                }`}
-              >
-                {item === 'all'
-                  ? 'All'
-                  : pickLocalizedText(OCCASION_LABELS[item], language)}
-              </button>
-            );
-          })}
-          {hasAnyFilter ? (
+      {/* Main Product Gallery */}
+      <div className="mx-auto max-w-7xl px-3.5 pb-14 pt-5 sm:px-6 sm:pt-7">
+        {filtered.length === 0 ? (
+          <div className="rounded-3xl border border-webzy-ink/[0.08] bg-white p-8 text-center shadow-2xs">
+            <p className="font-heading text-base font-bold text-webzy-ink sm:text-lg">
+              {site.common.noThemesMatch}
+            </p>
+            <p className="mt-1 text-xs text-webzy-ink/60">
+              Try clearing your filters or explore our full collection.
+            </p>
             <button
               type="button"
               onClick={resetFilters}
-              className="inline-flex h-8 shrink-0 items-center whitespace-nowrap rounded-full px-2.5 text-[11px] font-bold text-webzy-primary hover:bg-webzy-surface sm:hidden"
+              className="mt-4 inline-flex h-10 items-center rounded-full bg-webzy-primary px-6 text-xs font-bold text-white shadow-btn-primary"
             >
-              Reset
+              {site.common.resetFilters}
             </button>
-          ) : null}
-        </div>
-      </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
+            {filtered.map((theme, idx) => (
+              <ThemeCard key={theme.id} theme={theme} priority={idx < 4} />
+            ))}
+          </div>
+        )}
 
-      {/* Product Grid — Immediately Visible Above the Fold on Mobile & Desktop */}
-      {filtered.length === 0 ? (
-        <div className="mt-6 rounded-2xl border border-webzy-tint bg-webzy-surface/60 p-7 text-center">
-          <p className="font-heading text-base font-bold text-webzy-ink sm:text-lg">
-            {site.common.noThemesMatch}
-          </p>
-          <button
-            type="button"
-            onClick={resetFilters}
-            className="mt-3 inline-flex h-10 items-center rounded-full bg-webzy-primary px-5 text-xs font-bold text-white"
-          >
-            {site.common.resetFilters}
-          </button>
-        </div>
-      ) : (
-        <div className="mt-4 grid grid-cols-2 gap-2.5 sm:mt-5 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-5">
-          {filtered.map((theme) => (
-            <ThemeCard key={theme.id} theme={theme} />
-          ))}
-        </div>
-      )}
+        {/* Dual Storefront Pathways: Weddings Gallery + Custom Made Atelier */}
+        <div className="mt-10 grid grid-cols-1 gap-3.5 sm:mt-12 md:grid-cols-2 md:gap-5">
+          <div className="flex flex-col justify-between gap-4 rounded-3xl border border-[#C9A243]/40 bg-[#FBF7EE] p-5 sm:flex-row sm:items-center sm:p-6">
+            <div className="min-w-0">
+              <p className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#8C6B22]">
+                WEDDING COLLECTION
+              </p>
+              <p className="mt-1 font-heading text-base font-bold text-[#1F1419] sm:text-lg">
+                Planning a Wedding?
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-[#4A383E]">
+                Explore 6 royal wedding invitation suites with opening palace gates, multi-day itineraries &amp; guest RSVPs.
+              </p>
+            </div>
+            <Link
+              href="/weddings"
+              className="btn-spring inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-[#1A1317] px-5 text-xs font-bold text-[#F5E0A3] shadow-2xs transition hover:bg-[#2B1F26]"
+            >
+              Explore Weddings →
+            </Link>
+          </div>
 
-      {/* Slim Wedding Gallery Footer Strip (Below the grid so occasions stay front and center) */}
-      <div className="mt-7 flex flex-col justify-between gap-2.5 rounded-2xl border border-[#C9A243]/40 bg-[#FBF7EE] px-4 py-3 sm:mt-9 sm:flex-row sm:items-center sm:px-5">
-        <div className="min-w-0">
-          <p className="font-heading text-sm font-bold text-[#1F1419]">
-            Planning a Wedding?
-          </p>
-          <p className="text-[11.5px] text-[#4A383E] sm:text-xs">
-            Explore 6 royal wedding invitation suites &amp; bespoke wedding builds in the Wedding Gallery.
-          </p>
+          <div className="flex flex-col justify-between gap-4 rounded-3xl border border-webzy-ink/10 bg-[#1B1714] p-5 text-white sm:flex-row sm:items-center sm:p-6">
+            <div className="min-w-0">
+              <p className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#E4C285]">
+                BESPOKE STUDIO
+              </p>
+              <p className="mt-1 font-heading text-base font-bold text-white sm:text-lg">
+                Need a custom-built website?
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-white/75">
+                Designed one-on-one for cafés, travel brands, boutiques, clinics, and studios — preview before you pay.
+              </p>
+            </div>
+            <Link
+              href="/studio"
+              className="btn-spring inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-white px-5 text-xs font-bold text-[#1B1714] transition hover:bg-[#F5EFE6]"
+            >
+              Visit Custom Atelier →
+            </Link>
+          </div>
         </div>
-        <Link
-          href="/weddings"
-          className="btn-spring inline-flex h-9 shrink-0 items-center justify-center rounded-full bg-[#1A1317] px-4 text-xs font-bold text-[#F5E0A3] shadow-2xs transition hover:bg-[#2B1F26]"
-        >
-          Explore Weddings →
-        </Link>
       </div>
     </div>
   );

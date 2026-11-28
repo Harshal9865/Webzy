@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { CoreLanguageCode } from '@webzy/core';
 import { BIRTHDAY_THEMES_COPY, type BirthdayThemeVariant } from './birthdayTypes';
 
@@ -88,12 +89,12 @@ export function BirthdayPhotoLightbox({
     return () => window.removeEventListener('keydown', handleKey);
   }, [activeIdx, count, onChangeIdx]);
 
-  if (activeIdx === null || count === 0 || !photos[activeIdx]) return null;
+  if (activeIdx === null || count === 0 || !photos[activeIdx] || typeof document === 'undefined') return null;
 
   const activeSrc = photos[activeIdx];
   const isFailed = Boolean(failedUrls[activeSrc]);
 
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
@@ -165,6 +166,7 @@ export function BirthdayPhotoLightbox({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

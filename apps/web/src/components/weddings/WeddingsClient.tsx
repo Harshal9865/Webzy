@@ -497,9 +497,7 @@ export function WeddingsClient({
                   ₹1,999+
                 </span>
                 <span className="block text-[10px] text-[#6B574C]">
-                  {effectiveAcceptingOrders
-                    ? `${weddingCapacity.remainingSlots}/${weddingCapacity.limit} slots`
-                    : 'Batch full'}
+                  {effectiveAcceptingOrders ? 'Hand-built' : 'Booked'}
                 </span>
               </a>
 
@@ -1043,9 +1041,8 @@ export function WeddingsClient({
                 {/* Left: Editorial Overview & 3 Compact Steps */}
                 <div className="flex flex-col justify-between lg:col-span-5">
                   <div>
-                    <span className="inline-flex items-center gap-2 rounded-full border border-[#72C8A2]/40 bg-[#154230] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#ECFAF3] font-tabular">
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#72C8A2]" aria-hidden="true" />
-                      {weddingCapacity.remainingSlots} of {weddingCapacity.limit} bespoke slots open
+                    <span className="inline-flex items-center rounded-full border border-[#C9A243]/45 bg-[#FAF4E8] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[#7A5915]">
+                      Bespoke Wedding Atelier
                     </span>
 
                     <h2 className="mt-3.5 font-royal-serif text-2xl font-semibold leading-[1.1] text-[#1F1419] sm:text-3xl">
@@ -1304,10 +1301,10 @@ export function WeddingsClient({
             ) : (
               /* Capacity-Full / Paused State */
               <div className="mx-auto max-w-2xl py-4 text-center">
-                <span className="inline-flex items-center gap-2 rounded-full border border-[#C9A243]/55 bg-[#FAF3E2] px-4 py-1 text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#6A4E16] font-tabular">
+                <span className="inline-flex items-center gap-2 rounded-full border border-[#C9A243]/55 bg-[#FAF3E2] px-4 py-1 text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#6A4E16]">
                   {weddingCapacity.paused
                     ? 'Commissions Paused Temporarily'
-                    : `${weddingCapacity.activeCount}/${weddingCapacity.limit} Active Slots Filled`}
+                    : 'Currently Fully Booked'}
                 </span>
 
                 <h2 className="mt-3.5 font-royal-serif text-2xl font-semibold text-[#1F1419] sm:text-4xl">

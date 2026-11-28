@@ -399,7 +399,7 @@ const WORLD_COPY: Record<
     exploreWork: 'Launch Experience',
     askPlaceholder: 'Ask anything about 3D builds, motion, or booking...',
     askSend: 'Ask',
-    availableForWork: 'Available for work',
+    availableForWork: 'Studio Edition',
   },
   hinglish: {
     artModeLabel: 'ART MODE',
@@ -415,7 +415,7 @@ const WORLD_COPY: Record<
     exploreWork: 'Experience Dekhein',
     askPlaceholder: '3D builds, motion ya booking ke baare mein poochein...',
     askSend: 'Poochein',
-    availableForWork: 'Naye projects ke liye open',
+    availableForWork: 'Studio Edition',
   },
   hi: {
     artModeLabel: 'आर्ट मोड',
@@ -431,7 +431,7 @@ const WORLD_COPY: Record<
     exploreWork: 'एक्सपीरियंस देखें',
     askPlaceholder: '3D डिज़ाइन, मोशन या बुकिंग के बारे में पूछें...',
     askSend: 'पूछें',
-    availableForWork: 'नए प्रोजेक्ट्स के लिए उपलब्ध',
+    availableForWork: 'स्टूडियो संस्करण',
   },
 };
 
@@ -477,9 +477,9 @@ const DEFAULT_CASE_STUDIES: readonly CaseStudyItem[] = [
     subtitle: 'Sculptural Brand & Interactive Gallery',
     category: '3D Direction',
     year: '2026',
-    image: '/templates/creative/crimson-statue.jpg',
+    image: '/templates/occasions/our-year/cover.jpg',
     summary:
-      'High-contrast obsidian flagship pairing classical sculpture lighting with fluid spatial navigation and precision typography.',
+      'High-contrast obsidian flagship pairing prismatic crystal lighting with fluid spatial navigation and precision typography.',
     metricValue: '+148%',
     metricLabel: 'Session Depth',
     deliverables: ['3D Art Direction', 'Custom Shaders', 'Interactive Folio'],
@@ -492,9 +492,9 @@ const DEFAULT_CASE_STUDIES: readonly CaseStudyItem[] = [
     subtitle: 'Atmospheric Digital Reality Platform',
     category: 'Brand World',
     year: '2026',
-    image: '/templates/creative/meadow-twilight.jpg',
+    image: '/templates/studio/craft-fluted.jpg',
     summary:
-      'Editorial storytelling environment blending golden-hour horizons, gentle parallax telemetry, and calm conversion choreography.',
+      'Editorial storytelling environment blending architectural lighting, gentle parallax telemetry, and calm conversion choreography.',
     metricValue: '0.8s',
     metricLabel: 'First Paint',
     deliverables: ['Visual Worldbuilding', 'Motion System', 'Next.js Build'],
@@ -503,11 +503,11 @@ const DEFAULT_CASE_STUDIES: readonly CaseStudyItem[] = [
   {
     id: 'bridge-valley',
     index: '03',
-    title: 'Bridge Valley AI',
-    subtitle: 'Spatial Automation & Decision Engine',
+    title: 'Sunlit Horizon Lab',
+    subtitle: 'Spatial Motion & Brand Identity System',
     category: 'Product Launch',
     year: '2025',
-    image: '/templates/creative/bridge-valley.jpg',
+    image: '/templates/creative/creatie-hills.jpg',
     summary:
       'Sunlit alpine product launch bridging complex AI workflow orchestration with crystal-clear interactive demos.',
     metricValue: '4.6x',
@@ -1515,24 +1515,64 @@ function ParticleRocketCanvas({
       ctx.globalCompositeOperation = 'source-over';
     };
 
-    if (reducedMotion) {
-      drawFrame(0);
-    } else {
-      let lastTs = performance.now();
+    let isVisible = true;
+    let isTabVisible = typeof document === 'undefined' ? true : !document.hidden;
+    let lastTs = performance.now();
+
+    const startLoop = () => {
+      if (reducedMotion || rafId !== null || !isVisible || !isTabVisible) return;
+      lastTs = performance.now();
       const loop = (now: number) => {
+        if (!isVisible || !isTabVisible) {
+          rafId = null;
+          return;
+        }
         const dt = Math.min(0.05, Math.max(0.008, (now - lastTs) / 1000));
         lastTs = now;
         drawFrame(dt);
         rafId = window.requestAnimationFrame(loop);
       };
       rafId = window.requestAnimationFrame(loop);
+    };
+
+    const stopLoop = () => {
+      if (rafId !== null) {
+        window.cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+    };
+
+    if (reducedMotion) {
+      drawFrame(0);
+    } else {
+      startLoop();
     }
+
+    let io: IntersectionObserver | null = null;
+    if (typeof IntersectionObserver === 'function') {
+      io = new IntersectionObserver(
+        (entries) => {
+          isVisible = entries.some((entry) => entry.isIntersecting);
+          if (isVisible) startLoop();
+          else stopLoop();
+        },
+        { rootMargin: '120px 0px' },
+      );
+      io.observe(container);
+    }
+
+    const handleVisibility = () => {
+      isTabVisible = !document.hidden;
+      if (isTabVisible) startLoop();
+      else stopLoop();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
 
     let ro: ResizeObserver | null = null;
     if (typeof ResizeObserver === 'function') {
       ro = new ResizeObserver(() => {
         resize();
-        if (reducedMotion) drawFrame(0);
+        if (reducedMotion || !isVisible) drawFrame(0);
       });
       ro.observe(container);
     } else {
@@ -1540,7 +1580,9 @@ function ParticleRocketCanvas({
     }
 
     return () => {
-      if (rafId !== null) window.cancelAnimationFrame(rafId);
+      stopLoop();
+      if (io) io.disconnect();
+      document.removeEventListener('visibilitychange', handleVisibility);
       if (ro) ro.disconnect();
       else window.removeEventListener('resize', resize);
     };
@@ -2241,13 +2283,13 @@ function VoxelQuestWorld({
 
             <div className="relative overflow-hidden rounded-xl border-2 border-[#2B231E] bg-[#A7D8FF]">
               <div className="aspect-[16/11] w-full overflow-hidden">
-                {!voxelHeroFailed ? (
+                {userPhoto && !voxelHeroFailed ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
                   <img
-                    src="/templates/creative/blockfolio.jpg"
+                    src={userPhoto}
                     alt="Sunlit voxel world showcase"
                     onError={() => setVoxelHeroFailed(true)}
-                    className="h-full w-full object-cover object-top"
+                    className="h-full w-full object-cover object-center"
                   />
                 ) : (
                   <BiomeVoxelArtSvg id="meadow-windmill" />
@@ -2681,7 +2723,7 @@ function ScrapbookCreatieWorld({
     data.photos && data.photos.length > 0 && typeof data.photos[0] === 'string'
       ? data.photos[0].trim()
       : '';
-  const polaroidSrc = !polaroidFailed && userPhoto ? userPhoto : '/templates/creative/scrapbook-ugc.jpg';
+  const polaroidSrc = !polaroidFailed && userPhoto ? userPhoto : '/templates/occasions/our-timeline/cover.jpg';
 
   const activeBadge =
     CREATIE_BADGES.find((b) => b.id === activeBadgeId) ?? CREATIE_BADGES[0];
@@ -2733,12 +2775,9 @@ function ScrapbookCreatieWorld({
                 {identity.initials}
               </span>
               <div className="min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-[#4ADE80] shadow-[0_0_8px_#4ADE80]" />
-                  <span className="text-[10px] font-semibold text-white/90">
-                    {copy.availableForWork}
-                  </span>
-                </div>
+                <p className="font-mono text-[9.5px] font-bold uppercase tracking-[0.16em] text-white/85">
+                  {copy.availableForWork}
+                </p>
                 <p className="truncate font-sans text-[11px] font-extrabold uppercase tracking-wide text-white">
                   {identity.displayName}
                 </p>

@@ -268,8 +268,8 @@ export function PricingClient({ catalogPricing, capacity }: PricingClientProps) 
         blurb:
           'A website built around you: coaching institutes, clinics, shops and bespoke weddings. It starts with a 15-minute call, then we build.',
         meta: capacity.studio.acceptingOrders
-          ? `${capacity.studio.remainingSlots} of ${capacity.studio.limit} slots open`
-          : 'Current batch full',
+          ? 'One-on-one hand-built'
+          : 'Currently fully booked',
         delivery: '15-minute call, then hand-built',
         bestFor: 'Businesses and one-of-a-kind sites',
       },

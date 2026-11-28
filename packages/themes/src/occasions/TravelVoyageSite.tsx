@@ -74,7 +74,7 @@ const HERO_SLICES: readonly HeroSliceItem[] = [
     coordinates: '40.76° N · 14.01° E',
     season: 'May — Sep',
     tagline: 'Pastel fishermen facades, quiet cobblestone alleys & slow harbor light',
-    src: '/templates/travel/italy-procida.jpg',
+    src: '/templates/cafe/rose-cottage.jpg',
     fallbackGradient: 'linear-gradient(180deg, #4F88B6 0%, #E7C389 55%, #1D4B5D 100%)',
     atlasId: 'procida',
   },
@@ -108,12 +108,12 @@ const HERO_SLICES: readonly HeroSliceItem[] = [
     id: 'slice-rome',
     voyageLetter: 'E',
     cityLetter: 'R',
-    city: 'Rome',
-    region: 'Lazio, Italy',
-    coordinates: '41.89° N · 12.49° E',
+    city: 'Twilight Skyline',
+    region: 'Evening Passage',
+    coordinates: '40.74° N · 73.98° W',
     season: 'Apr — Oct',
-    tagline: 'Warm travertine colonnades illuminated under cobalt Mediterranean skies',
-    src: '/templates/travel/rome-colosseum.jpg',
+    tagline: 'Amber apartment windows glowing across city rooftops under twilight clouds',
+    src: '/templates/occasions/upgrades/city-window-dusk.jpg',
     fallbackGradient: 'linear-gradient(180deg, #162442 0%, #C89328 55%, #1E1714 100%)',
     atlasId: 'procida',
   },
@@ -250,7 +250,7 @@ const ATLAS_DESTINATIONS: readonly AtlasDestination[] = [
     displayWord: 'ITALY',
     regionLabel: 'BAY OF NAPLES · ISLAND ESCAPES',
     coordinates: '40.7610° N · 14.0189° E',
-    backdropSrc: '/templates/travel/italy-procida.jpg',
+    backdropSrc: '/templates/cafe/rose-cottage.jpg',
     originCode: 'DEL',
     originCity: 'New Delhi',
     destCode: 'NAP',
@@ -423,7 +423,7 @@ const WINDOW_PORTALS: readonly WindowPortalOption[] = [
     id: 'ocean-arch',
     label: 'Lost in Wonder · Ocean Arch',
     shortLabel: 'Ocean Arch',
-    src: '/templates/travel/ocean-arch.jpg',
+    src: '/templates/occasions/upgrades/stained-glass-gate.jpg',
     telemetryLeft: 'COASTAL TUNNEL · CLEAR SKY',
     telemetryRight: 'CALM TIDE · 22° C',
     poeticLine: 'A quiet concrete frame opening directly onto towering cumulus clouds and open sea.',
@@ -487,12 +487,12 @@ const POSTAGE_STAMPS: readonly PostageStampItem[] = [
     denomination: '1.25 EUR',
     year: '2026',
     coordinates: '40.76° N · 14.01° E',
-    src: '/templates/travel/italia-stamp.jpg',
+    src: '/templates/cafe/rose-cottage.jpg',
     bgTint: '#E8E3D5',
     stampInk: '#284A73',
-    memoryTitle: 'Monti & Pastel Harbor',
+    memoryTitle: 'Sunlit Rose Courtyard',
     memoryNote:
-      'Morning espresso beside fishing boats painted lemon-yellow and coral. Nobody hurries here; even the afternoon ferry sounds gentle.',
+      'Morning espresso beside whitewashed stone walls draped in crimson climbing roses. Nobody hurries here; even the afternoon ferry sounds gentle.',
     postmarkCode: 'NAP · 80079',
     tiltClass: '-rotate-1',
   },
@@ -530,12 +530,12 @@ const POSTAGE_STAMPS: readonly PostageStampItem[] = [
   },
   {
     id: 'stamp-rome',
-    country: 'ROMA',
-    city: 'COLOSSEUM',
-    denomination: '1.40 EUR',
+    country: 'SKYLINE',
+    city: 'MIDTOWN DUSK',
+    denomination: '1.40 USD',
     year: '2026',
-    coordinates: '41.89° N · 12.49° E',
-    src: '/templates/travel/rome-colosseum.jpg',
+    coordinates: '40.74° N · 73.98° W',
+    src: '/templates/occasions/upgrades/city-window-dusk.jpg',
     bgTint: '#EFE2C5',
     stampInk: '#3A281A',
     memoryTitle: 'Amber Arches After Midnight',
@@ -1202,31 +1202,32 @@ export function TravelVoyageSite({
                         }}
                       />
 
-                      {/* Top Index & Season Pill */}
-                      <div className="relative z-10 flex items-center justify-between gap-1.5 p-2 sm:p-4">
-                        <span className="font-mono text-[8.5px] font-bold tracking-[0.16em] text-white/80 sm:text-[9.5px] sm:tracking-[0.2em]">
-                          0{idx + 1}
-                        </span>
+                      {/* Top Index, Monogram & Season Pill (kept neatly at top so center title never collides) */}
+                      <div className="relative z-10 flex items-center justify-between gap-1.5 p-2.5 sm:p-4">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono text-[8.5px] font-bold tracking-[0.16em] text-white/80 sm:text-[9.5px] sm:tracking-[0.2em]">
+                            0{idx + 1}
+                          </span>
+                          <span
+                            className={`font-editorial text-xs tracking-[0.12em] transition-opacity duration-300 sm:text-sm ${
+                              isExpanded ? 'text-[#F5D492] opacity-100' : 'text-white/75 opacity-80'
+                            }`}
+                          >
+                            {slice.voyageLetter}
+                          </span>
+                        </div>
                         {isExpanded ? (
-                          <span className="hidden rounded-full border border-white/25 bg-black/35 px-2.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.16em] text-[#F5D492] backdrop-blur-xs sm:inline-block">
+                          <span className="hidden rounded-full border border-white/25 bg-black/40 px-2.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.16em] text-[#F5D492] backdrop-blur-xs sm:inline-block">
                             {slice.season}
                           </span>
                         ) : null}
                       </div>
 
-                      {/* Centered Tracked Column Letter ("V O Y A G E" -> Destination Monogram on active) */}
-                      <div className="pointer-events-none relative z-10 flex items-center justify-center px-1">
-                        <span
-                          className={`wz-tv-slice-letter font-editorial font-normal leading-none tracking-[0.08em] text-white drop-shadow-[0_6px_20px_rgba(0,0,0,0.55)] transition-all duration-500 ${
-                            isExpanded ? 'opacity-25 scale-110' : 'opacity-95'
-                          }`}
-                        >
-                          {isExpanded ? slice.cityLetter : slice.voyageLetter}
-                        </span>
-                      </div>
+                      {/* Open middle breathing zone reserved cleanly for the centered editorial title */}
+                      <div className="pointer-events-none flex-1" aria-hidden="true" />
 
                       {/* Bottom Metadata Revealed on Active Slice */}
-                      <div className="relative z-10 p-2 sm:p-4">
+                      <div className="relative z-10 p-2.5 sm:p-4">
                         {isExpanded ? (
                           <div className="max-w-xs space-y-0.5 animate-fade-in sm:space-y-1">
                             <p className="truncate font-mono text-[8.5px] font-semibold uppercase tracking-[0.14em] text-[#F5D492] sm:text-[9.5px] sm:tracking-[0.18em]">
@@ -1243,7 +1244,7 @@ export function TravelVoyageSite({
                             </p>
                           </div>
                         ) : (
-                          <p className="truncate text-center font-mono text-[8px] uppercase tracking-[0.12em] text-white/70 sm:text-[9px] sm:tracking-[0.18em]">
+                          <p className="truncate text-center font-mono text-[8px] uppercase tracking-[0.12em] text-white/75 sm:text-[9px] sm:tracking-[0.18em]">
                             {slice.city.slice(0, 3)}
                           </p>
                         )}
@@ -1253,27 +1254,29 @@ export function TravelVoyageSite({
                 })}
               </div>
 
-              {/* CENTERED FLOATING EDITORIAL TITLE OVERLAY */}
-              <div className="pointer-events-none absolute inset-x-3 top-[29%] z-20 -translate-y-1/2 text-center sm:inset-x-4 sm:top-[40%]">
-                <p className="truncate font-mono text-[8.5px] font-semibold uppercase tracking-[0.22em] text-[#F6D393] drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] sm:text-[10.5px] sm:tracking-[0.34em]">
-                  {activeSlice.coordinates} · {activeSlice.city.toUpperCase()}
-                </p>
-                <h1
-                  className="mx-auto mt-1 max-w-3xl font-editorial font-normal uppercase tracking-[0.1em] text-white drop-shadow-[0_10px_32px_rgba(0,0,0,0.72)] sm:mt-1.5 sm:tracking-[0.14em]"
-                  style={{
-                    fontSize: 'clamp(1.35rem, 5.6cqw, 4.4rem)',
-                    lineHeight: 1.04,
-                    ...langSafe,
-                  }}
-                >
-                  {brandTitle}
-                </h1>
-                <p
-                  className="mx-auto mt-1.5 line-clamp-2 max-w-lg font-literary text-[11px] italic text-white/90 drop-shadow-[0_2px_14px_rgba(0,0,0,0.85)] sm:mt-2 sm:line-clamp-none sm:text-base"
-                  style={langSafe}
-                >
-                  {heroHeadline}
-                </p>
+              {/* CENTERED FLOATING EDITORIAL TITLE OVERLAY (Clean legibility band, zero collision with slice letters) */}
+              <div className="pointer-events-none absolute inset-x-4 top-[42%] z-20 -translate-y-1/2 text-center sm:inset-x-6 sm:top-[44%]">
+                <div className="mx-auto inline-block max-w-3xl rounded-2xl bg-[#0B111C]/40 px-4 py-3 backdrop-blur-[3px] sm:px-7 sm:py-4">
+                  <p className="truncate font-mono text-[8.5px] font-semibold uppercase tracking-[0.22em] text-[#F6D393] drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] sm:text-[10.5px] sm:tracking-[0.34em]">
+                    {activeSlice.coordinates} · {activeSlice.city.toUpperCase()}
+                  </p>
+                  <h1
+                    className="mx-auto mt-1 font-editorial font-normal uppercase tracking-[0.1em] text-white drop-shadow-[0_10px_32px_rgba(0,0,0,0.72)] sm:mt-1.5 sm:tracking-[0.14em]"
+                    style={{
+                      fontSize: 'clamp(1.3rem, 5.2cqw, 4rem)',
+                      lineHeight: 1.06,
+                      ...langSafe,
+                    }}
+                  >
+                    {brandTitle}
+                  </h1>
+                  <p
+                    className="mx-auto mt-1.5 line-clamp-2 max-w-lg font-literary text-[11px] italic text-white/95 drop-shadow-[0_2px_14px_rgba(0,0,0,0.85)] sm:mt-2 sm:line-clamp-none sm:text-base"
+                    style={langSafe}
+                  >
+                    {heroHeadline}
+                  </p>
+                </div>
               </div>
             </div>
 

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import React from 'react';
+import React, { cache } from 'react';
 import {
   getWeddingMockByTemplateId,
   isWeddingTemplateId,
@@ -58,7 +58,9 @@ function resolveWeddingBySlug(slug: string): WeddingInvitation {
   return { ...MOCK_EMERALD_WEDDING, slug };
 }
 
-async function resolveLiveOrDemoWeddingBySlug(slug: string): Promise<WeddingInvitation> {
+const resolveLiveOrDemoWeddingBySlug = cache(async function resolveLiveOrDemoWeddingBySlugImpl(
+  slug: string,
+): Promise<WeddingInvitation> {
   const normalized = slug.toLowerCase();
   if (
     !(normalized in WEDDING_MOCKS_BY_SLUG) &&
@@ -102,7 +104,7 @@ async function resolveLiveOrDemoWeddingBySlug(slug: string): Promise<WeddingInvi
     }
   }
   return resolveWeddingBySlug(slug);
-}
+});
 
 export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
   const { slug } = await params;

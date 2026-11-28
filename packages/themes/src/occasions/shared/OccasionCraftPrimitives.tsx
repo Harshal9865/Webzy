@@ -31,14 +31,23 @@ export function AtmosphericGrainOverlay({
   );
 }
 
+let sharedCraftAudioCtx: AudioContext | null = null;
+
 function getAudioContext(): AudioContext | null {
   if (typeof window === 'undefined') return null;
+  if (sharedCraftAudioCtx && sharedCraftAudioCtx.state !== 'closed') {
+    if (sharedCraftAudioCtx.state === 'suspended') {
+      void sharedCraftAudioCtx.resume().catch(() => {});
+    }
+    return sharedCraftAudioCtx;
+  }
   const AudioCtx =
     window.AudioContext ||
     (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
   if (!AudioCtx) return null;
   try {
-    return new AudioCtx();
+    sharedCraftAudioCtx = new AudioCtx();
+    return sharedCraftAudioCtx;
   } catch {
     return null;
   }
@@ -74,9 +83,6 @@ export function playLanternPullChime() {
     [523.25, 659.25, 783.99, 1046.5].forEach((freq, idx) => {
       scheduleTone(ctx, freq, idx * 0.075, 0.55, 0.045, idx % 2 === 0 ? 'triangle' : 'sine');
     });
-    window.setTimeout(() => {
-      void ctx.close().catch(() => {});
-    }, 950);
   } catch {
     // Silent fallback when Web Audio is restricted
   }
@@ -114,10 +120,6 @@ export function playCandleBlowSfx(allOut: boolean) {
     } else {
       scheduleTone(ctx, 587.33, 0.05, 0.25, 0.032, 'sine');
     }
-
-    window.setTimeout(() => {
-      void ctx.close().catch(() => {});
-    }, 1200);
   } catch {
     // Silent fallback
   }
@@ -132,9 +134,6 @@ export function playRaindropPluck(step = 0) {
     const primary = scale[Math.abs(step) % scale.length];
     scheduleTone(ctx, primary, 0, 0.42, 0.038, 'sine');
     scheduleTone(ctx, primary * 1.5, 0.07, 0.36, 0.022, 'triangle');
-    window.setTimeout(() => {
-      void ctx.close().catch(() => {});
-    }, 650);
   } catch {
     // Silent fallback
   }
@@ -149,9 +148,6 @@ export function playPaperUnsealSfx(step = 0) {
     const base = scale[Math.abs(step) % scale.length];
     scheduleTone(ctx, base, 0, 0.18, 0.038, 'triangle');
     scheduleTone(ctx, base * 1.25, 0.055, 0.32, 0.035, 'sine');
-    window.setTimeout(() => {
-      void ctx.close().catch(() => {});
-    }, 550);
   } catch {
     // Silent fallback
   }

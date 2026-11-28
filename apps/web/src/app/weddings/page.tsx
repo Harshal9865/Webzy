@@ -10,7 +10,7 @@ import { createSupabaseAdminClient } from '../../../../../infra/supabase/server'
 import { WeddingsClient } from '../../components/weddings/WeddingsClient';
 import { ensureWeddingArtSynced } from '../../lib/syncWeddingArt';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: 'Webzy Weddings — Heirloom Digital Invitations & Interactive Shaadi Websites',
