@@ -4,6 +4,7 @@ import { toCoreLanguageCode } from './i18n';
 export type AiDraftTone = 'cute' | 'emotional' | 'funny' | 'formal';
 export type OccasionBucket =
   | 'wedding'
+  | 'travel'
   | 'birthday'
   | 'love'
   | 'anniversary'
@@ -36,6 +37,28 @@ const FALLBACK_MATRIX: Record<
       hinglish: (n) => `${n} ke mangalik parinay utsav par aapki garimamayi upasthiti ki hardik kamna hai.`,
       hi: (n) => `${n} के मांगलिक परिणय उत्सव पर आपकी गरिमामयी उपस्थिति की सादर कामना है।`,
       en: (n) => `We request the honour of your presence and blessings at the sacred wedding celebrations of ${n}.`,
+    },
+  },
+  travel: {
+    cute: {
+      hinglish: (n) => `${n} ke saath chhoti galiyan, garam chai aur naye sunset points — chalo ek yaadgaar safar shuru karein!`,
+      hi: (n) => `${n} के साथ नई गलियाँ, सुनहरी शामें और अनदेखे नज़ारे — चलिए एक यादगार सफ़र शुरू करें!`,
+      en: (n) => `Slow mornings, hidden alleys, and golden horizons — explore handcrafted journeys with ${n}.`,
+    },
+    emotional: {
+      hinglish: (n) => `${n} — har safar sirf ek manzil nahi, balki dil mein bas jaane wali ek kahani hai.`,
+      hi: (n) => `${n} — हर यात्रा केवल एक मंज़िल नहीं, बल्कि जीवन भर साथ रहने वाली एक सुंदर स्मृति है।`,
+      en: (n) => `${n} crafts slow-travel journeys shaped for stillness, heritage, and moments that linger long after you return.`,
+    },
+    funny: {
+      hinglish: (n) => `${n}: bag pack karo, out-of-office lagao — baaki itinerary aur best window seats hum par chhod do!`,
+      hi: (n) => `${n} — बस बैग पैक कीजिए, बाकी पूरा रूट और सबसे सुंदर विंडो सीट हमारे ज़िम्मे!`,
+      en: (n) => `Pack light and turn on out-of-office — ${n} already mapped the best window seats, cafés, and hidden gems.`,
+    },
+    formal: {
+      hinglish: (n) => `${n} — bespoke multi-city itineraries, boutique stays aur curated travel concierge services.`,
+      hi: (n) => `${n} — व्यक्तिगत यात्रा योजनाएँ, बुटीक स्टे और विश्वसनीय ट्रैवल कॉन्सिएर्ज सेवाएँ।`,
+      en: (n) => `${n} curates bespoke itineraries, boutique stays, and private guided journeys tailored around your dates.`,
     },
   },
   birthday: {
