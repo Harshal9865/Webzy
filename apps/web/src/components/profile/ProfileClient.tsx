@@ -12,9 +12,41 @@ import { useAuth } from '../auth/AuthProvider';
 import { useLanguage } from '../shell/LanguageProvider';
 import { compressImageForMobileUpload } from '../../lib/compressImage';
 
+export interface ProfileSavedDraftItem {
+  id: string;
+  draftToken: string;
+  themeId: string;
+  receiverName: string | null;
+  updatedAt: string;
+  expiresAt: string;
+}
+
+export interface ProfileCustomRequestItem {
+  id: string;
+  occasion: string;
+  budgetTier: string;
+  status: string;
+  targetDate: string | null;
+  quotedAmountInr: number | null;
+  createdAt: string;
+}
+
 interface ProfileClientProps {
   profile: UserProfileRecord;
   consentRecordsCount: number;
+  paidOrdersCount?: number;
+  liveSitesCount?: number;
+  savedDrafts?: ProfileSavedDraftItem[];
+  customRequests?: ProfileCustomRequestItem[];
+  initialAvatarUrl?: string | null;
+}
+
+function formatThemeLabel(themeId: string): string {
+  return themeId
+    .replace(/-\d+$/, '')
+    .split('-')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
 }
 
 function formatDateIst(isoString?: string | null): string {
@@ -48,7 +80,15 @@ function CheckIcon() {
   );
 }
 
-export function ProfileClient({ profile, consentRecordsCount }: ProfileClientProps) {
+export function ProfileClient({
+  profile,
+  consentRecordsCount,
+  paidOrdersCount = 0,
+  liveSitesCount = 0,
+  savedDrafts = [],
+  customRequests = [],
+  initialAvatarUrl = null,
+}: ProfileClientProps) {
   const router = useRouter();
   const { language, setLanguage } = useLanguage();
   const site = getSiteCopy(language);
@@ -63,7 +103,7 @@ export function ProfileClient({ profile, consentRecordsCount }: ProfileClientPro
   const noticeTimerRef = useRef<number | null>(null);
 
   // Profile Avatar Photo Upload State
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(initialAvatarUrl);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [removingAvatar, setRemovingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState<string | null>(null);
@@ -307,6 +347,46 @@ export function ProfileClient({ profile, consentRecordsCount }: ProfileClientPro
         </button>
       </div>
 
+      {/* Account Summary Metrics (2x2 on phones, 4-up on desktop) */}
+      <div className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
+        <Link
+          href="/orders"
+          className="rounded-2xl border border-webzy-tint bg-white p-3.5 shadow-2xs transition hover:border-webzy-primary/50"
+        >
+          <p className="text-[11px] font-semibold text-webzy-ink/60">Paid Orders</p>
+          <p className="mt-0.5 font-heading text-xl font-bold text-webzy-ink font-tabular">
+            {paidOrdersCount}
+          </p>
+        </Link>
+        <Link
+          href="/orders"
+          className="rounded-2xl border border-webzy-tint bg-white p-3.5 shadow-2xs transition hover:border-emerald-400"
+        >
+          <p className="text-[11px] font-semibold text-webzy-ink/60">Live Websites</p>
+          <p className="mt-0.5 font-heading text-xl font-bold text-emerald-700 font-tabular">
+            {liveSitesCount}
+          </p>
+        </Link>
+        <a
+          href="#saved-drafts"
+          className="rounded-2xl border border-webzy-tint bg-white p-3.5 shadow-2xs transition hover:border-webzy-primary/50"
+        >
+          <p className="text-[11px] font-semibold text-webzy-ink/60">Saved Drafts</p>
+          <p className="mt-0.5 font-heading text-xl font-bold text-webzy-ink font-tabular">
+            {savedDrafts.length}
+          </p>
+        </a>
+        <a
+          href="#studio-requests"
+          className="rounded-2xl border border-webzy-tint bg-white p-3.5 shadow-2xs transition hover:border-webzy-primary/50"
+        >
+          <p className="text-[11px] font-semibold text-webzy-ink/60">Studio Requests</p>
+          <p className="mt-0.5 font-heading text-xl font-bold text-webzy-ink font-tabular">
+            {customRequests.length}
+          </p>
+        </a>
+      </div>
+
       {/* Quick Navigation to Orders Banner */}
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-webzy-primary/20 bg-gradient-to-r from-webzy-surface via-white to-webzy-surface p-4 shadow-sm">
         <div className="flex items-center gap-3">
@@ -492,7 +572,7 @@ export function ProfileClient({ profile, consentRecordsCount }: ProfileClientPro
           </section>
 
           {/* Preferences Section */}
-          <section className="card-physical rounded-3xl p-6">
+          <section className="card-physical rounded-3xl p-5 sm:p-6">
             <h2 className="font-heading text-lg font-bold text-webzy-ink">
               {site.account.preferredLanguageTitle}
             </h2>
@@ -508,7 +588,7 @@ export function ProfileClient({ profile, consentRecordsCount }: ProfileClientPro
                   type="button"
                   aria-pressed={language === opt.code}
                   onClick={() => setLanguage(opt.code)}
-                  className={`btn-spring min-h-[46px] rounded-xl border px-3 py-2 text-left transition ${language === opt.code
+                  className={`btn-spring min-h-[44px] rounded-xl border px-3 py-2 text-left transition ${language === opt.code
                     ? 'border-webzy-primary bg-webzy-tint text-webzy-primary shadow-sm'
                     : 'border-webzy-tint bg-white text-webzy-ink hover:border-webzy-primary/40'
                     }`}
@@ -518,6 +598,126 @@ export function ProfileClient({ profile, consentRecordsCount }: ProfileClientPro
                 </button>
               ))}
             </div>
+          </section>
+
+          {/* Saved Unfinished Drafts Section */}
+          <section id="saved-drafts" className="card-physical rounded-3xl p-5 sm:p-6">
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <h2 className="font-heading text-lg font-bold text-webzy-ink">
+                  Saved Drafts
+                </h2>
+                <p className="mt-0.5 text-xs text-webzy-ink/65">
+                  Pick up where you left off before your draft expires.
+                </p>
+              </div>
+              <Link
+                href="/themes"
+                className="shrink-0 text-xs font-bold text-webzy-primary hover:underline"
+              >
+                + New Card
+              </Link>
+            </div>
+
+            {savedDrafts.length === 0 ? (
+              <div className="mt-4 rounded-2xl border border-dashed border-webzy-tint bg-webzy-surface/40 p-4 text-center text-xs text-webzy-ink/65">
+                No unfinished drafts right now. Start personalizing any theme in minutes.
+              </div>
+            ) : (
+              <div className="mt-4 space-y-2.5">
+                {savedDrafts.map((draft) => {
+                  const editHref = draft.themeId.startsWith('wedding-')
+                    ? `/weddings/${draft.themeId}/customize?draft=${encodeURIComponent(draft.draftToken)}`
+                    : `/create/${draft.themeId}?draft=${encodeURIComponent(draft.draftToken)}`;
+                  const checkoutHref = `/checkout?draft=${encodeURIComponent(draft.draftToken)}`;
+                  return (
+                    <div
+                      key={draft.id}
+                      className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-webzy-tint bg-white p-3"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-xs font-bold text-webzy-ink">
+                          {formatThemeLabel(draft.themeId)}
+                          {draft.receiverName ? ` · For ${draft.receiverName}` : ''}
+                        </p>
+                        <p suppressHydrationWarning className="text-[11px] text-webzy-ink/55">
+                          Saved {formatDateIst(draft.updatedAt)}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Link
+                          href={editHref}
+                          className="inline-flex h-8 items-center rounded-full border border-webzy-tint px-3 text-[11px] font-bold text-webzy-ink hover:border-webzy-primary/50"
+                        >
+                          Resume
+                        </Link>
+                        <Link
+                          href={checkoutHref}
+                          className="inline-flex h-8 items-center rounded-full bg-webzy-primary px-3 text-[11px] font-bold text-white hover:opacity-95"
+                        >
+                          Checkout →
+                        </Link>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
+          {/* Custom / Bespoke Studio Requests Tracker */}
+          <section id="studio-requests" className="card-physical rounded-3xl p-5 sm:p-6">
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <h2 className="font-heading text-lg font-bold text-webzy-ink">
+                  Custom Studio Requests
+                </h2>
+                <p className="mt-0.5 text-xs text-webzy-ink/65">
+                  Track your bespoke wedding &amp; custom-made website commissions.
+                </p>
+              </div>
+              <Link
+                href="/studio"
+                className="shrink-0 text-xs font-bold text-webzy-primary hover:underline"
+              >
+                Request Custom →
+              </Link>
+            </div>
+
+            {customRequests.length === 0 ? (
+              <div className="mt-4 rounded-2xl border border-dashed border-webzy-tint bg-webzy-surface/40 p-4 text-center text-xs text-webzy-ink/65">
+                No custom studio requests yet. Need a 1-of-1 bespoke build? Visit Custom Made.
+              </div>
+            ) : (
+              <div className="mt-4 space-y-2.5">
+                {customRequests.map((req) => (
+                  <div
+                    key={req.id}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-webzy-tint bg-white p-3"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold capitalize text-webzy-ink">
+                        {req.occasion} Commission · ₹{req.budgetTier}
+                      </p>
+                      <p suppressHydrationWarning className="text-[11px] text-webzy-ink/55">
+                        Submitted {formatDateIst(req.createdAt)}
+                        {req.targetDate ? ` · Event: ${req.targetDate}` : ''}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {req.quotedAmountInr ? (
+                        <span className="font-mono text-xs font-bold text-emerald-700">
+                          ₹{req.quotedAmountInr.toLocaleString('en-IN')}
+                        </span>
+                      ) : null}
+                      <span className="rounded-full bg-webzy-surface px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-webzy-primary">
+                        {req.status}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
         </div>
 
@@ -609,9 +809,40 @@ export function ProfileClient({ profile, consentRecordsCount }: ProfileClientPro
             </div>
           </section>
 
-          {/* Account Meta */}
-          <div className="rounded-2xl border border-webzy-tint/60 bg-webzy-surface/40 p-4 text-[11px] text-webzy-ink/60 space-y-1">
-            <p suppressHydrationWarning>Member since {formatDateIst(profile.created_at)}</p>
+          {/* Account Meta, Security & Quick Support */}
+          <div className="rounded-2xl border border-webzy-tint/70 bg-webzy-surface/40 p-4 text-xs text-webzy-ink/70 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-webzy-ink">Account Security</span>
+              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
+                Email OTP Verified
+              </span>
+            </div>
+            <p suppressHydrationWarning className="text-[11px]">
+              Member since {formatDateIst(profile.created_at)} · {consentRecordsCount}{' '}
+              {consentRecordsCount === 1 ? 'consent' : 'consents'} recorded
+            </p>
+            <div className="flex flex-wrap gap-2 pt-1">
+              <Link
+                href="/contact"
+                className="inline-flex h-8 items-center rounded-full border border-webzy-tint bg-white px-3 text-[11px] font-bold text-webzy-ink hover:border-webzy-primary/40"
+              >
+                Contact Support
+              </Link>
+              <Link
+                href="/refund"
+                className="inline-flex h-8 items-center rounded-full border border-webzy-tint bg-white px-3 text-[11px] font-bold text-webzy-ink hover:border-webzy-primary/40"
+              >
+                Refund Policy
+              </Link>
+              {profile.role === 'admin' ? (
+                <Link
+                  href="/admin"
+                  className="inline-flex h-8 items-center rounded-full bg-webzy-ink px-3 text-[11px] font-bold text-white hover:bg-webzy-ink/90"
+                >
+                  Admin Console →
+                </Link>
+              ) : null}
+            </div>
           </div>
         </div>
       </div>

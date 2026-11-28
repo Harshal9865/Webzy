@@ -74,14 +74,14 @@ export function LanguageSelectorButton({
         aria-label={`${copy.nav.language}: ${activeMeta.nativeLabel}`}
         className={
           variant === 'drawer'
-            ? 'flex min-h-[46px] w-full items-center justify-between gap-2 rounded-xl border border-webzy-ink/15 bg-webzy-surface/60 px-3.5 text-sm font-semibold text-webzy-ink transition hover:border-webzy-primary/50 hover:bg-white'
-            : 'btn-spring inline-flex h-11 sm:h-10 items-center gap-1.5 rounded-full border border-webzy-ink/15 bg-white px-2.5 sm:px-3.5 text-xs sm:text-[13px] font-semibold text-webzy-ink shadow-xs transition hover:border-webzy-primary/45 hover:bg-webzy-surface/60'
+            ? 'flex min-h-[44px] w-full items-center justify-between gap-2 rounded-xl border border-webzy-ink/15 bg-webzy-surface/60 px-3.5 text-sm font-semibold text-webzy-ink transition hover:border-webzy-primary/50 hover:bg-white'
+            : 'btn-spring inline-flex h-8 sm:h-9 items-center gap-1 sm:gap-1.5 rounded-full border border-webzy-ink/15 bg-white px-2 sm:px-3 text-[11px] sm:text-xs font-semibold text-webzy-ink shadow-2xs transition hover:border-webzy-primary/45 hover:bg-webzy-surface/60'
         }
       >
-        <span className="inline-flex items-center gap-1.5">
+        <span className="inline-flex items-center gap-1 sm:gap-1.5">
           {/* Clear Globe / Language Icon */}
           <svg
-            className="h-4 w-4 shrink-0 text-webzy-primary"
+            className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 text-webzy-primary"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -94,10 +94,19 @@ export function LanguageSelectorButton({
               d="M12 21a9 9 0 100-18 9 9 0 000 18zm0 0c2.2 0 4-4 4-9s-1.8-9-4-9-4 4-4 9 1.8 9 4 9zm-8.5-9h17"
             />
           </svg>
-          <span className="max-w-[84px] truncate sm:max-w-none">{activeMeta.nativeLabel}</span>
+          {variant === 'drawer' ? (
+            <span>{activeMeta.nativeLabel}</span>
+          ) : (
+            <>
+              <span className="font-mono text-[10.5px] font-bold uppercase sm:hidden">
+                {activeMeta.code === 'hinglish' ? 'HN' : activeMeta.code.slice(0, 2).toUpperCase()}
+              </span>
+              <span className="hidden sm:inline">{activeMeta.nativeLabel}</span>
+            </>
+          )}
         </span>
         <svg
-          className={`h-3.5 w-3.5 shrink-0 text-webzy-ink/60 transition-transform duration-200 ${
+          className={`h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0 text-webzy-ink/60 transition-transform duration-200 ${
             open ? 'rotate-180' : ''
           }`}
           fill="none"
@@ -118,7 +127,7 @@ export function LanguageSelectorButton({
           className={`z-50 overflow-hidden rounded-2xl border border-webzy-ink/12 bg-white p-2 shadow-xl ${
             variant === 'drawer'
               ? 'absolute bottom-full left-0 right-0 mb-2 max-h-[60vh] overflow-y-auto'
-              : 'fixed inset-x-3 top-[60px] z-50 sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-[340px]'
+              : 'fixed inset-x-3 top-[52px] z-50 sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-[340px]'
           }`}
         >
           <div className="border-b border-webzy-ink/[0.07] px-2.5 pb-2 pt-1">

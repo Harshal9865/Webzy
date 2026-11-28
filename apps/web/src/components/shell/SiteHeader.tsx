@@ -187,14 +187,14 @@ export function SiteHeader({ config: _config }: SiteHeaderProps) {
   return (
     <>
       <header className="sticky top-0 z-40 glass-nav shadow-[0_1px_3px_0_rgba(0,0,0,0.02)] transition-shadow duration-300">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-2.5 sm:px-6 sm:py-3">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-1.5 px-3 py-1.5 sm:gap-2 sm:px-6 sm:py-2">
           {/* Brand Logo (Left Anchored) */}
           <Link
             href="/"
-            className="group inline-flex min-h-[44px] items-center gap-2 font-heading text-xl sm:text-2xl font-bold tracking-tight text-webzy-ink transition-transform active:scale-[0.98]"
+            className="group inline-flex min-h-[36px] sm:min-h-[40px] items-center gap-1.5 sm:gap-2 font-heading text-lg sm:text-xl font-bold tracking-tight text-webzy-ink transition-transform active:scale-[0.98]"
           >
             <span
-              className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-webzy-primary text-sm sm:text-base font-bold text-white shadow-btn-primary transition-transform duration-200 group-hover:scale-105"
+              className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg sm:rounded-xl bg-webzy-primary text-xs sm:text-sm font-bold text-white shadow-btn-primary transition-transform duration-200 group-hover:scale-105"
               aria-hidden="true"
             >
               w
@@ -266,25 +266,25 @@ export function SiteHeader({ config: _config }: SiteHeaderProps) {
           </nav>
 
           {/* Right Side Controls & CTA */}
-          <div className="flex items-center gap-1 sm:gap-2">
+          <div className="flex items-center gap-1 sm:gap-1.5">
             {/* Simple Language Selector Button (Mobile + Desktop) */}
             <LanguageSelectorButton variant="header" />
 
             {/* Shopping Bag / Orders Button (Universal: Mobile + Desktop) */}
             <Link
               href="/orders"
-              className={`btn-spring relative flex h-11 w-11 lg:h-10 lg:w-10 items-center justify-center rounded-full border transition ${isOrdersActive
+              className={`btn-spring relative flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full border transition ${isOrdersActive
                 ? 'border-webzy-primary bg-webzy-tint text-webzy-primary shadow-sm ring-2 ring-webzy-primary/20'
-                : 'border-webzy-tint/90 bg-white/95 text-webzy-ink/80 hover:border-webzy-primary hover:text-webzy-ink shadow-sm'
+                : 'border-webzy-tint/90 bg-white/95 text-webzy-ink/80 hover:border-webzy-primary hover:text-webzy-ink shadow-2xs'
                 }`}
               title="My Orders & Live Celebrations"
               aria-label={`My Orders (${ordersCount} active)`}
             >
-              <svg className="h-[18px] w-[18px] sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.85}>
+              <svg className="h-4 w-4 sm:h-[18px] sm:w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.85}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
               {ordersCount > 0 ? (
-                <span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-webzy-primary px-1 text-[10px] font-extrabold text-white shadow-btn-primary animate-scale-in font-tabular">
+                <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-webzy-primary px-1 text-[9.5px] font-extrabold text-white shadow-btn-primary animate-scale-in font-tabular">
                   {ordersCount}
                 </span>
               ) : null}
@@ -302,7 +302,7 @@ export function SiteHeader({ config: _config }: SiteHeaderProps) {
                     aria-haspopup="menu"
                     aria-label={`Account menu for ${displayName}`}
                     title={`${displayName} (${user.email})`}
-                    className={`btn-spring relative flex h-11 w-11 lg:h-10 lg:w-10 items-center justify-center overflow-hidden rounded-full border text-xs font-bold tracking-tight transition ${isProfileActive || profileMenuOpen
+                    className={`btn-spring relative flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center overflow-hidden rounded-full border text-[11px] font-bold tracking-tight transition ${isProfileActive || profileMenuOpen
                       ? 'border-webzy-primary bg-webzy-primary text-white shadow-sm'
                       : 'border-webzy-ink/15 bg-webzy-ink text-white hover:opacity-90'
                       }`}
@@ -383,15 +383,15 @@ export function SiteHeader({ config: _config }: SiteHeaderProps) {
                       reason: 'Sign in to view your orders, saved drafts, and account settings.',
                     })
                   }
-                  className={`btn-spring relative flex h-11 w-11 lg:h-10 lg:w-10 items-center justify-center rounded-full border transition ${isProfileActive
+                  className={`btn-spring relative flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full border transition ${isProfileActive
                     ? 'border-webzy-primary bg-webzy-primary text-white shadow-sm ring-2 ring-webzy-primary/20'
-                    : 'border-webzy-tint/90 bg-white/95 text-webzy-ink/80 hover:border-webzy-primary hover:text-webzy-ink shadow-sm'
+                    : 'border-webzy-tint/90 bg-white/95 text-webzy-ink/80 hover:border-webzy-primary hover:text-webzy-ink shadow-2xs'
                     }`}
                   title="Sign in to Webzy"
                   aria-label="Sign in to your account"
                 >
                   <svg
-                    className="h-[18px] w-[18px] sm:h-5 sm:w-5"
+                    className="h-4 w-4 sm:h-[18px] sm:w-[18px]"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -410,7 +410,7 @@ export function SiteHeader({ config: _config }: SiteHeaderProps) {
             {/* Primary Action Button (Desktop & Tablet only - on mobile, replaced by Profile & Orders icons) */}
             <Link
               href="/themes"
-              className="btn-spring hidden sm:inline-flex min-h-[44px] lg:min-h-[40px] items-center justify-center rounded-full bg-webzy-primary px-4 py-1 text-xs sm:text-sm font-bold text-white shadow-btn-primary hover:opacity-95 active:scale-95 transition-all whitespace-nowrap"
+              className="btn-spring hidden sm:inline-flex h-9 items-center justify-center rounded-full bg-webzy-primary px-3.5 text-xs font-bold text-white shadow-btn-primary hover:opacity-95 active:scale-95 transition-all whitespace-nowrap"
             >
               <span>{copy.nav.makeYours}</span>
             </Link>
@@ -426,10 +426,10 @@ export function SiteHeader({ config: _config }: SiteHeaderProps) {
               aria-expanded={menuOpen}
               aria-controls="mobile-nav-drawer"
               aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-webzy-ink/85 transition-colors hover:bg-webzy-ink/[0.05] hover:text-webzy-ink active:bg-webzy-ink/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-webzy-primary/35 lg:hidden"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-webzy-ink/85 transition-colors hover:bg-webzy-ink/[0.05] hover:text-webzy-ink active:bg-webzy-ink/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-webzy-primary/35 lg:hidden"
             >
               <svg
-                className="h-[22px] w-[22px]"
+                className="h-5 w-5"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
