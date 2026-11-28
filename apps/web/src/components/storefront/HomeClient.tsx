@@ -126,11 +126,14 @@ export function HomeClient({ themes }: HomeClientProps) {
   const copy = getStorefrontCopy(language);
   const site = getSiteCopy(language);
 
-  const heroCandidates = useMemo(() => {
-    const resolved = HERO_DEMO_IDS.map((entry) => {
+  const heroCandidates = useMemo<Array<{ theme: ThemeManifest; shortLabel: string }>>(() => {
+    const resolved: Array<{ theme: ThemeManifest; shortLabel: string }> = [];
+    for (const entry of HERO_DEMO_IDS) {
       const found = themes.find((t) => t.id === entry.id);
-      return found ? { theme: found, shortLabel: entry.shortLabel } : null;
-    }).filter((x): x is { theme: ThemeManifest; shortLabel: string } => Boolean(x));
+      if (found) {
+        resolved.push({ theme: found, shortLabel: entry.shortLabel });
+      }
+    }
 
     if (resolved.length > 0) return resolved;
     return themes.slice(0, 1).map((theme) => ({ theme, shortLabel: theme.name.en }));
