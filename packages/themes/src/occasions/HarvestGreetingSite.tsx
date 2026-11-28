@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useId, useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import {
   type CoreLanguageCode,
   pickLocalizedText,
@@ -46,8 +46,12 @@ interface ReturnBlessingOption {
   note: Record<CoreLanguageCode, string>;
 }
 
+type LohriOfferingKey = 'til' | 'rewri' | 'moongfali';
+
 interface HarvestCopy {
   previewBanner: string;
+  defaultReceiver: string;
+  defaultSender: string;
   coverEyebrow: string;
   forLabel: string;
   fromLabel: string;
@@ -56,27 +60,41 @@ interface HarvestCopy {
   stageEyebrow: string;
   stageTitle: string;
   festivalSwitcherLabel: string;
-  flyKiteCta: (count: number) => string;
+  sankrantiAltitudeLabel: (pct: number) => string;
+  flyKiteCta: (pct: number) => string;
+  flyResetCta: string;
   cutDoriCta: string;
   sankrantiPrompt: string;
-  sankrantiSoarWish: (count: number) => string;
+  sankrantiSoarWish: (pct: number, count: number) => string;
+  sankrantiSkyReached: string;
   sankrantiKaiPoChe: string;
-  lohriOfferCta: string;
+  lohriItems: Record<LohriOfferingKey, string>;
+  lohriOfferStepCta: (itemLabel: string, offeredCount: number) => string;
+  lohriReofferCta: string;
   lohriPrompt: string;
+  lohriAllOfferedBanner: string;
   lohriWarmthLabel: (warmth: number, offerings: number) => string;
   lohriBlessings: string[];
-  pongalBoilCta: string;
+  pongalSimmerLabel: (pct: number) => string;
+  pongalBoilCta: (step: number) => string;
+  pongalReboilCta: string;
   pongalPrompt: string;
+  pongalSimmerStages: [string, string, string];
   pongalChantBanner: string;
-  pongalOverflowCount: (count: number) => string;
+  pongalAuspiciousTags: [string, string, string];
   letterEyebrow: string;
   letterTitle: string;
   highlightsHeading: string;
   sweetsEyebrow: string;
   sweetsTitle: string;
+  sweetBoxSelectedTag: string;
   flipToMeaningLabel: string;
   flipToFrontLabel: string;
   culturalMeaningLabel: string;
+  replyPreviewLabel: string;
+  copyReplyCta: string;
+  copiedReplyToast: string;
+  sendWhatsappReplyCta: string;
   albumEyebrow: string;
   albumTitle: string;
   albumHint: string;
@@ -155,13 +173,14 @@ const FESTIVAL_META: Record<FestivalKey, FestivalMeta> = {
 
 const FESTIVAL_ORDER: readonly FestivalKey[] = ['sankranti', 'lohri', 'pongal'];
 const SWEET_ORDER: readonly SweetKey[] = ['tilgul', 'gajak', 'pongalSweet'];
+const LOHRI_OFFERING_ORDER: readonly LohriOfferingKey[] = ['til', 'rewri', 'moongfali'];
 
 const SWEET_KEEPSAKES: Record<SweetKey, SweetKeepsake> = {
   tilgul: {
     key: 'tilgul',
     name: {
-      en: 'Tilgul Ladoo',
-      hinglish: 'Tilgul Ladoo',
+      en: 'Til-Gud Ladoo',
+      hinglish: 'Til-Gud Ladoo',
       hi: 'तिल-गुड़ लड्डू',
     },
     festivalOrigin: {
@@ -175,8 +194,8 @@ const SWEET_KEEPSAKES: Record<SweetKey, SweetKeepsake> = {
       hi: 'तिल और गुड़ शीत ऋतु में गर्माहट और संबंधों में मधुरता का प्रतीक हैं।',
     },
     blessingNote: {
-      en: 'Tilgul ghya, god god bola — accept sweetness and always speak with kindness.',
-      hinglish: 'Tilgul ghya, god god bola — har baat mein pyaar aur mithaas bani rahe.',
+      en: 'Til-Gud ghya, god god bola — accept sweetness and always speak with kindness.',
+      hinglish: 'Til-Gud ghya, god god bola — har baat mein pyaar aur mithaas bani rahe.',
       hi: 'तिल-गुड़ लें और मीठा बोलें — आपके जीवन में सदैव स्नेह और मधुरता बनी रहे।',
     },
     accent: '#E69F00',
@@ -184,9 +203,9 @@ const SWEET_KEEPSAKES: Record<SweetKey, SweetKeepsake> = {
   gajak: {
     key: 'gajak',
     name: {
-      en: 'Gajak & Rewari',
-      hinglish: 'Gajak & Rewari',
-      hi: 'गजक व रेवड़ी',
+      en: 'Makki & Gajak',
+      hinglish: 'Makki & Gajak',
+      hi: 'मक्की व गजक',
     },
     festivalOrigin: {
       en: 'Lohri Harvest',
@@ -194,9 +213,9 @@ const SWEET_KEEPSAKES: Record<SweetKey, SweetKeepsake> = {
       hi: 'लोहड़ी पर्व',
     },
     meaning: {
-      en: 'Crisp roasted sesame pressed in jaggery, offered to the sacred Lohri fire.',
-      hinglish: 'Pavitra Lohri ki agni mein arpit til, gud aur rewari ka prasad.',
-      hi: 'पावन लोहड़ी की अग्नि में अर्पित भुने तिल, गुड़ और रेवड़ी का मंगल प्रसाद।',
+      en: 'Crisp roasted sesame gajak, golden makki, and rewri offered to the sacred Lohri fire.',
+      hinglish: 'Pavitra Lohri ki agni mein arpit makki, gajak aur rewari ka prasad.',
+      hi: 'पावन लोहड़ी की अग्नि में अर्पित मक्की, भुने तिल की गजक और रेवड़ी का मंगल प्रसाद।',
     },
     blessingNote: {
       en: 'May every ember carry away sorrow and invite prosperity to your hearth.',
@@ -223,9 +242,9 @@ const SWEET_KEEPSAKES: Record<SweetKey, SweetKeepsake> = {
       hi: 'नई फसल के चावल, गुड़, इलायची और घी से बना कृतज्ञता का पावन भोग।',
     },
     blessingNote: {
-      en: 'As the brass pot brims over, may abundance and gratitude fill your home.',
+      en: 'As the clay pot brims over, may abundance and gratitude fill your home.',
       hinglish: 'Jaise paanai chhalakta hai, waise hi ghar mein khushiyan chhalkein.',
-      hi: 'जैसे पीतल का पात्र छलक उठता है, वैसे ही आपका आँगन खुशियों से भरा रहे।',
+      hi: 'जैसे मंगल पात्र छलक उठता है, वैसे ही आपका आँगन खुशियों से भरा रहे।',
     },
     accent: '#1F6E4A',
   },
@@ -357,6 +376,8 @@ const KITE_LAYOUT = [
 const HARVEST_COPY: Record<CoreLanguageCode, HarvestCopy> = {
   en: {
     previewBanner: 'WEBZY FREE PREVIEW',
+    defaultReceiver: 'Dear Family & Friends',
+    defaultSender: 'With Harvest Warmth',
     coverEyebrow: 'Harvest Festive Keepsake',
     forLabel: 'For',
     fromLabel: 'From',
@@ -365,39 +386,63 @@ const HARVEST_COPY: Record<CoreLanguageCode, HarvestCopy> = {
     stageEyebrow: 'Interactive Harvest Rituals',
     stageTitle: 'Celebrate Every Harvest Tradition',
     festivalSwitcherLabel: 'Choose harvest tradition',
-    flyKiteCta: (count) => `Fly Kite Higher (${count}/6)`,
+    sankrantiAltitudeLabel: (pct) => `Patang Altitude · ${pct}%`,
+    flyKiteCta: (pct) => `Fly the Patang Higher (${pct}%)`,
+    flyResetCta: 'Fly Another Round',
     cutDoriCta: 'Cut Dori',
-    sankrantiPrompt: 'Tap kites or fly higher into the golden Uttarayan sky',
-    sankrantiSoarWish: (count) =>
-      `${count} kites soaring high — wishing your family bright horizons.`,
+    sankrantiPrompt: 'Tap below to soar your patang from 0% to 100% into the Uttarayan sky',
+    sankrantiSoarWish: (pct, count) =>
+      `${pct}% altitude · ${count} kites rising toward bright horizons.`,
+    sankrantiSkyReached: 'Kai Po Che! Sky Reached! Wishes soar across every rooftop.',
     sankrantiKaiPoChe: 'Kai Po Che! Cheerful harvest wishes echo across the rooftops.',
-    lohriOfferCta: 'Toss Til, Gud & Rewari',
-    lohriPrompt: 'Toss sesame & jaggery embers into the bonfire to raise warmth',
+    lohriItems: {
+      til: 'Til (Sesame)',
+      rewri: 'Rewri',
+      moongfali: 'Moongfali',
+    },
+    lohriOfferStepCta: (itemLabel, offeredCount) =>
+      `Offer ${itemLabel} to Sacred Bonfire (${offeredCount}/3)`,
+    lohriReofferCta: 'Offer Another Sacred Round',
+    lohriPrompt: 'Offer Til, Rewri & Moongfali to brighten the sacred Lohri bonfire',
+    lohriAllOfferedBanner:
+      'Sacred Bonfire at Full Glow! Til, Rewri & Moongfali offered with gratitude.',
     lohriWarmthLabel: (warmth, offerings) =>
-      `Bonfire Warmth ${warmth}% · ${offerings} Offerings`,
+      `Ember Glow ${warmth}% · ${offerings}/3 Offerings`,
     lohriBlessings: [
-      'Warm sparks rise with blessings of health and prosperity.',
-      'Aadar aaye, dilather jaaye — abundance enters your home.',
-      'Shared til and rewari bind every generation in warmth.',
+      'Til offered — warm sparks rise with blessings of health and harmony.',
+      'Rewri offered — Aadar aaye, dilather jaaye, sweetness enters your home.',
+      'Moongfali offered — sacred embers glow at 100% for abundant harvest joy.',
     ],
-    pongalBoilCta: 'Boil Over Abundance',
-    pongalPrompt: 'Tap below to simmer sweet milk until the brass paanai overflows',
-    pongalChantBanner: 'Pongalo Pongal! Abundance overflows across your home.',
-    pongalOverflowCount: (count) => `Pongalo Pongal! Celebrated (${count})`,
+    pongalSimmerLabel: (pct) => `Clay Pot Simmer · ${pct}%`,
+    pongalBoilCta: (step) => `Boil the Clay Pot (${step}/3)`,
+    pongalReboilCta: 'Simmer Another Auspicious Pot',
+    pongalPrompt: 'Tap to simmer sweet rice & milk until the clay pot brims over',
+    pongalSimmerStages: [
+      'Warming fresh harvest rice, moong, and golden jaggery...',
+      'Sweet milk begins rising with fragrant cardamom steam...',
+      'Froth crests the rim — one more tap to brim over!',
+    ],
+    pongalChantBanner: 'Pongalo Pongal! Golden abundance brims over your home.',
+    pongalAuspiciousTags: ['Prosperity', 'Good Health', 'Family Gratitude'],
     letterEyebrow: 'Family Harvest Letter',
     letterTitle: 'Warm Wishes From Home',
     highlightsHeading: 'Festive Blessings',
-    sweetsEyebrow: 'Sweet & Tradition Keepsake',
-    sweetsTitle: 'Tap & Flip Traditional Treats',
+    sweetsEyebrow: 'Festive Sweet Box Selector',
+    sweetsTitle: 'Choose Your Festive Sweet Box',
+    sweetBoxSelectedTag: 'Selected for Reply',
     flipToMeaningLabel: 'Reveal Cultural Meaning',
     flipToFrontLabel: 'Show Sweet Emblem',
     culturalMeaningLabel: 'Cultural Blessing',
+    replyPreviewLabel: 'Festive WhatsApp Blessing Reply',
+    copyReplyCta: 'Copy Festive Blessing Reply for WhatsApp',
+    copiedReplyToast: 'Festive blessing reply copied for WhatsApp!',
+    sendWhatsappReplyCta: 'Send Blessing on WhatsApp',
     albumEyebrow: 'Harvest Keepsake Reel',
     albumTitle: 'Festive Memories',
     albumHint: 'Tap any portrait to inspect full screen',
     albumEmptyTitle: 'Sunlit Courtyard Keepsake',
     albumEmptyBody:
-      'Marigold garlands, sweet tilgul trays, and bright winter sunlight held warmly in memory.',
+      'Marigold garlands, sweet til-gud trays, and bright winter sunlight held warmly in memory.',
     photoCaptionPrefix: 'Harvest',
     sanctuaryHeading: 'Folk Acoustic Sanctuary',
     returnEyebrow: 'Send Warmth Back',
@@ -413,6 +458,8 @@ const HARVEST_COPY: Record<CoreLanguageCode, HarvestCopy> = {
   },
   hinglish: {
     previewBanner: 'WEBZY FREE PREVIEW',
+    defaultReceiver: 'Pyare Parivaar',
+    defaultSender: 'Sneha & Shubhkamnayein',
     coverEyebrow: 'Tyohar Keepsake · Harvest Utsav',
     forLabel: 'Kiske liye',
     fromLabel: 'Bheja hai',
@@ -421,39 +468,63 @@ const HARVEST_COPY: Record<CoreLanguageCode, HarvestCopy> = {
     stageEyebrow: 'Interactive Festival Rituals',
     stageTitle: 'Har Parampara Ke Saath Tyohar Manayein',
     festivalSwitcherLabel: 'Festival tradition chuno',
-    flyKiteCta: (count) => `Fly Kite Higher (${count}/6)`,
+    sankrantiAltitudeLabel: (pct) => `Patang Oonchai · ${pct}%`,
+    flyKiteCta: (pct) => `Patang Aur Oonchi Udayein (${pct}%)`,
+    flyResetCta: 'Nayi Udaan Shuru Karein',
     cutDoriCta: 'Cut Dori',
-    sankrantiPrompt: 'Aasman mein patang udao ya dori kaat kar Kai Po Che bolo',
-    sankrantiSoarWish: (count) =>
-      `${count} patangein oonchi ud rahi hain — khushiyon ki udaan!`,
+    sankrantiPrompt: 'Tap karein aur apni patang 0% se 100% Uttarayan aasman mein udayein',
+    sankrantiSoarWish: (pct, count) =>
+      `${pct}% oonchai · ${count} patangein khushiyon ke aasman mein ud rahi hain.`,
+    sankrantiSkyReached: 'Kai Po Che! Sky Reached! Chhat se chhat tak shubhkamnayein goonj uthin.',
     sankrantiKaiPoChe: 'Kai Po Che! Chhat se chhat tak tyohar ki khushi goonj uthi.',
-    lohriOfferCta: 'Til, Gud & Rewari Arpit Karein',
-    lohriPrompt: 'Agni mein til, gud aur rewari daalkar garmahat badhayein',
+    lohriItems: {
+      til: 'Til',
+      rewri: 'Rewri',
+      moongfali: 'Moongfali',
+    },
+    lohriOfferStepCta: (itemLabel, offeredCount) =>
+      `Agni Mein ${itemLabel} Arpit Karein (${offeredCount}/3)`,
+    lohriReofferCta: 'Ek Aur Pavitra Arpan Karein',
+    lohriPrompt: 'Pavitra Lohri agni mein Til, Rewri aur Moongfali arpit karein',
+    lohriAllOfferedBanner:
+      'Pavitra Agni 100% Roshan! Til, Rewri aur Moongfali arpit ho gaye.',
     lohriWarmthLabel: (warmth, offerings) =>
-      `Agni Warmth ${warmth}% · ${offerings} Arpan`,
+      `Agni Glow ${warmth}% · ${offerings}/3 Arpan`,
     lohriBlessings: [
-      'Pavitra agni ki garmahat parivaar mein barkat laaye.',
-      'Aadar aaye, dilather jaaye — ghar mein sukh-shanti aaye.',
-      'Til aur rewari ke saath sabke chehre par muskaan rahe.',
+      'Til arpit — pavitra agni ki garmahat parivaar mein barkat laaye.',
+      'Rewri arpit — Aadar aaye, dilather jaaye, ghar mein sukh-shanti aaye.',
+      'Moongfali arpit — 100% ember glow ke saath sabke chehre par muskaan rahe.',
     ],
-    pongalBoilCta: 'Boil Over Abundance',
-    pongalPrompt: 'Peetal ke paanai mein meetha doodh ubalne ke liye tap karein',
-    pongalChantBanner: 'Pongalo Pongal! Ghar mein sukh-samriddhi chhalak uthi.',
-    pongalOverflowCount: (count) => `Pongalo Pongal! Celebrated (${count})`,
+    pongalSimmerLabel: (pct) => `Matka Ubaal · ${pct}%`,
+    pongalBoilCta: (step) => `Matka Ubalne Ke Liye Tap Karein (${step}/3)`,
+    pongalReboilCta: 'Phir Se Pongal Manayein',
+    pongalPrompt: 'Mitti ke matke mein meetha Pongal ubalne ke liye tap karein',
+    pongalSimmerStages: [
+      'Nayi fasal ke chawal aur gud dheemi aanch par pak rahe hain...',
+      'Elaichi aur meetha doodh upar uth raha hai...',
+      'Matka chhalakne wala hai — ek aakhiri tap karein!',
+    ],
+    pongalChantBanner: 'Pongalo Pongal! Ghar mein sunehri samriddhi chhalak uthi.',
+    pongalAuspiciousTags: ['Samriddhi', 'Achhi Sehat', 'Parivaar ka Saath'],
     letterEyebrow: 'Parivaar ka Sandesh',
     letterTitle: 'Tyohar ki Mithaas',
     highlightsHeading: 'Mangal Aashirwad',
-    sweetsEyebrow: 'Mithai & Parampara Flipper',
-    sweetsTitle: 'Tap Karke Parampara Dekhein',
+    sweetsEyebrow: 'Festive Sweet Box Selector',
+    sweetsTitle: 'Apna Festive Sweet Box Chunein',
+    sweetBoxSelectedTag: 'Reply Mein Shamil',
     flipToMeaningLabel: 'Arth aur Aashirwad Dekhein',
     flipToFrontLabel: 'Mithai Card Wapas Dekhein',
     culturalMeaningLabel: 'Parampara Sandesh',
+    replyPreviewLabel: 'WhatsApp Festive Blessing Reply',
+    copyReplyCta: 'WhatsApp Blessing Reply Copy Karein',
+    copiedReplyToast: 'WhatsApp festive blessing reply copy ho gaya!',
+    sendWhatsappReplyCta: 'WhatsApp Par Reply Bhejein',
     albumEyebrow: 'Utsav Album',
     albumTitle: 'Tyohar ki Yaadein',
     albumHint: 'Badi photo dekhne ke liye tap karein',
     albumEmptyTitle: 'Sunehri Dhoop Aur Tyohar',
     albumEmptyBody:
-      'Gende ke phool, meetha tilgul aur parivaar ke saath bitayi dhoop bhari subah ki yaadein.',
+      'Gende ke phool, meetha til-gud aur parivaar ke saath bitayi dhoop bhari subah ki yaadein.',
     photoCaptionPrefix: 'Utsav',
     sanctuaryHeading: 'Folk Acoustic Sanctuary',
     returnEyebrow: 'Wapas Shubhkamnayein',
@@ -469,6 +540,8 @@ const HARVEST_COPY: Record<CoreLanguageCode, HarvestCopy> = {
   },
   hi: {
     previewBanner: 'WEBZY निःशुल्क पूर्वावलोकन',
+    defaultReceiver: 'प्रिय परिवार एवं मित्रगण',
+    defaultSender: 'स्नेह व शुभकामनाओं सहित',
     coverEyebrow: 'फसल पर्व · मंगल स्मृति',
     forLabel: 'प्रेषित',
     fromLabel: 'प्रेषक',
@@ -477,33 +550,57 @@ const HARVEST_COPY: Record<CoreLanguageCode, HarvestCopy> = {
     stageEyebrow: 'पावन उत्सव अनुष्ठान',
     stageTitle: 'हर परंपरा के साथ पर्व मनाएँ',
     festivalSwitcherLabel: 'पर्व परंपरा चुनें',
-    flyKiteCta: (count) => `पतंग ऊपर उड़ाएँ (${count}/6)`,
+    sankrantiAltitudeLabel: (pct) => `पतंग ऊँचाई · ${pct}%`,
+    flyKiteCta: (pct) => `पतंग और ऊपर उड़ाएँ (${pct}%)`,
+    flyResetCta: 'नई उड़ान शुरू करें',
     cutDoriCta: 'डोरी काटें',
-    sankrantiPrompt: 'उत्तरायण के आकाश में पतंग उड़ाएँ या काई पो चे मनाएँ',
-    sankrantiSoarWish: (count) =>
-      `${count} पतंगें आकाश छू रही हैं — घर में सुख और उत्साह बना रहे।`,
+    sankrantiPrompt: 'उत्तरायण के आकाश में पतंग 0% से 100% तक उड़ाने के लिए टैप करें',
+    sankrantiSoarWish: (pct, count) =>
+      `${pct}% ऊँचाई · ${count} पतंगें सुनहरे आकाश में उड़ रही हैं।`,
+    sankrantiSkyReached: 'काई पो चे! आकाश छू लिया! हर छत पर मंगल शुभकामनाएँ गूँज उठीं।',
     sankrantiKaiPoChe: 'काई पो चे! हर छत पर खुशियों और उमंग की गूँज है।',
-    lohriOfferCta: 'तिल, गुड़ व रेवड़ी अर्पित करें',
-    lohriPrompt: 'पावन अग्नि में तिल, गुड़ और रेवड़ी अर्पित करने के लिए टैप करें',
+    lohriItems: {
+      til: 'तिल',
+      rewri: 'रेवड़ी',
+      moongfali: 'मूँगफली',
+    },
+    lohriOfferStepCta: (itemLabel, offeredCount) =>
+      `अग्नि में ${itemLabel} अर्पित करें (${offeredCount}/3)`,
+    lohriReofferCta: 'एक और पावन अर्पण करें',
+    lohriPrompt: 'पावन लोहड़ी अग्नि में तिल, रेवड़ी और मूँगफली अर्पित करें',
+    lohriAllOfferedBanner:
+      'पावन अग्नि पूर्ण तेज से प्रज्वलित! तिल, रेवड़ी व मूँगफली अर्पित हुई।',
     lohriWarmthLabel: (warmth, offerings) =>
-      `अग्नि ऊष्मा ${warmth}% · ${offerings} अर्पण`,
+      `अग्नि तेज ${warmth}% · ${offerings}/3 अर्पण`,
     lohriBlessings: [
-      'पावन चिंगारियाँ स्वास्थ्य और समृद्धि का आशीर्वाद लेकर उठती हैं।',
-      'आदर आए, दरिद्र जाए — घर में सुख और शांति का वास हो।',
-      'तिल और रेवड़ी का प्रसाद हर पीढ़ी को स्नेह से जोड़ता है।',
+      'तिल अर्पित — पावन चिंगारियाँ स्वास्थ्य और सुख का आशीर्वाद लेकर उठती हैं।',
+      'रेवड़ी अर्पित — आदर आए, दरिद्र जाए, घर में सुख और शांति का वास हो।',
+      'मूँगफली अर्पित — 100% पावन ऊष्मा के साथ परिवार में समृद्धि व आनंद बना रहे।',
     ],
-    pongalBoilCta: 'मंगल उबाल मनाएँ',
-    pongalPrompt: 'पीतल के पात्र में मीठा पोंगल छलकने के लिए नीचे टैप करें',
-    pongalChantBanner: 'पोंगलो पोंगल! घर-आँगन में सुख और समृद्धि छलक उठी।',
-    pongalOverflowCount: (count) => `पोंगलो पोंगल! मनाया गया (${count})`,
+    pongalSimmerLabel: (pct) => `मिट्टी पात्र उबाल · ${pct}%`,
+    pongalBoilCta: (step) => `मिट्टी का पात्र उबालें (${step}/3)`,
+    pongalReboilCta: 'फिर से मंगल उबाल मनाएँ',
+    pongalPrompt: 'मिट्टी के पात्र में मीठा पोंगल छलकने के लिए नीचे टैप करें',
+    pongalSimmerStages: [
+      'नई फसल के चावल, मूँग और गुड़ धीमी आँच पर पक रहे हैं...',
+      'इलायची की सुगंध के साथ मीठा दूध ऊपर उठ रहा है...',
+      'पात्र छलकने वाला है — एक अंतिम टैप करें!',
+    ],
+    pongalChantBanner: 'पोंगलो पोंगल! घर-आँगन में स्वर्णिम सुख-समृद्धि छलक उठी।',
+    pongalAuspiciousTags: ['समृद्धि', 'उत्तम स्वास्थ्य', 'परिवार कृतज्ञता'],
     letterEyebrow: 'परिवार की ओर से संदेश',
     letterTitle: 'स्नेह और शुभकामना पत्र',
     highlightsHeading: 'मंगल आशीर्वाद',
-    sweetsEyebrow: 'मिठाई व परंपरा पुस्तिका',
-    sweetsTitle: 'कार्ड पलटकर परंपरा जानें',
+    sweetsEyebrow: 'उत्सव मिठाई डिब्बा चयन',
+    sweetsTitle: 'अपना मिठाई डिब्बा चुनें',
+    sweetBoxSelectedTag: 'उत्तर में संलग्न',
     flipToMeaningLabel: 'सांस्कृतिक अर्थ देखें',
     flipToFrontLabel: 'मिठाई चिह्न देखें',
     culturalMeaningLabel: 'मंगल आशीर्वचन',
+    replyPreviewLabel: 'WhatsApp शुभकामना उत्तर',
+    copyReplyCta: 'WhatsApp शुभकामना उत्तर कॉपी करें',
+    copiedReplyToast: 'WhatsApp के लिए शुभकामना उत्तर कॉपी हो गया!',
+    sendWhatsappReplyCta: 'WhatsApp पर उत्तर भेजें',
     albumEyebrow: 'उत्सव एल्बम',
     albumTitle: 'त्योहार की मधुर यादें',
     albumHint: 'बड़ी फ़ोटो देखने के लिए टैप करें',
@@ -524,6 +621,25 @@ const HARVEST_COPY: Record<CoreLanguageCode, HarvestCopy> = {
     returnToastBody: 'गेंदे के पुष्प और तिल-गुड़ की मिठास के साथ सुरक्षित।',
   },
 };
+
+function hiSafeStyle(lang: CoreLanguageCode): React.CSSProperties | undefined {
+  if (lang === 'hi') {
+    return { fontStyle: 'normal', letterSpacing: '0em' };
+  }
+  return undefined;
+}
+
+function sanitizeWhatsappPhone(raw?: string): string | null {
+  const digits = (raw || '').replace(/\D/g, '');
+  if (!digits) return null;
+  if (/^(?:91)?[6-9]\d{9}$/.test(digits)) {
+    return digits.length === 10 ? `91${digits}` : digits;
+  }
+  if (/^[1-9]\d{9,14}$/.test(digits)) {
+    return digits;
+  }
+  return null;
+}
 
 function normalizeFestival(relation?: string): FestivalKey {
   const value = relation?.trim().toLowerCase();
@@ -699,35 +815,55 @@ function SweetEmblemSvg({ sweetKey }: { sweetKey: SweetKey }) {
 
 function SankrantiStage({
   uid,
-  kiteCount,
-  altitudeBoost,
+  altitudePct,
   cutBannerActive,
   onFlyKite,
   onCutDori,
   copy,
+  coreLang,
 }: {
   uid: string;
-  kiteCount: number;
-  altitudeBoost: number;
+  altitudePct: number;
   cutBannerActive: boolean;
   onFlyKite: () => void;
   onCutDori: () => void;
   copy: HarvestCopy;
+  coreLang: CoreLanguageCode;
 }) {
-  const visibleKites = KITE_LAYOUT.slice(0, Math.max(1, Math.min(kiteCount, 6)));
+  const skyReached = altitudePct >= 100;
+  const kiteCount = Math.min(6, Math.max(2, 2 + Math.floor(altitudePct / 20)));
+  const visibleKites = KITE_LAYOUT.slice(0, kiteCount);
+  const liftOffset = (altitudePct / 100) * 20;
 
   return (
     <div className="space-y-3">
+      {/* Live Kite Altitude Meter */}
+      <div className="rounded-xl border border-[#9A6B22]/30 bg-[#FFF7E6] px-3 py-2">
+        <div className="flex items-center justify-between gap-2 text-[11px] font-bold text-[#7A5114]">
+          <span style={hiSafeStyle(coreLang)}>{copy.sankrantiAltitudeLabel(altitudePct)}</span>
+          <span className="font-mono text-[10px] font-extrabold text-[#C83E2B]">
+            {skyReached ? '100% · KAI PO CHE' : `${altitudePct}% / 100%`}
+          </span>
+        </div>
+        <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-[#9A6B22]/18">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-[#E69F00] via-[#F2B129] to-[#C83E2B] transition-all duration-300"
+            style={{ width: `${altitudePct}%` }}
+          />
+        </div>
+      </div>
+
       <div
         className="relative h-60 w-full overflow-hidden rounded-2xl border border-[#9A6B22]/35 shadow-inner"
         style={{
-          background:
-            'linear-gradient(180deg, #FCD98C 0%, #FFEFC8 54%, #FFF7E6 100%)',
+          background: skyReached
+            ? 'linear-gradient(180deg, #F6B83B 0%, #FFE2A3 52%, #FFF7E6 100%)'
+            : 'linear-gradient(180deg, #FCD98C 0%, #FFEFC8 54%, #FFF7E6 100%)',
         }}
       >
         <svg viewBox="0 0 360 210" className="h-full w-full" aria-hidden="true">
-          <circle cx="298" cy="48" r="38" fill="#E69F00" opacity="0.22" />
-          <circle cx="298" cy="48" r="22" fill="#E69F00" opacity="0.9" />
+          <circle cx="298" cy="48" r={skyReached ? 44 : 38} fill="#E69F00" opacity={skyReached ? 0.34 : 0.22} />
+          <circle cx="298" cy="48" r="22" fill="#E69F00" opacity="0.92" />
           <path
             d="M24 54 Q38 40 54 48 Q68 36 84 48 Q96 48 96 58 L24 58 Z"
             fill="#FFFDF8"
@@ -738,9 +874,16 @@ function SankrantiStage({
             fill="#FFFDF8"
             opacity="0.74"
           />
+          {skyReached ? (
+            <g fill="#C83E2B" opacity="0.85">
+              <polygon points="118,22 121,28 127,28 122,32 124,38 118,34 112,38 114,32 109,28 115,28" />
+              <polygon points="248,18 250,23 255,23 251,26 253,31 248,28 243,31 245,26 241,23 246,23" fill="#1F6E4A" />
+              <circle cx="168" cy="24" r="3" fill="#FFFDF8" />
+              <circle cx="212" cy="18" r="2.5" fill="#C83E2B" />
+            </g>
+          ) : null}
           {visibleKites.map((kite, idx) => {
-            const liftStep = (altitudeBoost % 4) * 3.5;
-            const liftedY = Math.max(9, kite.y - liftStep);
+            const liftedY = Math.max(8, kite.y - liftOffset);
             const kx = (kite.x / 100) * 340 + 10;
             const ky = (liftedY / 100) * 165 + 10;
             const isCut = cutBannerActive && idx === visibleKites.length - 1;
@@ -769,8 +912,7 @@ function SankrantiStage({
         </svg>
 
         {visibleKites.map((kite, idx) => {
-          const liftStep = (altitudeBoost % 4) * 3.5;
-          const liftedY = Math.max(10, kite.y - liftStep);
+          const liftedY = Math.max(9, kite.y - liftOffset);
           const isCutKite = cutBannerActive && idx === visibleKites.length - 1;
           return (
             <button
@@ -780,7 +922,7 @@ function SankrantiStage({
               aria-label={`Festival patang ${idx + 1}`}
               style={{
                 left: `${kite.x}%`,
-                top: `${isCutKite ? Math.max(9, liftedY - 8) : liftedY}%`,
+                top: `${isCutKite ? Math.max(8, liftedY - 8) : liftedY}%`,
               }}
               className="absolute flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full transition-all duration-300 hover:scale-110 active:scale-95"
             >
@@ -815,17 +957,20 @@ function SankrantiStage({
 
         <div className="pointer-events-none absolute inset-x-3 bottom-2.5 flex justify-center">
           <span
+            role="status"
             className={`rounded-full px-3.5 py-1 text-center text-[11px] font-bold shadow-xs ring-1 transition ${
-              cutBannerActive
+              skyReached || cutBannerActive
                 ? `harvest-pop-${uid} bg-[#C83E2B] text-[#FFF7E6] ring-[#FFF7E6]/45`
                 : 'bg-[#FFF7E6]/92 text-[#2D1B10] ring-[#9A6B22]/30'
             }`}
           >
-            {cutBannerActive
-              ? copy.sankrantiKaiPoChe
-              : altitudeBoost > 0
-                ? copy.sankrantiSoarWish(kiteCount)
-                : copy.sankrantiPrompt}
+            {skyReached
+              ? copy.sankrantiSkyReached
+              : cutBannerActive
+                ? copy.sankrantiKaiPoChe
+                : altitudePct > 0
+                  ? copy.sankrantiSoarWish(altitudePct, kiteCount)
+                  : copy.sankrantiPrompt}
           </span>
         </div>
       </div>
@@ -836,7 +981,7 @@ function SankrantiStage({
           onClick={onFlyKite}
           className="min-h-[44px] rounded-full bg-[#E69F00] px-3 py-2 text-xs font-bold text-[#2D1B10] shadow-xs transition hover:bg-[#D48C00] active:scale-[0.98]"
         >
-          {copy.flyKiteCta(kiteCount)}
+          {skyReached ? copy.flyResetCta : copy.flyKiteCta(altitudePct)}
         </button>
         <button
           type="button"
@@ -852,29 +997,71 @@ function SankrantiStage({
 
 function LohriStage({
   uid,
-  offerCount,
-  onTossOffering,
+  offeredItems,
+  onOfferItem,
+  onOfferNext,
   copy,
+  coreLang,
 }: {
   uid: string;
-  offerCount: number;
-  onTossOffering: () => void;
+  offeredItems: readonly LohriOfferingKey[];
+  onOfferItem: (item: LohriOfferingKey) => void;
+  onOfferNext: () => void;
   copy: HarvestCopy;
+  coreLang: CoreLanguageCode;
 }) {
-  const warmth = Math.min(100, 35 + offerCount * 15);
-  const sparkScale = 1 + (offerCount % 4) * 0.08;
-  const blessingText =
-    offerCount > 0
-      ? copy.lohriBlessings[(offerCount - 1) % copy.lohriBlessings.length]
+  const offeredCount = offeredItems.length;
+  const allOffered = offeredCount >= 3;
+  const warmth = Math.min(100, 25 + offeredCount * 25);
+  const sparkScale = 0.94 + offeredCount * 0.1;
+  const nextOffering = LOHRI_OFFERING_ORDER.find((key) => !offeredItems.includes(key));
+  const blessingText = allOffered
+    ? copy.lohriAllOfferedBanner
+    : offeredCount > 0
+      ? copy.lohriBlessings[(offeredCount - 1) % copy.lohriBlessings.length]
       : copy.lohriPrompt;
 
   return (
     <div className="space-y-3">
+      {/* 3-Tap Offering Pills: Til, Rewri & Moongfali */}
+      <div className="grid grid-cols-3 gap-1.5">
+        {LOHRI_OFFERING_ORDER.map((itemKey) => {
+          const isOffered = offeredItems.includes(itemKey);
+          return (
+            <button
+              key={itemKey}
+              type="button"
+              onClick={() => onOfferItem(itemKey)}
+              aria-pressed={isOffered}
+              className={`inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl border px-2 py-1.5 text-[11px] font-bold transition active:scale-95 ${
+                isOffered
+                  ? 'border-[#C83E2B] bg-[#C83E2B] text-[#FFF7E6] shadow-xs'
+                  : 'border-[#9A6B22]/35 bg-[#FFF7E6] text-[#2D1B10] hover:border-[#C83E2B]/60'
+              }`}
+            >
+              {isOffered ? (
+                <svg className="h-3.5 w-3.5 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path
+                    fillRule="evenodd"
+                    d="M16.704 5.29a1 1 0 010 1.42l-7.25 7.25a1 1 0 01-1.414 0l-3.25-3.25a1 1 0 111.414-1.42l2.543 2.543 6.543-6.543a1 1 0 011.414 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              ) : (
+                <span className="h-2 w-2 shrink-0 rounded-full bg-[#E69F00]" aria-hidden="true" />
+              )}
+              <span className="truncate">{copy.lohriItems[itemKey]}</span>
+            </button>
+          );
+        })}
+      </div>
+
       <div
-        className="relative flex h-60 w-full flex-col items-center justify-end overflow-hidden rounded-2xl border border-[#9A6B22]/45 p-3"
+        className="relative flex h-60 w-full flex-col items-center justify-end overflow-hidden rounded-2xl border border-[#9A6B22]/45 p-3 transition-all duration-500"
         style={{
-          background:
-            'linear-gradient(180deg, #2D1810 0%, #5B2416 54%, #91381B 100%)',
+          background: allOffered
+            ? 'linear-gradient(180deg, #3C180D 0%, #7C2B14 50%, #C24D1A 100%)'
+            : 'linear-gradient(180deg, #2D1810 0%, #5B2416 54%, #91381B 100%)',
         }}
       >
         <svg viewBox="0 0 360 190" className="h-full w-full" aria-hidden="true">
@@ -890,10 +1077,10 @@ function LohriStage({
             <circle
               key={idx}
               cx={spark.cx}
-              cy={spark.cy - (offerCount % 3) * 5}
+              cy={spark.cy - offeredCount * 4}
               r={spark.r * sparkScale}
               fill={idx % 2 === 0 ? '#E69F00' : '#FFF7E6'}
-              opacity="0.92"
+              opacity={0.55 + offeredCount * 0.14}
             />
           ))}
 
@@ -911,7 +1098,14 @@ function LohriStage({
             </g>
           ))}
 
-          <ellipse cx="180" cy="144" rx="78" ry="24" fill="#E69F00" opacity="0.28" />
+          <ellipse
+            cx="180"
+            cy="144"
+            rx={68 + offeredCount * 14}
+            ry={20 + offeredCount * 5}
+            fill="#E69F00"
+            opacity={0.18 + offeredCount * 0.12}
+          />
 
           <g
             className={`harvest-flame-${uid}`}
@@ -946,16 +1140,26 @@ function LohriStage({
         </svg>
 
         <div className="relative z-10 flex w-full flex-col items-center gap-1.5">
-          <div className="flex w-full max-w-[240px] items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[#FFF7E6]">
-            <span>{copy.lohriWarmthLabel(warmth, offerCount)}</span>
+          <div
+            className="flex w-full max-w-[250px] items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[#FFF7E6]"
+            style={hiSafeStyle(coreLang)}
+          >
+            <span>{copy.lohriWarmthLabel(warmth, offeredCount)}</span>
           </div>
-          <div className="h-1.5 w-full max-w-[240px] overflow-hidden rounded-full bg-black/40">
+          <div className="h-2 w-full max-w-[250px] overflow-hidden rounded-full bg-black/40">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-[#E69F00] to-[#FFF7E6] transition-all duration-300"
+              className="h-full rounded-full bg-gradient-to-r from-[#E69F00] via-[#F7C948] to-[#FFF7E6] transition-all duration-300"
               style={{ width: `${warmth}%` }}
             />
           </div>
-          <p className="rounded-full bg-[#2D1810]/85 px-3 py-1 text-center text-[11px] font-semibold text-[#FFF7E6] ring-1 ring-[#E69F00]/40">
+          <p
+            role="status"
+            className={`rounded-full px-3 py-1 text-center text-[11px] font-semibold ring-1 ${
+              allOffered
+                ? `harvest-pop-${uid} bg-[#E69F00] text-[#2D1810] ring-[#FFF7E6]/70`
+                : 'bg-[#2D1810]/85 text-[#FFF7E6] ring-[#E69F00]/40'
+            }`}
+          >
             {blessingText}
           </p>
         </div>
@@ -963,10 +1167,12 @@ function LohriStage({
 
       <button
         type="button"
-        onClick={onTossOffering}
+        onClick={onOfferNext}
         className="min-h-[44px] w-full rounded-full bg-[#C83E2B] px-5 py-2.5 text-sm font-bold text-[#FFF7E6] shadow-xs transition hover:bg-[#AE3221] active:scale-[0.98]"
       >
-        {copy.lohriOfferCta}
+        {nextOffering
+          ? copy.lohriOfferStepCta(copy.lohriItems[nextOffering], offeredCount)
+          : copy.lohriReofferCta}
       </button>
     </div>
   );
@@ -974,24 +1180,50 @@ function LohriStage({
 
 function PongalStage({
   uid,
-  boilCount,
+  simmerStep,
   onCelebratePongal,
   copy,
+  coreLang,
 }: {
   uid: string;
-  boilCount: number;
+  simmerStep: number;
   onCelebratePongal: () => void;
   copy: HarvestCopy;
+  coreLang: CoreLanguageCode;
 }) {
-  const frothLift = boilCount > 0 ? 4 + (boilCount % 3) * 3 : 0;
+  const simmerPct = simmerStep >= 3 ? 100 : simmerStep === 2 ? 67 : simmerStep === 1 ? 34 : 0;
+  const isOverflowing = simmerStep >= 3;
+  const frothLift = simmerStep * 4;
+  const statusBanner = isOverflowing
+    ? copy.pongalChantBanner
+    : simmerStep > 0
+      ? copy.pongalSimmerStages[simmerStep - 1]
+      : copy.pongalPrompt;
 
   return (
     <div className="space-y-3">
+      {/* Live Clay Pot Simmer Meter */}
+      <div className="rounded-xl border border-[#1F6E4A]/25 bg-[#FFF7E6] px-3 py-2">
+        <div className="flex items-center justify-between gap-2 text-[11px] font-bold text-[#1F6E4A]">
+          <span style={hiSafeStyle(coreLang)}>{copy.pongalSimmerLabel(simmerPct)}</span>
+          <span className="font-mono text-[10px] font-extrabold text-[#9A6B22]">
+            {isOverflowing ? 'PONGALO PONGAL' : `${simmerStep}/3`}
+          </span>
+        </div>
+        <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-[#1F6E4A]/15">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-[#E69F00] to-[#1F6E4A] transition-all duration-300"
+            style={{ width: `${simmerPct}%` }}
+          />
+        </div>
+      </div>
+
       <div
         className="relative flex h-60 w-full flex-col items-center justify-end overflow-hidden rounded-2xl border border-[#9A6B22]/35 p-3"
         style={{
-          background:
-            'linear-gradient(180deg, #FFFDF8 0%, #FFF7E6 62%, #FDE8B8 100%)',
+          background: isOverflowing
+            ? 'linear-gradient(180deg, #FFF7E6 0%, #FDE8B8 58%, #F9D27B 100%)'
+            : 'linear-gradient(180deg, #FFFDF8 0%, #FFF7E6 62%, #FDE8B8 100%)',
         }}
       >
         <svg viewBox="0 0 360 190" className="h-full w-full" aria-hidden="true">
@@ -1016,7 +1248,7 @@ function PongalStage({
               fill="none"
               stroke="#9A6B22"
               strokeWidth="2"
-              strokeOpacity="0.55"
+              strokeOpacity="0.6"
               strokeLinecap="round"
             />
             <path
@@ -1024,43 +1256,75 @@ function PongalStage({
               fill="none"
               stroke="#9A6B22"
               strokeWidth="2"
-              strokeOpacity="0.55"
+              strokeOpacity="0.6"
               strokeLinecap="round"
             />
           </g>
 
-          <ellipse cx="180" cy="118" rx="44" ry="38" fill="#E69F00" stroke="#9A6B22" strokeWidth="2" />
-          <ellipse cx="166" cy="112" rx="14" ry="22" fill="#FFF7E6" opacity="0.38" />
-          <rect x="148" y="72" width="64" height="14" rx="7" fill="#9A6B22" stroke="#6E4A13" strokeWidth="1.6" />
+          {/* Terracotta / brass-burnished clay Pongal pot */}
+          <ellipse cx="180" cy="118" rx="44" ry="38" fill="#C96F28" stroke="#8A4414" strokeWidth="2" />
+          <ellipse cx="166" cy="112" rx="14" ry="22" fill="#FFF7E6" opacity="0.28" />
+          <path d="M140 124 Q180 134 220 124" fill="none" stroke="#FFF7E6" strokeWidth="2" strokeDasharray="4 4" />
+          <rect x="148" y="72" width="64" height="14" rx="7" fill="#9A531C" stroke="#6E390F" strokeWidth="1.6" />
 
           <path d="M152 86 L142 104 L160 98 Z" fill="#1F6E4A" />
           <path d="M180 86 L173 106 L187 106 Z" fill="#28845A" />
           <path d="M208 86 L218 104 L200 98 Z" fill="#1F6E4A" />
-          <line x1="147" y1="86" x2="213" y2="86" stroke="#C83E2B" strokeWidth="3" />
+          <line x1="147" y1="86" x2="213" y2="86" stroke="#E69F00" strokeWidth="3" />
 
+          {/* Rising milk froth & auspicious golden bubbles */}
           <path
             d={`M146 ${76 - frothLift} Q160 ${56 - frothLift} 180 ${60 - frothLift} Q200 ${56 - frothLift} 214 ${76 - frothLift} Q202 88 192 80 Q180 98 168 80 Q158 88 146 ${76 - frothLift} Z`}
             fill="#FFFFFF"
             stroke="#E69F00"
-            strokeWidth="1.2"
+            strokeWidth="1.3"
           />
-          {boilCount > 0 ? (
+          {simmerStep >= 1 ? (
             <>
-              <circle cx="150" cy={88 + frothLift} r="3.6" fill="#FFFFFF" />
-              <circle cx="208" cy={91 + frothLift} r="3.2" fill="#FFFFFF" />
-              <circle cx="179" cy={99 + frothLift * 0.6} r="2.8" fill="#FFFFFF" />
+              <circle cx="156" cy={64 - frothLift} r="3.4" fill="#FFFDF8" stroke="#E69F00" strokeWidth="1" />
+              <circle cx="202" cy={66 - frothLift} r="3.1" fill="#FFFDF8" stroke="#E69F00" strokeWidth="1" />
             </>
+          ) : null}
+          {simmerStep >= 2 ? (
+            <>
+              <circle cx="150" cy={88 + frothLift * 0.5} r="3.8" fill="#FFFFFF" />
+              <circle cx="208" cy={91 + frothLift * 0.5} r="3.4" fill="#FFFFFF" />
+              <circle cx="179" cy={99 + frothLift * 0.3} r="3" fill="#FFFFFF" />
+            </>
+          ) : null}
+          {isOverflowing ? (
+            <g fill="#E69F00">
+              <circle cx="132" cy="54" r="4" opacity="0.9" />
+              <circle cx="228" cy="52" r="4" opacity="0.9" />
+              <circle cx="180" cy="36" r="4.5" opacity="0.92" />
+              <circle cx="144" cy="40" r="2.8" fill="#C83E2B" />
+              <circle cx="216" cy="40" r="2.8" fill="#1F6E4A" />
+            </g>
           ) : null}
         </svg>
 
+        {isOverflowing ? (
+          <div className={`harvest-pop-${uid} relative z-10 mb-1.5 flex flex-wrap justify-center gap-1.5`}>
+            {copy.pongalAuspiciousTags.map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full border border-[#E69F00]/65 bg-[#FFFDF8]/95 px-2.5 py-0.5 text-[10px] font-bold text-[#7A5114] shadow-2xs"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        ) : null}
+
         <span
+          role="status"
           className={`relative z-10 rounded-full px-3.5 py-1 text-center text-[11px] font-bold shadow-xs ring-1 ${
-            boilCount > 0
+            isOverflowing
               ? `harvest-pop-${uid} bg-[#1F6E4A] text-[#FFF7E6] ring-[#FFF7E6]/40`
               : 'bg-[#FFFDF8]/95 text-[#7A5114] ring-[#9A6B22]/30'
           }`}
         >
-          {boilCount > 0 ? copy.pongalChantBanner : copy.pongalPrompt}
+          {statusBanner}
         </span>
       </div>
 
@@ -1069,7 +1333,7 @@ function PongalStage({
         onClick={onCelebratePongal}
         className="min-h-[44px] w-full rounded-full bg-[#1F6E4A] px-5 py-2.5 text-sm font-bold text-[#FFF7E6] shadow-xs transition hover:bg-[#175539] active:scale-[0.98]"
       >
-        {boilCount > 0 ? copy.pongalOverflowCount(boilCount) : copy.pongalBoilCta}
+        {isOverflowing ? copy.pongalReboilCta : copy.pongalBoilCta(simmerStep)}
       </button>
     </div>
   );
@@ -1091,21 +1355,23 @@ export function HarvestGreetingSite({
 
   const [opened, setOpened] = useState(false);
   const [activeFestival, setActiveFestival] = useState<FestivalKey>(initialFestival);
+  const [failedArtSrc, setFailedArtSrc] = useState<Record<string, boolean>>({});
 
   // Interactive Festival Ritual states
-  const [kiteCount, setKiteCount] = useState(3);
-  const [kiteBoost, setKiteBoost] = useState(0);
+  const [sankrantiAltitude, setSankrantiAltitude] = useState(0);
   const [cutDoriActive, setCutDoriActive] = useState(false);
-  const [lohriOfferings, setLohriOfferings] = useState(1);
-  const [pongalBoils, setPongalBoils] = useState(0);
+  const [lohriOfferings, setLohriOfferings] = useState<LohriOfferingKey[]>([]);
+  const [pongalSimmerStep, setPongalSimmerStep] = useState(0);
 
-  // Sweet & Tradition Keepsake Flipper states
+  // Festive Sweet Box Selector & WhatsApp Blessing Reply states
   const [activeSweet, setActiveSweet] = useState<SweetKey>('tilgul');
   const [flippedSweets, setFlippedSweets] = useState<Record<SweetKey, boolean>>({
     tilgul: false,
     gajak: false,
     pongalSweet: false,
   });
+  const [copiedReply, setCopiedReply] = useState(false);
+  const copyReplyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Return Harvest Blessing Seal states
   const [selectedBlessingId, setSelectedBlessingId] = useState<string>(RETURN_BLESSINGS[0].id);
@@ -1117,8 +1383,18 @@ export function HarvestGreetingSite({
     setActiveFestival(normalizeFestival(data.relation));
   }, [data.relation]);
 
+  useEffect(() => {
+    return () => {
+      if (copyReplyTimerRef.current) clearTimeout(copyReplyTimerRef.current);
+    };
+  }, []);
+
   const coreLang = toCoreLanguageCode(language);
   const copy = HARVEST_COPY[coreLang] ?? HARVEST_COPY.en;
+  const receiverDisplay = data.receiverName?.trim() || copy.defaultReceiver;
+  const senderDisplay = data.senderName?.trim() || copy.defaultSender;
+  const offerText = data.offerTag ? pickLocalizedText(data.offerTag, language).trim() : '';
+  const validWa = sanitizeWhatsappPhone(data.whatsappPhone);
   const activeMeta = FESTIVAL_META[activeFestival];
   const coverMeta = FESTIVAL_META[initialFestival];
   const headlineText = pickLocalizedText(data.headline, language) || copy.letterTitle;
@@ -1129,6 +1405,17 @@ export function HarvestGreetingSite({
   const sanctuaryTracks = FESTIVE_TRACKS[coreLang] ?? FESTIVE_TRACKS.en;
   const chosenBlessing =
     RETURN_BLESSINGS.find((item) => item.id === selectedBlessingId) ?? RETURN_BLESSINGS[0];
+
+  const festiveReplyText =
+    coreLang === 'hi'
+      ? `${activeMeta.badge.hi}! धन्यवाद ${senderDisplay}, आपके स्नेहपूर्ण संदेश के लिए। मेरी ओर से ${currentSweet.name.hi} की मिठास और हार्दिक शुभकामनाएँ — ${currentSweet.blessingNote.hi} (${receiverDisplay})`
+      : coreLang === 'hinglish'
+        ? `${activeMeta.badge.hinglish}! Thank you ${senderDisplay} aapke pyaare wish ke liye. Meri taraf se ${currentSweet.name.hinglish} ki mithaas aur dher saari shubhkamnayein — ${currentSweet.blessingNote.hinglish} (${receiverDisplay})`
+        : `${activeMeta.badge.en}! Thank you ${senderDisplay} for your warm harvest wishes. Sending back a box of ${currentSweet.name.en} and warm blessings — ${currentSweet.blessingNote.en} (${receiverDisplay})`;
+
+  const replyWaHref = validWa
+    ? `https://wa.me/${validWa}?text=${encodeURIComponent(festiveReplyText)}`
+    : null;
 
   function handleOpen() {
     setOpened(true);
@@ -1141,13 +1428,30 @@ export function HarvestGreetingSite({
 
   function handleFlyKite() {
     setCutDoriActive(false);
-    setKiteCount((k) => (k >= 6 ? 2 : k + 1));
-    setKiteBoost((b) => b + 1);
+    setSankrantiAltitude((prev) => (prev >= 100 ? 25 : Math.min(100, prev + 25)));
   }
 
   function handleCutDori() {
     setCutDoriActive(true);
-    setKiteBoost((b) => b + 1);
+    setSankrantiAltitude((prev) => (prev < 25 ? 25 : prev));
+  }
+
+  function handleOfferLohriItem(item: LohriOfferingKey) {
+    setLohriOfferings((prev) =>
+      prev.includes(item) ? prev : [...prev, item],
+    );
+  }
+
+  function handleOfferNextLohri() {
+    setLohriOfferings((prev) => {
+      const next = LOHRI_OFFERING_ORDER.find((item) => !prev.includes(item));
+      if (!next) return [];
+      return [...prev, next];
+    });
+  }
+
+  function handleSimmerPongal() {
+    setPongalSimmerStep((prev) => (prev >= 3 ? 0 : prev + 1));
   }
 
   function handleSelectSweet(key: SweetKey) {
@@ -1159,6 +1463,17 @@ export function HarvestGreetingSite({
       ...prev,
       [activeSweet]: !prev[activeSweet],
     }));
+  }
+
+  async function handleCopyFestiveReply() {
+    try {
+      await navigator.clipboard?.writeText(festiveReplyText);
+    } catch {
+      // Clipboard may be restricted in sandboxed previews; status confirmation still renders.
+    }
+    setCopiedReply(true);
+    if (copyReplyTimerRef.current) clearTimeout(copyReplyTimerRef.current);
+    copyReplyTimerRef.current = setTimeout(() => setCopiedReply(false), 2400);
   }
 
   function handleSealComplete() {
@@ -1217,7 +1532,7 @@ export function HarvestGreetingSite({
 
   if (!opened) {
     return (
-      <div className="relative flex min-h-full w-full flex-col justify-between overflow-hidden rounded-[28px] bg-[#FFF7E6] text-[#2D1B10]">
+      <div className="relative flex min-h-full w-full flex-col justify-between overflow-x-clip rounded-[28px] bg-[#FFF7E6] text-[#2D1B10]">
         <style>{scopedKeyframes}</style>
 
         <OccasionArtworkBackdrop
@@ -1231,6 +1546,7 @@ export function HarvestGreetingSite({
         {watermarked ? (
           <div
             aria-hidden="true"
+            style={hiSafeStyle(coreLang)}
             className="relative z-20 flex justify-center border-b border-[#9A6B22]/25 bg-[#FFF7E6]/90 py-1.5 text-[10px] font-bold tracking-[0.18em] text-[#C83E2B]"
           >
             {copy.previewBanner}
@@ -1250,16 +1566,25 @@ export function HarvestGreetingSite({
             <div className="relative mt-1 flex w-full flex-col items-center">
               <HarvestCrestSvg className={`harvest-float-${uid}`} />
 
-              <span className="mt-2.5 inline-flex items-center rounded-full border border-[#9A6B22]/35 bg-[#FFFDF8] px-3.5 py-1 text-[10.5px] font-bold uppercase tracking-[0.14em] text-[#7A5114]">
+              <span
+                style={hiSafeStyle(coreLang)}
+                className="mt-2.5 inline-flex items-center rounded-full border border-[#9A6B22]/35 bg-[#FFFDF8] px-3.5 py-1 text-[10.5px] font-bold uppercase tracking-[0.14em] text-[#7A5114]"
+              >
                 {coverMeta.badge[coreLang]}
               </span>
 
-              <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#1F6E4A]">
+              <p
+                style={hiSafeStyle(coreLang)}
+                className="mt-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#1F6E4A]"
+              >
                 {copy.coverEyebrow}
               </p>
 
-              <h2 className="mt-2 max-w-full break-words font-heading text-2xl font-bold tracking-tight text-[#2D1B10] sm:text-3xl">
-                {data.receiverName}
+              <h2
+                style={hiSafeStyle(coreLang)}
+                className="mt-2 max-w-full break-words font-heading text-2xl font-bold tracking-tight text-[#2D1B10] sm:text-3xl"
+              >
+                {receiverDisplay}
               </h2>
 
               <p className="mt-1.5 max-w-xs text-xs font-medium leading-relaxed text-[#5A3D28]">
@@ -1268,15 +1593,21 @@ export function HarvestGreetingSite({
 
               <div className="mt-3.5 inline-flex max-w-full flex-wrap items-center justify-center gap-1.5 rounded-full border border-[#C83E2B]/25 bg-[#FFFDF8] px-4 py-1.5 text-xs font-semibold text-[#2D1B10] shadow-2xs">
                 <span className="text-[#5A3D28]">
-                  {copy.forLabel} {data.receiverName}
+                  {copy.forLabel} {receiverDisplay}
                 </span>
                 <span aria-hidden="true" className="text-[#9A6B22]">
                   ·
                 </span>
                 <span className="text-[#C83E2B]">
-                  {copy.fromLabel} {data.senderName}
+                  {copy.fromLabel} {senderDisplay}
                 </span>
               </div>
+
+              {offerText ? (
+                <p className="mt-2.5 max-w-xs rounded-full border border-[#E69F00]/55 bg-[#FDE8B8]/70 px-3.5 py-1 text-[11px] font-bold text-[#7A5114]">
+                  {offerText}
+                </p>
+              ) : null}
 
               <button
                 type="button"
@@ -1295,7 +1626,7 @@ export function HarvestGreetingSite({
 
   return (
     <div
-      className={`harvest-fade-${uid} relative flex min-h-full w-full flex-col overflow-hidden rounded-[28px] bg-[#FFF7E6] text-[#2D1B10]`}
+      className={`harvest-fade-${uid} relative flex min-h-full w-full flex-col overflow-x-clip rounded-[28px] bg-[#FFF7E6] text-[#2D1B10]`}
     >
       <style>{scopedKeyframes}</style>
 
@@ -1305,6 +1636,7 @@ export function HarvestGreetingSite({
       {watermarked ? (
         <div
           aria-hidden="true"
+          style={hiSafeStyle(coreLang)}
           className="relative z-20 flex justify-center border-b border-[#9A6B22]/25 bg-[#FFFDF8]/92 py-1.5 text-[10px] font-bold tracking-[0.18em] text-[#C83E2B]"
         >
           {copy.previewBanner}
@@ -1314,7 +1646,10 @@ export function HarvestGreetingSite({
       <div className="relative z-10 mx-auto flex w-full max-w-xl flex-1 flex-col gap-5 p-4 pt-3.5 sm:px-5">
         {/* Top Utility Bar */}
         <header className="flex flex-wrap items-center justify-between gap-2">
-          <span className="inline-flex min-h-[34px] items-center rounded-full border border-[#9A6B22]/35 bg-[#FFFDF8]/95 px-3 py-1 text-[10.5px] font-bold tracking-wider text-[#7A5114] shadow-2xs">
+          <span
+            style={hiSafeStyle(coreLang)}
+            className="inline-flex min-h-[34px] items-center rounded-full border border-[#9A6B22]/35 bg-[#FFFDF8]/95 px-3 py-1 text-[10.5px] font-bold tracking-wider text-[#7A5114] shadow-2xs"
+          >
             {activeMeta.badge[coreLang]}
           </span>
           <button
@@ -1329,15 +1664,26 @@ export function HarvestGreetingSite({
         {/* Sunlit Festive Greeting Banner */}
         <div className="relative overflow-hidden rounded-3xl border border-[#9A6B22]/40 bg-gradient-to-br from-[#FFFDF8] via-[#FFF7E6] to-[#FDE8B8]/70 px-4 py-4 text-center shadow-[0_10px_28px_-14px_rgba(154,107,34,0.28)]">
           <MarigoldToranSvg />
-          <p className="mt-1 text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#1F6E4A]">
+          <p
+            style={hiSafeStyle(coreLang)}
+            className="mt-1 text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#1F6E4A]"
+          >
             {copy.heroSubline}
           </p>
-          <h1 className="mt-1 break-words font-heading text-2xl font-bold tracking-tight text-[#2D1B10]">
-            {data.receiverName}
+          <h1
+            style={hiSafeStyle(coreLang)}
+            className="mt-1 break-words font-heading text-2xl font-bold tracking-tight text-[#2D1B10]"
+          >
+            {receiverDisplay}
           </h1>
           <p className="mt-1 text-xs font-medium text-[#5A3D28]">
             {activeMeta.subtitle[coreLang]}
           </p>
+          {offerText ? (
+            <div className="mt-2.5 inline-flex max-w-full items-center justify-center rounded-full border border-[#E69F00]/55 bg-[#FFFDF8] px-3.5 py-1 text-[11px] font-bold text-[#C83E2B] shadow-2xs">
+              {offerText}
+            </div>
+          ) : null}
         </div>
 
         {/* SECTION 1: Interactive Festival Ritual Stage */}
@@ -1346,11 +1692,15 @@ export function HarvestGreetingSite({
           className="space-y-3.5 rounded-3xl border border-[#9A6B22]/35 bg-[#FFFDF8]/95 p-4 shadow-[0_8px_24px_-12px_rgba(154,107,34,0.2)]"
         >
           <div className="text-center">
-            <span className="inline-block rounded-full border border-[#9A6B22]/30 bg-[#FFF7E6] px-3 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#7A5114]">
+            <span
+              style={hiSafeStyle(coreLang)}
+              className="inline-block rounded-full border border-[#9A6B22]/30 bg-[#FFF7E6] px-3 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#7A5114]"
+            >
               {copy.stageEyebrow}
             </span>
             <h2
               id={`stage-heading-${uid}`}
+              style={hiSafeStyle(coreLang)}
               className="mt-1.5 font-heading text-lg font-bold text-[#2D1B10]"
             >
               {copy.stageTitle}
@@ -1414,22 +1764,41 @@ export function HarvestGreetingSite({
               },
             };
             const currentArt = festivalArtMap[activeFestival];
+            const isArtFailed = Boolean(failedArtSrc[currentArt.src]);
             return (
               <div className="overflow-hidden rounded-2xl border border-[#9A6B22]/35 bg-[#2D1B10]">
-                <div className="relative aspect-[4/3] w-full overflow-hidden">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    key={currentArt.src}
-                    src={currentArt.src}
-                    alt={FESTIVAL_META[activeFestival].tabLabel[coreLang]}
-                    className="h-full w-full object-cover transition duration-500"
-                  />
+                <div
+                  className="relative aspect-[4/3] w-full overflow-hidden"
+                  style={{
+                    background:
+                      'linear-gradient(145deg, #5A2815 0%, #9A6B22 55%, #E69F00 100%)',
+                  }}
+                >
+                  {!isArtFailed ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      key={currentArt.src}
+                      src={currentArt.src}
+                      alt={FESTIVAL_META[activeFestival].tabLabel[coreLang]}
+                      onError={() =>
+                        setFailedArtSrc((prev) => ({ ...prev, [currentArt.src]: true }))
+                      }
+                      className="h-full w-full object-cover transition duration-500"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center">
+                      <HarvestCrestSvg className="h-24 w-24 opacity-90" />
+                    </div>
+                  )}
                   <div
                     aria-hidden="true"
                     className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#26140B]/85 via-transparent to-transparent"
                   />
                   <div className="absolute inset-x-3 bottom-2.5 text-left text-[#FFF7E6]">
-                    <p className="font-heading text-sm font-bold leading-snug">
+                    <p
+                      style={hiSafeStyle(coreLang)}
+                      className="font-heading text-sm font-bold leading-snug"
+                    >
                       {FESTIVAL_META[activeFestival].tabLabel[coreLang]}
                     </p>
                     <p className="mt-0.5 text-[11.5px] leading-relaxed text-[#FDE8B8]/95">
@@ -1444,26 +1813,29 @@ export function HarvestGreetingSite({
           {activeFestival === 'sankranti' ? (
             <SankrantiStage
               uid={uid}
-              kiteCount={kiteCount}
-              altitudeBoost={kiteBoost}
+              altitudePct={sankrantiAltitude}
               cutBannerActive={cutDoriActive}
               onFlyKite={handleFlyKite}
               onCutDori={handleCutDori}
               copy={copy}
+              coreLang={coreLang}
             />
           ) : activeFestival === 'lohri' ? (
             <LohriStage
               uid={uid}
-              offerCount={lohriOfferings}
-              onTossOffering={() => setLohriOfferings((c) => c + 1)}
+              offeredItems={lohriOfferings}
+              onOfferItem={handleOfferLohriItem}
+              onOfferNext={handleOfferNextLohri}
               copy={copy}
+              coreLang={coreLang}
             />
           ) : (
             <PongalStage
               uid={uid}
-              boilCount={pongalBoils}
-              onCelebratePongal={() => setPongalBoils((c) => c + 1)}
+              simmerStep={pongalSimmerStep}
+              onCelebratePongal={handleSimmerPongal}
               copy={copy}
+              coreLang={coreLang}
             />
           )}
         </section>
@@ -1477,7 +1849,10 @@ export function HarvestGreetingSite({
             <KolamCornerSvg className="pointer-events-none absolute top-1 left-1" />
             <KolamCornerSvg className="pointer-events-none absolute top-1 right-1 -scale-x-100" />
 
-            <span className="relative z-10 inline-block rounded-full border border-[#9A6B22]/30 bg-[#FFF7E6] px-3.5 py-1 text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#7A5114]">
+            <span
+              style={hiSafeStyle(coreLang)}
+              className="relative z-10 inline-block rounded-full border border-[#9A6B22]/30 bg-[#FFF7E6] px-3.5 py-1 text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#7A5114]"
+            >
               {copy.letterEyebrow}
             </span>
 
@@ -1502,7 +1877,10 @@ export function HarvestGreetingSite({
 
             {data.highlights && data.highlights.length > 0 ? (
               <div className="clear-both mt-4 space-y-2 text-left">
-                <p className="text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#7A5114]">
+                <p
+                  style={hiSafeStyle(coreLang)}
+                  className="text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#7A5114]"
+                >
                   {copy.highlightsHeading}
                 </p>
                 {data.highlights.map((item, idx) => (
@@ -1523,34 +1901,38 @@ export function HarvestGreetingSite({
 
             <div className="clear-both mt-4 flex flex-wrap items-center justify-center gap-2 border-t border-[#9A6B22]/25 pt-3 text-xs font-semibold text-[#5A3D28]">
               <span>
-                {copy.forLabel} {data.receiverName}
+                {copy.forLabel} {receiverDisplay}
               </span>
               <span aria-hidden="true">·</span>
               <span className="text-[#C83E2B]">
-                {copy.fromLabel} {data.senderName}
+                {copy.fromLabel} {senderDisplay}
               </span>
             </div>
           </div>
         </section>
 
-        {/* SECTION 3: Interactive 3-Sweet Cultural Flipper */}
+        {/* SECTION 3: Festive Sweet Box Selector + 1-Tap WhatsApp Blessing Reply */}
         <section
           aria-labelledby={`sweets-heading-${uid}`}
-          className="rounded-3xl border border-[#9A6B22]/35 bg-[#FFFDF8]/95 p-4 shadow-[0_8px_24px_-12px_rgba(154,107,34,0.18)]"
+          className="space-y-3 rounded-3xl border border-[#9A6B22]/35 bg-[#FFFDF8]/95 p-4 shadow-[0_8px_24px_-12px_rgba(154,107,34,0.18)]"
         >
           <div className="text-center">
-            <span className="inline-block rounded-full border border-[#1F6E4A]/30 bg-[#FFF7E6] px-3 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#1F6E4A]">
+            <span
+              style={hiSafeStyle(coreLang)}
+              className="inline-block rounded-full border border-[#1F6E4A]/30 bg-[#FFF7E6] px-3 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#1F6E4A]"
+            >
               {copy.sweetsEyebrow}
             </span>
             <h2
               id={`sweets-heading-${uid}`}
+              style={hiSafeStyle(coreLang)}
               className="mt-1.5 font-heading text-lg font-bold text-[#2D1B10]"
             >
               {copy.sweetsTitle}
             </h2>
           </div>
 
-          <div className="mt-3 grid grid-cols-3 gap-1.5">
+          <div className="grid grid-cols-3 gap-1.5">
             {SWEET_ORDER.map((key) => {
               const isActive = activeSweet === key;
               return (
@@ -1561,7 +1943,7 @@ export function HarvestGreetingSite({
                   aria-pressed={isActive}
                   className={`min-h-[44px] rounded-xl border px-1.5 py-1.5 text-[11px] font-bold leading-tight transition active:scale-95 ${
                     isActive
-                      ? 'border-[#9A6B22] bg-[#FFF7E6] text-[#C83E2B] shadow-2xs'
+                      ? 'border-[#C83E2B] bg-[#FFF7E6] text-[#C83E2B] shadow-2xs ring-1 ring-[#C83E2B]/30'
                       : 'border-[#9A6B22]/25 bg-white text-[#5A3D28] hover:bg-[#FFF7E6]/60'
                   }`}
                 >
@@ -1575,13 +1957,16 @@ export function HarvestGreetingSite({
             type="button"
             onClick={handleToggleSweetFlip}
             aria-pressed={isCurrentSweetFlipped}
-            className="mt-3 flex min-h-[164px] w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#9A6B22]/45 bg-[#FFF7E6] p-4 text-center transition hover:border-[#C83E2B]/55 active:scale-[0.99]"
+            className="flex min-h-[164px] w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#9A6B22]/45 bg-[#FFF7E6] p-4 text-center transition hover:border-[#C83E2B]/55 active:scale-[0.99]"
           >
             {!isCurrentSweetFlipped ? (
               <div
                 key={`front-${activeSweet}`}
                 className={`harvest-fade-${uid} flex flex-col items-center gap-1.5`}
               >
+                <span className="rounded-full bg-[#1F6E4A]/12 px-2.5 py-0.5 text-[10px] font-bold text-[#1F6E4A]">
+                  {copy.sweetBoxSelectedTag}
+                </span>
                 <SweetEmblemSvg sweetKey={activeSweet} />
                 <p className="font-heading text-base font-bold text-[#2D1B10]">
                   {currentSweet.name[coreLang]}
@@ -1598,7 +1983,10 @@ export function HarvestGreetingSite({
                 key={`back-${activeSweet}`}
                 className={`harvest-fade-${uid} flex flex-col items-center gap-2`}
               >
-                <span className="rounded-full bg-[#1F6E4A] px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#FFF7E6]">
+                <span
+                  style={hiSafeStyle(coreLang)}
+                  className="rounded-full bg-[#1F6E4A] px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#FFF7E6]"
+                >
                   {copy.culturalMeaningLabel}
                 </span>
                 <p className="text-xs font-medium leading-relaxed text-[#2D1B10]">
@@ -1613,6 +2001,74 @@ export function HarvestGreetingSite({
               </div>
             )}
           </button>
+
+          {/* 1-Tap Copy Festive Blessing Reply for WhatsApp */}
+          <div className="space-y-2.5 rounded-2xl border border-[#9A6B22]/30 bg-[#FFF7E6] p-3.5 text-left">
+            <p
+              style={hiSafeStyle(coreLang)}
+              className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#7A5114]"
+            >
+              {copy.replyPreviewLabel}
+            </p>
+            <p className="rounded-xl border border-[#9A6B22]/20 bg-[#FFFDF8] px-3 py-2 text-xs leading-relaxed text-[#2D1B10]">
+              {festiveReplyText}
+            </p>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <button
+                type="button"
+                onClick={handleCopyFestiveReply}
+                className="inline-flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-full bg-[#C83E2B] px-4 py-2 text-xs font-bold text-[#FFF7E6] shadow-xs transition hover:bg-[#AE3221] active:scale-[0.98]"
+              >
+                {copiedReply ? (
+                  <svg className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path
+                      fillRule="evenodd"
+                      d="M16.704 5.29a1 1 0 010 1.42l-7.25 7.25a1 1 0 01-1.414 0l-3.25-3.25a1 1 0 111.414-1.42l2.543 2.543 6.543-6.543a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    className="h-4 w-4 shrink-0"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  >
+                    <rect x="9" y="9" width="13" height="13" rx="2" />
+                    <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                  </svg>
+                )}
+                <span>{copy.copyReplyCta}</span>
+              </button>
+
+              {replyWaHref ? (
+                <a
+                  href={replyWaHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-[44px] shrink-0 items-center justify-center gap-1.5 rounded-full bg-[#1F6E4A] px-4 py-2 text-xs font-bold text-[#FFF7E6] shadow-xs transition hover:bg-[#175539] active:scale-[0.98]"
+                >
+                  <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91C21.95 6.45 17.5 2 12.04 2zm5.79 14.07c-.24.68-1.41 1.3-1.95 1.38-.5.07-1.13.1-1.82-.12-.42-.13-.96-.31-1.65-.61-2.91-1.26-4.81-4.19-4.96-4.38-.14-.19-1.18-1.57-1.18-2.99 0-1.42.74-2.12 1.01-2.41.26-.29.58-.36.77-.36.19 0 .39 0 .56.01.18.01.42-.07.66.5.24.58.82 2 .89 2.15.07.14.12.31.02.5-.1.19-.14.31-.29.48-.14.17-.3.38-.43.51-.14.14-.29.3-.12.59.17.29.75 1.24 1.61 2 1.11.99 2.04 1.29 2.33 1.44.29.14.46.12.63-.07.17-.19.72-.84.91-1.13.19-.29.39-.24.65-.14.26.1 1.68.79 1.97.94.29.14.48.22.55.34.07.12.07.7-.17 1.38z" />
+                  </svg>
+                  <span>{copy.sendWhatsappReplyCta}</span>
+                </a>
+              ) : null}
+            </div>
+
+            <div aria-live="polite" className="min-h-[1px]">
+              {copiedReply ? (
+                <p
+                  role="status"
+                  className={`harvest-pop-${uid} rounded-lg bg-[#1F6E4A] px-3 py-1.5 text-center text-[11px] font-semibold text-[#FFF7E6]`}
+                >
+                  {copy.copiedReplyToast}
+                </p>
+              ) : null}
+            </div>
+          </div>
         </section>
 
         {/* SECTION 4: Adaptive Memories */}
@@ -1621,11 +2077,15 @@ export function HarvestGreetingSite({
           className="rounded-3xl border border-[#9A6B22]/35 bg-[#FFFDF8]/95 p-4 shadow-[0_8px_24px_-12px_rgba(154,107,34,0.18)]"
         >
           <div className="text-center">
-            <span className="inline-block rounded-full border border-[#9A6B22]/30 bg-[#FFF7E6] px-3.5 py-1 text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#7A5114]">
+            <span
+              style={hiSafeStyle(coreLang)}
+              className="inline-block rounded-full border border-[#9A6B22]/30 bg-[#FFF7E6] px-3.5 py-1 text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#7A5114]"
+            >
               {copy.albumEyebrow}
             </span>
             <h2
               id={`album-heading-${uid}`}
+              style={hiSafeStyle(coreLang)}
               className="mt-2 font-heading text-lg font-bold text-[#2D1B10]"
             >
               {copy.albumTitle}
@@ -1672,11 +2132,15 @@ export function HarvestGreetingSite({
         >
           <div className="text-center">
             <MarigoldToranSvg />
-            <span className="mt-1 inline-block rounded-full border border-[#C83E2B]/30 bg-[#FFF7E6] px-3.5 py-1 text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#C83E2B]">
+            <span
+              style={hiSafeStyle(coreLang)}
+              className="mt-1 inline-block rounded-full border border-[#C83E2B]/30 bg-[#FFF7E6] px-3.5 py-1 text-[10.5px] font-bold uppercase tracking-[0.12em] text-[#C83E2B]"
+            >
               {copy.returnEyebrow}
             </span>
             <h2
               id={`return-heading-${uid}`}
+              style={hiSafeStyle(coreLang)}
               className="mt-2 font-heading text-lg font-bold text-[#2D1B10]"
             >
               {copy.returnTitle}
@@ -1716,7 +2180,7 @@ export function HarvestGreetingSite({
           </div>
 
           <div className="rounded-xl border border-[#9A6B22]/30 bg-[#FFF7E6] px-3 py-2 text-center text-xs font-semibold text-[#7A5114]">
-            {copy.returnAddressedTo(data.senderName, data.receiverName)}
+            {copy.returnAddressedTo(senderDisplay, receiverDisplay)}
           </div>
 
           {/* Warm dark terracotta wax-seal sanctuary so HoldToChargeRing contrast stays crisp */}
@@ -1749,7 +2213,7 @@ export function HarvestGreetingSite({
                   </svg>
                   <div className="min-w-0">
                     <p className="text-xs font-bold">
-                      {copy.returnToastTitle(data.senderName)} ({sealCount})
+                      {copy.returnToastTitle(senderDisplay)} ({sealCount})
                     </p>
                     <p className="mt-0.5 text-[11px] font-medium text-[#FFF7E6]/90">
                       {chosenBlessing.label[coreLang]} — {copy.returnToastBody}

@@ -137,7 +137,7 @@ const ATELIER_PLATES: readonly ShowcasePlate[] = [
     discipline: 'Bespoke Destination Weddings',
     title: 'Royal Heritage & Couture Vivah',
     subtitle:
-      'Custom illustrated palace or villa gates opening in 3D, multi-day ceremony itinerary, live guest RSVP management, hospitality & travel guide, and 10 Indian language editions.',
+      'Custom illustrated palace or villa gates opening in 3D, multi-day ceremony itinerary, live guest RSVP management, hospitality & travel guide, and 9 Indian language editions.',
     coverImage: '/templates/wedding-emerald-01/art/jharokha-scene-wide.jpg',
     secondaryImage: '/templates/weddings/art/ceremony-rose-wide.jpg',
     customPrice: '₹1,999+',
@@ -597,7 +597,7 @@ export function StudioWaitlistClient({
             href="/themes"
             className="inline-flex min-h-[38px] items-center rounded-full border border-[#171315]/15 bg-[#FFFEFC] px-4 text-xs font-bold text-[#171315] transition hover:border-[#9F184B] hover:text-[#9F184B]"
           >
-            All 17 Ready-Made Products →
+            Browse Ready-Made Themes →
           </Link>
         </div>
 

@@ -258,7 +258,7 @@ export function WeddingsClient({
   const [reqErrorMsg, setReqErrorMsg] = useState('');
   const [capacityFullOverride, setCapacityFullOverride] = useState(false);
 
-  // Persist chosen add-ons for checkout continuity
+  // Persist chosen add-ons for checkout continuity (and clear when all unchecked)
   useEffect(() => {
     const activeIds: AddonId[] = (Object.keys(selectedAddons) as WeddingOptionalAddonId[]).filter(
       (k) => selectedAddons[k],
@@ -266,6 +266,8 @@ export function WeddingsClient({
     try {
       if (activeIds.length > 0) {
         window.localStorage.setItem(PREFERRED_ADDONS_KEY, JSON.stringify(activeIds));
+      } else {
+        window.localStorage.removeItem(PREFERRED_ADDONS_KEY);
       }
     } catch {
       // Ignore storage write errors
@@ -295,7 +297,6 @@ export function WeddingsClient({
     () => Math.min(...WEDDING_EDITIONS.map((e) => e.priceInr)),
     [],
   );
-  const baseEdition = WEDDING_EDITIONS[0];
   const basePriceLabel = formatInrComma(minEditionPrice);
   const addonCatalogLookup = ADDON_CATALOG as Record<
     string,
@@ -735,7 +736,7 @@ export function WeddingsClient({
                       Optional Checkout Add-Ons (7d included free)
                     </span>
                   </div>
-                  <div className="mt-2 grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+                  <div className="mt-2 grid grid-cols-2 gap-1.5 sm:grid-cols-4">
                     {OPTIONAL_ADDONS.map((addon) => {
                       const active = selectedAddons[addon.id];
                       const price = addonCatalogLookup[addon.id]?.priceInr ?? addon.fallbackPriceInr;
@@ -1333,45 +1334,6 @@ export function WeddingsClient({
                 </div>
               </div>
             )}
-          </div>
-        </div>
-      </section>
-
-      {/* ===== 9. CLOSING CTA BAND ===== */}
-      <section className="mx-auto max-w-6xl px-3.5 py-9 sm:px-6 sm:py-14">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#6B0F1E] via-[#4A0B16] to-[#1A1317] p-6 text-[#FAF6EE] shadow-[0_26px_58px_-24px_rgba(74,11,22,0.55)] sm:p-10">
-          <div className="pointer-events-none absolute -right-10 -top-10 h-44 w-44 rounded-full bg-[#C9A243]/15" aria-hidden="true" />
-          <div className="relative max-w-xl">
-            <p className="text-[10.5px] font-bold uppercase tracking-[0.2em] text-[#E4C77B]">
-              Shubh Vivah · Digital Keepsake
-            </p>
-            <h2 className="mt-1.5 font-royal-serif text-2xl font-semibold sm:text-4xl">
-              Your family invitation, ready in five minutes.
-            </h2>
-            <p className="mt-2 text-xs text-[#FAF6EE]/80 sm:text-sm">
-              Choose one of {WEDDING_EDITIONS.length} royal editions starting at {basePriceLabel},
-              or reserve a bespoke commission tailored to your celebration.
-            </p>
-            <div className="mt-5 flex flex-col gap-2.5 sm:flex-row">
-              <a
-                href="#atelier-collection"
-                className="btn-spring inline-flex min-h-[46px] items-center justify-center rounded-full bg-[#D4AF37] px-6 text-xs font-bold uppercase tracking-[0.14em] text-[#1A1317] shadow-md transition hover:bg-[#E2C258]"
-              >
-                Pick a Ready-Made Edition
-              </a>
-              <Link
-                href="/pricing"
-                className="inline-flex min-h-[46px] items-center justify-center rounded-full border border-[#E4C77B]/45 px-6 text-xs font-bold uppercase tracking-[0.14em] text-[#FAF6EE] transition hover:bg-white/10"
-              >
-                Compare All Prices
-              </Link>
-              <Link
-                href={`/weddings/${baseEdition.id}/customize`}
-                className="inline-flex min-h-[46px] items-center justify-center rounded-full border border-white/25 px-6 text-xs font-bold uppercase tracking-[0.14em] text-[#FAF6EE] transition hover:bg-white/10"
-              >
-                Start Customizing →
-              </Link>
-            </div>
           </div>
         </div>
       </section>

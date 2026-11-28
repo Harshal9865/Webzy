@@ -191,22 +191,6 @@ export function CustomRequestClient({
                     <option value="other">Other</option>
                   </select>
                 </div>
-                <div>
-                  <label htmlFor="req-budget" className="block text-xs font-bold text-webzy-ink">
-                    Budget range
-                  </label>
-                  <select
-                    suppressHydrationWarning
-                    id="req-budget"
-                    value={budgetTier}
-                    onChange={(e) => setBudgetTier(e.target.value)}
-                    className="mt-1 min-h-[44px] w-full rounded-xl border border-webzy-tint bg-white px-3 text-sm text-webzy-ink"
-                  >
-                    <option value="2999-4999">₹2,999 – ₹4,999</option>
-                    <option value="5000-9999">₹5,000 – ₹9,999</option>
-                    <option value="10000+">₹10,000+</option>
-                  </select>
-                </div>
               </div>
 
               <div>

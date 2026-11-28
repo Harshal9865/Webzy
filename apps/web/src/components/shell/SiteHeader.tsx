@@ -336,6 +336,15 @@ export function SiteHeader({ config: _config }: SiteHeaderProps) {
                       {/* Quick Links */}
                       <div className="p-1.5">
                         <Link
+                          href="/profile"
+                          role="menuitem"
+                          onClick={() => setProfileMenuOpen(false)}
+                          className="flex min-h-[44px] items-center rounded-lg px-3 py-2 text-sm font-medium text-webzy-ink/85 transition hover:bg-webzy-ink/[0.04] hover:text-webzy-ink"
+                        >
+                          <span>{site.common.myProfile}</span>
+                        </Link>
+
+                        <Link
                           href="/orders"
                           role="menuitem"
                           onClick={() => setProfileMenuOpen(false)}
@@ -347,15 +356,6 @@ export function SiteHeader({ config: _config }: SiteHeaderProps) {
                               {ordersCount}
                             </span>
                           ) : null}
-                        </Link>
-
-                        <Link
-                          href="/profile"
-                          role="menuitem"
-                          onClick={() => setProfileMenuOpen(false)}
-                          className="flex min-h-[44px] items-center rounded-lg px-3 py-2 text-sm font-medium text-webzy-ink/85 transition hover:bg-webzy-ink/[0.04] hover:text-webzy-ink"
-                        >
-                          <span>{site.common.myProfile}</span>
                         </Link>
                       </div>
 
@@ -619,6 +619,18 @@ export function SiteHeader({ config: _config }: SiteHeaderProps) {
                   <ul className="space-y-0.5">
                     <li>
                       <Link
+                        href="/profile"
+                        onClick={() => setMenuOpen(false)}
+                        className={`flex min-h-[44px] items-center justify-between rounded-lg px-3 text-[15px] transition-colors ${isProfileActive
+                          ? 'bg-webzy-primary/[0.07] font-semibold text-webzy-primary'
+                          : 'font-medium text-webzy-ink/85 hover:bg-webzy-ink/[0.04] hover:text-webzy-ink'
+                          }`}
+                      >
+                        <span>{site.common.myProfile}</span>
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
                         href="/orders"
                         onClick={() => setMenuOpen(false)}
                         className={`flex min-h-[44px] items-center justify-between rounded-lg px-3 text-[15px] transition-colors ${isOrdersActive
@@ -632,18 +644,6 @@ export function SiteHeader({ config: _config }: SiteHeaderProps) {
                             {ordersCount}
                           </span>
                         ) : null}
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        href="/profile"
-                        onClick={() => setMenuOpen(false)}
-                        className={`flex min-h-[44px] items-center justify-between rounded-lg px-3 text-[15px] transition-colors ${isProfileActive
-                          ? 'bg-webzy-primary/[0.07] font-semibold text-webzy-primary'
-                          : 'font-medium text-webzy-ink/85 hover:bg-webzy-ink/[0.04] hover:text-webzy-ink'
-                          }`}
-                      >
-                        <span>{site.common.myProfile}</span>
                       </Link>
                     </li>
                     <li>
@@ -676,10 +676,8 @@ export function SiteHeader({ config: _config }: SiteHeaderProps) {
                 </div>
               </div>
 
-              {/* Bottom Bar: Language Selector + Primary Action */}
-              <div className="shrink-0 border-t border-webzy-ink/[0.07] bg-white px-5 py-4 space-y-3">
-                <LanguageSelectorButton variant="drawer" />
-
+              {/* Bottom Bar: Primary Action */}
+              <div className="shrink-0 border-t border-webzy-ink/[0.07] bg-white px-5 py-4">
                 <Link
                   href="/themes"
                   onClick={() => setMenuOpen(false)}

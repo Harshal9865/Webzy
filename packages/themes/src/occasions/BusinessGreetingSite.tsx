@@ -21,6 +21,21 @@ import {
 } from './shared/OccasionPrimitives';
 
 type InquiryIntentKey = 'bookVisit' | 'viewCatalogue' | 'claimVipOffer' | 'customOrder';
+type HamperCompartmentKey = 'mithai' | 'card' | 'vipPass';
+type CallSlotKey = 'morning' | 'afternoon' | 'evening';
+
+interface HamperCompartmentCopy {
+  title: string;
+  closedHint: string;
+  eyebrow: string;
+  body: string;
+  footerTag: string;
+}
+
+interface CallSlotCopy {
+  label: string;
+  window: string;
+}
 
 interface PillarItem {
   key: 'craftsmanship' | 'priorityCare' | 'bespokeFinishing';
@@ -48,6 +63,19 @@ interface LocalizedBoutiqueCopy {
   verifiedBadge: string;
   brandNoteEyebrow: string;
   signedByLabel: string;
+  festiveEditionSuffix: string;
+  vipEditionBadge: string;
+  hamperEyebrow: string;
+  hamperHeading: string;
+  hamperSubtitle: string;
+  hamperProgress: (count: number) => string;
+  hamperUnboxAllCta: string;
+  hamperResealCta: string;
+  hamperTapToUnbox: string;
+  hamperUnboxedLabel: string;
+  hamperCardSalutation: (receiver: string) => string;
+  hamperCardSignoff: (sender: string) => string;
+  hamperCompartments: Record<HamperCompartmentKey, HamperCompartmentCopy>;
   ticketEyebrow: string;
   ticketHeader: string;
   ticketSublabel: string;
@@ -69,6 +97,10 @@ interface LocalizedBoutiqueCopy {
   conciergeEyebrow: string;
   conciergeHeading: string;
   conciergeSubtitle: string;
+  slotHeading: string;
+  slotSubtitle: string;
+  slots: Record<CallSlotKey, CallSlotCopy>;
+  slotSummaryPrefix: string;
   intentHeading: string;
   intents: Record<InquiryIntentKey, string>;
   quickNoteLabel: string;
@@ -94,6 +126,41 @@ const BUSINESS_COPY: Record<CoreLanguageCode, LocalizedBoutiqueCopy> = {
     verifiedBadge: 'Verified Atelier Boutique',
     brandNoteEyebrow: 'Personal Brand Note',
     signedByLabel: 'With warm regards,',
+    festiveEditionSuffix: 'Festive Edition',
+    vipEditionBadge: 'VIP EDITION',
+    hamperEyebrow: 'FESTIVE EXECUTIVE HAMPER',
+    hamperHeading: 'Unbox Your Executive Gift',
+    hamperSubtitle: 'Tap each brass-framed compartment to reveal your curated festive keepsake',
+    hamperProgress: (count) => `${count}/3 Compartments Unboxed`,
+    hamperUnboxAllCta: 'Unbox All',
+    hamperResealCta: 'Re-seal Box',
+    hamperTapToUnbox: 'Tap to Unbox',
+    hamperUnboxedLabel: 'Unboxed',
+    hamperCardSalutation: (receiver) => `Dear ${receiver},`,
+    hamperCardSignoff: (sender) => `Warm regards, ${sender}`,
+    hamperCompartments: {
+      mithai: {
+        title: 'Artisanal Mithai & Saffron Tin',
+        closedHint: 'Sealed brass tin · Kashmiri saffron & roasted pistachio',
+        eyebrow: 'COMPARTMENT 01 · TASTING EDITION',
+        body: 'Hand-rolled saffron peda, roasted Iranian pistachio barfi, and whole Pampore kesar strands packed fresh for a prosperous season.',
+        footerTag: 'Small-Batch Festive Assortment',
+      },
+      card: {
+        title: 'Handwritten Executive Card',
+        closedHint: 'Heavy cotton stationery · Wax-pressed appreciation note',
+        eyebrow: 'COMPARTMENT 02 · PERSONAL NOTE',
+        body: 'Thank you for your enduring trust and partnership. We look forward to crafting new milestones together in the season ahead.',
+        footerTag: 'Gold-Leaf Executive Stationery',
+      },
+      vipPass: {
+        title: 'VIP Privilege Pass',
+        closedHint: 'Brushed brass card · Priority patron hospitality access',
+        eyebrow: 'COMPARTMENT 03 · PATRON PRIVILEGE',
+        body: 'Present this digital pass or privilege code during your next private consultation or festive order.',
+        footerTag: 'Direct Concierge Entitlement',
+      },
+    },
     ticketEyebrow: 'PRIVATE PATRON VOUCHER',
     ticketHeader: 'THE PRIVILEGE TICKET',
     ticketSublabel: 'VIP PRIVILEGE',
@@ -153,7 +220,15 @@ const BUSINESS_COPY: Record<CoreLanguageCode, LocalizedBoutiqueCopy> = {
     ],
     conciergeEyebrow: 'DIRECT DESK',
     conciergeHeading: 'Priority WhatsApp Concierge Desk',
-    conciergeSubtitle: 'Choose your request and connect directly with our boutique host',
+    conciergeSubtitle: 'Choose your request, pick a call slot, and connect directly with our boutique host',
+    slotHeading: 'Schedule a Courtesy Call / Priority Meeting',
+    slotSubtitle: 'Optional time window pre-filled in your WhatsApp greeting',
+    slots: {
+      morning: { label: 'Morning 10–12', window: '10:00 AM – 12:00 PM' },
+      afternoon: { label: 'Afternoon 2–5', window: '2:00 PM – 5:00 PM' },
+      evening: { label: 'Evening 5–7', window: '5:00 PM – 7:00 PM' },
+    },
+    slotSummaryPrefix: 'Preferred Slot',
     intentHeading: 'Select Inquiry Intent',
     intents: {
       bookVisit: 'Book Visit',
@@ -183,6 +258,41 @@ const BUSINESS_COPY: Record<CoreLanguageCode, LocalizedBoutiqueCopy> = {
     verifiedBadge: 'Verified Atelier Boutique',
     brandNoteEyebrow: 'Personal Brand Note',
     signedByLabel: 'Saadar abhaar ke saath,',
+    festiveEditionSuffix: 'Festive Edition',
+    vipEditionBadge: 'VIP EDITION',
+    hamperEyebrow: 'FESTIVE EXECUTIVE HAMPER',
+    hamperHeading: 'Apna Executive Gift Hamper Unbox Karein',
+    hamperSubtitle: 'Har brass-framed compartment par tap karke apna festive keepsake dekhein',
+    hamperProgress: (count) => `${count}/3 Compartments Unboxed`,
+    hamperUnboxAllCta: 'Sab Unbox Karein',
+    hamperResealCta: 'Box Band Karein',
+    hamperTapToUnbox: 'Unbox Karne Ke Liye Tap Karein',
+    hamperUnboxedLabel: 'Khul Gaya',
+    hamperCardSalutation: (receiver) => `Priya ${receiver},`,
+    hamperCardSignoff: (sender) => `Saadar abhaar, ${sender}`,
+    hamperCompartments: {
+      mithai: {
+        title: 'Artisanal Mithai & Saffron Tin',
+        closedHint: 'Sealed brass tin · Kashmiri kesar aur roasted pista',
+        eyebrow: 'COMPARTMENT 01 · TASTING EDITION',
+        body: 'Haath se bani kesar peda, roasted pista barfi aur shuddh Kashmiri kesar — aapke parivaar aur team ke liye tyohar ki mithaas.',
+        footerTag: 'Small-Batch Festive Assortment',
+      },
+      card: {
+        title: 'Handwritten Executive Card',
+        closedHint: 'Cotton stationery · Aapke naam ka khaas executive sandesh',
+        eyebrow: 'COMPARTMENT 02 · PERSONAL NOTE',
+        body: 'Aapke bharose aur saath ke liye dil se dhanyavaad. Aane wale samay mein saath milkar nayi unchaiyon ki shubhkamnayein.',
+        footerTag: 'Gold-Leaf Executive Stationery',
+      },
+      vipPass: {
+        title: 'VIP Privilege Pass',
+        closedHint: 'Brushed brass card · Priority patron hospitality access',
+        eyebrow: 'COMPARTMENT 03 · PATRON PRIVILEGE',
+        body: 'Apni agli private meeting ya festive order mein is digital pass ya privilege code ka upyog karein.',
+        footerTag: 'Direct Concierge Entitlement',
+      },
+    },
     ticketEyebrow: 'KHAS PATRON VOUCHER',
     ticketHeader: 'THE PRIVILEGE TICKET',
     ticketSublabel: 'VIP PRIVILEGE',
@@ -242,7 +352,15 @@ const BUSINESS_COPY: Record<CoreLanguageCode, LocalizedBoutiqueCopy> = {
     ],
     conciergeEyebrow: 'SEEDHA SAMPARK',
     conciergeHeading: 'Priority WhatsApp Concierge Desk',
-    conciergeSubtitle: 'Apna vishay chunein aur hamare boutique desk se seedhe judein',
+    conciergeSubtitle: 'Apna vishay aur call slot chunein aur hamare boutique desk se seedhe judein',
+    slotHeading: 'Courtesy Call / Priority Meeting Schedule Karein',
+    slotSubtitle: 'Aapka chuna hua slot seedha WhatsApp message mein jud jayega',
+    slots: {
+      morning: { label: 'Morning 10–12', window: 'Subah 10 – 12 baje' },
+      afternoon: { label: 'Afternoon 2–5', window: 'Dopahar 2 – 5 baje' },
+      evening: { label: 'Evening 5–7', window: 'Shaam 5 – 7 baje' },
+    },
+    slotSummaryPrefix: 'Pasandida Slot',
     intentHeading: 'Inquiry Intent Chunein',
     intents: {
       bookVisit: 'Book Visit',
@@ -272,6 +390,41 @@ const BUSINESS_COPY: Record<CoreLanguageCode, LocalizedBoutiqueCopy> = {
     verifiedBadge: 'सत्यापित बुटीक ब्रांड',
     brandNoteEyebrow: 'व्यक्तिगत ब्रांड संदेश',
     signedByLabel: 'सादर आभार सहित,',
+    festiveEditionSuffix: 'उत्सव संस्करण',
+    vipEditionBadge: 'VIP संस्करण',
+    hamperEyebrow: 'उत्सव कार्यकारी उपहार बॉक्स',
+    hamperHeading: 'अपना विशेष उपहार बॉक्स खोलें',
+    hamperSubtitle: 'प्रत्येक पीतल-फ्रेम खंड पर टैप कर अपना उत्सव उपहार देखें',
+    hamperProgress: (count) => `${count}/3 खंड खोले गए`,
+    hamperUnboxAllCta: 'सभी खोलें',
+    hamperResealCta: 'बॉक्स बंद करें',
+    hamperTapToUnbox: 'खोलने के लिए टैप करें',
+    hamperUnboxedLabel: 'खुला हुआ',
+    hamperCardSalutation: (receiver) => `प्रिय ${receiver},`,
+    hamperCardSignoff: (sender) => `सादर आभार, ${sender}`,
+    hamperCompartments: {
+      mithai: {
+        title: 'शाही मिठाई एवं केसर टिन',
+        closedHint: 'पीतल टिन · कश्मीरी केसर व भुने पिस्ता का संगम',
+        eyebrow: 'खंड 01 · उत्सव मिष्ठान',
+        body: 'हस्तनिर्मित केसर पेड़ा, भुनी पिस्ता बर्फी और शुद्ध कश्मीरी केसर — आपके परिवार और सहयोगियों के लिए मंगल शुभकामना।',
+        footerTag: 'सीमित उत्सव संस्करण',
+      },
+      card: {
+        title: 'हस्तलिखित कार्यकारी सम्मान पत्र',
+        closedHint: 'कॉटन स्टेशनरी · आपके नाम विशेष आभार संदेश',
+        eyebrow: 'खंड 02 · व्यक्तिगत संदेश',
+        body: 'आपके निरंतर विश्वास और सहभागिता के लिए हार्दिक आभार। आगामी वर्ष में हम साथ मिलकर नई उपलब्धियों की कामना करते हैं।',
+        footerTag: 'स्वर्ण-मुद्रित सम्मान पत्र',
+      },
+      vipPass: {
+        title: 'VIP प्रिविलेज पास',
+        closedHint: 'ब्रश्ड ब्रास पास · प्राथमिक सत्कार व विशेष लाभ',
+        eyebrow: 'खंड 03 · विशेष सम्मान',
+        body: 'अपनी अगली निजी भेंट या उत्सव ऑर्डर के समय इस डिजिटल पास अथवा विशेष कोड का उपयोग करें।',
+        footerTag: 'सीधा प्राथमिकता अधिकार',
+      },
+    },
     ticketEyebrow: 'विशेष सम्मान वाउचर',
     ticketHeader: 'प्रिविलेज टिकट',
     ticketSublabel: 'VIP सम्मान',
@@ -331,7 +484,15 @@ const BUSINESS_COPY: Record<CoreLanguageCode, LocalizedBoutiqueCopy> = {
     ],
     conciergeEyebrow: 'सीधा संपर्क',
     conciergeHeading: 'प्राथमिक WhatsApp संपर्क डेस्क',
-    conciergeSubtitle: 'अपना विषय चुनें और सीधे हमारे बुटीक मेज़बान से जुड़ें',
+    conciergeSubtitle: 'अपना विषय व समय स्लॉट चुनें और सीधे हमारे बुटीक मेज़बान से जुड़ें',
+    slotHeading: 'सौजन्य कॉल / प्राथमिकता भेंट का समय चुनें',
+    slotSubtitle: 'चुना गया समय आपके WhatsApp संदेश में स्वतः जुड़ जाएगा',
+    slots: {
+      morning: { label: 'प्रातः 10–12', window: 'सुबह 10:00 – दोपहर 12:00' },
+      afternoon: { label: 'दोपहर 2–5', window: 'दोपहर 2:00 – शाम 5:00' },
+      evening: { label: 'संध्या 5–7', window: 'शाम 5:00 – 7:00' },
+    },
+    slotSummaryPrefix: 'पसंदीदा समय',
     intentHeading: 'संपर्क का विषय चुनें',
     intents: {
       bookVisit: 'विज़िट बुक करें',
@@ -358,11 +519,52 @@ const INTENT_KEYS: readonly InquiryIntentKey[] = [
   'customOrder',
 ];
 
+const HAMPER_KEYS: readonly HamperCompartmentKey[] = ['mithai', 'card', 'vipPass'];
+
+const CALL_SLOT_KEYS: readonly CallSlotKey[] = ['morning', 'afternoon', 'evening'];
+
 const PILLAR_KEYS: readonly PillarItem['key'][] = [
   'craftsmanship',
   'priorityCare',
   'bespokeFinishing',
 ];
+
+function hiSafeStyle(lang: CoreLanguageCode): React.CSSProperties | undefined {
+  if (lang === 'hi') {
+    return { fontStyle: 'normal', letterSpacing: '0em' };
+  }
+  return undefined;
+}
+
+function HamperCompartmentIcon({ kind }: { kind: HamperCompartmentKey }) {
+  if (kind === 'mithai') {
+    return (
+      <svg viewBox="0 0 36 36" className="h-7 w-7 text-[#C89D4C]" fill="none" aria-hidden="true">
+        <ellipse cx="18" cy="12" rx="11" ry="4.5" stroke="currentColor" strokeWidth="1.6" fill="currentColor" fillOpacity="0.16" />
+        <path d="M7 12v11c0 2.6 4.9 4.5 11 4.5s11-1.9 11-4.5V12" stroke="currentColor" strokeWidth="1.6" />
+        <path d="M13 11c1.4-2.2 3.4-3.4 5-3.4s3.6 1.2 5 3.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+        <circle cx="18" cy="19.5" r="2.2" fill="currentColor" />
+      </svg>
+    );
+  }
+  if (kind === 'card') {
+    return (
+      <svg viewBox="0 0 36 36" className="h-7 w-7 text-[#C89D4C]" fill="none" aria-hidden="true">
+        <rect x="6" y="8" width="24" height="20" rx="2.5" stroke="currentColor" strokeWidth="1.6" fill="currentColor" fillOpacity="0.12" />
+        <path d="M7.5 10l10.5 8 10.5-8" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+        <circle cx="18" cy="19" r="3" fill="currentColor" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 36 36" className="h-7 w-7 text-[#C89D4C]" fill="none" aria-hidden="true">
+      <rect x="5" y="9" width="26" height="18" rx="3" stroke="currentColor" strokeWidth="1.6" fill="currentColor" fillOpacity="0.14" />
+      <path d="M5 14h26" stroke="currentColor" strokeWidth="1.4" />
+      <path d="M10 21h9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <circle cx="25.5" cy="21" r="2.2" fill="currentColor" />
+    </svg>
+  );
+}
 
 function extractMonogram(primaryName: string, secondaryName: string): string {
   const source = primaryName.trim() || secondaryName.trim() || 'AT';
@@ -472,6 +674,15 @@ export function BusinessGreetingSite({
 }: OccasionSiteProps) {
   const [opened, setOpened] = useState(false);
   const [selectedIntent, setSelectedIntent] = useState<InquiryIntentKey>('bookVisit');
+  const [selectedSlot, setSelectedSlot] = useState<CallSlotKey | null>('morning');
+  const [unboxedCompartments, setUnboxedCompartments] = useState<
+    Record<HamperCompartmentKey, boolean>
+  >({
+    mithai: false,
+    card: false,
+    vipPass: false,
+  });
+  const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
   const [customNote, setCustomNote] = useState('');
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedInquiry, setCopiedInquiry] = useState(false);
@@ -485,6 +696,7 @@ export function BusinessGreetingSite({
 
   const senderDisplay = data.senderName.trim();
   const receiverDisplay = data.receiverName.trim() || 'VIP Patron';
+  const relationBadge = data.relation?.trim() || '';
   const senderMonogram = extractMonogram(senderDisplay, receiverDisplay);
 
   const offerText = data.offerTag ? pickLocalizedText(data.offerTag, language).trim() : '';
@@ -494,6 +706,8 @@ export function BusinessGreetingSite({
   const openingHeadline = pickLocalizedText(data.headline, language).trim() || receiverDisplay;
   const brandMessage = pickLocalizedText(data.message, language).trim();
   const signatureName = senderDisplay || receiverDisplay;
+
+  const unboxedCount = HAMPER_KEYS.filter((k) => unboxedCompartments[k]).length;
 
   const pillarCards = useMemo(() => {
     const customHighlights = (data.highlights ?? [])
@@ -519,19 +733,75 @@ export function BusinessGreetingSite({
   }, [copy.ambienceTracks, manifest.music]);
 
   const selectedIntentLabel = copy.intents[selectedIntent];
+  const selectedSlotInfo = selectedSlot ? copy.slots[selectedSlot] : null;
   const validWa = sanitizeWhatsappPhone(data.whatsappPhone);
-  const composedInquiry = [
-    `Hello ${receiverDisplay},`,
-    `Inquiry: ${selectedIntentLabel}.`,
-    `Privilege Code: ${privilegeCode}.`,
-    customNote.trim() ? `Note: ${customNote.trim()}` : '',
-  ]
-    .filter(Boolean)
-    .join(' ');
+  const composedInquiry = useMemo(() => {
+    const recipient = senderDisplay || signatureName;
+    if (coreLang === 'hi') {
+      return [
+        `नमस्कार ${recipient},`,
+        `यह संदेश ${receiverDisplay} की ओर से है।`,
+        `विषय: ${selectedIntentLabel}।`,
+        selectedSlotInfo ? `${copy.slotSummaryPrefix}: ${selectedSlotInfo.label} (${selectedSlotInfo.window})।` : '',
+        `विशेष कोड: ${privilegeCode}।`,
+        customNote.trim() ? `संदेश: ${customNote.trim()}` : '',
+      ]
+        .filter(Boolean)
+        .join(' ');
+    }
+    if (coreLang === 'hinglish') {
+      return [
+        `Namaste ${recipient},`,
+        `Main ${receiverDisplay} ki taraf se sampark kar raha/rahi hoon.`,
+        `Inquiry: ${selectedIntentLabel}.`,
+        selectedSlotInfo ? `${copy.slotSummaryPrefix}: ${selectedSlotInfo.label} (${selectedSlotInfo.window}).` : '',
+        `Privilege Code: ${privilegeCode}.`,
+        customNote.trim() ? `Note: ${customNote.trim()}` : '',
+      ]
+        .filter(Boolean)
+        .join(' ');
+    }
+    return [
+      `Hello ${recipient},`,
+      `Warm festive regards from ${receiverDisplay}.`,
+      `Inquiry: ${selectedIntentLabel}.`,
+      selectedSlotInfo ? `${copy.slotSummaryPrefix}: ${selectedSlotInfo.label} (${selectedSlotInfo.window}).` : '',
+      `Privilege Code: ${privilegeCode}.`,
+      customNote.trim() ? `Note: ${customNote.trim()}` : '',
+    ]
+      .filter(Boolean)
+      .join(' ');
+  }, [
+    coreLang,
+    senderDisplay,
+    signatureName,
+    receiverDisplay,
+    selectedIntentLabel,
+    selectedSlotInfo,
+    copy.slotSummaryPrefix,
+    privilegeCode,
+    customNote,
+  ]);
 
   const waHref = validWa
     ? `https://wa.me/${validWa}?text=${encodeURIComponent(composedInquiry)}`
     : null;
+
+  function handleToggleCompartment(key: HamperCompartmentKey) {
+    setUnboxedCompartments((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  }
+
+  function handleToggleAllCompartments() {
+    const nextState = unboxedCount < HAMPER_KEYS.length;
+    setUnboxedCompartments({
+      mithai: nextState,
+      card: nextState,
+      vipPass: nextState,
+    });
+  }
 
   useEffect(() => {
     return () => {
@@ -573,7 +843,7 @@ export function BusinessGreetingSite({
 
   if (!opened) {
     return (
-      <div className="relative flex h-full min-h-full w-full flex-col justify-between overflow-hidden rounded-[28px] bg-[#0C1B33] text-[#FAF6EE]">
+      <div className="relative flex h-full min-h-full w-full flex-col justify-between overflow-x-clip rounded-[28px] bg-[#0C1B33] text-[#FAF6EE]">
         <OccasionArtworkBackdrop
           src="/templates/occasions/business-greeting/cover.jpg"
           fallbackGradient="linear-gradient(155deg, #071226 0%, #0C1B33 54%, #142B4F 100%)"
@@ -608,6 +878,7 @@ export function BusinessGreetingSite({
         {watermarked ? (
           <div
             aria-hidden="true"
+            style={hiSafeStyle(coreLang)}
             className="pointer-events-none relative z-20 flex justify-center border-b border-[#C89D4C]/25 bg-[#0C1B33]/90 py-1 text-[10px] font-bold tracking-[0.22em] text-[#C89D4C]"
           >
             {copy.previewBanner}
@@ -627,16 +898,31 @@ export function BusinessGreetingSite({
             </div>
           </div>
 
-          <p className="mt-4 font-mono text-[10px] font-bold uppercase tracking-[0.24em] text-[#C89D4C]">
+          <p
+            style={hiSafeStyle(coreLang)}
+            className="mt-4 font-mono text-[10px] font-bold uppercase tracking-[0.24em] text-[#C89D4C]"
+          >
             {copy.gateEyebrow}
           </p>
 
-          <p className="mt-2.5 text-[11px] font-medium uppercase tracking-[0.16em] text-[#FAF6EE]/70">
+          <p
+            style={hiSafeStyle(coreLang)}
+            className="mt-2.5 text-[11px] font-medium uppercase tracking-[0.16em] text-[#FAF6EE]/70"
+          >
             {copy.forLabel}
           </p>
-          <h2 className="mt-1 max-w-full break-words font-heading text-2xl font-bold leading-snug text-[#FAF6EE] sm:text-3xl">
+          <h2
+            style={hiSafeStyle(coreLang)}
+            className="mt-1 max-w-full break-words font-heading text-2xl font-bold leading-snug text-[#FAF6EE] sm:text-3xl"
+          >
             {receiverDisplay}
           </h2>
+
+          {relationBadge ? (
+            <span className="mt-1.5 inline-flex items-center rounded-full border border-[#C89D4C]/45 bg-[#C89D4C]/12 px-3 py-0.5 text-[10.5px] font-semibold text-[#E5C583]">
+              {relationBadge}
+            </span>
+          ) : null}
 
           {senderDisplay ? (
             <p className="mt-1.5 max-w-full break-words text-xs font-medium text-[#FAF6EE]/80">
@@ -669,11 +955,17 @@ export function BusinessGreetingSite({
               }}
             >
               <div className="flex h-full w-full flex-col items-center justify-center rounded-full border border-[#0C1B33]/35 px-1">
-                <span className="text-[8px] font-extrabold uppercase tracking-[0.16em] text-[#0C1B33]">
+                <span
+                  style={hiSafeStyle(coreLang)}
+                  className="text-[8px] font-extrabold uppercase tracking-[0.16em] text-[#0C1B33]"
+                >
                   {copy.sealTop}
                 </span>
                 <span className="my-1 h-px w-8 bg-[#0C1B33]/35" />
-                <span className="text-[7.5px] font-bold uppercase tracking-[0.14em] text-[#0C1B33]/90">
+                <span
+                  style={hiSafeStyle(coreLang)}
+                  className="text-[7.5px] font-bold uppercase tracking-[0.14em] text-[#0C1B33]/90"
+                >
                   {copy.sealBottom}
                 </span>
               </div>
@@ -708,10 +1000,11 @@ export function BusinessGreetingSite({
   }
 
   return (
-    <div className="relative flex h-full min-h-full w-full flex-col justify-between overflow-x-hidden rounded-[28px] bg-[#FAF6EE] text-[#1F2937] animate-fade-in motion-reduce:animate-none">
+    <div className="relative flex h-full min-h-full w-full flex-col justify-between overflow-x-clip rounded-[28px] bg-[#FAF6EE] text-[#1F2937] animate-fade-in motion-reduce:animate-none">
       {watermarked ? (
         <div
           aria-hidden="true"
+          style={hiSafeStyle(coreLang)}
           className="pointer-events-none flex justify-center border-b border-[#C89D4C]/30 bg-[#0C1B33] py-1 text-[10px] font-bold tracking-[0.2em] text-[#C89D4C]"
         >
           {copy.previewBanner}
@@ -756,14 +1049,21 @@ export function BusinessGreetingSite({
           />
           <p
             id="atelier-brand-note-heading"
+            style={hiSafeStyle(coreLang)}
             className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[#9A7228]"
           >
             {copy.brandNoteEyebrow}
           </p>
 
-          <div className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full border border-[#0C1B33]/12 bg-[#FAF6EE] px-3 py-1 text-[11px] font-bold text-[#0C1B33]">
+          <div className="mt-2 inline-flex max-w-full flex-wrap items-center justify-center gap-1.5 rounded-full border border-[#0C1B33]/12 bg-[#FAF6EE] px-3 py-1 text-[11px] font-bold text-[#0C1B33]">
             <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#C89D4C]" aria-hidden="true" />
             <span className="truncate">{receiverDisplay}</span>
+            {relationBadge ? (
+              <>
+                <span aria-hidden="true" className="text-[#C89D4C]">·</span>
+                <span className="truncate text-[#9A7228]">{relationBadge}</span>
+              </>
+            ) : null}
           </div>
 
           <WordByWordFadeLine
@@ -792,30 +1092,214 @@ export function BusinessGreetingSite({
           aria-label={copy.showcaseHeading}
           className="overflow-hidden rounded-2xl border border-[#C89D4C]/45 bg-white p-2 shadow-[0_14px_32px_-16px_rgba(12,27,51,0.22)]"
         >
-          <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl bg-[#0C1B33]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/templates/occasions/business-greeting/royal-hamper-art.jpg"
-              alt="Luxury matte-obsidian festive gift hamper with glowing brass diya and artisanal saffron sweets"
-              className="h-full w-full object-cover"
-            />
+          <div
+            className="relative aspect-[16/10] w-full overflow-hidden rounded-xl bg-[#0C1B33]"
+            style={{
+              background:
+                'linear-gradient(145deg, #071226 0%, #0C1B33 55%, #1D3558 100%)',
+            }}
+          >
+            {!failedImages['royal-hamper'] ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src="/templates/occasions/business-greeting/royal-hamper-art.jpg"
+                alt="Luxury matte-obsidian festive gift hamper with glowing brass diya and artisanal saffron sweets"
+                onError={() =>
+                  setFailedImages((prev) => ({ ...prev, 'royal-hamper': true }))
+                }
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full flex-col items-center justify-center text-[#C89D4C]">
+                <HamperCompartmentIcon kind="mithai" />
+              </div>
+            )}
             <div
               aria-hidden="true"
               className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0A162B]/85 via-transparent to-transparent"
             />
             <div className="absolute inset-x-3.5 bottom-3 flex items-end justify-between gap-2 text-left text-[#FAF6EE]">
               <div className="min-w-0">
-                <p className="font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-[#E5C583]">
+                <p
+                  style={hiSafeStyle(coreLang)}
+                  className="font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-[#E5C583]"
+                >
                   {copy.showcaseEyebrow}
                 </p>
                 <p className="truncate font-heading text-sm font-bold">
-                  {signatureName} · Festive Edition
+                  {signatureName} · {copy.festiveEditionSuffix}
                 </p>
               </div>
-              <span className="shrink-0 rounded-full border border-[#C89D4C]/55 bg-[#0A162B]/80 px-2.5 py-0.5 font-mono text-[9px] font-bold text-[#E5C583]">
-                VIP EDITION
+              <span
+                style={hiSafeStyle(coreLang)}
+                className="shrink-0 rounded-full border border-[#C89D4C]/55 bg-[#0A162B]/80 px-2.5 py-0.5 font-mono text-[9px] font-bold text-[#E5C583]"
+              >
+                {copy.vipEditionBadge}
               </span>
             </div>
+          </div>
+        </section>
+
+        {/* 1.8. Interactive Festive Executive Hamper Unboxer */}
+        <section
+          aria-labelledby="atelier-hamper-unboxer-heading"
+          className="relative overflow-hidden rounded-2xl border-2 border-[#C89D4C]/65 bg-gradient-to-b from-[#0A162B] via-[#0C1B33] to-[#112442] p-4 text-[#FAF6EE] shadow-[0_18px_38px_-16px_rgba(12,27,51,0.5)]"
+        >
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div className="min-w-0 flex-1 text-left">
+              <p
+                style={hiSafeStyle(coreLang)}
+                className="font-mono text-[9.5px] font-bold uppercase tracking-[0.2em] text-[#E5C583]"
+              >
+                {copy.hamperEyebrow}
+              </p>
+              <h3
+                id="atelier-hamper-unboxer-heading"
+                style={hiSafeStyle(coreLang)}
+                className="mt-1 font-heading text-base font-bold text-[#FAF6EE]"
+              >
+                {copy.hamperHeading}
+              </h3>
+              <p className="mt-0.5 text-xs leading-relaxed text-[#FAF6EE]/75">
+                {copy.hamperSubtitle}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleToggleAllCompartments}
+              className="inline-flex min-h-[44px] shrink-0 items-center rounded-full border border-[#C89D4C]/60 bg-[#C89D4C]/15 px-3.5 text-[11px] font-bold text-[#E5C583] transition hover:bg-[#C89D4C]/25 active:scale-95"
+            >
+              {unboxedCount < HAMPER_KEYS.length
+                ? copy.hamperUnboxAllCta
+                : copy.hamperResealCta}
+            </button>
+          </div>
+
+          <div className="mt-3 flex items-center justify-between gap-2 rounded-xl border border-[#C89D4C]/35 bg-[#071122]/75 px-3 py-2 text-[11px] font-semibold text-[#E5C583]">
+            <span>{copy.hamperProgress(unboxedCount)}</span>
+            <div className="flex items-center gap-1" aria-hidden="true">
+              {HAMPER_KEYS.map((k) => (
+                <span
+                  key={k}
+                  className={`h-2 w-5 rounded-full transition-all ${
+                    unboxedCompartments[k] ? 'bg-[#E5C583]' : 'bg-[#FAF6EE]/20'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-3 space-y-2.5">
+            {HAMPER_KEYS.map((compKey) => {
+              const comp = copy.hamperCompartments[compKey];
+              const isOpen = unboxedCompartments[compKey];
+              return (
+                <div
+                  key={compKey}
+                  className={`overflow-hidden rounded-xl border transition-all ${
+                    isOpen
+                      ? 'border-[#E5C583] bg-[#FAF6EE] text-[#0C1B33] shadow-md'
+                      : 'border-[#C89D4C]/55 bg-[#122646]/85 text-[#FAF6EE]'
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => handleToggleCompartment(compKey)}
+                    aria-expanded={isOpen}
+                    className="flex min-h-[56px] w-full items-center justify-between gap-3 px-3.5 py-2.5 text-left transition active:scale-[0.99]"
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span
+                        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border ${
+                          isOpen
+                            ? 'border-[#C89D4C] bg-[#0C1B33]'
+                            : 'border-[#C89D4C]/50 bg-[#0A162B]'
+                        }`}
+                      >
+                        <HamperCompartmentIcon kind={compKey} />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="truncate text-xs font-bold leading-snug">
+                          {comp.title}
+                        </p>
+                        <p
+                          className={`mt-0.5 truncate text-[11px] ${
+                            isOpen ? 'text-[#1F2937]/70' : 'text-[#FAF6EE]/70'
+                          }`}
+                        >
+                          {comp.closedHint}
+                        </p>
+                      </div>
+                    </div>
+
+                    <span
+                      className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold ${
+                        isOpen
+                          ? 'bg-[#0C1B33] text-[#E5C583]'
+                          : 'border border-[#C89D4C]/55 bg-[#C89D4C]/18 text-[#E5C583]'
+                      }`}
+                    >
+                      {isOpen ? copy.hamperUnboxedLabel : copy.hamperTapToUnbox}
+                    </span>
+                  </button>
+
+                  {isOpen ? (
+                    <div className="border-t border-[#C89D4C]/35 bg-white px-3.5 py-3 text-left">
+                      <p
+                        style={hiSafeStyle(coreLang)}
+                        className="font-mono text-[9.5px] font-bold uppercase tracking-[0.16em] text-[#9A7228]"
+                      >
+                        {comp.eyebrow}
+                      </p>
+
+                      {compKey === 'card' ? (
+                        <div className="mt-2 rounded-xl border border-[#C89D4C]/35 bg-[#FAF6EE] p-3">
+                          <p className="font-heading text-xs font-bold text-[#0C1B33]">
+                            {copy.hamperCardSalutation(receiverDisplay)}
+                          </p>
+                          <p className="mt-1 text-xs leading-relaxed text-[#1F2937]/85">
+                            {brandMessage || comp.body}
+                          </p>
+                          <p className="mt-2 font-heading text-[11px] font-bold text-[#9A7228]">
+                            {copy.hamperCardSignoff(signatureName)}
+                          </p>
+                        </div>
+                      ) : compKey === 'vipPass' ? (
+                        <div className="mt-2 space-y-2 rounded-xl border border-[#C89D4C]/50 bg-[#0C1B33] p-3 text-[#FAF6EE]">
+                          <p className="text-xs font-semibold leading-snug text-[#E5C583]">
+                            {displayOfferText}
+                          </p>
+                          <p className="text-[11px] leading-relaxed text-[#FAF6EE]/80">
+                            {comp.body}
+                          </p>
+                          <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                            <span className="rounded-md border border-[#C89D4C]/55 bg-[#071122] px-2.5 py-1 font-mono text-xs font-extrabold tracking-wider text-[#FAF6EE]">
+                              {privilegeCode}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={handleCopyPrivilegeCode}
+                              className="inline-flex min-h-[44px] items-center rounded-lg bg-[#C89D4C] px-3 text-[11px] font-bold text-[#0C1B33] transition hover:brightness-105 active:scale-95"
+                            >
+                              {copiedCode ? copy.copiedCodeToast : copy.copyCodeCta}
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="mt-1.5 text-xs leading-relaxed text-[#1F2937]/85">
+                          {comp.body}
+                        </p>
+                      )}
+
+                      <p className="mt-2 text-[10.5px] font-semibold text-[#9A7228]">
+                        {comp.footerTag}
+                      </p>
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
           </div>
         </section>
 
@@ -836,7 +1320,10 @@ export function BusinessGreetingSite({
                 'linear-gradient(180deg, #E5C583 0%, #C89D4C 55%, #A67B2E 100%)',
             }}
           >
-            <span className="font-mono text-[9px] font-extrabold uppercase tracking-[0.18em] [writing-mode:vertical-rl] rotate-180">
+            <span
+              style={hiSafeStyle(coreLang)}
+              className="font-mono text-[9px] font-extrabold uppercase tracking-[0.18em] [writing-mode:vertical-rl] rotate-180"
+            >
               {copy.ticketSublabel}
             </span>
           </div>
@@ -859,10 +1346,16 @@ export function BusinessGreetingSite({
           {/* Metallic Sapphire-Gold Voucher Body */}
           <div className="flex min-w-0 flex-1 flex-col justify-between gap-3 border-l-2 border-dashed border-[#C89D4C]/65 p-4 pr-5">
             <div>
-              <p className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-[#C89D4C]">
+              <p
+                style={hiSafeStyle(coreLang)}
+                className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-[#C89D4C]"
+              >
                 {copy.ticketEyebrow}
               </p>
-              <p className="mt-0.5 font-mono text-[10px] font-extrabold uppercase tracking-[0.16em] text-[#FAF6EE]/80">
+              <p
+                style={hiSafeStyle(coreLang)}
+                className="mt-0.5 font-mono text-[10px] font-extrabold uppercase tracking-[0.16em] text-[#FAF6EE]/80"
+              >
                 {copy.ticketHeader}
               </p>
               <p className="mt-2 break-words text-sm font-semibold leading-snug text-[#FAF6EE]">
@@ -872,7 +1365,10 @@ export function BusinessGreetingSite({
 
             <div className="flex flex-wrap items-center justify-between gap-2.5 rounded-xl border border-[#C89D4C]/55 bg-[#071122]/85 px-3 py-2.5">
               <div className="min-w-0">
-                <span className="block font-mono text-[8.5px] uppercase tracking-[0.16em] text-[#C89D4C]">
+                <span
+                  style={hiSafeStyle(coreLang)}
+                  className="block font-mono text-[8.5px] uppercase tracking-[0.16em] text-[#C89D4C]"
+                >
                   {copy.ticketCodeLabel}
                 </span>
                 <span className="block truncate font-mono text-sm font-extrabold tracking-[0.14em] text-[#FAF6EE]">
@@ -929,11 +1425,15 @@ export function BusinessGreetingSite({
           className="rounded-2xl border border-[#C89D4C]/40 bg-white p-4 shadow-[0_12px_28px_-16px_rgba(12,27,51,0.16)]"
         >
           <div className="text-center">
-            <p className="font-mono text-[9.5px] font-bold uppercase tracking-[0.2em] text-[#9A7228]">
+            <p
+              style={hiSafeStyle(coreLang)}
+              className="font-mono text-[9.5px] font-bold uppercase tracking-[0.2em] text-[#9A7228]"
+            >
               {copy.pillarsEyebrow}
             </p>
             <h3
               id="atelier-pillars-heading"
+              style={hiSafeStyle(coreLang)}
               className="mt-1 font-heading text-base font-bold text-[#0C1B33]"
             >
               {copy.pillarsHeading}
@@ -966,11 +1466,15 @@ export function BusinessGreetingSite({
           className="rounded-2xl border border-[#C89D4C]/45 bg-white p-4 shadow-[0_12px_30px_-16px_rgba(12,27,51,0.18)]"
         >
           <div className="text-center">
-            <p className="font-mono text-[9.5px] font-bold uppercase tracking-[0.2em] text-[#9A7228]">
+            <p
+              style={hiSafeStyle(coreLang)}
+              className="font-mono text-[9.5px] font-bold uppercase tracking-[0.2em] text-[#9A7228]"
+            >
               {copy.showcaseEyebrow}
             </p>
             <h3
               id="atelier-showcase-heading"
+              style={hiSafeStyle(coreLang)}
               className="mt-1 font-heading text-base font-bold text-[#0C1B33]"
             >
               {copy.showcaseHeading}
@@ -989,30 +1493,47 @@ export function BusinessGreetingSite({
                 <div className="mt-3 space-y-2.5">
                   <div className="grid grid-cols-2 gap-2">
                     <div className="overflow-hidden rounded-xl border border-[#C89D4C]/35 bg-[#0C1B33]">
-                      <div className="aspect-[4/3] w-full overflow-hidden">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src="/templates/studio/atelier-hero.jpg"
-                          alt="Handcrafted heritage craft studio"
-                          loading="lazy"
-                          className="h-full w-full object-cover"
-                        />
+                      <div className="flex aspect-[4/3] w-full items-center justify-center overflow-hidden">
+                        {!failedImages['atelier-hero'] ? (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img
+                            src="/templates/studio/atelier-hero.jpg"
+                            alt="Handcrafted heritage craft studio"
+                            loading="lazy"
+                            onError={() =>
+                              setFailedImages((prev) => ({ ...prev, 'atelier-hero': true }))
+                            }
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <HamperCompartmentIcon kind="card" />
+                        )}
                       </div>
                     </div>
                     <div className="overflow-hidden rounded-xl border border-[#C89D4C]/35 bg-[#0C1B33]">
-                      <div className="aspect-[4/3] w-full overflow-hidden">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src="/templates/studio/craft-fluted.jpg"
-                          alt="Architectural fluted glass and warm atelier craft"
-                          loading="lazy"
-                          className="h-full w-full object-cover"
-                        />
+                      <div className="flex aspect-[4/3] w-full items-center justify-center overflow-hidden">
+                        {!failedImages['craft-fluted'] ? (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img
+                            src="/templates/studio/craft-fluted.jpg"
+                            alt="Architectural fluted glass and warm atelier craft"
+                            loading="lazy"
+                            onError={() =>
+                              setFailedImages((prev) => ({ ...prev, 'craft-fluted': true }))
+                            }
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <HamperCompartmentIcon kind="vipPass" />
+                        )}
                       </div>
                     </div>
                   </div>
                   <div className="rounded-xl border border-[#C89D4C]/35 bg-[#0C1B33] px-4 py-3 text-center text-[#FAF6EE]">
-                    <p className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#C89D4C]">
+                    <p
+                      style={hiSafeStyle(coreLang)}
+                      className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#C89D4C]"
+                    >
                       {copy.emptyVaultTitle}
                     </p>
                     <p className="mt-1.5 text-xs leading-relaxed text-[#FAF6EE]/80">
@@ -1040,11 +1561,15 @@ export function BusinessGreetingSite({
           className="space-y-3.5 rounded-2xl border border-[#C89D4C]/50 bg-white p-4 shadow-[0_14px_32px_-16px_rgba(12,27,51,0.22)]"
         >
           <div className="text-center">
-            <p className="font-mono text-[9.5px] font-bold uppercase tracking-[0.2em] text-[#9A7228]">
+            <p
+              style={hiSafeStyle(coreLang)}
+              className="font-mono text-[9.5px] font-bold uppercase tracking-[0.2em] text-[#9A7228]"
+            >
               {copy.conciergeEyebrow}
             </p>
             <h3
               id="atelier-concierge-heading"
+              style={hiSafeStyle(coreLang)}
               className="mt-1 font-heading text-base font-bold text-[#0C1B33]"
             >
               {copy.conciergeHeading}
@@ -1064,7 +1589,10 @@ export function BusinessGreetingSite({
           </div>
 
           <div className="space-y-2">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-[#0C1B33]/85">
+            <p
+              style={hiSafeStyle(coreLang)}
+              className="text-[11px] font-bold uppercase tracking-wider text-[#0C1B33]/85"
+            >
               {copy.intentHeading}
             </p>
             <div className="grid grid-cols-2 gap-2">
@@ -1089,9 +1617,57 @@ export function BusinessGreetingSite({
             </div>
           </div>
 
+          {/* Schedule a Courtesy Call / Priority Meeting Slot Picker */}
+          <div className="space-y-2 rounded-xl border border-[#C89D4C]/35 bg-[#FAF6EE]/80 p-3">
+            <div>
+              <p
+                style={hiSafeStyle(coreLang)}
+                className="text-[11px] font-bold uppercase tracking-wider text-[#0C1B33]"
+              >
+                {copy.slotHeading}
+              </p>
+              <p className="mt-0.5 text-[11px] text-[#1F2937]/70">
+                {copy.slotSubtitle}
+              </p>
+            </div>
+            <div className="grid grid-cols-3 gap-1.5">
+              {CALL_SLOT_KEYS.map((slotKey) => {
+                const slot = copy.slots[slotKey];
+                const isPicked = selectedSlot === slotKey;
+                return (
+                  <button
+                    key={slotKey}
+                    type="button"
+                    aria-pressed={isPicked}
+                    onClick={() =>
+                      setSelectedSlot((prev) => (prev === slotKey ? null : slotKey))
+                    }
+                    className={`flex min-h-[48px] flex-col items-center justify-center rounded-xl border px-1.5 py-1.5 text-center transition active:scale-95 ${
+                      isPicked
+                        ? 'border-[#C89D4C] bg-[#0C1B33] text-[#FAF6EE] shadow-xs'
+                        : 'border-[#C89D4C]/35 bg-white text-[#0C1B33] hover:border-[#0C1B33]/40'
+                    }`}
+                  >
+                    <span className="text-[11px] font-bold leading-tight">
+                      {slot.label}
+                    </span>
+                    <span
+                      className={`mt-0.5 text-[9.5px] leading-tight ${
+                        isPicked ? 'text-[#E5C583]' : 'text-[#1F2937]/60'
+                      }`}
+                    >
+                      {slot.window}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           <div className="space-y-1.5">
             <label
               htmlFor={conciergeNoteId}
+              style={hiSafeStyle(coreLang)}
               className="block text-[11px] font-bold uppercase tracking-wider text-[#0C1B33]/85"
             >
               {copy.quickNoteLabel}
@@ -1107,31 +1683,67 @@ export function BusinessGreetingSite({
             />
           </div>
 
-          {waHref ? (
-            <a
-              href={waHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl bg-[#0C1B33] px-4 py-3 text-sm font-bold text-[#FAF6EE] shadow-md transition hover:brightness-110 active:scale-[0.98] motion-reduce:transition-none"
+          <div className="rounded-xl border border-[#C89D4C]/40 bg-[#FAF6EE] p-3">
+            <p
+              style={hiSafeStyle(coreLang)}
+              className="font-mono text-[9.5px] font-bold uppercase tracking-[0.16em] text-[#9A7228]"
             >
-              <svg className="h-4 w-4 shrink-0 text-[#C89D4C]" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91C21.95 6.45 17.5 2 12.04 2zm5.79 14.07c-.24.68-1.41 1.3-1.95 1.38-.5.07-1.13.1-1.82-.12-.42-.13-.96-.31-1.65-.61-2.91-1.26-4.81-4.19-4.96-4.38-.14-.19-1.18-1.57-1.18-2.99 0-1.42.74-2.12 1.01-2.41.26-.29.58-.36.77-.36.19 0 .39 0 .56.01.18.01.42-.07.66.5.24.58.82 2 .89 2.15.07.14.12.31.02.5-.1.19-.14.31-.29.48-.14.17-.3.38-.43.51-.14.14-.29.3-.12.59.17.29.75 1.24 1.61 2 1.11.99 2.04 1.29 2.33 1.44.29.14.46.12.63-.07.17-.19.72-.84.91-1.13.19-.29.39-.24.65-.14.26.1 1.68.79 1.97.94.29.14.48.22.55.34.07.12.07.7-.17 1.38z" />
-              </svg>
-              <span className="break-words text-center">
-                {copy.whatsappCta} · {selectedIntentLabel}
-              </span>
-            </a>
+              {copy.inquirySummaryLabel}
+            </p>
+            <p className="mt-1 break-words text-xs leading-relaxed text-[#0C1B33]">
+              {composedInquiry}
+            </p>
+          </div>
+
+          {waHref ? (
+            <div className="space-y-2">
+              <a
+                href={waHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl bg-[#0C1B33] px-4 py-3 text-sm font-bold text-[#FAF6EE] shadow-md transition hover:brightness-110 active:scale-[0.98] motion-reduce:transition-none"
+              >
+                <svg className="h-4 w-4 shrink-0 text-[#C89D4C]" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91C21.95 6.45 17.5 2 12.04 2zm5.79 14.07c-.24.68-1.41 1.3-1.95 1.38-.5.07-1.13.1-1.82-.12-.42-.13-.96-.31-1.65-.61-2.91-1.26-4.81-4.19-4.96-4.38-.14-.19-1.18-1.57-1.18-2.99 0-1.42.74-2.12 1.01-2.41.26-.29.58-.36.77-.36.19 0 .39 0 .56.01.18.01.42-.07.66.5.24.58.82 2 .89 2.15.07.14.12.31.02.5-.1.19-.14.31-.29.48-.14.17-.3.38-.43.51-.14.14-.29.3-.12.59.17.29.75 1.24 1.61 2 1.11.99 2.04 1.29 2.33 1.44.29.14.46.12.63-.07.17-.19.72-.84.91-1.13.19-.29.39-.24.65-.14.26.1 1.68.79 1.97.94.29.14.48.22.55.34.07.12.07.7-.17 1.38z" />
+                </svg>
+                <span className="break-words text-center">
+                  {copy.whatsappCta} · {selectedIntentLabel}
+                  {selectedSlotInfo ? ` (${selectedSlotInfo.label})` : ''}
+                </span>
+              </a>
+
+              <button
+                type="button"
+                onClick={handleCopyConciergeMessage}
+                className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-[#C89D4C]/55 bg-[#FAF6EE] px-4 py-2 text-xs font-bold text-[#0C1B33] transition hover:bg-[#F3EBD8] active:scale-[0.98]"
+              >
+                <svg
+                  className="h-3.5 w-3.5 shrink-0 text-[#9A7228]"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                >
+                  <rect x="9" y="9" width="13" height="13" rx="2" />
+                  <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                </svg>
+                <span>{copy.copyInquiryCta}</span>
+              </button>
+
+              <div aria-live="polite" className="min-h-[1px]">
+                {copiedInquiry ? (
+                  <p
+                    role="status"
+                    className="rounded-lg bg-[#0C1B33] px-3 py-1.5 text-center text-[11px] font-semibold text-[#C89D4C]"
+                  >
+                    {copy.copiedInquiryToast}
+                  </p>
+                ) : null}
+              </div>
+            </div>
           ) : (
             <div className="space-y-2.5">
-              <div className="rounded-xl border border-[#C89D4C]/40 bg-[#FAF6EE] p-3">
-                <p className="font-mono text-[9.5px] font-bold uppercase tracking-[0.16em] text-[#9A7228]">
-                  {copy.inquirySummaryLabel}
-                </p>
-                <p className="mt-1 break-words text-xs leading-relaxed text-[#0C1B33]">
-                  {composedInquiry}
-                </p>
-              </div>
-
               <button
                 type="button"
                 onClick={handleCopyConciergeMessage}

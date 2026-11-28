@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import React from 'react';
-import { deriveCatalogPricingSummary } from '@webzy/themes';
+import { getWebzyPublicConfig } from '@webzy/core';
+import { deriveCatalogPricingSummary, getActiveThemes } from '@webzy/themes';
 import { getCustomOrderCapacity } from '../../../../../infra/supabase/capacity';
 import { getSupabaseEnv } from '../../../../../infra/supabase/env';
 import { createSupabaseAdminClient } from '../../../../../infra/supabase/server';
@@ -38,7 +39,9 @@ const FALLBACK_CAPACITY: CustomOrderCapacity = {
 };
 
 export default async function PricingPage() {
-  const catalogPricing = deriveCatalogPricingSummary();
+  const config = getWebzyPublicConfig();
+  const activeThemes = getActiveThemes({ includeMaanJao: config.flags.maanJaoTheme });
+  const catalogPricing = deriveCatalogPricingSummary(activeThemes);
 
   let capacity: CustomOrderCapacity = FALLBACK_CAPACITY;
   if (getSupabaseEnv().adminConfigured) {

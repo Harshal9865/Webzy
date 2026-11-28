@@ -18,6 +18,8 @@ function hasDevanagari(text: string): boolean {
 
 type CarePromiseId = 'chai' | 'flowers' | 'listen' | 'sunset';
 type CouponId = 'chai-walk' | 'picnic-treat' | 'cozy-evening';
+type MoodCheckId = 'pouting' | 'softening' | 'smiling';
+type PickupTimingId = 'tonight' | 'weekend' | 'surprise';
 
 const CARE_ART = {
   warmRainChai: '/templates/occasions/maan-jao/warm-rain-chai-art.jpg',
@@ -205,6 +207,100 @@ const MAKEUP_COUPONS: ReadonlyArray<{
   },
 ];
 
+interface MoodCheckOption {
+  id: MoodCheckId;
+  bg: string;
+  activeBg: string;
+  border: string;
+  ink: string;
+  label: Record<CoreLanguageCode, string>;
+  reassurance: (sender: string) => Record<CoreLanguageCode, string>;
+}
+
+const MOOD_CHECK_OPTIONS: readonly MoodCheckOption[] = [
+  {
+    id: 'pouting',
+    bg: '#FDE8D7',
+    activeBg: '#B45309',
+    border: '#E5B996',
+    ink: '#5A2E14',
+    label: {
+      en: 'Still pouting a tiny bit',
+      hinglish: 'Thoda sa gussa abhi bhi',
+      hi: 'थोड़ी सी नाराज़गी अभी भी',
+    },
+    reassurance: (sender) => ({
+      en: `${sender} says: Totally fair — keep that cute pout as long as you like. Warm chai, gentle patience, and my whole heart are right here.`,
+      hinglish: `${sender} ka kehna hai: Bilkul haq hai tumhara — jitna chaho thoda nakhra rakho. Garam chai aur mera poora waqt sirf tumhare liye hai.`,
+      hi: `${sender} का कहना है: बिल्कुल हक़ है तुम्हारा — जितनी देर चाहो रूठी रहो। गरम चाय और मेरा पूरा धैर्य यहीं तुम्हारे पास है।`,
+    }),
+  },
+  {
+    id: 'softening',
+    bg: '#F8DCE4',
+    activeBg: '#BE185D',
+    border: '#DFABB9',
+    ink: '#5B1F32',
+    label: {
+      en: 'Softening up already',
+      hinglish: 'Thoda-thoda pighal rahi hoon',
+      hi: 'मन थोड़ा पिघल रहा है',
+    },
+    reassurance: (sender) => ({
+      en: `${sender} says: That little thaw just made my whole evening brighter. Let me earn the rest of your smile slowly and gently.`,
+      hinglish: `${sender} ka kehna hai: Bas itna sun kar hi meri poori shaam roshan ho gayi. Baaki ki muskaan pyaar se wapas launga.`,
+      hi: `${sender} का कहना है: बस इतना सुनकर ही यह शाम खिल उठी है। बाकी की मुस्कान पूरे स्नेह से वापस लाऊँगा।`,
+    }),
+  },
+  {
+    id: 'smiling',
+    bg: '#DCEBD8',
+    activeBg: '#2F6F3E',
+    border: '#A9CAA2',
+    ink: '#224426',
+    label: {
+      en: 'Smiling right now',
+      hinglish: 'Abhi muskura rahi hoon',
+      hi: 'अभी मुस्कुरा रही हूँ',
+    },
+    reassurance: (sender) => ({
+      en: `${sender} says: There is my favorite sight in the entire world. Pick your care promises below so I can spoil you properly.`,
+      hinglish: `${sender} ka kehna hai: Ye rahi meri sabse pyaari muskaan! Ab neeche apne waade chuno taaki tumhe dil se spoil kar sakun.`,
+      hi: `${sender} का कहना है: यही मेरी सबसे प्रिय मुस्कान है! अब नीचे अपने वादे चुनो ताकि तुम्हें प्यार से मना सकूँ।`,
+    }),
+  },
+];
+
+const PICKUP_TIMING_OPTIONS: ReadonlyArray<{
+  id: PickupTimingId;
+  label: Record<CoreLanguageCode, string>;
+}> = [
+  {
+    id: 'tonight',
+    label: {
+      en: 'Tonight',
+      hinglish: 'Aaj Shaam',
+      hi: 'आज शाम',
+    },
+  },
+  {
+    id: 'weekend',
+    label: {
+      en: 'This Weekend',
+      hinglish: 'Is Weekend',
+      hi: 'इस वीकेंड',
+    },
+  },
+  {
+    id: 'surprise',
+    label: {
+      en: 'Surprise Me',
+      hinglish: 'Surprise Do',
+      hi: 'सरप्राइज़ दो',
+    },
+  },
+];
+
 interface CareCopy {
   previewBanner: string;
   heroBadgeDusk: string;
@@ -221,6 +317,13 @@ interface CareCopy {
   scenesEyebrow: string;
   scenesHeading: string;
   kraftTapeTitle: string;
+  postscriptToggleClosed: string;
+  postscriptToggleOpen: string;
+  postscriptLabel: string;
+  postscriptBody: (receiver: string, sender: string) => string;
+  moodEyebrow: string;
+  moodHeading: string;
+  moodHint: string;
   stickyHeading: string;
   stickySub: string;
   promisedStamp: string;
@@ -233,6 +336,7 @@ interface CareCopy {
   forgivenTitle: (receiver: string) => string;
   forgivenSub: (sender: string) => string;
   couponHeading: string;
+  pickupTimingHeading: string;
   soundtrackTitle: string;
   soundtrackTap: string;
   soundtrackPlaying: string;
@@ -260,6 +364,14 @@ const COPY_BY_LANG: Record<CoreLanguageCode, CareCopy> = {
     scenesEyebrow: 'THREE MOMENTS I WANT TO SHARE WITH YOU',
     scenesHeading: 'What You Mean To Me',
     kraftTapeTitle: 'always on your side',
+    postscriptToggleClosed: 'Unseal a Quiet Postscript (P.S.)',
+    postscriptToggleOpen: 'Fold Quiet Postscript Back',
+    postscriptLabel: 'P.S. · TUCKED INSIDE FOR YOU',
+    postscriptBody: (r, s) =>
+      `Even on our quietest days, ${r}, you are still my favorite thought every morning and my softest place to land every night. Always yours, ${s}.`,
+    moodEyebrow: 'GENTLE MOOD CHECK-IN',
+    moodHeading: 'How Does Your Heart Feel Right Now?',
+    moodHint: 'Tap whichever pastel note matches this exact moment.',
     stickyHeading: 'Four Clipped Care Promises',
     stickySub: 'Tap each paper-clipped note to accept it and brighten the painting above.',
     promisedStamp: 'PROMISED',
@@ -277,6 +389,7 @@ const COPY_BY_LANG: Record<CoreLanguageCode, CareCopy> = {
     forgivenTitle: (r) => `You mean the world to me, ${r}`,
     forgivenSub: (s) => `${s} promises to hold your heart gently, listen deeply, and always choose us.`,
     couponHeading: 'Pick How I Should Spoil You Next',
+    pickupTimingHeading: 'When Should I Come Pick You Up?',
     soundtrackTitle: 'Golden Hour Meadow · Side A',
     soundtrackTap: 'Play Warm Melody',
     soundtrackPlaying: 'Playing Golden Melody...',
@@ -303,6 +416,14 @@ const COPY_BY_LANG: Record<CoreLanguageCode, CareCopy> = {
     scenesEyebrow: 'TEEN PAL JO TUMHARE SAATH JEENA CHAHTA HOON',
     scenesHeading: 'Tum Mere Liye Kitni Khaas Ho',
     kraftTapeTitle: 'hamesha tumhare saath',
+    postscriptToggleClosed: 'Chhota Sa Postscript (P.S.) Kholo',
+    postscriptToggleOpen: 'Postscript Wapas Band Karo',
+    postscriptLabel: 'P.S. · SIRF TUMHARE LIYE',
+    postscriptBody: (r, s) =>
+      `Chahe din kitna bhi bhaag-daud bhara ho, ${r}, subah ka pehla khyaal aur raat ka sukoon hamesha tum hi ho. Hamesha tumhara, ${s}.`,
+    moodEyebrow: 'GENTLE MOOD CHECK-IN',
+    moodHeading: 'Abhi Tumhara Dil Kaisa Feel Kar Raha Hai?',
+    moodHint: 'Jo mood abhi lag raha hai us pastel pill par tap karo.',
     stickyHeading: 'Chaar Pyaar Bhare Waade',
     stickySub: 'Har paper-clipped note par tap karo aur upar ka mausam sunahra banao.',
     promisedStamp: 'PAKKA',
@@ -320,6 +441,7 @@ const COPY_BY_LANG: Record<CoreLanguageCode, CareCopy> = {
     forgivenTitle: (r) => `Tum meri poori duniya ho, ${r}`,
     forgivenSub: (s) => `${s} ka waada hai — hamesha tumhara khyaal rakhunga, dhyaan se sununga aur pyaar se manaunga.`,
     couponHeading: 'Chuno Aaj Tumhe Kaise Spoil Karun',
+    pickupTimingHeading: 'Tumhe Lene Kab Aaun?',
     soundtrackTitle: 'Sunahri Shaam · Side A',
     soundtrackTap: 'Pyaari Dhun Chalao',
     soundtrackPlaying: 'Dhun Chal Rahi Hai...',
@@ -346,6 +468,14 @@ const COPY_BY_LANG: Record<CoreLanguageCode, CareCopy> = {
     scenesEyebrow: 'तीन पल जो तुम्हारे साथ जीना चाहता हूँ',
     scenesHeading: 'तुम मेरे लिए कितनी विशेष हो',
     kraftTapeTitle: 'सदैव तुम्हारे साथ',
+    postscriptToggleClosed: 'एक शांत पुनश्च (P.S.) खोलें',
+    postscriptToggleOpen: 'पुनश्च पत्रिका बंद करें',
+    postscriptLabel: 'P.S. · केवल तुम्हारे लिए',
+    postscriptBody: (r, s) =>
+      `चाहे दिन कितना भी व्यस्त क्यों न हो, ${r}, सुबह का पहला विचार और शाम का सुकून सदैव तुम ही हो। सदैव तुम्हारा, ${s}।`,
+    moodEyebrow: 'कोमल मन की बात',
+    moodHeading: 'अभी तुम्हारा मन कैसा महसूस कर रहा है?',
+    moodHint: 'इस पल के भाव पर टैप करें और स्नेह भरा संदेश पढ़ें।',
     stickyHeading: 'चार स्नेह भरे वादे',
     stickySub: 'प्रत्येक स्टिकी नोट पर टैप करें और ऊपर का दृश्य सुनहरा बनाएँ।',
     promisedStamp: 'वचनबद्ध',
@@ -363,6 +493,7 @@ const COPY_BY_LANG: Record<CoreLanguageCode, CareCopy> = {
     forgivenTitle: (r) => `तुम मेरे लिए बेहद अनमोल हो, ${r}`,
     forgivenSub: (s) => `${s} का वादा है कि सदैव तुम्हारी भावनाओं का सम्मान करूँगा और तुम्हारा ख़याल रखूँगा।`,
     couponHeading: 'चुनो आज तुम्हें कैसे खुश करूँ',
+    pickupTimingHeading: 'तुम्हें लेने कब आऊँ?',
     soundtrackTitle: 'सुनहरी शाम · साइड A',
     soundtrackTap: 'मधुर धुन सुनें',
     soundtrackPlaying: 'धुन बज रही है...',
@@ -410,11 +541,15 @@ export function MaanJaoSite({
   const uid = useId().replace(/:/g, '');
   const [acceptedIds, setAcceptedIds] = useState<CarePromiseId[]>([]);
   const [activeSceneIdx, setActiveSceneIdx] = useState(0);
+  const [activeMoodId, setActiveMoodId] = useState<MoodCheckId | null>(null);
+  const [postscriptOpen, setPostscriptOpen] = useState(false);
   const [forgiven, setForgiven] = useState(false);
   const [spoilCount, setSpoilCount] = useState(0);
   const [pickedCouponId, setPickedCouponId] = useState<CouponId>('chai-walk');
+  const [pickedTimingId, setPickedTimingId] = useState<PickupTimingId>('tonight');
   const [copiedVerdict, setCopiedVerdict] = useState(false);
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const openedNotifiedRef = useRef(false);
 
   useEffect(() => {
     return () => {
@@ -463,6 +598,10 @@ export function MaanJaoSite({
   );
 
   const activeScene = CARE_SCENE_PLATES[activeSceneIdx] ?? CARE_SCENE_PLATES[0];
+  const activeMood = MOOD_CHECK_OPTIONS.find((m) => m.id === activeMoodId) ?? null;
+  const pickedCoupon = MAKEUP_COUPONS.find((c) => c.id === pickedCouponId) ?? MAKEUP_COUPONS[0];
+  const pickedTiming =
+    PICKUP_TIMING_OPTIONS.find((t) => t.id === pickedTimingId) ?? PICKUP_TIMING_OPTIONS[0];
   const spoilReply =
     spoilCount > 0 ? copy.spoilMoreReplies[(spoilCount - 1) % copy.spoilMoreReplies.length] : null;
 
@@ -477,6 +616,16 @@ export function MaanJaoSite({
     };
   });
 
+  function handleSelectMood(id: MoodCheckId, idx: number) {
+    playRaindropPluck(idx);
+    setActiveMoodId(id);
+  }
+
+  function handleTogglePostscript() {
+    playPaperUnsealSfx(postscriptOpen ? 0 : 2);
+    setPostscriptOpen((prev) => !prev);
+  }
+
   function handleToggleNote(id: CarePromiseId, idx: number) {
     playRaindropPluck(idx);
     setAcceptedIds((prev) =>
@@ -489,23 +638,30 @@ export function MaanJaoSite({
     setAcceptedIds(STICKY_CARE_NOTES.map((n) => n.id));
     setForgiven(true);
     setSpoilCount(0);
-    onOpened?.();
+    if (!openedNotifiedRef.current) {
+      openedNotifiedRef.current = true;
+      onOpened?.();
+    }
   }
 
   function handleReplay() {
     setForgiven(false);
     setAcceptedIds([]);
+    setActiveMoodId(null);
+    setPostscriptOpen(false);
     setSpoilCount(0);
+    setCopiedVerdict(false);
+    if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
   }
 
   async function handleCopyVerdict() {
-    const chosen = MAKEUP_COUPONS.find((c) => c.id === pickedCouponId) ?? MAKEUP_COUPONS[0];
+    const timingLabel = pickedTiming.label[coreLang];
     const text =
       coreLang === 'hi'
-        ? `मान गई ${sender}! अब "${chosen.label.hi}" (${chosen.code}) पक्का रहा।`
+        ? `मान गई ${sender}! अब "${pickedCoupon.label.hi}" (${pickedCoupon.code}) पक्का रहा — समय: ${timingLabel}।`
         : coreLang === 'hinglish'
-          ? `Maan gayi ${sender}! "${chosen.label.hinglish}" (${chosen.code}) lock kar diya hai.`
-          : `You win my heart, ${sender}! Redeeming "${chosen.label.en}" (${chosen.code}) soon.`;
+          ? `Maan gayi ${sender}! "${pickedCoupon.label.hinglish}" (${pickedCoupon.code}) lock kar diya hai — pick up: ${timingLabel}.`
+          : `You win my heart, ${sender}! Redeeming "${pickedCoupon.label.en}" (${pickedCoupon.code}) — pick me up: ${timingLabel}.`;
     try {
       if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(text);
@@ -554,13 +710,21 @@ export function MaanJaoSite({
          ===================================================================== */}
       <header className="relative overflow-hidden bg-[#2A1D1B]">
         <div className="relative aspect-[4/3] w-full overflow-hidden">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            key={activeHeroSrc}
-            src={activeHeroSrc}
-            alt={activeHeroBadge}
-            className="h-full w-full object-cover transition-all duration-700"
-          />
+          {[CARE_ART.warmRainChai, CARE_ART.meadowPicnic, CARE_ART.goldenWalk].map((src) => {
+            const isCurrent = src === activeHeroSrc;
+            return (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                key={src}
+                src={src}
+                alt={isCurrent ? activeHeroBadge : ''}
+                aria-hidden={!isCurrent}
+                className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${
+                  isCurrent ? 'opacity-100' : 'pointer-events-none opacity-0'
+                }`}
+              />
+            );
+          })}
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#261614]/90 via-[#261614]/15 to-[#261614]/45"
@@ -583,7 +747,10 @@ export function MaanJaoSite({
               {activeHeroBadge}
             </span>
 
-            <span className="rounded-full border border-white/30 bg-[#261614]/70 px-3 py-1 text-xs font-bold text-[#FFF7E6] backdrop-blur-sm">
+            <span
+              style={hindiSafe}
+              className="rounded-full border border-white/30 bg-[#261614]/70 px-3 py-1 text-xs font-bold text-[#FFF7E6] backdrop-blur-sm"
+            >
               {copy.forPrefix} {receiver}
             </span>
           </div>
@@ -679,7 +846,12 @@ export function MaanJaoSite({
                 className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#261614]/88 via-[#261614]/20 to-transparent"
               />
               <div className="absolute inset-x-3.5 bottom-3 text-left text-[#FFF8EF]">
-                <span className="font-mono text-[9px] font-bold uppercase tracking-[0.16em] text-[#FDE68A]">
+                <span
+                  style={hindiSafe}
+                  className={`text-[9px] font-bold text-[#FDE68A] ${
+                    isHindi ? '' : 'font-mono uppercase tracking-[0.16em]'
+                  }`}
+                >
                   {activeScene.tag[coreLang]}
                 </span>
                 <p style={hindiSafe} className="font-heading text-base font-bold leading-snug">
@@ -705,7 +877,7 @@ export function MaanJaoSite({
                     setActiveSceneIdx(idx);
                   }}
                   aria-pressed={active}
-                  className={`overflow-hidden rounded-xl border-2 text-left transition active:scale-[0.97] ${
+                  className={`min-h-[44px] overflow-hidden rounded-xl border-2 text-left transition active:scale-[0.97] ${
                     active
                       ? 'border-[#BE185D] shadow-xs'
                       : 'border-[#EAB6C4]/70 opacity-80 hover:opacity-100'
@@ -720,7 +892,12 @@ export function MaanJaoSite({
                       className="h-full w-full object-cover"
                     />
                   </div>
-                  <span className="block truncate bg-white px-2 py-1 text-center font-mono text-[9px] font-bold uppercase text-[#5A2939]">
+                  <span
+                    style={hindiSafe}
+                    className={`block truncate bg-white px-2 py-1 text-center text-[9px] font-bold text-[#5A2939] ${
+                      isHindi ? '' : 'font-mono uppercase'
+                    }`}
+                  >
                     {plate.tag[coreLang]}
                   </span>
                 </button>
@@ -780,10 +957,164 @@ export function MaanJaoSite({
               {messageText}
             </p>
 
-            <p className="mt-4 text-right font-heading text-base font-bold italic text-[#BE185D]">
+            <p
+              style={hindiSafe}
+              className={`mt-4 text-right font-heading text-base font-bold text-[#BE185D] ${
+                isHindi || hasDevanagari(sender) ? 'not-italic' : 'italic'
+              }`}
+            >
               — {sender}
             </p>
+
+            {/* Expandable Wax-Folded Quiet Postscript (P.S.) Mini-Envelope */}
+            <div className="mt-5 border-t border-dashed border-[#EAB6C4] pt-4">
+              <button
+                type="button"
+                onClick={handleTogglePostscript}
+                aria-expanded={postscriptOpen}
+                className="group relative flex min-h-[48px] w-full items-center justify-between gap-3 overflow-hidden rounded-2xl border border-[#DFB6C3] bg-[#FFF4F6] px-3.5 py-2.5 text-left transition hover:border-[#BE185D]/60 hover:bg-[#FDECEF] active:scale-[0.98]"
+              >
+                <div className="flex items-center gap-2.5">
+                  <span
+                    aria-hidden="true"
+                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 shadow-xs transition-transform duration-300 ${
+                      postscriptOpen
+                        ? 'scale-95 border-[#FDE68A] bg-[#BE185D] text-[#FFF8EF]'
+                        : 'border-[#F8DCE4] bg-[#BE185D] text-[#FDE68A] group-hover:scale-105'
+                    }`}
+                  >
+                    <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none">
+                      <rect
+                        x="2.5"
+                        y="4.5"
+                        width="15"
+                        height="11"
+                        rx="2"
+                        stroke="currentColor"
+                        strokeWidth="1.6"
+                      />
+                      <path
+                        d={postscriptOpen ? 'M3.5 14L10 9.5L16.5 14' : 'M3.5 6L10 10.8L16.5 6'}
+                        stroke="currentColor"
+                        strokeWidth="1.6"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
+                  <span style={hindiSafe} className="text-xs font-bold text-[#5A1F32]">
+                    {postscriptOpen ? copy.postscriptToggleOpen : copy.postscriptToggleClosed}
+                  </span>
+                </div>
+                <span
+                  aria-hidden="true"
+                  className={`shrink-0 font-mono text-[10px] font-bold text-[#BE185D] transition-transform duration-200 ${
+                    postscriptOpen ? 'rotate-180' : ''
+                  }`}
+                >
+                  <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none">
+                    <path
+                      d="M4 6.2L8 10.2L12 6.2"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </span>
+              </button>
+
+              {postscriptOpen ? (
+                <div
+                  role="region"
+                  aria-label={copy.postscriptLabel}
+                  className={`mj3-pop-${uid} mt-2.5 rounded-2xl border border-[#E5B996]/70 bg-[#FFFDF4] px-4 py-3.5 shadow-xs`}
+                >
+                  <span
+                    style={hindiSafe}
+                    className={`block text-[9.5px] font-bold text-[#9A3412] ${
+                      isHindi ? '' : 'font-mono uppercase tracking-[0.16em]'
+                    }`}
+                  >
+                    {copy.postscriptLabel}
+                  </span>
+                  <p
+                    style={hindiSafe}
+                    className={`mt-1.5 break-words font-serif text-[13.5px] leading-relaxed text-[#4A252B] ${
+                      isHindi || hasDevanagari(receiver) || hasDevanagari(sender)
+                        ? 'not-italic'
+                        : 'italic'
+                    }`}
+                  >
+                    {copy.postscriptBody(receiver, sender)}
+                  </p>
+                </div>
+              ) : null}
+            </div>
           </div>
+        </section>
+
+        {/* =====================================================================
+            3.5. GENTLE MOOD CHECK-IN WARMTH BAR
+           ===================================================================== */}
+        <section
+          aria-label={copy.moodHeading}
+          className="space-y-3 rounded-[24px] border border-[#EAB6C4] bg-[#FFFDF9]/95 p-4 shadow-sm"
+        >
+          <div className="text-center">
+            <span
+              style={hindiSafe}
+              className={`text-[9.5px] font-bold text-[#8E354A] ${
+                isHindi ? '' : 'font-mono uppercase tracking-[0.18em]'
+              }`}
+            >
+              {copy.moodEyebrow}
+            </span>
+            <h2 style={hindiSafe} className="mt-0.5 font-heading text-lg font-bold text-[#4A1D2C]">
+              {copy.moodHeading}
+            </h2>
+            <p style={hindiSafe} className="mt-0.5 text-[11.5px] text-[#7A4455]">
+              {copy.moodHint}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+            {MOOD_CHECK_OPTIONS.map((mood, idx) => {
+              const selected = activeMoodId === mood.id;
+              return (
+                <button
+                  key={mood.id}
+                  type="button"
+                  onClick={() => handleSelectMood(mood.id, idx)}
+                  aria-pressed={selected}
+                  style={{
+                    backgroundColor: selected ? mood.activeBg : mood.bg,
+                    borderColor: selected ? mood.activeBg : mood.border,
+                    color: selected ? '#FFFDF9' : mood.ink,
+                    ...(hindiSafe ?? {}),
+                  }}
+                  className="inline-flex min-h-[44px] items-center justify-center rounded-full border-2 px-3 py-2 text-center text-[11.5px] font-bold leading-snug shadow-2xs transition active:scale-[0.97]"
+                >
+                  {mood.label[coreLang]}
+                </button>
+              );
+            })}
+          </div>
+
+          {activeMood ? (
+            <div
+              key={activeMood.id}
+              role="status"
+              className={`mj3-pop-${uid} rounded-2xl border border-[#EAB6C4] bg-[#FFF5F7] px-4 py-3 text-center`}
+            >
+              <p
+                style={hindiSafe}
+                className="break-words font-serif text-[13px] font-medium leading-relaxed text-[#4A1D2C]"
+              >
+                {activeMood.reassurance(sender)[coreLang]}
+              </p>
+            </div>
+          ) : null}
         </section>
 
         {/* =====================================================================
@@ -820,7 +1151,12 @@ export function MaanJaoSite({
                   <div className="flex items-center justify-between gap-1">
                     <span className="font-mono text-[10px] font-bold opacity-70">{item.num}</span>
                     {accepted ? (
-                      <span className="-rotate-3 rounded border border-[#BE185D] bg-white/85 px-1.5 py-0.5 font-mono text-[8.5px] font-bold text-[#BE185D]">
+                      <span
+                        style={hindiSafe}
+                        className={`-rotate-3 rounded border border-[#BE185D] bg-white/85 px-1.5 py-0.5 text-[8.5px] font-bold text-[#BE185D] ${
+                          isHindi ? '' : 'font-mono'
+                        }`}
+                      >
                         {copy.promisedStamp}
                       </span>
                     ) : null}
@@ -845,7 +1181,9 @@ export function MaanJaoSite({
           <section aria-label={copy.photosHeading} className="space-y-1.5">
             <p
               style={hindiSafe}
-              className="text-center font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-[#8E354A]"
+              className={`text-center text-[10px] font-bold text-[#8E354A] ${
+                isHindi ? '' : 'font-mono uppercase tracking-[0.16em]'
+              }`}
             >
               {copy.photosHeading}
             </p>
@@ -868,6 +1206,7 @@ export function MaanJaoSite({
               <button
                 type="button"
                 onClick={handleForgive}
+                style={hindiSafe}
                 className="inline-flex min-h-[52px] w-full items-center justify-center rounded-full bg-gradient-to-r from-[#BE185D] via-[#D9467A] to-[#D97706] px-6 py-3.5 text-sm font-bold text-white shadow-[0_14px_30px_-10px_rgba(190,24,93,0.5)] transition hover:brightness-105 active:scale-[0.98]"
               >
                 {copy.forgiveCta}
@@ -879,6 +1218,7 @@ export function MaanJaoSite({
                   playRaindropPluck(spoilCount);
                   setSpoilCount((c) => c + 1);
                 }}
+                style={hindiSafe}
                 className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-[#DFB6C3] bg-white/90 px-5 py-2 text-xs font-semibold text-[#6B3F4C] transition hover:bg-white active:scale-[0.98]"
               >
                 {copy.spoilMoreCta}
@@ -903,11 +1243,8 @@ export function MaanJaoSite({
               <div className="relative aspect-[16/9] w-full overflow-hidden bg-[#2A1D1B]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={
-                    (MAKEUP_COUPONS.find((c) => c.id === pickedCouponId) ?? MAKEUP_COUPONS[0])
-                      .artSrc
-                  }
-                  alt={copy.truceBadge}
+                  src={pickedCoupon.artSrc}
+                  alt={pickedCoupon.label[coreLang]}
                   className="h-full w-full object-cover"
                 />
                 <div
@@ -916,7 +1253,9 @@ export function MaanJaoSite({
                 />
                 <span
                   style={hindiSafe}
-                  className="absolute left-3.5 top-3 inline-block rounded-full border border-[#FDE68A]/60 bg-[#261614]/80 px-3 py-0.5 font-mono text-[9.5px] font-bold uppercase tracking-[0.14em] text-[#FDE68A] backdrop-blur-xs"
+                  className={`absolute left-3.5 top-3 inline-block rounded-full border border-[#FDE68A]/60 bg-[#261614]/80 px-3 py-0.5 text-[9.5px] font-bold text-[#FDE68A] backdrop-blur-xs ${
+                    isHindi ? '' : 'font-mono uppercase tracking-[0.14em]'
+                  }`}
                 >
                   {copy.truceBadge}
                 </span>
@@ -939,7 +1278,9 @@ export function MaanJaoSite({
                 <div className="space-y-2 rounded-2xl border border-dashed border-[#DFB6C3] bg-[#FFF6F8] p-3 text-left">
                   <p
                     style={hindiSafe}
-                    className="font-mono text-[9.5px] font-bold uppercase tracking-[0.16em] text-[#8E354A]"
+                    className={`text-[9.5px] font-bold text-[#8E354A] ${
+                      isHindi ? '' : 'font-mono uppercase tracking-[0.16em]'
+                    }`}
                   >
                     {copy.couponHeading}
                   </p>
@@ -986,6 +1327,42 @@ export function MaanJaoSite({
                       );
                     })}
                   </div>
+
+                  {/* When Should I Come Pick You Up? Timing Selector */}
+                  <div className="border-t border-dashed border-[#DFB6C3] pt-3">
+                    <p
+                      style={hindiSafe}
+                      className={`text-[9.5px] font-bold text-[#8E354A] ${
+                        isHindi ? '' : 'font-mono uppercase tracking-[0.16em]'
+                      }`}
+                    >
+                      {copy.pickupTimingHeading}
+                    </p>
+                    <div className="mt-2 grid grid-cols-3 gap-1.5">
+                      {PICKUP_TIMING_OPTIONS.map((slot, idx) => {
+                        const active = pickedTimingId === slot.id;
+                        return (
+                          <button
+                            key={slot.id}
+                            type="button"
+                            onClick={() => {
+                              playRaindropPluck(idx);
+                              setPickedTimingId(slot.id);
+                            }}
+                            aria-pressed={active}
+                            style={hindiSafe}
+                            className={`inline-flex min-h-[44px] items-center justify-center rounded-full border px-2 text-center text-[11px] font-bold transition active:scale-[0.97] ${
+                              active
+                                ? 'border-[#BE185D] bg-[#BE185D] text-white shadow-xs'
+                                : 'border-[#EAB6C4] bg-white text-[#5A2939] hover:border-[#BE185D]/50'
+                            }`}
+                          >
+                            {slot.label[coreLang]}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
 
                 <OccasionCassettePlayer
@@ -1000,13 +1377,14 @@ export function MaanJaoSite({
                   <button
                     type="button"
                     onClick={() => void handleCopyVerdict()}
+                    style={hindiSafe}
                     className="inline-flex min-h-[46px] w-full items-center justify-center rounded-full bg-gradient-to-r from-[#BE185D] to-[#D97706] px-5 py-2.5 text-xs font-bold text-white shadow-sm transition hover:brightness-105 active:scale-[0.98]"
                   >
                     {copy.copyVerdictCta}
                   </button>
 
                   {copiedVerdict ? (
-                    <p role="status" className="text-xs font-semibold text-emerald-700">
+                    <p role="status" style={hindiSafe} className="text-xs font-semibold text-emerald-700">
                       {copy.copiedVerdictToast}
                     </p>
                   ) : null}
@@ -1014,6 +1392,7 @@ export function MaanJaoSite({
                   <button
                     type="button"
                     onClick={handleReplay}
+                    style={hindiSafe}
                     className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-[#DFB6C3] bg-[#FFF5F7] px-4 py-2 text-xs font-semibold text-[#8E354A] transition hover:bg-[#FDE4EA] active:scale-[0.98]"
                   >
                     {copy.replayCta}

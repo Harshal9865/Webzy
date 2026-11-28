@@ -14,6 +14,7 @@ import {
 
 type DesktopAppId = 'her' | 'dream' | 'game' | 'love';
 type FallingKind = 'heart' | 'boba' | 'sunflower' | 'star';
+type ThankYouTreatId = 'chai' | 'dessert' | 'walk';
 
 interface FallingItem {
   id: number;
@@ -84,6 +85,8 @@ interface OsCopy {
   awardSubtitle: (name: string) => string;
   awardKeepPlaying: string;
   awardReplay: string;
+  gameLeft: string;
+  gameRight: string;
   loveTitle: string;
   cassetteSide: string;
   cassettePlay: string;
@@ -91,6 +94,37 @@ interface OsCopy {
   dearLabel: (name: string) => string;
   signedLabel: (name: string) => string;
   dockReady: string;
+  openWhenTitle: string;
+  openWhenSubtitle: string;
+  openWhenProgress: (opened: number, total: number) => string;
+  openWhenTapToOpen: string;
+  openWhenOpenedTag: string;
+  sunshineWindowTitle: string;
+  sunshineSubtitle: string;
+  sunshineProgress: (collected: number, total: number) => string;
+  sunshineDispenseCta: string;
+  sunshineDispenseNextCta: string;
+  sunshineAllCollectedCta: string;
+  sunshineEmptyPrompt: string;
+  sunshineTicketLabel: string;
+  sunshineCompleteBanner: string;
+  breatheWindowTitle: string;
+  breatheSubtitle: string;
+  breatheStartCta: string;
+  breatheStopCta: string;
+  breatheAgainCta: string;
+  breathePhaseIdle: string;
+  breathePhaseInhale: string;
+  breathePhaseHold: string;
+  breathePhaseExhale: string;
+  breathePhaseDone: string;
+  treatHeading: string;
+  treatSubtitle: string;
+  treatSelectedTag: string;
+  copyReplyCta: (sender: string) => string;
+  copyReplyToast: string;
+  whatsappDirectCta: string;
+  replyMessage: (receiver: string, sender: string, treatLabel: string) => string;
 }
 
 const COPY: Record<CoreLanguageCode, OsCopy> = {
@@ -135,6 +169,8 @@ const COPY: Record<CoreLanguageCode, OsCopy> = {
     awardSubtitle: (name) => `Officially presented to ${name} for lighting up every room.`,
     awardKeepPlaying: 'Keep Playing',
     awardReplay: 'Replay',
+    gameLeft: 'LEFT',
+    gameRight: 'RIGHT',
     loveTitle: 'A Small Note',
     cassetteSide: 'SIDE A',
     cassettePlay: 'Play Tape',
@@ -142,6 +178,38 @@ const COPY: Record<CoreLanguageCode, OsCopy> = {
     dearLabel: (name) => `Dear ${name},`,
     signedLabel: (name) => `— Always, ${name}`,
     dockReady: 'Cozy Mode',
+    openWhenTitle: 'Open When · Gratitude Notes',
+    openWhenSubtitle: 'Tap each sealed envelope whenever you need a warm reminder.',
+    openWhenProgress: (opened, total) => `${opened}/${total} opened`,
+    openWhenTapToOpen: 'Tap to unseal',
+    openWhenOpenedTag: 'OPENED',
+    sunshineWindowTitle: 'Sunshine Compliment Dispenser',
+    sunshineSubtitle: 'Press the vintage ticket lever to collect 6 warm reminders.',
+    sunshineProgress: (collected, total) => `${collected}/${total} collected`,
+    sunshineDispenseCta: 'Dispense First Ticket',
+    sunshineDispenseNextCta: 'Dispense Next Ticket',
+    sunshineAllCollectedCta: 'Cycle Collected Tickets',
+    sunshineEmptyPrompt: 'Your sunshine jar is stocked with 6 fresh compliments — tap below to pull one!',
+    sunshineTicketLabel: 'SUNSHINE TICKET',
+    sunshineCompleteBanner: 'All 6/6 sunshine tickets collected — pocket them for any cloudy day.',
+    breatheWindowTitle: '10-Second Calm Tea-Break',
+    breatheSubtitle: 'Pause everything for 10 gentle seconds and breathe with the warm teacup.',
+    breatheStartCta: 'Start 10s Calm Breath',
+    breatheStopCta: 'Pause Break',
+    breatheAgainCta: 'Take Another 10s Break',
+    breathePhaseIdle: 'Ready for a quiet 10-second exhale',
+    breathePhaseInhale: 'Inhale slowly through your nose...',
+    breathePhaseHold: 'Hold softly and drop your shoulders...',
+    breathePhaseExhale: 'Exhale gently and let the day soften...',
+    breathePhaseDone: 'Tea-break complete — wishing you a lighter, brighter smile.',
+    treatHeading: 'Pick Your Thank-You Treat',
+    treatSubtitle: 'Choose your favorite cheer-up plan and send a 1-tap reply.',
+    treatSelectedTag: 'PICKED',
+    copyReplyCta: (sender) => `Copy WhatsApp Reply for ${sender}`,
+    copyReplyToast: 'Sweet reply copied — ready to paste on WhatsApp!',
+    whatsappDirectCta: 'Send Directly on WhatsApp',
+    replyMessage: (receiver, sender, treatLabel) =>
+      `Hey ${sender}, thank you so much for this Smile.OS surprise — it genuinely made my day! I am claiming "${treatLabel}" as my thank-you treat soon. — ${receiver}`,
   },
   hinglish: {
     previewBanner: 'WEBZY FREE PREVIEW',
@@ -184,6 +252,8 @@ const COPY: Record<CoreLanguageCode, OsCopy> = {
     awardSubtitle: (name) => `${name} ke naam — har din ko thoda aur pyaara banane ke liye.`,
     awardKeepPlaying: 'Khelte Raho',
     awardReplay: 'Phir Khelo',
+    gameLeft: 'LEFT',
+    gameRight: 'RIGHT',
     loveTitle: 'Chhota Sa Note',
     cassetteSide: 'SIDE A',
     cassettePlay: 'Tape Chalao',
@@ -191,10 +261,42 @@ const COPY: Record<CoreLanguageCode, OsCopy> = {
     dearLabel: (name) => `Dear ${name},`,
     signedLabel: (name) => `— Hamesha, ${name}`,
     dockReady: 'Cozy Mode',
+    openWhenTitle: 'Open When · Gratitude Notes',
+    openWhenSubtitle: 'Jab bhi thoda smile chahiye ho, koi bhi lifafa tap karke kholo.',
+    openWhenProgress: (opened, total) => `${opened}/${total} khule`,
+    openWhenTapToOpen: 'Kholne ke liye tap karo',
+    openWhenOpenedTag: 'KHULA',
+    sunshineWindowTitle: 'Sunshine Compliment Dispenser',
+    sunshineSubtitle: 'Button dabao aur 6 pyare compliments ke vintage tickets collect karo.',
+    sunshineProgress: (collected, total) => `${collected}/${total} collected`,
+    sunshineDispenseCta: 'Pehla Ticket Nikalo',
+    sunshineDispenseNextCta: 'Agla Ticket Nikalo',
+    sunshineAllCollectedCta: 'Collected Tickets Dekho',
+    sunshineEmptyPrompt: 'Is sunshine jar mein 6 khaas tareefein hain — niche tap karke pehla ticket nikalo!',
+    sunshineTicketLabel: 'SUNSHINE TICKET',
+    sunshineCompleteBanner: 'Sabhi 6/6 sunshine tickets collect ho gaye — hamesha muskurate raho.',
+    breatheWindowTitle: '10-Second Calm Tea-Break',
+    breatheSubtitle: 'Bas 10 second ke liye ruko aur is garam chai circle ke saath gehri saans lo.',
+    breatheStartCta: '10s Calm Break Shuru Karo',
+    breatheStopCta: 'Break Roko',
+    breatheAgainCta: 'Ek Aur 10s Break Lo',
+    breathePhaseIdle: '10 second ke sukoon bhare break ke liye ready',
+    breathePhaseInhale: 'Dheere se gehri saans andar lo...',
+    breathePhaseHold: 'Halka sa roko aur kandhe dheele chhodo...',
+    breathePhaseExhale: 'Aaraam se saans bahar chhodo...',
+    breathePhaseDone: 'Tea-break poora hua — ab thoda halka aur behtar lag raha hoga.',
+    treatHeading: 'Apna Thank-You Treat Chuno',
+    treatSubtitle: 'Apna favorite mood-booster select karo aur 1-tap reply bhejo.',
+    treatSelectedTag: 'CHUNA',
+    copyReplyCta: (sender) => `${sender} ke liye WhatsApp Reply Copy Karo`,
+    copyReplyToast: 'Pyara reply copy ho gaya — ab WhatsApp par bhej do!',
+    whatsappDirectCta: 'WhatsApp par bhejo',
+    replyMessage: (receiver, sender, treatLabel) =>
+      `Hey ${sender}, is pyare Smile.OS surprise ke liye dil se thank you — mera din ban gaya! Mera thank-you treat pakka "${treatLabel}" rahega. — ${receiver}`,
   },
   hi: {
     previewBanner: 'WEBZY मुफ़्त पूर्वावलोकन',
-    osTitle: 'Her.OS',
+    osTitle: 'Smile.OS',
     moodPill: 'प्यार भरा दिन',
     forLabel: (name) => `${name} के लिए`,
     desktopHint: 'कोई फ़ोल्डर खोलें या बिल्ली पर टैप करें',
@@ -233,6 +335,8 @@ const COPY: Record<CoreLanguageCode, OsCopy> = {
     awardSubtitle: (name) => `${name} के लिए — हर पल में मिठास और रोशनी भरने के लिए।`,
     awardKeepPlaying: 'खेल जारी रखें',
     awardReplay: 'फिर से खेलें',
+    gameLeft: 'बाएँ',
+    gameRight: 'दाएँ',
     loveTitle: 'एक छोटा सा संदेश',
     cassetteSide: 'साइड A',
     cassettePlay: 'कैसेट चलाएं',
@@ -240,35 +344,282 @@ const COPY: Record<CoreLanguageCode, OsCopy> = {
     dearLabel: (name) => `प्रिय ${name},`,
     signedLabel: (name) => `— स्नेह सहित, ${name}`,
     dockReady: 'सुकून मोड',
+    openWhenTitle: 'जब मन चाहे खोलें · आभार पत्र',
+    openWhenSubtitle: 'जब भी मुस्कान की ज़रूरत हो, किसी भी लिफ़ाफ़े पर टैप करें।',
+    openWhenProgress: (opened, total) => `${opened}/${total} खुले`,
+    openWhenTapToOpen: 'खोलने के लिए टैप करें',
+    openWhenOpenedTag: 'खुला',
+    sunshineWindowTitle: 'धूप भरी प्रशंसा टिकट मशीन',
+    sunshineSubtitle: 'बटन दबाएँ और 6 प्यारे प्रशंसा टिकट एक-एक कर सहेजें।',
+    sunshineProgress: (collected, total) => `${collected}/${total} एकत्रित`,
+    sunshineDispenseCta: 'पहला टिकट निकालें',
+    sunshineDispenseNextCta: 'अगला टिकट निकालें',
+    sunshineAllCollectedCta: 'सभी टिकट फिर से देखें',
+    sunshineEmptyPrompt: 'इस जार में आपके लिए 6 स्नेह भरे टिकट हैं — नीचे टैप कर पहला निकालें।',
+    sunshineTicketLabel: 'प्रशंसा टिकट',
+    sunshineCompleteBanner: 'सभी 6/6 प्रशंसा टिकट सहेज लिए गए — हमेशा यूँ ही मुस्कुराते रहें।',
+    breatheWindowTitle: '10-सेकंड शांत चाय-विराम',
+    breatheSubtitle: '10 शांत सेकंड रुकें और इस गुनगुने चक्र के साथ गहरी साँस लें।',
+    breatheStartCta: '10 सेकंड का शांत विराम शुरू करें',
+    breatheStopCta: 'विराम रोकें',
+    breatheAgainCta: 'एक और 10 सेकंड का विराम लें',
+    breathePhaseIdle: '10 सेकंड के सुकून भरे विराम के लिए तैयार',
+    breathePhaseInhale: 'धीरे-धीरे गहरी साँस भीतर लें...',
+    breathePhaseHold: 'कोमलता से थामें और कंधे हल्के छोड़ें...',
+    breathePhaseExhale: 'आराम से साँस बाहर छोड़ें और मुस्कुराएँ...',
+    breathePhaseDone: 'शांत विराम पूरा हुआ — आशा है अब मन हल्का और प्रसन्न है।',
+    treatHeading: 'अपनी धन्यवाद ट्रीट चुनें',
+    treatSubtitle: 'अपनी पसंदीदा ट्रीट चुनें और एक टैप में उत्तर कॉपी करें।',
+    treatSelectedTag: 'चयनित',
+    copyReplyCta: (sender) => `${sender} के लिए व्हाट्सऐप उत्तर कॉपी करें`,
+    copyReplyToast: 'मधुर उत्तर कॉपी हो गया — अब व्हाट्सऐप पर भेजें।',
+    whatsappDirectCta: 'व्हाट्सऐप पर भेजें',
+    replyMessage: (receiver, sender, treatLabel) =>
+      `प्रिय ${sender}, इस प्यारे सरप्राइज़ के लिए दिल से धन्यवाद — आज का दिन बेहद सुंदर बन गया! मेरी धन्यवाद ट्रीट "${treatLabel}" पक्की रही। — ${receiver}`,
   },
 };
 
 const SAMPLE_HER_PHOTOS: readonly {
   url: string;
-  caption: string;
+  caption: Record<CoreLanguageCode, string>;
   gradient: string;
 }[] = [
   {
     url: '/templates/cafe/rose-cottage.jpg',
-    caption: 'golden hour glow',
+    caption: {
+      en: 'golden hour glow',
+      hinglish: 'sunahri shaam',
+      hi: 'सुनहरी शाम',
+    },
     gradient: 'linear-gradient(135deg, #FDE2C4 0%, #F9A8D4 100%)',
   },
   {
     url: '/templates/occasions/upgrades/paris-moonlit-balcony.jpg',
-    caption: 'favorite evening',
+    caption: {
+      en: 'favorite evening',
+      hinglish: 'favorite shaam',
+      hi: 'सबसे प्यारी शाम',
+    },
     gradient: 'linear-gradient(135deg, #FCE7F3 0%, #DDD6FE 100%)',
   },
   {
     url: '/templates/creative/creatie-hills.jpg',
-    caption: 'cozy afternoon',
+    caption: {
+      en: 'cozy afternoon',
+      hinglish: 'sukoon bhari dopahar',
+      hi: 'सुकून भरी दोपहर',
+    },
     gradient: 'linear-gradient(135deg, #FEF3C7 0%, #FBCFE8 100%)',
   },
   {
     url: '/templates/occasions/our-timeline/cover.jpg',
-    caption: 'softest vibes',
+    caption: {
+      en: 'softest vibes',
+      hinglish: 'meethi yaadein',
+      hi: 'मधुर यादें',
+    },
     gradient: 'linear-gradient(135deg, #E0E7FF 0%, #FCE7F3 100%)',
   },
 ];
+
+interface FallbackOpenWhenNote {
+  code: string;
+  title: Record<CoreLanguageCode, string>;
+  detail: Record<CoreLanguageCode, string>;
+}
+
+const FALLBACK_OPEN_WHEN_NOTES: readonly FallbackOpenWhenNote[] = [
+  {
+    code: '01',
+    title: {
+      en: 'Open when the day feels heavy',
+      hinglish: 'Open when din thoda bhaari lage',
+      hi: 'खोलें जब दिन थोड़ा भारी लगे',
+    },
+    detail: {
+      en: 'Take one slow breath — you do not have to carry everything at once. You are doing far better than you think.',
+      hinglish: 'Ek gehri saans lo — sab kuch ek saath nahi sambhalna hai. Tum jitna sochte ho, usse kahin zyada behtar kar rahe ho.',
+      hi: 'एक गहरी साँस लें — सब कुछ अकेले और एक साथ नहीं संभालना है। आप अपनी सोच से कहीं बेहतर कर रहे हैं।',
+    },
+  },
+  {
+    code: '02',
+    title: {
+      en: 'Open when you need a quick smile',
+      hinglish: 'Open when turant muskaan chahiye',
+      hi: 'खोलें जब तुरंत मुस्कान चाहिए',
+    },
+    detail: {
+      en: 'Just a quiet reminder that your warmth makes ordinary rooms feel softer, brighter, and genuinely happier.',
+      hinglish: 'Bas itna yaad dilana tha ki tumhari maujoodgi har mamooli kamre ko thoda aur khushnuma bana deti hai.',
+      hi: 'बस इतना याद दिलाना था कि आपकी सहज मुस्कान हर साधारण पल को और उजला बना देती है।',
+    },
+  },
+  {
+    code: '03',
+    title: {
+      en: 'Open when you doubt yourself',
+      hinglish: 'Open when khud par shak ho',
+      hi: 'खोलें जब आत्मविश्वास थोड़ा कम लगे',
+    },
+    detail: {
+      en: 'Look at everything you have already navigated with grace. Quiet resilience is one of your strongest superpowers.',
+      hinglish: 'Dekho tumne kitni mushkilein shanti aur himmat se paar ki hain — ye tumhari sabse badi taqat hai.',
+      hi: 'देखिए आपने कितनी चुनौतियाँ धैर्य और गरिमा से पार की हैं — यही आपकी सबसे बड़ी शक्ति है।',
+    },
+  },
+  {
+    code: '04',
+    title: {
+      en: 'Open whenever you miss a friend',
+      hinglish: 'Open jab kisi apne ki yaad aaye',
+      hi: 'खोलें जब किसी अपने की याद आए',
+    },
+    detail: {
+      en: 'I am always just one message away — for tea, a walk, a silly joke, or simply sitting together in peace.',
+      hinglish: 'Main hamesha bas ek message door hoon — chai, walk, ya bas shaanti se saath baithne ke liye.',
+      hi: 'मैं हमेशा बस एक संदेश दूर हूँ — चाय, सैर, हल्की-फुल्की बातचीत या साथ बैठने के लिए।',
+    },
+  },
+];
+
+interface SunshineComplimentItem {
+  id: string;
+  ticketNo: string;
+  tag: Record<CoreLanguageCode, string>;
+  note: (receiver: string) => Record<CoreLanguageCode, string>;
+}
+
+const SUNSHINE_COMPLIMENTS: readonly SunshineComplimentItem[] = [
+  {
+    id: 'warmth',
+    ticketNo: 'NO. 01',
+    tag: { en: 'WARMTH', hinglish: 'ROSHNI', hi: 'उजाला' },
+    note: (receiver) => ({
+      en: `${receiver}, you have a rare way of making people feel genuinely heard the moment they talk to you.`,
+      hinglish: `${receiver}, tumhari sabse pyari baat ye hai ki tumse baat karte hi saamne wale ko sukoon milta hai.`,
+      hi: `${receiver}, आपकी सबसे सुंदर खूबी यह है कि आपसे बात करते ही सामने वाले को अपनापन और सुकून मिलता है।`,
+    }),
+  },
+  {
+    id: 'kindness',
+    ticketNo: 'NO. 02',
+    tag: { en: 'KINDNESS', hinglish: 'DIL SE', hi: 'कोमलता' },
+    note: () => ({
+      en: 'Even on your busiest days, you still remember the tiny thoughtful details everyone else overlooks.',
+      hinglish: 'Apne sabse busy dinon mein bhi tum woh chhoti pyari baatein yaad rakhte ho jo baaki bhool jaate hain.',
+      hi: 'अपने सबसे व्यस्त दिनों में भी आप वे छोटी-छोटी बातें याद रखते हैं जो दूसरों का दिन बना देती हैं।',
+    }),
+  },
+  {
+    id: 'laughter',
+    ticketNo: 'NO. 03',
+    tag: { en: 'GOOD ENERGY', hinglish: 'HASI', hi: 'मुस्कान' },
+    note: () => ({
+      en: 'Your laugh is undefeated — five minutes around you turns a grey afternoon into golden hour.',
+      hinglish: 'Tumhari hansi ka koi jawaab nahi — paanch minute ki baat poore mood ko bright kar deti hai.',
+      hi: 'आपकी हँसी में गज़ब की सकारात्मकता है — कुछ ही मिनटों में पूरा माहौल खुशनुमा हो जाता है।',
+    }),
+  },
+  {
+    id: 'strength',
+    ticketNo: 'NO. 04',
+    tag: { en: 'QUIET GRIT', hinglish: 'HIMMAT', hi: 'धैर्य' },
+    note: () => ({
+      en: 'You carry yourself with calm grace even when life throws plot twists — and that is quietly inspiring.',
+      hinglish: 'Chahe jitne bhi unexpected twists aayein, tum jis shanti se handle karte ho woh sach mein inspiring hai.',
+      hi: 'चाहे जितनी भी अनचाही उलझनें आएँ, आप जिस शांति और संयम से उन्हें सँभालते हैं वह प्रेरणादायक है।',
+    }),
+  },
+  {
+    id: 'taste',
+    ticketNo: 'NO. 05',
+    tag: { en: 'MAIN CHARACTER', hinglish: 'KHAAS VIBE', hi: 'ख़ास अंदाज़' },
+    note: () => ({
+      en: 'Every playlist, cafe recommendation, and late-night chat with you hits 10 out of 10 effortlessly.',
+      hinglish: 'Tumhari playlist, chai spots aur lambi baatein — har cheez bina koshish ke 10/10 hoti hai.',
+      hi: 'आपकी पसंद, चाय के ठिकाने और आत्मीय बातचीत — हर चीज़ स्वाभाविक रूप से बेहद ख़ास होती है।',
+    }),
+  },
+  {
+    id: 'appreciated',
+    ticketNo: 'NO. 06',
+    tag: { en: 'ALWAYS VALUED', hinglish: 'ANMOL', hi: 'अनमोल' },
+    note: (receiver) => ({
+      en: `Never forget this, ${receiver}: you are deeply appreciated, celebrated, and rooted for every single day.`,
+      hinglish: `Ye kabhi mat bhoolna ${receiver}: tum bahut khaas ho aur koi hamesha dil se tumhari khushi chahta hai.`,
+      hi: `यह कभी मत भूलिएगा ${receiver}: आप बेहद अनमोल हैं और हर दिन आपकी ख़ुशी के लिए शुभकामनाएँ साथ हैं।`,
+    }),
+  },
+];
+
+interface ThankYouTreatOption {
+  id: ThankYouTreatId;
+  title: Record<CoreLanguageCode, string>;
+  subtitle: Record<CoreLanguageCode, string>;
+}
+
+const THANK_YOU_TREATS: readonly ThankYouTreatOption[] = [
+  {
+    id: 'chai',
+    title: {
+      en: 'Chai & Snacks',
+      hinglish: 'Chai & Snacks',
+      hi: 'चाय और स्नैक्स',
+    },
+    subtitle: {
+      en: 'Hot masala chai & crispy bites on me.',
+      hinglish: 'Garma-garam chai aur crispy snacks meri taraf se.',
+      hi: 'गरमा-गरम चाय और पसंदीदा स्नैक्स मेरी ओर से।',
+    },
+  },
+  {
+    id: 'dessert',
+    title: {
+      en: 'Favorite Dessert',
+      hinglish: 'Favorite Dessert',
+      hi: 'पसंदीदा मिठाई / डेज़र्ट',
+    },
+    subtitle: {
+      en: 'Waffles, gelato, or your go-to sweet treat.',
+      hinglish: 'Waffles, ice-cream ya jo meetha sabse pasand ho.',
+      hi: 'आइसक्रीम, केक या आपकी सबसे पसंदीदा मिठाई।',
+    },
+  },
+  {
+    id: 'walk',
+    title: {
+      en: 'Long Catch-Up Walk',
+      hinglish: 'Long Catch-Up Walk',
+      hi: 'सुकून भरी लंबी सैर',
+    },
+    subtitle: {
+      en: 'Golden-hour stroll & zero phone notifications.',
+      hinglish: 'Shaam ki walk aur bina ruke dher saari baatein.',
+      hi: 'शाम की हवा में सुकून भरी लंबी सैर और बातचीत।',
+    },
+  },
+];
+
+async function copySmileTextSafely(text: string): Promise<void> {
+  try {
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else if (typeof document !== 'undefined') {
+      const helper = document.createElement('textarea');
+      helper.value = text;
+      helper.setAttribute('readonly', '');
+      helper.style.position = 'fixed';
+      helper.style.opacity = '0';
+      document.body.appendChild(helper);
+      helper.select();
+      document.execCommand('copy');
+      document.body.removeChild(helper);
+    }
+  } catch {
+    // Silent fallback when clipboard permissions are restricted
+  }
+}
 
 const TRAVEL_STOPS: readonly TravelStop[] = [
   {
@@ -807,6 +1158,98 @@ function PixelCassetteSvg({ spinning, sideLabel, tapeTitle }: { spinning: boolea
   );
 }
 
+/** Crisp Pixel Sun & Ticket SVG for Sunshine Compliment Dispenser. */
+function PixelSunTicketSvg({ className = 'h-7 w-7' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 20 20" className={className} shapeRendering="crispEdges" aria-hidden="true">
+      <rect x="9" y="1" width="2" height="3" fill="#F59E0B" />
+      <rect x="9" y="16" width="2" height="3" fill="#F59E0B" />
+      <rect x="1" y="9" width="3" height="2" fill="#F59E0B" />
+      <rect x="16" y="9" width="3" height="2" fill="#F59E0B" />
+      <rect x="3" y="3" width="2" height="2" fill="#FBBF24" />
+      <rect x="15" y="3" width="2" height="2" fill="#FBBF24" />
+      <rect x="3" y="15" width="2" height="2" fill="#FBBF24" />
+      <rect x="15" y="15" width="2" height="2" fill="#FBBF24" />
+      <rect x="6" y="6" width="8" height="8" fill="#FDE047" />
+      <rect x="5" y="7" width="10" height="6" fill="#FDE047" />
+      <rect x="7" y="5" width="6" height="10" fill="#FDE047" />
+      <rect x="8" y="8" width="1" height="2" fill="#4A2545" />
+      <rect x="11" y="8" width="1" height="2" fill="#4A2545" />
+      <rect x="8" y="11" width="4" height="1" fill="#4A2545" />
+    </svg>
+  );
+}
+
+/** Cozy Steaming Pixel Teacup SVG for the 10-Second Calm Tea-Break Breathing Circle. */
+function PixelTeacupSvg({ steaming, className = 'h-10 w-10' }: { steaming: boolean; className?: string }) {
+  return (
+    <svg viewBox="0 0 24 22" className={className} shapeRendering="crispEdges" aria-hidden="true">
+      {/* Gentle steam wisps */}
+      <g opacity={steaming ? 0.95 : 0.45}>
+        <rect x="8" y="2" width="1" height="3" fill="#F9A8D4" />
+        <rect x="9" y="4" width="1" height="2" fill="#F9A8D4" />
+        <rect x="13" y="1" width="1" height="3" fill="#FDE68A" />
+        <rect x="12" y="3" width="1" height="3" fill="#FDE68A" />
+      </g>
+      {/* Cup body */}
+      <rect x="5" y="8" width="11" height="8" fill="#FFFBF5" />
+      <rect x="6" y="16" width="9" height="2" fill="#FFFBF5" />
+      {/* Tea surface */}
+      <rect x="6" y="9" width="9" height="2" fill="#D97706" />
+      {/* Cup outline */}
+      <rect x="4" y="8" width="1" height="8" fill="#4A2545" />
+      <rect x="16" y="8" width="1" height="8" fill="#4A2545" />
+      <rect x="5" y="7" width="11" height="1" fill="#4A2545" />
+      <rect x="5" y="16" width="1" height="2" fill="#4A2545" />
+      <rect x="15" y="16" width="1" height="2" fill="#4A2545" />
+      <rect x="6" y="18" width="9" height="1" fill="#4A2545" />
+      {/* Handle */}
+      <rect x="17" y="10" width="2" height="1" fill="#4A2545" />
+      <rect x="19" y="11" width="1" height="3" fill="#4A2545" />
+      <rect x="17" y="14" width="2" height="1" fill="#4A2545" />
+      {/* Tiny pixel heart on mug */}
+      <rect x="9" y="12" width="1" height="1" fill="#EC4899" />
+      <rect x="11" y="12" width="1" height="1" fill="#EC4899" />
+      <rect x="9" y="13" width="3" height="1" fill="#EC4899" />
+      <rect x="10" y="14" width="1" height="1" fill="#EC4899" />
+      {/* Saucer */}
+      <rect x="3" y="19" width="15" height="2" fill="#FBCFE8" />
+      <rect x="4" y="21" width="13" height="1" fill="#4A2545" />
+    </svg>
+  );
+}
+
+/** Pixel SVG icon for the 3 Thank-You Treat cards. */
+function PixelTreatIconSvg({ id, className = 'h-6 w-6' }: { id: ThankYouTreatId; className?: string }) {
+  if (id === 'chai') {
+    return <PixelTeacupSvg steaming className={className} />;
+  }
+  if (id === 'dessert') {
+    return (
+      <svg viewBox="0 0 20 20" className={className} shapeRendering="crispEdges" aria-hidden="true">
+        <rect x="9" y="2" width="2" height="2" fill="#EF4444" />
+        <rect x="6" y="4" width="8" height="3" fill="#FBCFE8" />
+        <rect x="4" y="7" width="12" height="3" fill="#F472B6" />
+        <rect x="5" y="10" width="10" height="6" fill="#FDE68A" />
+        <rect x="6" y="16" width="8" height="2" fill="#D97706" />
+        <rect x="4" y="10" width="1" height="6" fill="#4A2545" />
+        <rect x="15" y="10" width="1" height="6" fill="#4A2545" />
+        <rect x="5" y="18" width="10" height="1" fill="#4A2545" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 20 20" className={className} shapeRendering="crispEdges" aria-hidden="true">
+      <rect x="3" y="12" width="14" height="5" fill="#86EFAC" />
+      <rect x="7" y="9" width="6" height="8" fill="#FDE68A" />
+      <rect x="13" y="4" width="3" height="3" fill="#FBBF24" />
+      <rect x="4" y="6" width="3" height="6" fill="#4D7C5D" />
+      <rect x="3" y="8" width="5" height="3" fill="#6B9E78" />
+      <rect x="2" y="17" width="16" height="1" fill="#4A2545" />
+    </svg>
+  );
+}
+
 /** Layered animated pixel sky wallpaper (stars, crescent moon, drifting clouds, pixel pine hills, floating hearts). */
 function PixelDesktopWallpaper() {
   const stars = [
@@ -929,10 +1372,12 @@ function PixelDesktopWallpaper() {
 
 function HerFolderApp({
   photos,
+  coreLang,
   copy,
   isHindi,
 }: {
   photos?: string[];
+  coreLang: CoreLanguageCode;
   copy: OsCopy;
   isHindi: boolean;
 }) {
@@ -941,12 +1386,16 @@ function HerFolderApp({
     if (validBuyerPhotos.length > 0) {
       return validBuyerPhotos.slice(0, 6).map((url, idx) => ({
         url,
-        caption: SAMPLE_HER_PHOTOS[idx % SAMPLE_HER_PHOTOS.length].caption,
+        caption: SAMPLE_HER_PHOTOS[idx % SAMPLE_HER_PHOTOS.length].caption[coreLang],
         gradient: SAMPLE_HER_PHOTOS[idx % SAMPLE_HER_PHOTOS.length].gradient,
       }));
     }
-    return SAMPLE_HER_PHOTOS;
-  }, [photos]);
+    return SAMPLE_HER_PHOTOS.map((item) => ({
+      url: item.url,
+      caption: item.caption[coreLang],
+      gradient: item.gradient,
+    }));
+  }, [coreLang, photos]);
 
   const [likes, setLikes] = useState<Record<number, number>>({ 0: 12, 1: 9, 2: 15, 3: 11 });
   const [failedIdx, setFailedIdx] = useState<Record<number, boolean>>({});
@@ -1017,7 +1466,7 @@ function HerFolderApp({
               <button
                 type="button"
                 onClick={() => handleHeart(idx)}
-                className="inline-flex min-h-[30px] items-center gap-1 rounded-full bg-[#FFF1F5] px-2 py-0.5 text-[11px] font-extrabold text-[#DB2777] transition-transform active:scale-90"
+                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-1 rounded-full bg-[#FFF1F5] px-2.5 py-0.5 text-[11px] font-extrabold text-[#DB2777] transition-transform active:scale-90"
               >
                 <PixelHeartSvg className="h-3 w-3" fill="#EC4899" />
                 <span>{likes[idx] ?? 1}</span>
@@ -1077,7 +1526,7 @@ function HerFolderApp({
                   <button
                     type="button"
                     onClick={() => setZoomIdx(null)}
-                    className="min-h-[40px] rounded-lg border-2 border-[#4A2545] bg-[#FCE7F3] px-3.5 text-xs font-extrabold text-[#4A2545] shadow-[0_2px_0_#4A2545] active:translate-y-0.5"
+                    className="min-h-[44px] rounded-lg border-2 border-[#4A2545] bg-[#FCE7F3] px-3.5 text-xs font-extrabold text-[#4A2545] shadow-[0_2px_0_#4A2545] active:translate-y-0.5"
                   >
                     {copy.closeLabel}
                   </button>
@@ -1168,7 +1617,7 @@ function DreamBoardApp({
             <button
               type="button"
               onClick={() => setSelectedStop(null)}
-              className="mt-3 min-h-[40px] w-full rounded-lg border-2 border-[#4A2545] bg-[#FDE68A] text-xs font-extrabold text-[#4A2545] shadow-[0_2px_0_#4A2545] active:translate-y-0.5"
+              className="mt-3 min-h-[44px] w-full rounded-lg border-2 border-[#4A2545] bg-[#FDE68A] text-xs font-extrabold text-[#4A2545] shadow-[0_2px_0_#4A2545] active:translate-y-0.5"
             >
               {copy.postcardBack}
             </button>
@@ -1327,6 +1776,7 @@ function PixelCatcherGameApp({
 
   const stageRef = useRef<HTMLDivElement | null>(null);
   const catXRef = useRef(50);
+  const itemsRef = useRef<FallingItem[]>([]);
   const nextIdRef = useRef(1);
   const spawnCounterRef = useRef(0);
 
@@ -1340,6 +1790,7 @@ function PixelCatcherGameApp({
     setScore(0);
     setCatches(0);
     setCombo(0);
+    itemsRef.current = [];
     setItems([]);
     setBursts([]);
     setAwardShown(false);
@@ -1390,51 +1841,50 @@ function PixelCatcherGameApp({
         };
       }
 
-      setItems((prev) => {
-        const nextList: FallingItem[] = [];
-        let caughtCount = 0;
-        let caughtPoints = 0;
-        let missedAny = false;
-        const newBursts: CatchBurst[] = [];
+      const nextList: FallingItem[] = [];
+      let caughtCount = 0;
+      let caughtPoints = 0;
+      let missedAny = false;
+      const newBursts: CatchBurst[] = [];
 
-        const working = spawned ? [...prev, spawned] : prev;
-        for (const item of working) {
-          const nextY = item.y + item.speed;
-          const inCatchZone = nextY >= 74 && nextY <= 92 && Math.abs(item.x - catXRef.current) <= 14;
-          if (inCatchZone) {
-            caughtCount += 1;
-            caughtPoints += item.points;
-            newBursts.push({
-              id: nextIdRef.current++,
-              x: item.x,
-              y: 74,
-              label: `+${item.points}`,
-            });
-          } else if (nextY > 98) {
-            missedAny = true;
-          } else {
-            nextList.push({ ...item, y: nextY });
-          }
-        }
-
-        if (caughtCount > 0) {
-          playSoftChime(660 + caughtPoints * 35, 0.14);
-          setScore((s) => s + caughtPoints);
-          setCombo((c) => c + caughtCount);
-          setCatches((total) => {
-            const updated = total + caughtCount;
-            if (updated >= 8) {
-              setAwardShown(true);
-            }
-            return updated;
+      const working = spawned ? [...itemsRef.current, spawned] : itemsRef.current;
+      for (const item of working) {
+        const nextY = item.y + item.speed;
+        const inCatchZone = nextY >= 74 && nextY <= 92 && Math.abs(item.x - catXRef.current) <= 14;
+        if (inCatchZone) {
+          caughtCount += 1;
+          caughtPoints += item.points;
+          newBursts.push({
+            id: nextIdRef.current++,
+            x: item.x,
+            y: 74,
+            label: `+${item.points}`,
           });
-          setBursts((b) => [...b.slice(-5), ...newBursts]);
-        } else if (missedAny) {
-          setCombo(0);
+        } else if (nextY > 98) {
+          missedAny = true;
+        } else {
+          nextList.push({ ...item, y: nextY });
         }
+      }
 
-        return nextList;
-      });
+      itemsRef.current = nextList;
+      setItems(nextList);
+
+      if (caughtCount > 0) {
+        playSoftChime(660 + caughtPoints * 35, 0.14);
+        setScore((s) => s + caughtPoints);
+        setCombo((c) => c + caughtCount);
+        setCatches((total) => {
+          const updated = total + caughtCount;
+          if (updated >= 8) {
+            setAwardShown(true);
+          }
+          return updated;
+        });
+        setBursts((b) => [...b.slice(-5), ...newBursts]);
+      } else if (missedAny) {
+        setCombo(0);
+      }
     }, 55);
 
     return () => window.clearInterval(interval);
@@ -1564,7 +2014,7 @@ function PixelCatcherGameApp({
             <button
               type="button"
               onClick={resetGame}
-              className="mt-3 min-h-[42px] rounded-xl border-2 border-[#4A2545] bg-[#FDE68A] px-5 text-xs font-black text-[#4A2545] shadow-[0_3px_0_#4A2545] active:translate-y-0.5"
+              className="mt-3 min-h-[44px] rounded-xl border-2 border-[#4A2545] bg-[#FDE68A] px-5 text-xs font-black text-[#4A2545] shadow-[0_3px_0_#4A2545] active:translate-y-0.5"
             >
               {copy.gameStart}
             </button>
@@ -1578,7 +2028,11 @@ function PixelCatcherGameApp({
               <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full border-2 border-[#4A2545] bg-[#FDE68A]">
                 <PixelStarSvg className="h-5 w-5" fill="#E11D63" />
               </div>
-              <div className="mt-1.5 text-[10px] font-black tracking-widest text-[#DB2777]">
+              <div
+                className={`mt-1.5 text-[10px] font-black text-[#DB2777] ${
+                  isHindi ? 'tracking-normal' : 'tracking-widest'
+                }`}
+              >
                 {copy.awardBadge}
               </div>
               <h4 className={`mt-0.5 text-sm font-extrabold text-[#4A2545] ${isHindi ? 'leading-relaxed' : ''}`}>
@@ -1591,14 +2045,14 @@ function PixelCatcherGameApp({
                 <button
                   type="button"
                   onClick={() => setAwardDismissed(true)}
-                  className="min-h-[40px] flex-1 rounded-lg border-2 border-[#4A2545] bg-[#FCE7F3] text-xs font-extrabold text-[#4A2545] shadow-[0_2px_0_#4A2545]"
+                  className="min-h-[44px] flex-1 rounded-lg border-2 border-[#4A2545] bg-[#FCE7F3] text-xs font-extrabold text-[#4A2545] shadow-[0_2px_0_#4A2545]"
                 >
                   {copy.awardKeepPlaying}
                 </button>
                 <button
                   type="button"
                   onClick={resetGame}
-                  className="min-h-[40px] flex-1 rounded-lg border-2 border-[#4A2545] bg-[#FDE68A] text-xs font-extrabold text-[#4A2545] shadow-[0_2px_0_#4A2545]"
+                  className="min-h-[44px] flex-1 rounded-lg border-2 border-[#4A2545] bg-[#FDE68A] text-xs font-extrabold text-[#4A2545] shadow-[0_2px_0_#4A2545]"
                 >
                   {copy.awardReplay}
                 </button>
@@ -1621,7 +2075,7 @@ function PixelCatcherGameApp({
           <svg viewBox="0 0 16 16" className="h-4 w-4" fill="currentColor" aria-hidden="true">
             <path d="M10 3L4 8L10 13V3Z" />
           </svg>
-          <span>LEFT</span>
+          <span>{copy.gameLeft}</span>
         </button>
         <button
           type="button"
@@ -1631,7 +2085,7 @@ function PixelCatcherGameApp({
           }}
           className="flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl border-2 border-[#4A2545] bg-[#FFFBF5] text-xs font-black text-[#4A2545] shadow-[0_3px_0_#4A2545] active:translate-y-0.5"
         >
-          <span>RIGHT</span>
+          <span>{copy.gameRight}</span>
           <svg viewBox="0 0 16 16" className="h-4 w-4" fill="currentColor" aria-hidden="true">
             <path d="M6 3L12 8L6 13V3Z" />
           </svg>
@@ -1695,7 +2149,7 @@ function LoveTxtApp({
         <button
           type="button"
           onClick={toggleTape}
-          className="inline-flex min-h-[40px] items-center gap-1.5 rounded-full border-2 border-[#4A2545] bg-[#FFFBF5] px-3.5 text-[11px] font-extrabold text-[#4A2545] shadow-[0_2px_0_#4A2545] active:translate-y-0.5"
+          className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full border-2 border-[#4A2545] bg-[#FFFBF5] px-3.5 text-[11px] font-extrabold text-[#4A2545] shadow-[0_2px_0_#4A2545] active:translate-y-0.5"
         >
           <PixelHeartSvg className="h-3 w-3" fill={spinning ? '#EC4899' : '#A78BFA'} />
           <span>{spinning ? copy.cassettePause : copy.cassettePlay}</span>
@@ -1754,8 +2208,25 @@ export function MakeThemSmileSite({
   const [catHearts, setCatHearts] = useState<CatHeartBurst[]>([]);
   const [clockText, setClockText] = useState('08:24');
 
+  // "Open When" / Gratitude Notes (up to 4 wired from data.highlights)
+  const [openedNoteIds, setOpenedNoteIds] = useState<string[]>([]);
+
+  // Sunshine Compliment Dispenser (6 unique warm notes)
+  const [collectedSunshineCount, setCollectedSunshineCount] = useState(0);
+  const [activeTicketIdx, setActiveTicketIdx] = useState<number | null>(null);
+
+  // 10-Second Calm Tea-Break Breathing Circle
+  const [breathingActive, setBreathingActive] = useState(false);
+  const [breathingSecondsLeft, setBreathingSecondsLeft] = useState(10);
+  const [breathingCompleted, setBreathingCompleted] = useState(false);
+
+  // Thank-You Treat Picker + WhatsApp Reply Copy
+  const [selectedTreatId, setSelectedTreatId] = useState<ThankYouTreatId>('chai');
+  const [replyCopied, setReplyCopied] = useState(false);
+
   const openedFiredRef = useRef(false);
   const catHeartIdRef = useRef(1);
+  const copyToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const coreLang = toCoreLanguageCode(language);
   const copy = COPY[coreLang] ?? COPY.en;
@@ -1764,6 +2235,36 @@ export function MakeThemSmileSite({
   const headline = pickLocalizedText(data.headline, language);
   const message = pickLocalizedText(data.message, language);
   const tapeTitle = manifest.music[0]?.label ?? 'Sweetest Mix';
+  const sanitizedPhone = data.whatsappPhone?.replace(/\D/g, '') ?? '';
+  const hasValidWhatsapp = sanitizedPhone.length >= 7;
+
+  const notifyOpenedOnce = useCallback(() => {
+    if (!openedFiredRef.current) {
+      openedFiredRef.current = true;
+      onOpened?.();
+    }
+  }, [onOpened]);
+
+  // Wire up to 4 "Open When" / gratitude notes from data.highlights with warm localized fallbacks
+  const openWhenNotes = useMemo(() => {
+    const userHighlights = (data.highlights ?? []).slice(0, 4);
+    const totalCount = userHighlights.length > 0 ? Math.min(4, Math.max(userHighlights.length, 4)) : 4;
+    return Array.from({ length: totalCount }, (_, idx) => {
+      const fallback = FALLBACK_OPEN_WHEN_NOTES[idx % FALLBACK_OPEN_WHEN_NOTES.length];
+      const highlight = userHighlights[idx];
+      const customTitle = highlight ? pickLocalizedText(highlight.title, language).trim() : '';
+      const customDetail = highlight ? pickLocalizedText(highlight.detail, language).trim() : '';
+      return {
+        id: `open-when-${idx}`,
+        code: fallback.code,
+        title: customTitle || fallback.title[coreLang],
+        detail: customDetail || fallback.detail[coreLang],
+      };
+    });
+  }, [coreLang, data.highlights, language]);
+
+  const activeTreat =
+    THANK_YOU_TREATS.find((treat) => treat.id === selectedTreatId) ?? THANK_YOU_TREATS[0];
 
   // Live retro clock in top OS bar
   useEffect(() => {
@@ -1778,17 +2279,109 @@ export function MakeThemSmileSite({
     return () => window.clearInterval(id);
   }, []);
 
+  // 10-Second Calm Tea-Break timer
+  useEffect(() => {
+    if (!breathingActive) return;
+    const timer = window.setInterval(() => {
+      setBreathingSecondsLeft((prev) => Math.max(0, prev - 1));
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [breathingActive]);
+
+  useEffect(() => {
+    if (breathingActive && breathingSecondsLeft === 0) {
+      setBreathingActive(false);
+      setBreathingCompleted(true);
+      playSoftChime(659.25, 0.3);
+    }
+  }, [breathingActive, breathingSecondsLeft]);
+
+  useEffect(() => {
+    return () => {
+      if (copyToastTimerRef.current) clearTimeout(copyToastTimerRef.current);
+    };
+  }, []);
+
   const openApp = useCallback(
     (appId: DesktopAppId) => {
       playSoftChime(appId === 'love' ? 587.33 : 523.25, 0.16);
       setActiveApp(appId);
-      if (appId === 'love' && !openedFiredRef.current) {
-        openedFiredRef.current = true;
-        onOpened?.();
-      }
+      notifyOpenedOnce();
     },
-    [onOpened]
+    [notifyOpenedOnce]
   );
+
+  const handleToggleOpenWhen = useCallback(
+    (noteId: string, idx: number) => {
+      playSoftChime(523.25 + idx * 55, 0.18);
+      setOpenedNoteIds((prev) =>
+        prev.includes(noteId) ? prev.filter((id) => id !== noteId) : [...prev, noteId],
+      );
+      notifyOpenedOnce();
+    },
+    [notifyOpenedOnce]
+  );
+
+  const handleDispenseSunshine = useCallback(() => {
+    notifyOpenedOnce();
+    if (collectedSunshineCount < SUNSHINE_COMPLIMENTS.length) {
+      const nextIdx = collectedSunshineCount;
+      playSoftChime(587.33 + nextIdx * 45, 0.2);
+      setCollectedSunshineCount(nextIdx + 1);
+      setActiveTicketIdx(nextIdx);
+    } else {
+      playSoftChime(659.25, 0.16);
+      setActiveTicketIdx((prev) => ((prev ?? -1) + 1) % SUNSHINE_COMPLIMENTS.length);
+    }
+  }, [collectedSunshineCount, notifyOpenedOnce]);
+
+  const handleToggleBreathing = useCallback(() => {
+    notifyOpenedOnce();
+    if (breathingActive) {
+      setBreathingActive(false);
+      return;
+    }
+    playSoftChime(440, 0.26);
+    setBreathingCompleted(false);
+    setBreathingSecondsLeft(10);
+    setBreathingActive(true);
+  }, [breathingActive, notifyOpenedOnce]);
+
+  const handleCopyTreatReply = useCallback(async () => {
+    const sender = data.senderName?.trim() || 'you';
+    const receiver = data.receiverName?.trim() || '';
+    const text = copy.replyMessage(receiver, sender, activeTreat.title[coreLang]);
+    await copySmileTextSafely(text);
+    playSoftChime(659.25, 0.2);
+    setReplyCopied(true);
+    notifyOpenedOnce();
+    if (copyToastTimerRef.current) clearTimeout(copyToastTimerRef.current);
+    copyToastTimerRef.current = setTimeout(() => setReplyCopied(false), 2600);
+  }, [activeTreat.title, copy, coreLang, data.receiverName, data.senderName, notifyOpenedOnce]);
+
+  const breathingPhase = useMemo(() => {
+    if (breathingCompleted) return { label: copy.breathePhaseDone, scale: 'scale-100', tone: '#86EFAC' };
+    if (!breathingActive) return { label: copy.breathePhaseIdle, scale: 'scale-95', tone: '#FBCFE8' };
+    if (breathingSecondsLeft >= 7) {
+      return { label: copy.breathePhaseInhale, scale: 'scale-110', tone: '#FDE68A' };
+    }
+    if (breathingSecondsLeft >= 5) {
+      return { label: copy.breathePhaseHold, scale: 'scale-110', tone: '#FBCFE8' };
+    }
+    return { label: copy.breathePhaseExhale, scale: 'scale-90', tone: '#C7D2FE' };
+  }, [
+    breathingActive,
+    breathingCompleted,
+    breathingSecondsLeft,
+    copy.breathePhaseDone,
+    copy.breathePhaseExhale,
+    copy.breathePhaseHold,
+    copy.breathePhaseIdle,
+    copy.breathePhaseInhale,
+  ]);
+
+  const activeSunshineTicket =
+    activeTicketIdx !== null ? SUNSHINE_COMPLIMENTS[activeTicketIdx] : null;
 
   const handlePetCat = () => {
     playSoftChime(659.25 + (catBubbleIdx % 3) * 65, 0.18);
@@ -1900,14 +2493,30 @@ export function MakeThemSmileSite({
       {/* Main Cozy Desktop Workspace */}
       <main className="relative z-10 mx-auto flex w-full max-w-2xl flex-1 flex-col justify-between px-3.5 pb-4 pt-4 sm:px-6 sm:pt-6">
         {/* Minimal Warm Header Pill */}
-        <div className="flex flex-col items-start gap-1">
-          <div className="inline-flex items-center gap-1.5 rounded-full border-2 border-[#4A2545] bg-[#FFFBF5]/95 px-3 py-1 shadow-[0_3px_0_#4A2545]">
-            <PixelStarSvg className="h-3.5 w-3.5" fill="#F59E0B" />
-            <span className="text-xs font-black text-[#4A2545]">
-              {copy.forLabel(data.receiverName)}
-            </span>
+        <div className="flex flex-col items-start gap-1.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="inline-flex items-center gap-1.5 rounded-full border-2 border-[#4A2545] bg-[#FFFBF5]/95 px-3 py-1 shadow-[0_3px_0_#4A2545]">
+              <PixelStarSvg className="h-3.5 w-3.5" fill="#F59E0B" />
+              <span className="text-xs font-black text-[#4A2545]">
+                {copy.forLabel(data.receiverName)}
+              </span>
+            </div>
+            {data.relation ? (
+              <span className="inline-flex items-center rounded-full border-2 border-[#4A2545] bg-[#FCE7F3] px-2.5 py-0.5 text-[10px] font-extrabold text-[#9D174D] shadow-[0_2px_0_#4A2545]">
+                {data.relation}
+              </span>
+            ) : null}
           </div>
-          <p className="pl-1 text-[11px] font-bold text-[#FFFBF5] drop-shadow-[0_1px_2px_rgba(30,27,58,0.85)]">
+          {headline ? (
+            <p
+              className={`pl-1 text-sm font-extrabold text-[#FFFBF5] drop-shadow-[0_1px_3px_rgba(30,27,58,0.9)] ${
+                isHindi ? 'leading-relaxed' : 'leading-snug'
+              }`}
+            >
+              {headline}
+            </p>
+          ) : null}
+          <p className="pl-1 text-[11px] font-bold text-[#FDE2C4] drop-shadow-[0_1px_2px_rgba(30,27,58,0.85)]">
             {copy.desktopHint}
           </p>
         </div>
@@ -1933,7 +2542,7 @@ export function MakeThemSmileSite({
                   type="button"
                   onClick={() => setActiveApp(null)}
                   aria-label={copy.closeLabel}
-                  className="flex min-h-[40px] min-w-[40px] items-center justify-center rounded-lg border-2 border-[#4A2545] bg-[#FFFBF5] text-[#4A2545] shadow-[0_2px_0_#4A2545] transition-transform active:translate-y-0.5"
+                  className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border-2 border-[#4A2545] bg-[#FFFBF5] text-[#4A2545] shadow-[0_2px_0_#4A2545] transition-transform active:translate-y-0.5"
                 >
                   <svg viewBox="0 0 14 14" className="h-3.5 w-3.5" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
                     <path d="M3 3L11 11M11 3L3 11" />
@@ -1944,7 +2553,7 @@ export function MakeThemSmileSite({
               {/* Window Content */}
               <div className="max-h-[62dvh] overflow-y-auto p-3.5 sm:p-4">
                 {activeApp === 'her' ? (
-                  <HerFolderApp photos={data.photos} copy={copy} isHindi={isHindi} />
+                  <HerFolderApp photos={data.photos} coreLang={coreLang} copy={copy} isHindi={isHindi} />
                 ) : activeApp === 'dream' ? (
                   <DreamBoardApp
                     receiverName={data.receiverName}
@@ -1993,6 +2602,362 @@ export function MakeThemSmileSite({
           )}
         </div>
 
+        {/* COZY DESKTOP INTERACTIVE CARE STATION */}
+        <div className="mt-2 space-y-4">
+          {/* WIDGET 1: OPEN WHEN / GRATITUDE NOTES (UP TO 4 WIRED FROM data.highlights) */}
+          <section
+            aria-label={copy.openWhenTitle}
+            className="overflow-hidden rounded-2xl border-2 border-[#4A2545] bg-[#FFF4EE] shadow-[0_6px_0_rgba(30,27,58,0.5)]"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-[#4A2545] bg-gradient-to-r from-[#FCE7F3] to-[#FDE68A] px-3.5 py-2">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <PixelHeartSvg className="h-3.5 w-3.5 shrink-0" fill="#EC4899" />
+                <h2 className={`truncate text-xs font-black text-[#4A2545] ${isHindi ? 'leading-relaxed' : ''}`}>
+                  {copy.openWhenTitle}
+                </h2>
+              </div>
+              <span
+                role="status"
+                className="shrink-0 rounded-full border border-[#4A2545] bg-[#FFFBF5] px-2.5 py-0.5 text-[10px] font-black text-[#9D174D]"
+              >
+                {copy.openWhenProgress(openedNoteIds.length, openWhenNotes.length)}
+              </span>
+            </div>
+
+            <div className="p-3.5">
+              <p className={`text-xs font-semibold text-[#7B4B6A] ${isHindi ? 'leading-relaxed' : ''}`}>
+                {copy.openWhenSubtitle}
+              </p>
+
+              <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                {openWhenNotes.map((note, idx) => {
+                  const isOpened = openedNoteIds.includes(note.id);
+                  return (
+                    <button
+                      key={note.id}
+                      type="button"
+                      onClick={() => handleToggleOpenWhen(note.id, idx)}
+                      aria-expanded={isOpened}
+                      className={`flex min-h-[76px] flex-col justify-between rounded-xl border-2 border-[#4A2545] p-3 text-left transition-all active:translate-y-0.5 ${
+                        isOpened
+                          ? 'bg-[#FFFDF9] shadow-[0_3px_0_#4A2545]'
+                          : 'bg-[#FFEAF2] shadow-[0_3px_0_#4A2545] hover:bg-[#FFF1F5]'
+                      }`}
+                    >
+                      <div className="flex w-full items-center justify-between gap-2">
+                        <span className="rounded bg-[#4A2545] px-1.5 py-0.5 font-mono text-[9px] font-bold text-[#FDE68A]">
+                          {note.code}
+                        </span>
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[9.5px] font-extrabold ${
+                            isOpened
+                              ? 'bg-[#DCFCE7] text-[#166534]'
+                              : 'bg-[#FFFBF5] text-[#9D174D]'
+                          }`}
+                        >
+                          {isOpened ? copy.openWhenOpenedTag : copy.openWhenTapToOpen}
+                        </span>
+                      </div>
+                      <p
+                        className={`mt-2 text-xs font-extrabold text-[#4A2545] ${
+                          isHindi ? 'leading-relaxed' : 'leading-snug'
+                        }`}
+                      >
+                        {note.title}
+                      </p>
+                      {isOpened ? (
+                        <p
+                          className={`mt-2 border-t border-dashed border-[#F9A8D4] pt-2 text-xs font-medium text-[#5C2D54] ${
+                            isHindi ? 'leading-relaxed' : 'leading-relaxed'
+                          }`}
+                        >
+                          {note.detail}
+                        </p>
+                      ) : null}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+
+          {/* WIDGET 2: SUNSHINE COMPLIMENT DISPENSER (6 UNIQUE VINTAGE TICKETS) */}
+          <section
+            aria-label={copy.sunshineWindowTitle}
+            className="overflow-hidden rounded-2xl border-2 border-[#4A2545] bg-[#FFF8EB] shadow-[0_6px_0_rgba(30,27,58,0.5)]"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-[#4A2545] bg-gradient-to-r from-[#FDE68A] via-[#FEF3C7] to-[#FBCFE8] px-3.5 py-2">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <PixelSunTicketSvg className="h-4 w-4 shrink-0" />
+                <h2 className={`truncate text-xs font-black text-[#4A2545] ${isHindi ? 'leading-relaxed' : ''}`}>
+                  {copy.sunshineWindowTitle}
+                </h2>
+              </div>
+              <span
+                role="status"
+                className="shrink-0 rounded-full border border-[#4A2545] bg-[#FFFBF5] px-2.5 py-0.5 text-[10px] font-black text-[#92400E]"
+              >
+                {copy.sunshineProgress(collectedSunshineCount, SUNSHINE_COMPLIMENTS.length)}
+              </span>
+            </div>
+
+            <div className="space-y-3 p-3.5">
+              <p className={`text-xs font-semibold text-[#7B4B6A] ${isHindi ? 'leading-relaxed' : ''}`}>
+                {copy.sunshineSubtitle}
+              </p>
+
+              {/* Vintage Perforated Ticket Slot */}
+              {activeSunshineTicket ? (
+                <div
+                  key={`${activeSunshineTicket.id}-${collectedSunshineCount}`}
+                  className="mts-window-pop relative overflow-hidden rounded-xl border-2 border-dashed border-[#D97706] bg-[#FFFDF8] p-3.5 shadow-[0_4px_0_rgba(74,37,69,0.2)]"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span
+                      className={`font-mono text-[9.5px] font-black text-[#B45309] ${
+                        isHindi ? 'tracking-normal' : 'uppercase tracking-wider'
+                      }`}
+                    >
+                      {copy.sunshineTicketLabel} · {activeSunshineTicket.ticketNo}
+                    </span>
+                    <span className="rounded-full bg-[#FEF3C7] px-2 py-0.5 text-[9.5px] font-extrabold text-[#92400E]">
+                      {activeSunshineTicket.tag[coreLang]}
+                    </span>
+                  </div>
+                  <p
+                    className={`mt-2 text-sm font-bold text-[#4A2545] ${
+                      isHindi ? 'leading-relaxed' : 'leading-relaxed'
+                    }`}
+                  >
+                    {activeSunshineTicket.note(data.receiverName || 'friend')[coreLang]}
+                  </p>
+                </div>
+              ) : (
+                <div className="rounded-xl border-2 border-dashed border-[#F59E0B]/65 bg-[#FFFBF5] p-3.5 text-center">
+                  <p className={`text-xs font-semibold text-[#7B4B6A] ${isHindi ? 'leading-relaxed' : ''}`}>
+                    {copy.sunshineEmptyPrompt}
+                  </p>
+                </div>
+              )}
+
+              {/* Collected Ticket Progress Dots */}
+              {collectedSunshineCount > 0 ? (
+                <div className="flex flex-wrap items-center justify-center gap-1.5">
+                  {SUNSHINE_COMPLIMENTS.map((ticket, idx) => {
+                    const unlocked = idx < collectedSunshineCount;
+                    const isViewing = idx === activeTicketIdx;
+                    return (
+                      <button
+                        key={ticket.id}
+                        type="button"
+                        disabled={!unlocked}
+                        onClick={() => {
+                          if (!unlocked) return;
+                          playSoftChime(540 + idx * 35, 0.14);
+                          setActiveTicketIdx(idx);
+                        }}
+                        aria-label={`${copy.sunshineTicketLabel} ${idx + 1}`}
+                        aria-pressed={isViewing}
+                        className={`min-h-[44px] min-w-[44px] rounded-xl border-2 text-xs font-black transition active:scale-95 ${
+                          isViewing
+                            ? 'border-[#4A2545] bg-[#FDE68A] text-[#4A2545] shadow-[0_2px_0_#4A2545]'
+                            : unlocked
+                              ? 'border-[#4A2545]/50 bg-[#FFFBF5] text-[#4A2545] hover:bg-[#FEF3C7]'
+                              : 'cursor-not-allowed border-[#4A2545]/20 bg-[#F5EFE6] text-[#4A2545]/35'
+                        }`}
+                      >
+                        0{idx + 1}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : null}
+
+              <button
+                type="button"
+                onClick={handleDispenseSunshine}
+                className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border-2 border-[#4A2545] bg-[#FDE68A] px-4 text-xs font-black text-[#4A2545] shadow-[0_3px_0_#4A2545] transition hover:bg-[#FCD34D] active:translate-y-0.5"
+              >
+                <PixelSunTicketSvg className="h-5 w-5 shrink-0" />
+                <span>
+                  {collectedSunshineCount === 0
+                    ? copy.sunshineDispenseCta
+                    : collectedSunshineCount < SUNSHINE_COMPLIMENTS.length
+                      ? copy.sunshineDispenseNextCta
+                      : copy.sunshineAllCollectedCta}
+                </span>
+              </button>
+
+              {collectedSunshineCount === SUNSHINE_COMPLIMENTS.length ? (
+                <p
+                  role="status"
+                  className="rounded-xl border border-[#16A34A]/35 bg-[#DCFCE7] px-3 py-2 text-center text-xs font-bold text-[#166534]"
+                >
+                  {copy.sunshineCompleteBanner}
+                </p>
+              ) : null}
+            </div>
+          </section>
+
+          {/* WIDGET 3: 10-SECOND CALM TEA-BREAK BREATHING CIRCLE + PICK YOUR THANK-YOU TREAT */}
+          <section
+            aria-label={copy.breatheWindowTitle}
+            className="overflow-hidden rounded-2xl border-2 border-[#4A2545] bg-[#FFF4EE] shadow-[0_6px_0_rgba(30,27,58,0.5)]"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-[#4A2545] bg-gradient-to-r from-[#DDD6FE] via-[#FCE7F3] to-[#FDE68A] px-3.5 py-2">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <PixelTeacupSvg steaming={breathingActive} className="h-4 w-4 shrink-0" />
+                <h2 className={`truncate text-xs font-black text-[#4A2545] ${isHindi ? 'leading-relaxed' : ''}`}>
+                  {copy.breatheWindowTitle}
+                </h2>
+              </div>
+              <span className="shrink-0 rounded-full border border-[#4A2545] bg-[#FFFBF5] px-2.5 py-0.5 font-mono text-[10px] font-black text-[#4A2545]">
+                {breathingSecondsLeft}s
+              </span>
+            </div>
+
+            <div className="space-y-4 p-3.5">
+              {/* Calm Breathing Circle */}
+              <div className="flex flex-col items-center rounded-xl border-2 border-[#4A2545]/20 bg-[#FFFDF9] px-3.5 py-4 text-center">
+                <p className={`text-xs font-semibold text-[#7B4B6A] ${isHindi ? 'leading-relaxed' : ''}`}>
+                  {copy.breatheSubtitle}
+                </p>
+
+                <div className="relative my-4 flex h-28 w-28 items-center justify-center">
+                  <div
+                    aria-hidden="true"
+                    className={`absolute inset-0 rounded-full border-2 border-[#4A2545] transition-transform duration-1000 ease-in-out motion-reduce:transition-none ${breathingPhase.scale}`}
+                    style={{ backgroundColor: breathingPhase.tone }}
+                  />
+                  <div className="relative z-10 flex h-20 w-20 flex-col items-center justify-center rounded-full border-2 border-[#4A2545] bg-[#FFFBF5] shadow-inner">
+                    <PixelTeacupSvg steaming={breathingActive} className="h-9 w-9" />
+                    <span className="font-mono text-[11px] font-black text-[#4A2545]">
+                      {breathingSecondsLeft}s
+                    </span>
+                  </div>
+                </div>
+
+                <p
+                  role="status"
+                  aria-live="polite"
+                  className={`min-h-[20px] text-xs font-extrabold text-[#4A2545] ${
+                    isHindi ? 'leading-relaxed' : ''
+                  }`}
+                >
+                  {breathingPhase.label}
+                </p>
+
+                <button
+                  type="button"
+                  onClick={handleToggleBreathing}
+                  className="mt-3 inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border-2 border-[#4A2545] bg-[#DDD6FE] px-5 text-xs font-black text-[#4A2545] shadow-[0_3px_0_#4A2545] transition hover:bg-[#C4B5FD] active:translate-y-0.5"
+                >
+                  <span>
+                    {breathingActive
+                      ? copy.breatheStopCta
+                      : breathingCompleted
+                        ? copy.breatheAgainCta
+                        : copy.breatheStartCta}
+                  </span>
+                </button>
+              </div>
+
+              {/* Pick Your Thank-You Treat */}
+              <div className="border-t-2 border-dashed border-[#F9A8D4] pt-3.5">
+                <h3 className={`text-sm font-black text-[#4A2545] ${isHindi ? 'leading-relaxed' : ''}`}>
+                  {copy.treatHeading}
+                </h3>
+                <p className={`mt-0.5 text-xs font-semibold text-[#7B4B6A] ${isHindi ? 'leading-relaxed' : ''}`}>
+                  {copy.treatSubtitle}
+                </p>
+
+                <div className="mt-2.5 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                  {THANK_YOU_TREATS.map((treat) => {
+                    const isPicked = treat.id === selectedTreatId;
+                    return (
+                      <button
+                        key={treat.id}
+                        type="button"
+                        aria-pressed={isPicked}
+                        onClick={() => {
+                          playSoftChime(587.33, 0.16);
+                          setSelectedTreatId(treat.id);
+                          notifyOpenedOnce();
+                        }}
+                        className={`flex min-h-[88px] flex-col justify-between rounded-xl border-2 border-[#4A2545] p-3 text-left transition active:translate-y-0.5 ${
+                          isPicked
+                            ? 'bg-[#FCE7F3] shadow-[0_3px_0_#4A2545]'
+                            : 'bg-[#FFFBF5] hover:bg-[#FFF1F5]'
+                        }`}
+                      >
+                        <div className="flex w-full items-center justify-between gap-2">
+                          <PixelTreatIconSvg id={treat.id} className="h-6 w-6" />
+                          {isPicked ? (
+                            <span className="rounded-full bg-[#4A2545] px-2 py-0.5 text-[9px] font-black text-[#FDE68A]">
+                              {copy.treatSelectedTag}
+                            </span>
+                          ) : null}
+                        </div>
+                        <div className="mt-2">
+                          <p className="text-xs font-black text-[#4A2545]">{treat.title[coreLang]}</p>
+                          <p
+                            className={`mt-0.5 text-[10.5px] font-semibold text-[#7B4B6A] ${
+                              isHindi ? 'leading-relaxed' : 'leading-snug'
+                            }`}
+                          >
+                            {treat.subtitle[coreLang]}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* 1-Tap WhatsApp Reply Copy + Optional Direct Link */}
+                <div className="mt-3 space-y-2">
+                  <button
+                    type="button"
+                    onClick={handleCopyTreatReply}
+                    className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border-2 border-[#4A2545] bg-[#F472B6] px-4 text-xs font-black text-[#FFFDF9] shadow-[0_3px_0_#4A2545] transition hover:bg-[#EC4899] active:translate-y-0.5"
+                  >
+                    <PixelHeartSvg className="h-3.5 w-3.5 shrink-0" fill="#FFFDF9" />
+                    <span className="truncate">
+                      {copy.copyReplyCta(data.senderName || 'you')}
+                    </span>
+                  </button>
+
+                  {hasValidWhatsapp ? (
+                    <a
+                      href={`https://wa.me/${sanitizedPhone}?text=${encodeURIComponent(
+                        copy.replyMessage(
+                          data.receiverName || '',
+                          data.senderName || 'you',
+                          activeTreat.title[coreLang],
+                        ),
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl border-2 border-[#4A2545] bg-[#FFFBF5] px-4 text-xs font-black text-[#4A2545] shadow-[0_2px_0_#4A2545] transition hover:bg-[#FEF3C7]"
+                    >
+                      {copy.whatsappDirectCta}
+                    </a>
+                  ) : null}
+
+                  {replyCopied ? (
+                    <p
+                      role="status"
+                      aria-live="polite"
+                      className="rounded-xl border border-[#16A34A]/40 bg-[#DCFCE7] px-3 py-2 text-center text-xs font-bold text-[#166534]"
+                    >
+                      {copy.copyReplyToast}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
         {/* Interactive Pixel Cat Companion (bottom-right of desktop) */}
         <div className="relative flex items-end justify-end pt-1">
           <div className="relative flex flex-col items-end">
@@ -2038,7 +3003,7 @@ export function MakeThemSmileSite({
                   type="button"
                   onClick={() => openApp(appId)}
                   aria-pressed={isOpen}
-                  className={`relative flex min-h-[42px] flex-1 flex-col items-center justify-center rounded-xl border-2 px-1.5 py-1 transition-all active:scale-95 ${
+                  className={`relative flex min-h-[44px] flex-1 flex-col items-center justify-center rounded-xl border-2 px-1.5 py-1 transition-all active:scale-95 ${
                     isOpen
                       ? 'border-[#4A2545] bg-[#FCE7F3] shadow-[0_2px_0_#4A2545]'
                       : 'border-transparent bg-transparent hover:bg-[#FFF1F5]'

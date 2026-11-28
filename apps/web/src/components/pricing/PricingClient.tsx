@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ADDON_CATALOG,
   type AddonId,
@@ -108,52 +108,6 @@ function OrnamentDivider({ tone = 'text-webzy-primary/65' }: { tone?: string }) 
   );
 }
 
-function CraftMarginArtSvg() {
-  return (
-    <svg className="h-8 w-8 text-webzy-primary sm:h-10 sm:w-10" viewBox="0 0 44 44" fill="none" aria-hidden="true">
-      <rect x="4" y="4" width="36" height="36" rx="10" fill="#FFF0F5" stroke="#FBCFE8" strokeWidth="1.2" />
-      <path d="M13 27 L19 20 L24 24 L31 15" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M26 15 H31 V20" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="15" cy="15" r="2.2" fill="#F59E0B" fillOpacity="0.85" />
-      <path d="M12 31 H32" stroke="#E11D63" strokeOpacity="0.3" strokeWidth="1.4" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function HostingLinkArtSvg() {
-  return (
-    <svg className="h-8 w-8 text-emerald-700 sm:h-10 sm:w-10" viewBox="0 0 44 44" fill="none" aria-hidden="true">
-      <rect x="4" y="4" width="36" height="36" rx="10" fill="#ECFDF5" stroke="#A7F3D0" strokeWidth="1.2" />
-      <path
-        d="M18.5 25.5 L15.7 28.3 C14 30 11.3 30 9.6 28.3 C7.9 26.6 7.9 23.9 9.6 22.2 L14.1 17.7 C15.8 16 18.5 16 20.2 17.7"
-        transform="translate(4 0)"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-      />
-      <path
-        d="M21.5 18.5 L24.3 15.7 C26 14 28.7 14 30.4 15.7 C32.1 17.4 32.1 20.1 30.4 21.8 L25.9 26.3 C24.2 28 21.5 28 19.8 26.3"
-        transform="translate(0 -1)"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-      />
-      <circle cx="31.5" cy="12.5" r="2" fill="#10B981" />
-    </svg>
-  );
-}
-
-function DomainCompassArtSvg() {
-  return (
-    <svg className="h-8 w-8 text-[#7C5A16] sm:h-10 sm:w-10" viewBox="0 0 44 44" fill="none" aria-hidden="true">
-      <rect x="4" y="4" width="36" height="36" rx="10" fill="#FEF9EC" stroke="#E5C878" strokeWidth="1.2" />
-      <circle cx="22" cy="22" r="10.5" stroke="currentColor" strokeWidth="1.5" />
-      <ellipse cx="22" cy="22" rx="4.8" ry="10.5" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M11.8 22 H32.2 M13.5 16.8 H30.5 M13.5 27.2 H30.5" stroke="currentColor" strokeOpacity="0.65" strokeWidth="1.1" />
-    </svg>
-  );
-}
-
 function CheckIcon({ className = 'h-4 w-4 text-emerald-600' }: { className?: string }) {
   return (
     <svg
@@ -177,42 +131,51 @@ export function PricingClient({ catalogPricing, capacity }: PricingClientProps) 
 
   const [selectedTierId, setSelectedTierId] = useState<PricingTierId>('semi_custom');
   const [selectedAddons, setSelectedAddons] = useState<AddonId[]>([]);
+  const addonsHydratedRef = useRef(false);
 
   // Restore any previously chosen add-ons (ignoring legacy 90d extend)
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(PREFERRED_ADDONS_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as unknown;
-      if (Array.isArray(parsed)) {
-        const rawValid = parsed.filter(
-          (item): item is AddonId =>
-            typeof item === 'string' &&
-            (item === 'pin' ||
-              STOREFRONT_VALIDITY_ADDON_IDS.includes(item as StorefrontValidityAddonId)),
-        );
-        const chosenValidity = (['lifetime', 'extend_21d', 'extend_14d'] as const).find((vId) =>
-          rawValid.includes(vId),
-        );
-        const valid = Array.from(
-          new Set([
-            ...rawValid.filter((item) => !isValidityAddonId(item)),
-            ...(chosenValidity ? [chosenValidity] : []),
-          ]),
-        );
-        if (valid.length > 0) {
-          setSelectedAddons(valid);
+      if (raw) {
+        const parsed = JSON.parse(raw) as unknown;
+        if (Array.isArray(parsed)) {
+          const rawValid = parsed.filter(
+            (item): item is AddonId =>
+              typeof item === 'string' &&
+              (item === 'pin' ||
+                STOREFRONT_VALIDITY_ADDON_IDS.includes(item as StorefrontValidityAddonId)),
+          );
+          const chosenValidity = (['lifetime', 'extend_21d', 'extend_14d'] as const).find((vId) =>
+            rawValid.includes(vId),
+          );
+          const valid = Array.from(
+            new Set([
+              ...rawValid.filter((item) => !isValidityAddonId(item)),
+              ...(chosenValidity ? [chosenValidity] : []),
+            ]),
+          );
+          if (valid.length > 0) {
+            setSelectedAddons(valid);
+          }
         }
       }
     } catch {
       // Ignore storage read errors
+    } finally {
+      addonsHydratedRef.current = true;
     }
   }, []);
 
   // Persist chosen add-ons so CheckoutClient pre-selects them automatically
   useEffect(() => {
+    if (!addonsHydratedRef.current) return;
     try {
-      window.localStorage.setItem(PREFERRED_ADDONS_KEY, JSON.stringify(selectedAddons));
+      if (selectedAddons.length > 0) {
+        window.localStorage.setItem(PREFERRED_ADDONS_KEY, JSON.stringify(selectedAddons));
+      } else {
+        window.localStorage.removeItem(PREFERRED_ADDONS_KEY);
+      }
     } catch {
       // Ignore storage write errors
     }
@@ -929,68 +892,7 @@ export function PricingClient({ catalogPricing, capacity }: PricingClientProps) 
         ) : null}
       </section>
 
-      {/* ===== 5. TRANSPARENT CRAFT ECONOMICS: obsidian editorial band ===== */}
-      <section className="bg-[#1A1614] text-white">
-        <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-16">
-          <div className="max-w-2xl">
-            <p className="font-mono text-[10.5px] font-bold uppercase tracking-[0.2em] text-[#E4C285]">
-              BUILT FOR CRAFT, NOT SUBSCRIPTIONS
-            </p>
-            <h2 className="mt-1.5 font-heading text-2xl font-bold sm:text-4xl">
-              Simple, honest one-time pricing
-            </h2>
-            <p className="mt-2 text-xs leading-relaxed text-white/70 sm:text-base">
-              Pay once for the design and hosting window you actually need. No auto-renewals, no watermarks on paid pages, and zero hidden charges at checkout.
-            </p>
-          </div>
-
-          <div className="mt-6 grid grid-cols-1 gap-3 sm:mt-8 sm:gap-4 md:grid-cols-3">
-            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 sm:p-6">
-              <div className="flex items-center justify-between gap-3">
-                <span className="font-heading text-2xl font-extrabold text-white/20 sm:text-4xl">01</span>
-                <CraftMarginArtSvg />
-              </div>
-              <h3 className="mt-3 font-heading text-base font-bold leading-snug sm:text-lg">
-                Handcrafted at accessible rates
-              </h3>
-              <p className="mt-1.5 text-xs leading-relaxed text-white/70 sm:text-sm">
-                Occasion websites start at {formatInr(catalogPricing.occasions.minInr)} and royal wedding suites at {formatInr(catalogPricing.weddings.minInr)} — designed so anyone can gift a bespoke interactive page instead of a generic forward.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 sm:p-6">
-              <div className="flex items-center justify-between gap-3">
-                <span className="font-heading text-2xl font-extrabold text-white/20 sm:text-4xl">02</span>
-                <HostingLinkArtSvg />
-              </div>
-              <h3 className="mt-3 font-heading text-base font-bold leading-snug sm:text-lg">
-                Clean shareable links included
-              </h3>
-              <p className="mt-1.5 text-xs leading-relaxed text-white/70 sm:text-sm">
-                Private <code className="font-mono text-xs text-[#F5E0A3]">/s/slug</code> and{' '}
-                <code className="font-mono text-xs text-[#F5E0A3]">/i/slug</code> links stay live
-                for {baseDays} days at no extra cost. Extend to 14 or 21 days, or keep a Ready-Made
-                keepsake forever for {lifetimeLabel}.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 sm:p-6">
-              <div className="flex items-center justify-between gap-3">
-                <span className="font-heading text-2xl font-extrabold text-white/20 sm:text-4xl">03</span>
-                <DomainCompassArtSvg />
-              </div>
-              <h3 className="mt-3 font-heading text-base font-bold leading-snug sm:text-lg">
-                Custom domains at actuals
-              </h3>
-              <p className="mt-1.5 text-xs leading-relaxed text-white/70 sm:text-sm">
-                {catalogPricing.customMade.domainPassThroughNote}
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ===== 6. PROMISES + PRICING FAQ + FINAL CTA ===== */}
+      {/* ===== 5. PROMISES + PRICING FAQ + FINAL CTA ===== */}
       <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-16">
         <div className="text-center">
           <OrnamentDivider />

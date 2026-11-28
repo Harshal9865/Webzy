@@ -46,6 +46,7 @@ export function SuccessClient({
   useEffect(() => {
     try {
       window.localStorage.removeItem('webzy_draft_cart');
+      window.localStorage.removeItem('webzy_preferred_addons');
       const savedGuests = window.localStorage.getItem('webzy_wedding_guest_list');
       if (savedGuests && savedGuests.trim()) {
         setBulkGuestText(savedGuests);

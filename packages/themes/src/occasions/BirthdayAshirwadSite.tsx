@@ -25,6 +25,8 @@ interface AshirwadCopy {
   diyaLitStatus: string;
   diyaLitWhisper: string;
   diyaUnlitWhisper: string;
+  pushpaVarshaCta: string;
+  pushpaVarshaHint: string;
   scrollEyebrow: string;
   signOffLabel: string;
   showerBlessingsCta: string;
@@ -49,11 +51,15 @@ const ASHIRWAD_COPY: Record<CoreLanguageCode, AshirwadCopy> = {
     diyaLitStatus: 'Sacred Flame Lit',
     diyaLitWhisper: 'May warm light, serenity, and long life grace every morning.',
     diyaUnlitWhisper: 'Tap to kindle the brass lamp and bathe the courtyard in golden light.',
+    pushpaVarshaCta: 'Pushpa Varsha · Shower Petals',
+    pushpaVarshaHint: 'Shower marigold & rose petals with a temple chime',
     scrollEyebrow: 'Silk Blessing Scroll',
     signOffLabel: 'With eternal gratitude & pranam,',
-    showerBlessingsCta: 'Shower Blessings',
+    showerBlessingsCta: 'Pushpa Varsha · Shower Petals',
     blessingsShoweredLabel: (count) =>
-      count === 1 ? 'Marigold blessings showered' : `${count} waves of marigold blessings`,
+      count === 1
+        ? '1 Pushpa Varsha of marigold & rose petals offered'
+        : `${count} waves of marigold & rose petals offered`,
     galleryEyebrow: 'Arched Keepsakes',
     galleryTitle: 'Courtyard Memories',
     galleryHint: 'Tap any arched portrait to inspect closely',
@@ -68,15 +74,19 @@ const ASHIRWAD_COPY: Record<CoreLanguageCode, AshirwadCopy> = {
     courtyardEyebrow: 'Sunlit Aangan · Sadar Ashirwad',
     recipientPrefix: 'Aadar aur sneh ke saath',
     diyaSectionLabel: 'Shubh Brass Diya Ritual',
-    lightDiyaCta: 'Light the Diya',
+    lightDiyaCta: 'Mangal Diya Jalayein',
     diyaLitStatus: 'Shubh Jyot Roshan Hui',
     diyaLitWhisper: 'Aapki achhi sehat, sukoon aur lambi umar ke liye mangal jyot.',
     diyaUnlitWhisper: 'Aangan ko sunahri roshni se bharne ke liye peetal ka diya jalayein.',
+    pushpaVarshaCta: 'Pushpa Varsha Karein',
+    pushpaVarshaHint: 'Mandir ghanti ke saath genda aur gulaab ke phool barsayein',
     scrollEyebrow: 'Sneh Bhara Sandesh',
     signOffLabel: 'Dil se aadar aur pranam,',
-    showerBlessingsCta: 'Shower Blessings',
+    showerBlessingsCta: 'Pushpa Varsha Karein',
     blessingsShoweredLabel: (count) =>
-      count === 1 ? 'Genda phoolon ka ashirwad arpit' : `${count} baar mangal ashirwad arpit`,
+      count === 1
+        ? 'Genda aur gulaab phoolon ki pushpa varsha arpit'
+        : `${count} baar mangal pushpa varsha arpit`,
     galleryEyebrow: 'Anmol Yaadein',
     galleryTitle: 'Aangan ki Tasveerein',
     galleryHint: 'Paas se dekhne ke liye tasveer par tap karein',
@@ -95,11 +105,15 @@ const ASHIRWAD_COPY: Record<CoreLanguageCode, AshirwadCopy> = {
     diyaLitStatus: 'मंगल ज्योति प्रज्वलित',
     diyaLitWhisper: 'आपके उत्तम स्वास्थ्य, शांति और दीर्घायु की पावन मंगलकामना।',
     diyaUnlitWhisper: 'आँगन को स्वर्णिम आभा से भरने के लिए पीतल का दीया प्रज्वलित करें।',
+    pushpaVarshaCta: 'पुष्प वर्षा करें',
+    pushpaVarshaHint: 'मंगल घंटी के साथ गेंदा और गुलाब की पंखुड़ियाँ अर्पित करें',
     scrollEyebrow: 'रेशमी आशीर्वाद पत्र',
     signOffLabel: 'सादर प्रणाम एवं कृतज्ञता सहित,',
     showerBlessingsCta: 'पुष्प वर्षा करें',
     blessingsShoweredLabel: (count) =>
-      count === 1 ? 'गेंदा पुष्प आशीर्वाद समर्पित' : `${count} बार मंगल पुष्प वर्षा`,
+      count === 1
+        ? 'गेंदा व गुलाब पुष्प वर्षा समर्पित'
+        : `${count} बार मंगल पुष्प वर्षा समर्पित`,
     galleryEyebrow: 'परिवार की धरोहर',
     galleryTitle: 'आँगन की मधुर स्मृतियाँ',
     galleryHint: 'विस्तार से देखने के लिए चित्र पर टैप करें',
@@ -114,12 +128,25 @@ const ASHIRWAD_COPY: Record<CoreLanguageCode, AshirwadCopy> = {
 
 const RELATION_LABELS: Record<string, Record<CoreLanguageCode, string>> = {
   mummy: { en: 'Beloved Mother', hinglish: 'Mummy · Maa', hi: 'मम्मी · माँ' },
+  mother: { en: 'Beloved Mother', hinglish: 'Mummy · Maa', hi: 'मम्मी · माँ' },
+  mom: { en: 'Beloved Mother', hinglish: 'Mummy · Maa', hi: 'मम्मी · माँ' },
+  maa: { en: 'Beloved Mother', hinglish: 'Mummy · Maa', hi: 'मम्मी · माँ' },
   papa: { en: 'Revered Father', hinglish: 'Papa · Pitaji', hi: 'पापा · पिताजी' },
+  father: { en: 'Revered Father', hinglish: 'Papa · Pitaji', hi: 'पापा · पिताजी' },
+  dad: { en: 'Revered Father', hinglish: 'Papa · Pitaji', hi: 'पापा · पिताजी' },
+  pitaji: { en: 'Revered Father', hinglish: 'Papa · Pitaji', hi: 'पापा · पिताजी' },
   grandparent: {
     en: 'Respected Elder',
     hinglish: 'Dada-Dadi · Nana-Nani',
     hi: 'दादा-दादी · नाना-नानी',
   },
+  dadi: { en: 'Beloved Dadi', hinglish: 'Pyaari Dadi Maa', hi: 'प्रिय दादी माँ' },
+  dada: { en: 'Revered Dadaji', hinglish: 'Aadarniya Dadaji', hi: 'आदरणीय दादाजी' },
+  nani: { en: 'Beloved Nani', hinglish: 'Pyaari Nani Maa', hi: 'प्रिय नानी माँ' },
+  nana: { en: 'Revered Nanaji', hinglish: 'Aadarniya Nanaji', hi: 'आदरणीय नानाजी' },
+  elder: { en: 'Revered Family Elder', hinglish: 'Parivar ke Buzurg', hi: 'परिवार के वरिष्ठजन' },
+  parents: { en: 'Beloved Parents', hinglish: 'Mummy-Papa', hi: 'मम्मी-पापा' },
+  family: { en: 'Cherished Family Elder', hinglish: 'Parivar ke Snehil Sadasya', hi: 'परिवार के स्नेहिल सदस्य' },
 };
 
 interface ThaliOfferingItem {
@@ -231,6 +258,145 @@ const FAMILY_BLESSING_PILLARS: readonly FamilyBlessingPillar[] = [
   },
 ];
 
+type ReturnBlessingId = 'sada-khush' | 'aayushmaan' | 'barkat';
+
+interface ReturnBlessingOption {
+  id: ReturnBlessingId;
+  phrase: Record<CoreLanguageCode, string>;
+  meaning: Record<CoreLanguageCode, string>;
+  sealShort: Record<CoreLanguageCode, string>;
+}
+
+const ELDER_RETURN_BLESSINGS: readonly ReturnBlessingOption[] = [
+  {
+    id: 'sada-khush',
+    phrase: {
+      en: 'Sada Khush Raho',
+      hinglish: 'Sada Khush Raho',
+      hi: 'सदा खुश रहो',
+    },
+    meaning: {
+      en: 'May joy, laughter, and gentle peace walk beside you always.',
+      hinglish: 'Hamesha muskuraate raho aur har din khushiyon se bhara rahe.',
+      hi: 'तुम्हारे जीवन में सदैव हँसी, शांति और प्रसन्नता बनी रहे।',
+    },
+    sealShort: {
+      en: 'SADA KHUSH RAHO',
+      hinglish: 'SADA KHUSH RAHO',
+      hi: 'सदा खुश रहो',
+    },
+  },
+  {
+    id: 'aayushmaan',
+    phrase: {
+      en: 'Aayushmaan Bhava',
+      hinglish: 'Aayushmaan Bhava',
+      hi: 'आयुष्मान भव',
+    },
+    meaning: {
+      en: 'May you be blessed with long life, radiant health, and grace.',
+      hinglish: 'Lambi umar, achhi sehat aur har kadam par safalta mile.',
+      hi: 'तुम्हें दीर्घायु, उत्तम स्वास्थ्य और हर कार्य में यश प्राप्त हो।',
+    },
+    sealShort: {
+      en: 'AAYUSHMAAN BHAVA',
+      hinglish: 'AAYUSHMAAN BHAVA',
+      hi: 'आयुष्मान भव',
+    },
+  },
+  {
+    id: 'barkat',
+    phrase: {
+      en: 'Ghar Mein Hamesha Barkat Rahe',
+      hinglish: 'Ghar Mein Hamesha Barkat Rahe',
+      hi: 'घर में हमेशा बरकत रहे',
+    },
+    meaning: {
+      en: 'May our home always overflow with warmth, unity, and abundance.',
+      hinglish: 'Ghar mein hamesha sukh-samriddhi, pyaar aur barkat bani rahe.',
+      hi: 'घर में सदैव सुख-समृद्धि, स्नेह और अपार बरकत बनी रहे।',
+    },
+    sealShort: {
+      en: 'SADA BARKAT RAHE',
+      hinglish: 'HAMESHA BARKAT',
+      hi: 'सदा बरकत रहे',
+    },
+  },
+];
+
+let templeAudioCtx: AudioContext | null = null;
+
+/** Resonant bronze temple ghanti chime (fundamental + harmonic overtones) for Pushpa Varsha & Brass Seal. */
+function playTempleChime() {
+  try {
+    if (typeof window === 'undefined') return;
+    if (!templeAudioCtx || templeAudioCtx.state === 'closed') {
+      const AudioCtx =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!AudioCtx) {
+        playLanternPullChime();
+        return;
+      }
+      templeAudioCtx = new AudioCtx();
+    }
+    if (templeAudioCtx.state === 'suspended') {
+      void templeAudioCtx.resume().catch(() => {});
+    }
+    const ctx = templeAudioCtx;
+    const now = ctx.currentTime;
+    const partials: Array<{ freq: number; gain: number; dur: number; type: OscillatorType }> = [
+      { freq: 528, gain: 0.065, dur: 1.45, type: 'sine' },
+      { freq: 1056, gain: 0.032, dur: 1.05, type: 'triangle' },
+      { freq: 1584, gain: 0.018, dur: 0.75, type: 'sine' },
+      { freq: 2112, gain: 0.011, dur: 0.55, type: 'sine' },
+    ];
+    for (const p of partials) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = p.type;
+      osc.frequency.setValueAtTime(p.freq, now);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(p.gain, now + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + p.dur);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + p.dur + 0.04);
+    }
+  } catch {
+    playLanternPullChime();
+  }
+}
+
+async function copyAshirwadText(text: string): Promise<boolean> {
+  try {
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    // Fall through to legacy textarea copy
+  }
+  try {
+    if (typeof document !== 'undefined') {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.setAttribute('readonly', '');
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(textarea);
+      return ok;
+    }
+  } catch {
+    return false;
+  }
+  return false;
+}
+
 const EXTRA_ASHIRWAD_COPY: Record<
   CoreLanguageCode,
   {
@@ -239,16 +405,25 @@ const EXTRA_ASHIRWAD_COPY: Record<
     thaliHint: string;
     thaliProgress: (done: number, total: number) => string;
     thaliComplete: string;
+    thaliPushpaBtn: string;
     chimeTrackTitle: string;
     chimeTapLabel: string;
     chimePlayingLabel: string;
     pillarsEyebrow: string;
     pillarsTitle: string;
+    ledgerSubtitle: (receiver: string, sender: string) => string;
+    returnBlessingEyebrow: string;
+    returnBlessingTitle: (receiver: string) => string;
+    returnBlessingHint: (sender: string) => string;
     sealCta: string;
     sealedBadge: string;
-    sealedMotto: string;
-    copyThanksCta: string;
+    sealedByLine: (receiver: string) => string;
+    replyPreviewHeading: (sender: string) => string;
+    copyThanksCta: (sender: string) => string;
     copiedThanksToast: string;
+    openWhatsappCta: string;
+    fallbackReceiver: string;
+    fallbackSender: string;
   }
 > = {
   en: {
@@ -257,16 +432,27 @@ const EXTRA_ASHIRWAD_COPY: Record<
     thaliHint: 'Tap each heirloom offering to light its blessing on the thali.',
     thaliProgress: (done, total) => `${done} / ${total} offerings placed`,
     thaliComplete: 'All 4 auspicious offerings placed with reverence.',
+    thaliPushpaBtn: 'Pushpa Varsha',
     chimeTrackTitle: 'Morning Courtyard Flute & Brass Chime',
     chimeTapLabel: 'Play Courtyard Chime',
     chimePlayingLabel: 'Playing Morning Chime...',
-    pillarsEyebrow: 'Parivar ki Duaayein',
+    pillarsEyebrow: 'Family Gratitude Ledger',
     pillarsTitle: 'Three Wishes From Our Home',
-    sealCta: 'Accept Blessings & Seal Keepsake',
-    sealedBadge: 'ASHIRWAD KEEPSAKE SEALED',
-    sealedMotto: 'Sada Sukhi Bhava · Wishing You Health, Grace & Peace',
-    copyThanksCta: 'Copy Thank-You Note',
+    ledgerSubtitle: (receiver, sender) =>
+      `Inscribed with reverence for ${receiver}, signed by ${sender}.`,
+    returnBlessingEyebrow: "Elder's Return Blessing",
+    returnBlessingTitle: (receiver) => `${receiver}, Choose a Return Ashirwad`,
+    returnBlessingHint: (sender) =>
+      `Tap 1 traditional blessing below to stamp the golden brass seal & send a warm reply back to ${sender}.`,
+    sealCta: 'Stamp Golden Brass Seal',
+    sealedBadge: 'GOLDEN BRASS SEAL STAMPED',
+    sealedByLine: (receiver) => `Blessed & sealed by ${receiver}`,
+    replyPreviewHeading: (sender) => `Warm WhatsApp reply for ${sender}:`,
+    copyThanksCta: (sender) => `Copy Reply for ${sender} on WhatsApp`,
     copiedThanksToast: 'Copied! Ready to paste on WhatsApp.',
+    openWhatsappCta: 'Send on WhatsApp',
+    fallbackReceiver: 'Respected Elder',
+    fallbackSender: 'Family',
   },
   hinglish: {
     thaliEyebrow: 'Shubh Arpan · Aangan ki Thali',
@@ -274,16 +460,27 @@ const EXTRA_ASHIRWAD_COPY: Record<
     thaliHint: 'Har pavitra bhent par tap karein aur mangal kamna padhein.',
     thaliProgress: (done, total) => `${done} / ${total} bhent arpit`,
     thaliComplete: 'Sabhi 4 shubh bhent aadar ke saath arpit hui.',
+    thaliPushpaBtn: 'Pushpa Varsha',
     chimeTrackTitle: 'Subah ki Bansuri aur Mandir Ghanti',
     chimeTapLabel: 'Mangal Dhun Suniye',
     chimePlayingLabel: 'Mangal Dhun Chal Rahi Hai...',
-    pillarsEyebrow: 'Parivar ki Duaayein',
+    pillarsEyebrow: 'Parivar Gratitude Ledger',
     pillarsTitle: 'Ghar Se Teen Khaas Kaamnayein',
-    sealCta: 'Ashirwad Sweekar Karein · Seal Lagayein',
-    sealedBadge: 'MANGAL KEEPSAKE SEALED',
-    sealedMotto: 'Sada Sukhi Bhava · Uttam Sehat, Shanti aur Sneh',
-    copyThanksCta: 'Dhanyavaad Sandesh Copy Karein',
+    ledgerSubtitle: (receiver, sender) =>
+      `${receiver} ke samman mein, ${sender} aur parivar ki taraf se.`,
+    returnBlessingEyebrow: 'Buzurgon Ka Return Ashirwad',
+    returnBlessingTitle: (receiver) => `${receiver}, Apna Ashirwad Chuniye`,
+    returnBlessingHint: (sender) =>
+      `Neeche 1 paramparik ashirwad par tap karein, sunahri brass seal lagayein aur ${sender} ko pyaara jawab bhejein.`,
+    sealCta: 'Sunahri Brass Seal Lagayein',
+    sealedBadge: 'SUNAHRI BRASS SEAL ANKIT',
+    sealedByLine: (receiver) => `${receiver} ke kar-kamalon se ashirwadit`,
+    replyPreviewHeading: (sender) => `${sender} ke liye WhatsApp sandesh:`,
+    copyThanksCta: (sender) => `${sender} ke liye WhatsApp Reply Copy Karein`,
     copiedThanksToast: 'Copy ho gaya! WhatsApp par bhej sakte hain.',
+    openWhatsappCta: 'WhatsApp Par Bhejein',
+    fallbackReceiver: 'Aadarniya Buzurg',
+    fallbackSender: 'Parivar',
   },
   hi: {
     thaliEyebrow: 'शुभ अर्पण · मंगल थाली',
@@ -291,16 +488,27 @@ const EXTRA_ASHIRWAD_COPY: Record<
     thaliHint: 'प्रत्येक पावन भेंट पर टैप करें और मंगलकामना पढ़ें।',
     thaliProgress: (done, total) => `${done} / ${total} भेंट अर्पित`,
     thaliComplete: 'सभी 4 पावन भेंट सादर अर्पित हुईं।',
+    thaliPushpaBtn: 'पुष्प वर्षा',
     chimeTrackTitle: 'प्रातःकालीन बाँसुरी एवं मंगल ध्वनि',
     chimeTapLabel: 'मंगल ध्वनि सुनें',
     chimePlayingLabel: 'मंगल ध्वनि बज रही है...',
-    pillarsEyebrow: 'परिवार की मंगलकामनाएँ',
+    pillarsEyebrow: 'परिवार कृतज्ञता पुस्तिका',
     pillarsTitle: 'हृदय से तीन विशेष शुभकामनाएँ',
-    sealCta: 'आशीर्वाद स्वीकार करें · स्मृति मुहर लगाएँ',
-    sealedBadge: 'मंगल स्मृति पत्र सुरक्षित',
-    sealedMotto: 'सदा सुखी भव · उत्तम स्वास्थ्य, शांति एवं दीर्घायु',
-    copyThanksCta: 'धन्यवाद संदेश कॉपी करें',
+    ledgerSubtitle: (receiver, sender) =>
+      `${receiver} के सम्मान में, ${sender} एवं परिवार की ओर से समर्पित।`,
+    returnBlessingEyebrow: 'बड़ों का आशीर्वाद प्रत्युत्तर',
+    returnBlessingTitle: (receiver) => `${receiver}, अपना आशीर्वाद चुनें`,
+    returnBlessingHint: (sender) =>
+      `नीचे किसी 1 पारंपरिक आशीर्वाद पर टैप करें, स्वर्णिम पीतल मुहर लगाएँ और ${sender} को स्नेह भरा उत्तर भेजें।`,
+    sealCta: 'स्वर्णिम पीतल मुहर लगाएँ',
+    sealedBadge: 'स्वर्णिम पीतल मुहर अंकित',
+    sealedByLine: (receiver) => `${receiver} द्वारा सादर आशीर्वादित`,
+    replyPreviewHeading: (sender) => `${sender} के लिए WhatsApp उत्तर:`,
+    copyThanksCta: (sender) => `${sender} के लिए WhatsApp उत्तर कॉपी करें`,
     copiedThanksToast: 'कॉपी हो गया! अब WhatsApp पर साझा करें।',
+    openWhatsappCta: 'WhatsApp पर भेजें',
+    fallbackReceiver: 'आदरणीय वरिष्ठजन',
+    fallbackSender: 'परिवार',
   },
 };
 
@@ -406,25 +614,38 @@ interface BurstParticle {
   delayMs: number;
   durationMs: number;
   size: number;
-  kind: 'petal' | 'sparkle';
+  kind: 'marigold' | 'rose' | 'lotus' | 'sparkle';
   tone: string;
   driftX: number;
 }
 
 function createBlessingBurst(waveId: number): BurstParticle[] {
-  const tones = ['#F59E0B', '#EA580C', '#FBBF24', '#D97706', '#FDE68A'];
-  return Array.from({ length: 18 }, (_, index) => {
-    const isSparkle = index % 3 === 0;
-    const leftPct = 6 + ((index * 17 + waveId * 13) % 88);
-    const driftX = (index % 2 === 0 ? 1 : -1) * (14 + ((index * 7) % 24));
+  const marigoldTones = ['#F59E0B', '#EA580C', '#FBBF24', '#D97706'];
+  const roseTones = ['#E11D48', '#F43F5E', '#BE123C', '#FB7185'];
+  const lotusTones = ['#F9A8D4', '#F472B6', '#FDE68A'];
+
+  return Array.from({ length: 26 }, (_, index) => {
+    const mod = index % 4;
+    const kind: BurstParticle['kind'] =
+      mod === 0 ? 'marigold' : mod === 1 ? 'rose' : mod === 2 ? 'lotus' : 'sparkle';
+    const tone =
+      kind === 'marigold'
+        ? marigoldTones[(index + waveId) % marigoldTones.length]
+        : kind === 'rose'
+          ? roseTones[(index + waveId) % roseTones.length]
+          : kind === 'lotus'
+            ? lotusTones[(index + waveId) % lotusTones.length]
+            : '#FDE68A';
+    const leftPct = 4 + ((index * 15 + waveId * 13) % 92);
+    const driftX = (index % 2 === 0 ? 1 : -1) * (14 + ((index * 7) % 28));
     return {
       id: `wave-${waveId}-${index}`,
       leftPct,
-      delayMs: (index % 6) * 110,
-      durationMs: 2600 + (index % 5) * 340,
-      size: isSparkle ? 12 + (index % 3) * 3 : 11 + (index % 4) * 3,
-      kind: isSparkle ? 'sparkle' : 'petal',
-      tone: tones[(index + waveId) % tones.length],
+      delayMs: (index % 7) * 95,
+      durationMs: 2500 + (index % 5) * 340,
+      size: kind === 'sparkle' ? 12 + (index % 3) * 3 : 13 + (index % 4) * 3,
+      kind,
+      tone,
       driftX,
     };
   });
@@ -948,6 +1169,64 @@ function MarigoldPetalIcon() {
   );
 }
 
+function GoldenBrassSealMedallion({
+  sealLabel,
+  isHindi,
+}: {
+  sealLabel: string;
+  isHindi: boolean;
+}) {
+  const uid = useId().replace(/:/g, '');
+  const angles = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330];
+  return (
+    <div className="relative mx-auto flex h-28 w-28 items-center justify-center" aria-hidden="true">
+      <svg viewBox="0 0 120 120" className="h-full w-full drop-shadow-[0_8px_16px_rgba(146,64,14,0.34)]" fill="none">
+        <defs>
+          <radialGradient id={`brass-seal-${uid}`} cx="38%" cy="32%" r="68%">
+            <stop offset="0%" stopColor="#FEF08A" />
+            <stop offset="45%" stopColor="#D97706" />
+            <stop offset="85%" stopColor="#9A3412" />
+            <stop offset="100%" stopColor="#78350F" />
+          </radialGradient>
+        </defs>
+        {/* Outer scalloped hammered brass crest */}
+        <g transform="translate(60 60)">
+          {angles.map((deg) => (
+            <circle
+              key={`seal-bead-${deg}`}
+              cx="0"
+              cy="-52"
+              r="5.5"
+              fill="#B45309"
+              stroke="#78350F"
+              strokeWidth="1"
+              transform={`rotate(${deg})`}
+            />
+          ))}
+        </g>
+        <circle cx="60" cy="60" r="49" fill={`url(#brass-seal-${uid})`} stroke="#78350F" strokeWidth="2" />
+        <circle cx="60" cy="60" r="42" stroke="#FEF3C7" strokeOpacity="0.65" strokeWidth="1.2" strokeDasharray="3 2.5" />
+        <circle cx="60" cy="60" r="35" fill="#78350F" fillOpacity="0.22" stroke="#FDE68A" strokeOpacity="0.55" strokeWidth="1" />
+        {/* Lotus emblem at top inside seal */}
+        <path d="M60 30 C57.5 34.5 57.5 38.5 60 41.5 C62.5 38.5 62.5 34.5 60 30 Z" fill="#FEF3C7" />
+        <path d="M60 41.5 C55 40 52 37.5 51 34.5 C54.5 35.5 57.5 38 60 41.5 Z" fill="#FDE68A" fillOpacity="0.85" />
+        <path d="M60 41.5 C65 40 68 37.5 69 34.5 C65.5 35.5 62.5 38 60 41.5 Z" fill="#FDE68A" fillOpacity="0.85" />
+        {/* Bottom brass flourish */}
+        <path d="M44 82 H76" stroke="#FEF3C7" strokeOpacity="0.7" strokeWidth="1.1" strokeLinecap="round" />
+        <circle cx="60" cy="88" r="2.2" fill="#FEF3C7" />
+      </svg>
+      <span
+        style={isHindi ? { fontStyle: 'normal', letterSpacing: '0em' } : undefined}
+        className={`pointer-events-none absolute inset-x-4 top-[54%] -translate-y-1/2 text-center font-heading text-[9px] font-extrabold leading-tight text-[#FFFDF8] drop-shadow ${
+          isHindi ? 'not-italic' : 'uppercase tracking-[0.08em]'
+        }`}
+      >
+        {sealLabel}
+      </span>
+    </div>
+  );
+}
+
 function CloseIcon() {
   return (
     <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" aria-hidden="true">
@@ -1024,11 +1303,14 @@ export function BirthdayAshirwadSite({
   const [blessingWaves, setBlessingWaves] = useState(0);
   const [burstParticles, setBurstParticles] = useState<BurstParticle[]>([]);
   const [failedPhotos, setFailedPhotos] = useState<Record<string, boolean>>({});
+  const [failedPlates, setFailedPlates] = useState<Record<string, boolean>>({});
   const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
   const [placedOfferings, setPlacedOfferings] = useState<string[]>([]);
   const [activeOfferingId, setActiveOfferingId] = useState<ThaliOfferingItem['id'] | null>(null);
   const [openPillarId, setOpenPillarId] = useState<FamilyBlessingPillar['id']>('health');
+  const [selectedReturnId, setSelectedReturnId] = useState<ReturnBlessingId>('sada-khush');
   const [keepsakeSealed, setKeepsakeSealed] = useState(false);
+  const [sealStampKey, setSealStampKey] = useState(0);
   const [copiedReply, setCopiedReply] = useState(false);
   const [activeScenePlate, setActiveScenePlate] = useState<'courtyard' | 'veranda'>('courtyard');
 
@@ -1050,7 +1332,13 @@ export function BirthdayAshirwadSite({
   const relationLabel = resolveRelationLabel(data.relation, coreLang);
   const headlineText = pickLocalizedText(data.headline, language);
   const messageText = pickLocalizedText(data.message, language);
-  const highlights = data.highlights ?? [];
+  const receiverName = data.receiverName?.trim() || extraCopy.fallbackReceiver;
+  const senderName = data.senderName?.trim() || extraCopy.fallbackSender;
+  const highlights = Array.isArray(data.highlights) ? data.highlights : [];
+
+  const selectedReturnBlessing =
+    ELDER_RETURN_BLESSINGS.find((item) => item.id === selectedReturnId) ??
+    ELDER_RETURN_BLESSINGS[0];
 
   const galleryItems = useMemo(() => {
     const userPhotos = (data.photos ?? []).filter(
@@ -1059,12 +1347,14 @@ export function BirthdayAshirwadSite({
     if (userPhotos.length > 0) {
       return userPhotos.map((src, index) => ({
         src,
-        caption: `${copy.photoCaptionPrefix} 0${index + 1}`,
+        caption: `${copy.photoCaptionPrefix} ${String(index + 1).padStart(2, '0')}`,
       }));
     }
     return FALLBACK_HERITAGE_PHOTOS.map((src, index) => ({
       src,
-      caption: copy.defaultPhotoCaptions[index] ?? `${copy.photoCaptionPrefix} 0${index + 1}`,
+      caption:
+        copy.defaultPhotoCaptions[index] ??
+        `${copy.photoCaptionPrefix} ${String(index + 1).padStart(2, '0')}`,
     }));
   }, [copy.defaultPhotoCaptions, copy.photoCaptionPrefix, data.photos]);
 
@@ -1111,67 +1401,78 @@ export function BirthdayAshirwadSite({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activePhotoIndex, galleryItems.length]);
 
-  function handleLightDiya() {
-    setDiyaLit(true);
-    playLanternPullChime();
-    triggerPetalShower();
+  function notifyOpenedOnce() {
     if (!openedNotifiedRef.current) {
       openedNotifiedRef.current = true;
       onOpened?.();
     }
   }
 
+  function handleLightDiya() {
+    setDiyaLit(true);
+    playLanternPullChime();
+    triggerPetalShower();
+    notifyOpenedOnce();
+  }
+
   function handleShowerBlessings() {
     setBlessingWaves((prev) => prev + 1);
-    playPaperUnsealSfx(blessingWaves);
+    playTempleChime();
     triggerPetalShower();
-    if (!openedNotifiedRef.current) {
-      openedNotifiedRef.current = true;
-      onOpened?.();
-    }
+    notifyOpenedOnce();
   }
 
   function handlePlaceOffering(id: ThaliOfferingItem['id'], idx: number) {
     playPaperUnsealSfx(idx);
     setActiveOfferingId(id);
-    setPlacedOfferings((prev) => {
-      const next = prev.includes(id) ? prev : [...prev, id];
-      if (next.length === SHUBH_OFFERINGS.length && !prev.includes(id)) {
-        playLanternPullChime();
+    if (!placedOfferings.includes(id)) {
+      const next = [...placedOfferings, id];
+      setPlacedOfferings(next);
+      if (next.length === SHUBH_OFFERINGS.length) {
+        playTempleChime();
         triggerPetalShower();
       }
-      return next;
-    });
-    if (!openedNotifiedRef.current) {
-      openedNotifiedRef.current = true;
-      onOpened?.();
     }
+    notifyOpenedOnce();
+  }
+
+  function handleSelectReturnBlessing(id: ReturnBlessingId, idx: number) {
+    setSelectedReturnId(id);
+    playPaperUnsealSfx(idx);
+    if (keepsakeSealed) {
+      setSealStampKey((prev) => prev + 1);
+      playTempleChime();
+      triggerPetalShower();
+    }
+    notifyOpenedOnce();
   }
 
   function handleSealKeepsake() {
     setKeepsakeSealed(true);
-    playLanternPullChime();
+    setSealStampKey((prev) => prev + 1);
+    playTempleChime();
     triggerPetalShower();
-    if (!openedNotifiedRef.current) {
-      openedNotifiedRef.current = true;
-      onOpened?.();
-    }
+    notifyOpenedOnce();
   }
 
-  async function handleCopyThankYou() {
-    const replyText =
-      coreLang === 'hi'
-        ? `बहुत-बहुत धन्यवाद ${data.senderName}! आपका स्नेह भरा जन्मदिन आशीर्वाद पत्र हृदय को छू गया। सदा खुश रहें।`
-        : coreLang === 'hinglish'
-          ? `Dil se shukriya ${data.senderName}! Aapka pyaara birthday ashirwad card dekh kar bahut khushi hui. Hamesha khush raho!`
-          : `Thank you so much, ${data.senderName}! Reading your warm birthday blessing card truly made my day. Wishing you joy always.`;
-    try {
-      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(replyText);
-      }
-    } catch {
-      // Safe fallback
+  const familyReplyText = useMemo(() => {
+    const phrase = selectedReturnBlessing.phrase[coreLang];
+    if (coreLang === 'hi') {
+      return `बहुत-बहुत धन्यवाद ${senderName}! आपका स्नेह भरा जन्मदिन आशीर्वाद पत्र हृदय को छू गया। मेरा आशीर्वाद सदैव तुम्हारे साथ है — "${phrase}"। — ${receiverName}`;
     }
+    if (coreLang === 'hinglish') {
+      return `Dil se shukriya ${senderName}! Tumhara pyaara birthday ashirwad card dekh kar bahut khushi hui. Mera ashirwad hamesha tumhare saath hai — "${phrase}". — ${receiverName}`;
+    }
+    return `Thank you so much, ${senderName}! Your heartfelt birthday blessing card truly moved me. Sending my warmest return blessing back to you — "${phrase}". — ${receiverName}`;
+  }, [coreLang, receiverName, selectedReturnBlessing.phrase, senderName]);
+
+  const cleanWhatsappDigits = useMemo(() => {
+    if (!data.whatsappPhone) return '';
+    return data.whatsappPhone.replace(/[^\d]/g, '');
+  }, [data.whatsappPhone]);
+
+  async function handleCopyThankYou() {
+    await copyAshirwadText(familyReplyText);
     setCopiedReply(true);
     if (copyTimeoutRef.current !== null) {
       window.clearTimeout(copyTimeoutRef.current);
@@ -1306,11 +1607,11 @@ export function BirthdayAshirwadSite({
           </svg>
         ))}
 
-        {/* Interactive petal & lotus-sparkle shower wave */}
+        {/* Interactive Pushpa Varsha: marigold, crimson rose, lotus petals & temple sparkles */}
         {burstParticles.map((particle) => (
           <svg
             key={particle.id}
-            viewBox="0 0 20 20"
+            viewBox="0 0 22 22"
             className="ashirwad-petal-burst absolute top-2"
             style={
               {
@@ -1326,15 +1627,27 @@ export function BirthdayAshirwadSite({
           >
             {particle.kind === 'sparkle' ? (
               <path
-                d="M10 1 L12 8 L19 10 L12 12 L10 19 L8 12 L1 10 L8 8 Z"
+                d="M11 1 L13 8.5 L21 11 L13 13.5 L11 21 L9 13.5 L1 11 L9 8.5 Z"
                 fill={particle.tone}
-                fillOpacity="0.92"
+                fillOpacity="0.94"
+              />
+            ) : particle.kind === 'rose' ? (
+              <path
+                d="M11 3 C16 4, 19 9, 17 15 C14.5 19, 8 19.5, 5 15 C3.2 10.5, 6 4, 11 3 Z"
+                fill={particle.tone}
+                fillOpacity="0.88"
+              />
+            ) : particle.kind === 'lotus' ? (
+              <path
+                d="M11 2 C14.5 6.5, 15.5 13, 11 19 C6.5 13, 7.5 6.5, 11 2 Z"
+                fill={particle.tone}
+                fillOpacity="0.86"
               />
             ) : (
               <path
-                d="M3 10 C5 4, 13 3, 17 9 C15 15, 7 17, 3 10 Z"
+                d="M3 11 C5 4.5, 14 3.5, 19 10 C16.5 16.5, 7.5 18.5, 3 11 Z"
                 fill={particle.tone}
-                fillOpacity="0.88"
+                fillOpacity="0.9"
               />
             )}
           </svg>
@@ -1378,7 +1691,7 @@ export function BirthdayAshirwadSite({
             style={hindiSafeStyle}
             className="mt-1 break-words font-heading text-[28px] font-bold leading-tight text-[#3B1F16] sm:text-[34px]"
           >
-            {data.receiverName}
+            {receiverName}
           </h1>
 
           {relationLabel ? (
@@ -1399,17 +1712,25 @@ export function BirthdayAshirwadSite({
           {(() => {
             const currentPlate =
               ASHIRWAD_ART_PLATES.find((p) => p.id === activeScenePlate) ?? ASHIRWAD_ART_PLATES[0];
+            const isPlateFailed = Boolean(failedPlates[currentPlate.src]);
             return (
               <>
                 <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[18px] bg-[#3B1F16]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={currentPlate.src}
-                    alt={currentPlate.title[coreLang]}
-                    className={`h-full w-full object-cover transition duration-700 ${
-                      diyaLit ? 'brightness-105 saturate-110' : 'brightness-95'
-                    }`}
-                  />
+                  {!isPlateFailed ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={currentPlate.src}
+                      alt={currentPlate.title[coreLang]}
+                      onError={() =>
+                        setFailedPlates((prev) => ({ ...prev, [currentPlate.src]: true }))
+                      }
+                      className={`h-full w-full object-cover transition duration-700 ${
+                        diyaLit ? 'brightness-105 saturate-110' : 'brightness-95'
+                      }`}
+                    />
+                  ) : (
+                    <FallbackCourtyardArt index={activeScenePlate === 'courtyard' ? 0 : 1} />
+                  )}
                   <div
                     aria-hidden="true"
                     className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#2A140C]/85 via-transparent to-transparent"
@@ -1433,6 +1754,7 @@ export function BirthdayAshirwadSite({
                 <div className="mt-2 grid grid-cols-2 gap-1.5">
                   {ASHIRWAD_ART_PLATES.map((plate, idx) => {
                     const active = plate.id === activeScenePlate;
+                    const thumbFailed = Boolean(failedPlates[plate.src]);
                     return (
                       <button
                         key={plate.id}
@@ -1449,13 +1771,20 @@ export function BirthdayAshirwadSite({
                         }`}
                       >
                         <div className="h-9 w-12 shrink-0 overflow-hidden rounded-lg bg-[#3B1F16]">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={plate.src}
-                            alt=""
-                            loading="lazy"
-                            className="h-full w-full object-cover"
-                          />
+                          {!thumbFailed ? (
+                            /* eslint-disable-next-line @next/next/no-img-element */
+                            <img
+                              src={plate.src}
+                              alt=""
+                              loading="lazy"
+                              onError={() =>
+                                setFailedPlates((prev) => ({ ...prev, [plate.src]: true }))
+                              }
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <FallbackCourtyardArt index={idx} />
+                          )}
                         </div>
                         <span
                           style={hindiSafeStyle}
@@ -1472,7 +1801,7 @@ export function BirthdayAshirwadSite({
           })()}
         </section>
 
-        {/* 2. Interactive Brass Diya Lighting Ritual */}
+        {/* 2. Interactive Brass Diya Lighting & Pushpa Varsha Ritual */}
         <section
           aria-label={copy.diyaSectionLabel}
           className={`relative overflow-hidden rounded-[24px] border p-5 text-center transition-all duration-700 motion-reduce:transition-none sm:p-6 ${
@@ -1519,6 +1848,27 @@ export function BirthdayAshirwadSite({
           >
             {diyaLit ? copy.diyaLitWhisper : copy.diyaUnlitWhisper}
           </p>
+
+          {/* Pushpa Varsha (Marigold & Rose Petal Blessing Shower) inside Courtyard Diya Ritual */}
+          <div className="mt-4 flex flex-col items-center gap-1.5 border-t border-[#EFE0C4] pt-4">
+            <button
+              type="button"
+              onClick={handleShowerBlessings}
+              style={hindiSafeStyle}
+              className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-[#BE123C]/35 bg-gradient-to-r from-[#FFF1F2] via-[#FEF3C7] to-[#FFF1F2] px-5 py-2 font-serif text-xs font-bold text-[#9A3412] shadow-2xs transition duration-200 hover:brightness-98 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B45309] focus-visible:ring-offset-2 motion-reduce:transition-none"
+            >
+              <MarigoldPetalIcon />
+              <span>{copy.pushpaVarshaCta}</span>
+            </button>
+            <p
+              style={hindiSafeStyle}
+              className="font-serif text-[11.5px] text-[#7C4A2D]"
+            >
+              {blessingWaves > 0
+                ? copy.blessingsShoweredLabel(blessingWaves)
+                : copy.pushpaVarshaHint}
+            </p>
+          </div>
         </section>
 
         {/* 2.5. Sacred Courtyard Thali Offerings ("Shubh Arpan") */}
@@ -1596,23 +1946,35 @@ export function BirthdayAshirwadSite({
             })}
           </div>
 
-          <div className="mt-3.5 flex items-center justify-between gap-2 rounded-xl border border-[#EBD8B7] bg-[#FAF2E2]/80 px-3.5 py-2">
-            <span
-              style={hindiSafeStyle}
-              className="font-serif text-xs font-semibold text-[#78350F]"
-            >
-              {extraCopy.thaliProgress(placedOfferings.length, SHUBH_OFFERINGS.length)}
-            </span>
-            <div className="flex items-center gap-1" aria-hidden="true">
-              {SHUBH_OFFERINGS.map((item) => (
-                <span
-                  key={`dot-${item.id}`}
-                  className={`h-2 w-2 rounded-full transition-colors duration-300 ${
-                    placedOfferings.includes(item.id) ? 'bg-[#D97706]' : 'bg-[#D97706]/25'
-                  }`}
-                />
-              ))}
+          <div className="mt-3.5 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#EBD8B7] bg-[#FAF2E2]/80 px-3.5 py-2">
+            <div className="flex items-center gap-2">
+              <span
+                style={hindiSafeStyle}
+                className="font-serif text-xs font-semibold text-[#78350F]"
+              >
+                {extraCopy.thaliProgress(placedOfferings.length, SHUBH_OFFERINGS.length)}
+              </span>
+              <div className="flex items-center gap-1" aria-hidden="true">
+                {SHUBH_OFFERINGS.map((item) => (
+                  <span
+                    key={`dot-${item.id}`}
+                    className={`h-2 w-2 rounded-full transition-colors duration-300 ${
+                      placedOfferings.includes(item.id) ? 'bg-[#D97706]' : 'bg-[#D97706]/25'
+                    }`}
+                  />
+                ))}
+              </div>
             </div>
+
+            <button
+              type="button"
+              onClick={handleShowerBlessings}
+              style={hindiSafeStyle}
+              className="inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-full border border-[#BE123C]/35 bg-[#FFFDF8] px-3.5 py-1.5 font-serif text-[11.5px] font-bold text-[#9A3412] shadow-2xs transition hover:bg-[#FEF3C7] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B45309]"
+            >
+              <MarigoldPetalIcon />
+              <span>{extraCopy.thaliPushpaBtn}</span>
+            </button>
           </div>
 
           {activeOfferingObj ? (
@@ -1684,9 +2046,9 @@ export function BirthdayAshirwadSite({
                     {copy.highlightsEyebrow}
                   </p>
                   <div className="grid gap-2">
-                    {highlights.slice(0, 3).map((item, idx) => (
+                    {highlights.slice(0, 4).map((item, idx) => (
                       <div
-                        key={`${item.title.en}-${idx}`}
+                        key={`highlight-${idx}`}
                         className="rounded-xl border border-[#EFE0C4] bg-[#FFFDF8]/90 px-3.5 py-2.5"
                       >
                         <h3
@@ -1720,7 +2082,7 @@ export function BirthdayAshirwadSite({
                   style={hindiSafeStyle}
                   className="mt-1 break-words font-heading text-lg font-bold text-[#B45309]"
                 >
-                  {data.senderName}
+                  {senderName}
                 </p>
               </div>
 
@@ -1820,7 +2182,7 @@ export function BirthdayAshirwadSite({
           </div>
         </section>
 
-        {/* 5. Family Blessing Pillars & Golden Ashirwad Keepsake Seal */}
+        {/* 5. Family Gratitude Ledger & Elder's Return Blessing */}
         <section
           aria-label={extraCopy.pillarsEyebrow}
           className="space-y-4 rounded-[24px] border border-[#E2CCA6] bg-[#FFFDF8]/92 p-5 shadow-[0_12px_30px_-14px_rgba(120,53,15,0.16)] sm:p-6"
@@ -1829,7 +2191,7 @@ export function BirthdayAshirwadSite({
             <span
               style={hindiSafeStyle}
               className={`inline-block rounded-full border border-[#D97706]/30 bg-[#FEF3C7]/70 px-3.5 py-1 text-[10.5px] font-semibold text-[#9A3412] ${
-                isHindi ? '' : 'uppercase tracking-[0.14em]'
+                isHindi ? 'not-italic' : 'uppercase tracking-[0.14em]'
               }`}
             >
               {extraCopy.pillarsEyebrow}
@@ -1840,6 +2202,12 @@ export function BirthdayAshirwadSite({
             >
               {extraCopy.pillarsTitle}
             </h2>
+            <p
+              style={hindiSafeStyle}
+              className="mt-1 font-serif text-xs text-[#7C4A2D]"
+            >
+              {extraCopy.ledgerSubtitle(receiverName, senderName)}
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -1891,54 +2259,182 @@ export function BirthdayAshirwadSite({
             })}
           </div>
 
-          {/* Brass Ashirwad Keepsake Seal & WhatsApp Thank-You Copy */}
-          <div className="rounded-2xl border border-[#D97706]/35 bg-gradient-to-b from-[#FFFBEB] to-[#FBF0D9] p-4 text-center">
-            {!keepsakeSealed ? (
-              <button
-                type="button"
-                onClick={handleSealKeepsake}
+          <LotusDivider />
+
+          {/* Elder's Return Blessing Selector & Golden Brass Seal */}
+          <div className="rounded-2xl border border-[#D97706]/38 bg-gradient-to-b from-[#FFFBEB] to-[#FBF0D9] p-4 sm:p-5">
+            <div className="text-center">
+              <span
                 style={hindiSafeStyle}
-                className="inline-flex min-h-[46px] w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#B45309] via-[#D97706] to-[#B45309] px-5 py-2.5 font-serif text-xs font-bold text-[#FFFDF8] shadow-[0_10px_22px_-8px_rgba(180,83,9,0.55)] transition hover:brightness-105 active:scale-[0.98]"
+                className={`inline-block rounded-full border border-[#B45309]/30 bg-[#FFFDF8] px-3 py-0.5 text-[10px] font-bold text-[#9A3412] ${
+                  isHindi ? 'not-italic' : 'uppercase tracking-[0.14em]'
+                }`}
               >
-                <MarigoldPetalIcon />
-                <span>{extraCopy.sealCta}</span>
-              </button>
-            ) : (
-              <div role="status" className="space-y-3">
-                <span
-                  style={hindiSafeStyle}
-                  className={`inline-flex items-center gap-1.5 rounded-full border border-[#B45309]/40 bg-[#FFFDF8] px-3.5 py-1 text-[10px] font-bold text-[#9A3412] ${
-                    isHindi ? '' : 'uppercase tracking-[0.16em]'
-                  }`}
-                >
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#15803D]" aria-hidden="true" />
-                  {extraCopy.sealedBadge}
-                </span>
-                <p
-                  style={hindiSafeStyle}
-                  className="font-heading text-base font-bold text-[#3B1F16]"
-                >
-                  {extraCopy.sealedMotto}
-                </p>
+                {extraCopy.returnBlessingEyebrow}
+              </span>
+              <h3
+                style={hindiSafeStyle}
+                className="mt-2 break-words font-heading text-base font-bold text-[#3B1F16] sm:text-lg"
+              >
+                {extraCopy.returnBlessingTitle(receiverName)}
+              </h3>
+              <p
+                style={hindiSafeStyle}
+                className="mx-auto mt-1 max-w-sm font-serif text-xs leading-relaxed text-[#6E442C]"
+              >
+                {extraCopy.returnBlessingHint(senderName)}
+              </p>
+            </div>
+
+            <div className="mt-3.5 grid gap-2">
+              {ELDER_RETURN_BLESSINGS.map((option, idx) => {
+                const isSelected = option.id === selectedReturnId;
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() => handleSelectReturnBlessing(option.id, idx)}
+                    aria-pressed={isSelected}
+                    className={`flex min-h-[54px] w-full items-center justify-between gap-3 rounded-xl border px-3.5 py-2.5 text-left transition active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B45309] ${
+                      isSelected
+                        ? 'border-[#B45309] bg-[#FFFDF8] shadow-[0_8px_18px_-10px_rgba(180,83,9,0.45)]'
+                        : 'border-[#E6CFA8] bg-[#FFFDF8]/70 hover:border-[#D97706]/55'
+                    }`}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p
+                        style={hindiSafeStyle}
+                        className="font-heading text-sm font-bold text-[#78350F]"
+                      >
+                        {option.phrase[coreLang]}
+                      </p>
+                      <p
+                        style={hindiSafeStyle}
+                        className="mt-0.5 font-serif text-xs leading-relaxed text-[#6E442C]"
+                      >
+                        {option.meaning[coreLang]}
+                      </p>
+                    </div>
+                    <span
+                      aria-hidden="true"
+                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border transition ${
+                        isSelected
+                          ? 'border-[#B45309] bg-[#B45309] text-white'
+                          : 'border-[#D97706]/40 bg-white text-transparent'
+                      }`}
+                    >
+                      <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none">
+                        <path
+                          d="M3.5 8.2L6.6 11.3L12.5 4.8"
+                          stroke="currentColor"
+                          strokeWidth="2.2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="mt-4 text-center">
+              {!keepsakeSealed ? (
                 <button
                   type="button"
-                  onClick={() => void handleCopyThankYou()}
+                  onClick={handleSealKeepsake}
                   style={hindiSafeStyle}
-                  className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full border border-[#B45309]/45 bg-[#FFFDF8] px-4 py-2 font-serif text-xs font-bold text-[#92400E] shadow-2xs transition hover:bg-[#FEF3C7] active:scale-[0.98]"
+                  className="inline-flex min-h-[46px] w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#B45309] via-[#D97706] to-[#B45309] px-5 py-2.5 font-serif text-xs font-bold text-[#FFFDF8] shadow-[0_10px_22px_-8px_rgba(180,83,9,0.55)] transition hover:brightness-105 active:scale-[0.98]"
                 >
-                  <span>{extraCopy.copyThanksCta}</span>
+                  <MarigoldPetalIcon />
+                  <span>{extraCopy.sealCta}</span>
                 </button>
-                {copiedReply ? (
-                  <p
-                    role="status"
+              ) : (
+                <div
+                  key={`brass-seal-card-${sealStampKey}`}
+                  role="status"
+                  className="space-y-3 rounded-2xl border border-[#D97706]/45 bg-[#FFFDF8]/95 px-4 py-4 shadow-inner"
+                >
+                  <GoldenBrassSealMedallion
+                    sealLabel={selectedReturnBlessing.sealShort[coreLang]}
+                    isHindi={isHindi}
+                  />
+
+                  <span
                     style={hindiSafeStyle}
-                    className="font-serif text-xs font-semibold text-[#15803D]"
+                    className={`inline-flex items-center gap-1.5 rounded-full border border-[#B45309]/40 bg-[#FFFBEB] px-3.5 py-1 text-[10px] font-bold text-[#9A3412] ${
+                      isHindi ? 'not-italic' : 'uppercase tracking-[0.15em]'
+                    }`}
                   >
-                    {extraCopy.copiedThanksToast}
-                  </p>
-                ) : null}
-              </div>
-            )}
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#15803D]" aria-hidden="true" />
+                    {extraCopy.sealedBadge}
+                  </span>
+
+                  <div>
+                    <p
+                      style={hindiSafeStyle}
+                      className="font-heading text-base font-bold text-[#3B1F16]"
+                    >
+                      {selectedReturnBlessing.phrase[coreLang]}
+                    </p>
+                    <p
+                      style={hindiSafeStyle}
+                      className="mt-0.5 font-serif text-xs text-[#7C4A2D]"
+                    >
+                      {extraCopy.sealedByLine(receiverName)}
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-[#EFE0C4] bg-[#FAF4E8]/80 px-3 py-2.5 text-left">
+                    <p
+                      style={hindiSafeStyle}
+                      className="font-serif text-[11px] font-bold text-[#9A3412]"
+                    >
+                      {extraCopy.replyPreviewHeading(senderName)}
+                    </p>
+                    <p
+                      style={hindiSafeStyle}
+                      className="mt-1 break-words font-serif text-xs leading-relaxed text-[#4A2B1D]"
+                    >
+                      {familyReplyText}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
+                    <button
+                      type="button"
+                      onClick={() => void handleCopyThankYou()}
+                      style={hindiSafeStyle}
+                      className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#B45309] via-[#D97706] to-[#B45309] px-4 py-2 font-serif text-xs font-bold text-[#FFFDF8] shadow-sm transition hover:brightness-105 active:scale-[0.98]"
+                    >
+                      <span>{extraCopy.copyThanksCta(senderName)}</span>
+                    </button>
+
+                    {cleanWhatsappDigits.length >= 10 ? (
+                      <a
+                        href={`https://wa.me/${cleanWhatsappDigits}?text=${encodeURIComponent(familyReplyText)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={hindiSafeStyle}
+                        className="inline-flex min-h-[44px] w-full items-center justify-center rounded-full border border-[#B45309]/45 bg-[#FFFDF8] px-4 py-2 font-serif text-xs font-bold text-[#92400E] transition hover:bg-[#FEF3C7] active:scale-[0.98] sm:w-auto sm:shrink-0"
+                      >
+                        {extraCopy.openWhatsappCta}
+                      </a>
+                    ) : null}
+                  </div>
+
+                  {copiedReply ? (
+                    <p
+                      role="status"
+                      style={hindiSafeStyle}
+                      className="font-serif text-xs font-semibold text-[#15803D]"
+                    >
+                      {extraCopy.copiedThanksToast}
+                    </p>
+                  ) : null}
+                </div>
+              )}
+            </div>
           </div>
         </section>
 
@@ -1961,78 +2457,78 @@ export function BirthdayAshirwadSite({
               onClick={() => setActivePhotoIndex(null)}
               className="fixed inset-0 z-[120] flex items-center justify-center bg-[#2A160E]/75 p-4 backdrop-blur-xs"
             >
-          <div
-            onClick={(event) => event.stopPropagation()}
-            className="relative w-full max-w-sm rounded-[26px] border border-[#D97706]/45 bg-[#FFFDF8] p-3.5 shadow-[0_24px_60px_rgba(24,10,5,0.45)]"
-          >
-            <button
-              type="button"
-              onClick={() => setActivePhotoIndex(null)}
-              aria-label={copy.closeModalLabel}
-              className="absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#D97706]/35 bg-[#FFFDF8]/95 text-[#78350F] shadow-xs transition hover:bg-[#FEF3C7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B45309]"
-            >
-              <CloseIcon />
-            </button>
-
-            <div className="overflow-hidden rounded-t-[180px] rounded-b-[14px] border border-[#D97706]/30 bg-[#F8EFE0]">
-              <div className="aspect-[4/5] w-full">
-                {!failedPhotos[activePhoto.src] ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
-                    src={activePhoto.src}
-                    alt={activePhoto.caption}
-                    onError={() =>
-                      setFailedPhotos((prev) => ({ ...prev, [activePhoto.src]: true }))
-                    }
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <FallbackCourtyardArt index={activePhotoIndex} />
-                )}
-              </div>
-            </div>
-
-            <div className="mt-3 flex items-center justify-between gap-2 px-1">
-              {galleryItems.length > 1 ? (
-                <button
-                  type="button"
-                  onClick={() =>
-                    setActivePhotoIndex(
-                      (activePhotoIndex - 1 + galleryItems.length) % galleryItems.length,
-                    )
-                  }
-                  aria-label={copy.prevPhotoLabel}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#E6D3B3] bg-[#FFFBEB] text-[#78350F] transition hover:bg-[#FEF3C7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B45309]"
-                >
-                  <ChevronIcon direction="left" />
-                </button>
-              ) : (
-                <span className="w-9" />
-              )}
-
-              <p
-                style={hindiSafeStyle}
-                className="truncate font-serif text-sm font-semibold text-[#4A2B1D]"
+              <div
+                onClick={(event) => event.stopPropagation()}
+                className="relative w-full max-w-sm rounded-[26px] border border-[#D97706]/45 bg-[#FFFDF8] p-3.5 shadow-[0_24px_60px_rgba(24,10,5,0.45)]"
               >
-                {activePhoto.caption}
-              </p>
-
-              {galleryItems.length > 1 ? (
                 <button
                   type="button"
-                  onClick={() =>
-                    setActivePhotoIndex((activePhotoIndex + 1) % galleryItems.length)
-                  }
-                  aria-label={copy.nextPhotoLabel}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#E6D3B3] bg-[#FFFBEB] text-[#78350F] transition hover:bg-[#FEF3C7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B45309]"
+                  onClick={() => setActivePhotoIndex(null)}
+                  aria-label={copy.closeModalLabel}
+                  className="absolute right-3 top-3 z-10 inline-flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-full border border-[#D97706]/35 bg-[#FFFDF8]/95 text-[#78350F] shadow-xs transition hover:bg-[#FEF3C7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B45309]"
                 >
-                  <ChevronIcon direction="right" />
+                  <CloseIcon />
                 </button>
-              ) : (
-                <span className="w-9" />
-              )}
-            </div>
-          </div>
+
+                <div className="overflow-hidden rounded-t-[180px] rounded-b-[14px] border border-[#D97706]/30 bg-[#F8EFE0]">
+                  <div className="aspect-[4/5] w-full">
+                    {!failedPhotos[activePhoto.src] ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img
+                        src={activePhoto.src}
+                        alt={activePhoto.caption}
+                        onError={() =>
+                          setFailedPhotos((prev) => ({ ...prev, [activePhoto.src]: true }))
+                        }
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <FallbackCourtyardArt index={activePhotoIndex} />
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-3 flex items-center justify-between gap-2 px-1">
+                  {galleryItems.length > 1 ? (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setActivePhotoIndex(
+                          (activePhotoIndex - 1 + galleryItems.length) % galleryItems.length,
+                        )
+                      }
+                      aria-label={copy.prevPhotoLabel}
+                      className="inline-flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-full border border-[#E6D3B3] bg-[#FFFBEB] text-[#78350F] transition hover:bg-[#FEF3C7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B45309]"
+                    >
+                      <ChevronIcon direction="left" />
+                    </button>
+                  ) : (
+                    <span className="w-11" />
+                  )}
+
+                  <p
+                    style={hindiSafeStyle}
+                    className="truncate font-serif text-sm font-semibold text-[#4A2B1D]"
+                  >
+                    {activePhoto.caption}
+                  </p>
+
+                  {galleryItems.length > 1 ? (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setActivePhotoIndex((activePhotoIndex + 1) % galleryItems.length)
+                      }
+                      aria-label={copy.nextPhotoLabel}
+                      className="inline-flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-full border border-[#E6D3B3] bg-[#FFFBEB] text-[#78350F] transition hover:bg-[#FEF3C7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B45309]"
+                    >
+                      <ChevronIcon direction="right" />
+                    </button>
+                  ) : (
+                    <span className="w-11" />
+                  )}
+                </div>
+              </div>
             </div>,
             document.body,
           )

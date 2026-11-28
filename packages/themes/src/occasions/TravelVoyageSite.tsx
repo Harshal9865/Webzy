@@ -546,37 +546,184 @@ const POSTAGE_STAMPS: readonly PostageStampItem[] = [
   },
 ];
 
+interface PassportStampStop {
+  id: 'jaipur' | 'kyoto' | 'amalfi' | 'paris';
+  city: string;
+  country: string;
+  code: string;
+  coordinates: string;
+  inkHex: string;
+  visaCode: string;
+  tagline: Record<CoreLanguageCode, string>;
+}
+
+const PASSPORT_STAMPS: readonly PassportStampStop[] = [
+  {
+    id: 'jaipur',
+    city: 'Jaipur',
+    country: 'INDIA',
+    code: 'JAI',
+    coordinates: '26.91° N · 75.78° E',
+    inkHex: '#B83B2A',
+    visaCode: 'IND · 01',
+    tagline: {
+      en: 'Pink sandstone arches & dawn forts',
+      hinglish: 'Gulabi mahal aur subah ka qila',
+      hi: 'गुलाबी महल और सूर्योदय के क़िले',
+    },
+  },
+  {
+    id: 'kyoto',
+    city: 'Kyoto',
+    country: 'JAPAN',
+    code: 'UKY',
+    coordinates: '35.01° N · 135.76° E',
+    inkHex: '#1E4C7A',
+    visaCode: 'JPN · 02',
+    tagline: {
+      en: 'Cedar shrines & lantern tea lanes',
+      hinglish: 'Cedar mandir aur lantern chai galiyan',
+      hi: 'देवदार मंदिर और लालटेन चाय गलियाँ',
+    },
+  },
+  {
+    id: 'amalfi',
+    city: 'Amalfi',
+    country: 'ITALIA',
+    code: 'AML',
+    coordinates: '40.63° N · 14.60° E',
+    inkHex: '#1E6B5C',
+    visaCode: 'ITA · 03',
+    tagline: {
+      en: 'Lemon cliffs & turquoise coves',
+      hinglish: 'Neebu pahadiyan aur neela samundar',
+      hi: 'तटीय चट्टानें और नीला समंदर',
+    },
+  },
+  {
+    id: 'paris',
+    city: 'Paris',
+    country: 'FRANCE',
+    code: 'PAR',
+    coordinates: '48.85° N · 2.35° E',
+    inkHex: '#6B3678',
+    visaCode: 'FRA · 04',
+    tagline: {
+      en: 'Rose iron balconies & Seine dusk',
+      hinglish: 'Gulab balconies aur Seine ki shaam',
+      hi: 'गुलाब बालकनी और सीन की शाम',
+    },
+  },
+];
+
 interface TripMoodOption {
   id: string;
-  label: string;
-  tagline: string;
-  pace: string;
+  label: Record<CoreLanguageCode, string>;
+  tagline: Record<CoreLanguageCode, string>;
+  pace: Record<CoreLanguageCode, string>;
 }
 
 const TRIP_MOODS: readonly TripMoodOption[] = [
   {
-    id: 'solo-slow',
-    label: 'Solo Slow Travel',
-    tagline: 'Boutique stays, scenic rail & quiet journal mornings',
-    pace: 'Unrushed · 3–4 nights per stop',
+    id: 'heritage-architecture',
+    label: {
+      en: 'Heritage & Architecture',
+      hinglish: 'Heritage & Architecture',
+      hi: 'विरासत और वास्तुकला',
+    },
+    tagline: {
+      en: 'Sunrise palace walks, conservation historians & hand-crafted stays',
+      hinglish: 'Subah ke palace walks, historians aur boutique heritage stays',
+      hi: 'सूर्योदय महल भ्रमण, इतिहासकार मार्गदर्शन और हेरिटेज निवास',
+    },
+    pace: {
+      en: 'Curated · Dawn access',
+      hinglish: 'Curated · Dawn access',
+      hi: 'विशेष · प्रातः प्रवेश',
+    },
   },
   {
-    id: 'honeymoon',
-    label: 'Honeymoon',
-    tagline: 'Private boat charters, balcony suites & candlelit tables',
-    pace: 'Intimate · Concierge transfers',
+    id: 'coastal-slow',
+    label: {
+      en: 'Coastal Slow-Travel',
+      hinglish: 'Coastal Slow-Travel',
+      hi: 'तटीय धीमी यात्रा',
+    },
+    tagline: {
+      en: 'Private wooden boat coves, harborfront cafes & unhurried sunsets',
+      hinglish: 'Private boat coves, harbor cafes aur sukoon bhari shaamein',
+      hi: 'निजी नौका भ्रमण, तटीय कैफ़े और शांत सूर्यास्त',
+    },
+    pace: {
+      en: 'Unrushed · 3-4 nights/stop',
+      hinglish: 'Unrushed · 3-4 nights/stop',
+      hi: 'आरामदायक · 3-4 रातें/पड़ाव',
+    },
   },
   {
-    id: 'family-heritage',
-    label: 'Family Heritage',
-    tagline: 'Curated palace suites, private historians & comfort routes',
-    pace: 'Balanced · Multi-generational',
+    id: 'culinary-markets',
+    label: {
+      en: 'Culinary & Markets',
+      hinglish: 'Culinary & Markets',
+      hi: 'पाक कला और बाज़ार',
+    },
+    tagline: {
+      en: 'Chef counter tastings, spice bazaars & local patisserie trails',
+      hinglish: 'Chef tastings, spice bazaars aur local patisserie trails',
+      hi: 'शेफ टेस्टिंग, मसाला बाज़ार और स्थानीय व्यंजन यात्रा',
+    },
+    pace: {
+      en: 'Tasting-led · Small tables',
+      hinglish: 'Tasting-led · Small tables',
+      hi: 'स्वाद-केंद्रित · निजी टेबल',
+    },
   },
   {
-    id: 'photography',
-    label: 'Photography Tour',
-    tagline: 'Blue-hour access, rooftop perches & visual storytellers',
-    pace: 'Golden-Hour Chasing',
+    id: 'mountain-retreat',
+    label: {
+      en: 'Mountain Retreat',
+      hinglish: 'Mountain Retreat',
+      hi: 'पर्वतीय विश्राम',
+    },
+    tagline: {
+      en: 'Scenic alpine rails, cedar lodges & mist-wrapped valley mornings',
+      hinglish: 'Scenic alpine trains, cedar lodges aur pahadi subah',
+      hi: 'पर्वतीय रेल यात्रा, देवदार लॉज और धुंध भरी सुबह',
+    },
+    pace: {
+      en: 'Restorative · High vistas',
+      hinglish: 'Restorative · High vistas',
+      hi: 'सुकून भरा · ऊँचे शिखर',
+    },
+  },
+];
+
+interface TripSeasonOption {
+  id: string;
+  label: Record<CoreLanguageCode, string>;
+  months: string;
+}
+
+const TRIP_SEASONS: readonly TripSeasonOption[] = [
+  {
+    id: 'spring',
+    label: { en: 'Spring', hinglish: 'Spring', hi: 'वसंत' },
+    months: 'Mar — May',
+  },
+  {
+    id: 'summer',
+    label: { en: 'Summer', hinglish: 'Summer', hi: 'ग्रीष्म' },
+    months: 'Jun — Aug',
+  },
+  {
+    id: 'autumn',
+    label: { en: 'Autumn', hinglish: 'Autumn', hi: 'शरद' },
+    months: 'Sep — Nov',
+  },
+  {
+    id: 'winter',
+    label: { en: 'Winter', hinglish: 'Winter', hi: 'शीत' },
+    months: 'Dec — Feb',
   },
 ];
 
@@ -593,13 +740,27 @@ interface TravelLocalizedCopy {
   chapterWindowTitle: string;
   chapterStampsEyebrow: string;
   chapterStampsTitle: string;
+  chapterPassportEyebrow: string;
+  chapterPassportTitle: string;
+  chapterPassportDesc: string;
+  passportStampedWord: string;
+  passportTapToStamp: string;
+  passportInked: string;
+  passportStampAll: string;
+  passportReset: string;
   chapterConciergeEyebrow: string;
   chapterConciergeTitle: string;
   moodPrompt: string;
+  seasonPrompt: string;
   whatsappCta: string;
   copyBriefCta: string;
   copiedBriefCta: string;
   curatedByLabel: string;
+  holdSeatPrefix: string;
+  seatReserved: string;
+  customItineraryBadge: string;
+  passportRouteLabel: string;
+  seasonLabel: string;
 }
 
 const TRAVEL_COPY: Record<CoreLanguageCode, TravelLocalizedCopy> = {
@@ -621,13 +782,28 @@ const TRAVEL_COPY: Record<CoreLanguageCode, TravelLocalizedCopy> = {
     chapterWindowTitle: 'Look Outside While the World Glides By',
     chapterStampsEyebrow: 'CHAPTER 04 · SOUVENIR MAGNETS & POSTAGE WALL',
     chapterStampsTitle: 'Collected Postmarks Along the Route',
-    chapterConciergeEyebrow: 'CHAPTER 05 · BESPOKE EXPEDITION CONCIERGE',
+    chapterPassportEyebrow: 'CHAPTER 05 · COLLECTIBLE PASSPORT STAMP BOOK',
+    chapterPassportTitle: 'Ink Your Multi-City Route',
+    chapterPassportDesc:
+      'Tap any destination below to ink-stamp your digital passport and build a tailored multi-city expedition inquiry.',
+    passportStampedWord: 'stamped',
+    passportTapToStamp: 'Tap to Ink Stamp',
+    passportInked: 'Passport Stamped',
+    passportStampAll: 'Stamp All 4',
+    passportReset: 'Reset',
+    chapterConciergeEyebrow: 'CHAPTER 06 · BESPOKE EXPEDITION CONCIERGE',
     chapterConciergeTitle: 'Design Your Next Departure',
-    moodPrompt: 'Select your travel rhythm',
+    moodPrompt: 'Choose your trip mood',
+    seasonPrompt: 'Preferred travel season',
     whatsappCta: 'Plan This Voyage on WhatsApp',
     copyBriefCta: 'Copy Voyage Brief',
     copiedBriefCta: 'Voyage Brief Copied',
     curatedByLabel: 'Expedition Curated By',
+    holdSeatPrefix: 'Hold Seat',
+    seatReserved: 'Seat Reserved',
+    customItineraryBadge: 'Custom Stops',
+    passportRouteLabel: 'Passport Route',
+    seasonLabel: 'Preferred Season',
   },
   hinglish: {
     switcher: {
@@ -647,13 +823,28 @@ const TRAVEL_COPY: Record<CoreLanguageCode, TravelLocalizedCopy> = {
     chapterWindowTitle: 'Window Seat Se Dekhein Badalta Aasmaan',
     chapterStampsEyebrow: 'CHAPTER 04 · SOUVENIR MAGNETS & POSTAGE WALL',
     chapterStampsTitle: 'Har Safar Ki Yaadgaar Stamp Wall',
-    chapterConciergeEyebrow: 'CHAPTER 05 · BESPOKE EXPEDITION CONCIERGE',
+    chapterPassportEyebrow: 'CHAPTER 05 · COLLECTIBLE PASSPORT STAMP BOOK',
+    chapterPassportTitle: 'Apna Multi-City Passport Stamp Karein',
+    chapterPassportDesc:
+      'Niche kisi bhi shehar par tap karke digital passport par ink-stamp lagayein aur apni multi-city inquiry ready karein.',
+    passportStampedWord: 'stamped',
+    passportTapToStamp: 'Tap Karein · Ink Stamp',
+    passportInked: 'Stamp Lag Gaya',
+    passportStampAll: 'Saare 4 Stamp Karein',
+    passportReset: 'Reset',
+    chapterConciergeEyebrow: 'CHAPTER 06 · BESPOKE EXPEDITION CONCIERGE',
     chapterConciergeTitle: 'Apna Agla Safar Plan Karein',
-    moodPrompt: 'Apna travel mood chunein',
+    moodPrompt: 'Apna trip mood chunein',
+    seasonPrompt: 'Pasandida travel season',
     whatsappCta: 'WhatsApp Par Trip Plan Karein',
     copyBriefCta: 'Trip Brief Copy Karein',
     copiedBriefCta: 'Trip Brief Copy Ho Gaya',
     curatedByLabel: 'Curated By',
+    holdSeatPrefix: 'Hold Seat',
+    seatReserved: 'Seat Reserved',
+    customItineraryBadge: 'Custom Stops',
+    passportRouteLabel: 'Passport Route',
+    seasonLabel: 'Travel Season',
   },
   hi: {
     switcher: {
@@ -673,13 +864,28 @@ const TRAVEL_COPY: Record<CoreLanguageCode, TravelLocalizedCopy> = {
     chapterWindowTitle: 'खिड़की से बदलती दुनिया का नज़ारा',
     chapterStampsEyebrow: 'अध्याय 04 · डाक टिकट व स्मृति संग्रह',
     chapterStampsTitle: 'हर पड़ाव की डाक मुहर और यादें',
-    chapterConciergeEyebrow: 'अध्याय 05 · व्यक्तिगत यात्रा परामर्श',
+    chapterPassportEyebrow: 'अध्याय 05 · डिजिटल पासपोर्ट स्टैम्प बुक',
+    chapterPassportTitle: 'अपने पसंदीदा शहरों पर मुहर लगाएँ',
+    chapterPassportDesc:
+      'नीचे किसी भी शहर पर टैप कर डिजिटल पासपोर्ट में इंक-स्टैम्प लगाएँ और अपनी मल्टी-सिटी यात्रा योजना तैयार करें।',
+    passportStampedWord: 'स्टैम्प पूर्ण',
+    passportTapToStamp: 'मुहर लगाने को टैप करें',
+    passportInked: 'पासपोर्ट स्टैम्प लगा',
+    passportStampAll: 'सभी 4 स्टैम्प करें',
+    passportReset: 'रीसेट',
+    chapterConciergeEyebrow: 'अध्याय 06 · व्यक्तिगत यात्रा परामर्श',
     chapterConciergeTitle: 'अपनी अगली यात्रा की रूपरेखा बनाएँ',
     moodPrompt: 'अपनी यात्रा शैली चुनें',
+    seasonPrompt: 'पसंदीदा यात्रा मौसम',
     whatsappCta: 'WhatsApp पर यात्रा प्लान करें',
     copyBriefCta: 'यात्रा विवरण कॉपी करें',
     copiedBriefCta: 'विवरण कॉपी हो गया',
     curatedByLabel: 'यात्रा संकलनकर्ता',
+    holdSeatPrefix: 'सीट सुरक्षित करें',
+    seatReserved: 'सीट आरक्षित',
+    customItineraryBadge: 'कस्टम पड़ाव',
+    passportRouteLabel: 'पासपोर्ट मार्ग',
+    seasonLabel: 'यात्रा मौसम',
   },
 };
 
@@ -714,6 +920,11 @@ const TRAVEL_CONTAINER_CSS = `
   grid-template-columns: minmax(0, 1fr);
   gap: 1.25rem;
 }
+.wz-tv-passport-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
 .wz-tv-hero-slices {
   height: 410px;
 }
@@ -743,6 +954,10 @@ const TRAVEL_CONTAINER_CSS = `
   .wz-tv-mood-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.75rem;
+  }
+  .wz-tv-passport-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.95rem;
   }
   .wz-tv-concierge-split {
     grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
@@ -880,7 +1095,11 @@ export function TravelVoyageSite({
   const [shadeLevel, setShadeLevel] = useState<'open' | 'dusk'>('open');
 
   const [activeStampId, setActiveStampId] = useState<string>(POSTAGE_STAMPS[0].id);
+  const [stampedCities, setStampedCities] = useState<Record<string, boolean>>({
+    jaipur: true,
+  });
   const [selectedMoodId, setSelectedMoodId] = useState<string>(TRIP_MOODS[0].id);
+  const [selectedSeasonId, setSelectedSeasonId] = useState<string>(TRIP_SEASONS[0].id);
   const [copiedBrief, setCopiedBrief] = useState<boolean>(false);
   const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
 
@@ -896,20 +1115,20 @@ export function TravelVoyageSite({
   const brandTitle = (data.receiverName ?? '').trim() || 'SERENDIPITY VOYAGES';
   const curatorName = (data.senderName ?? '').trim() || 'Atelier Travel Concierge';
   const heroHeadline =
-    pickLocalizedText(data.headline, language).trim() ||
+    (data.headline ? pickLocalizedText(data.headline, language).trim() : '') ||
     'Slow journeys crafted across heritage palaces, quiet islands & horizon trains.';
   const conciergeMessage =
-    pickLocalizedText(data.message, language).trim() ||
+    (data.message ? pickLocalizedText(data.message, language).trim() : '') ||
     'Every itinerary is tailored by hand—balancing sunrise architectural walks, hidden coastal harbors, and unhurried moments worth remembering for decades.';
   const editionBadge =
-    pickLocalizedText(data.offerTag, language).trim() || copy.heroBadge;
+    (data.offerTag ? pickLocalizedText(data.offerTag, language).trim() : '') || copy.heroBadge;
 
   const customHighlights = useMemo(() => {
     if (!Array.isArray(data.highlights)) return [];
     return data.highlights
       .map((item) => ({
-        title: pickLocalizedText(item.title, language).trim(),
-        detail: pickLocalizedText(item.detail, language).trim(),
+        title: item?.title ? pickLocalizedText(item.title, language).trim() : '',
+        detail: item?.detail ? pickLocalizedText(item.detail, language).trim() : '',
       }))
       .filter((item) => item.title.length > 0 || item.detail.length > 0);
   }, [data.highlights, language]);
@@ -929,6 +1148,17 @@ export function TravelVoyageSite({
   const activeSlice = resolvedSlices[activeSliceIdx] ?? resolvedSlices[0];
   const activeAtlas =
     ATLAS_DESTINATIONS.find((d) => d.id === activeAtlasId) ?? ATLAS_DESTINATIONS[0];
+  const resolvedActiveItinerary = useMemo(() => {
+    return activeAtlas.itinerary.map((step, idx) => {
+      const custom = customHighlights[idx];
+      if (!custom) return step;
+      return {
+        ...step,
+        title: custom.title || step.title,
+        detail: custom.detail || step.detail,
+      };
+    });
+  }, [activeAtlas.itinerary, customHighlights]);
   const activePortal =
     WINDOW_PORTALS.find((p) => p.id === activePortalId) ?? WINDOW_PORTALS[0];
 
@@ -949,6 +1179,29 @@ export function TravelVoyageSite({
     resolvedStamps.find((s) => s.id === activeStampId) ?? resolvedStamps[0];
   const activeMood =
     TRIP_MOODS.find((m) => m.id === selectedMoodId) ?? TRIP_MOODS[0];
+  const activeSeason =
+    TRIP_SEASONS.find((s) => s.id === selectedSeasonId) ?? TRIP_SEASONS[0];
+
+  const stampedList = useMemo(
+    () => PASSPORT_STAMPS.filter((stop) => Boolean(stampedCities[stop.id])),
+    [stampedCities],
+  );
+  const stampedCount = stampedList.length;
+
+  const togglePassportStamp = useCallback((id: PassportStampStop['id']) => {
+    setStampedCities((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  }, []);
+
+  const stampAllPassportStops = useCallback(() => {
+    setStampedCities({ jaipur: true, kyoto: true, amalfi: true, paris: true });
+  }, []);
+
+  const resetPassportStops = useCallback(() => {
+    setStampedCities({});
+  }, []);
 
   // Theme palette tokens driven by activeVariant ('serendipity' | 'atlas' | 'capsule')
   const palette = useMemo(() => {
@@ -1047,8 +1300,24 @@ export function TravelVoyageSite({
   );
 
   const conciergeBriefText = useMemo(() => {
-    return `Hello ${curatorName}, I would like to inquire about a ${activeMood.label} voyage to ${activeAtlas.tabLabel} (${activeAtlas.originCode} -> ${activeAtlas.destCode}, Flight ${activeAtlas.flightNo}) curated via ${brandTitle}.`;
-  }, [curatorName, activeMood.label, activeAtlas.tabLabel, activeAtlas.originCode, activeAtlas.destCode, activeAtlas.flightNo, brandTitle]);
+    const routeSummary =
+      stampedList.length > 0
+        ? stampedList.map((s) => `${s.city} (${s.code})`).join(' -> ')
+        : `${activeAtlas.tabLabel} (${activeAtlas.originCode} -> ${activeAtlas.destCode})`;
+    return `Hello ${curatorName}, I would like to plan a ${activeMood.label.en} multi-city voyage for ${activeSeason.label.en} (${activeSeason.months}). Stamped Passport Route (${stampedCount}/4): ${routeSummary}. Reference Flight: ${activeAtlas.flightNo} · Curated via ${brandTitle}.`;
+  }, [
+    curatorName,
+    activeMood.label.en,
+    activeSeason.label.en,
+    activeSeason.months,
+    stampedList,
+    stampedCount,
+    activeAtlas.tabLabel,
+    activeAtlas.originCode,
+    activeAtlas.destCode,
+    activeAtlas.flightNo,
+    brandTitle,
+  ]);
 
   const whatsappHref = useMemo(() => {
     if (!sanitizedPhone) return null;
@@ -1129,12 +1398,13 @@ export function TravelVoyageSite({
               { href: '#wz-travel-atlas', label: 'Atlas' },
               { href: '#wz-travel-window', label: 'Window' },
               { href: '#wz-travel-stamps', label: 'Stamps' },
+              { href: '#wz-travel-passport', label: 'Passport' },
               { href: '#wz-travel-concierge', label: 'Concierge' },
             ].map((item) => (
               <a
                 key={item.href}
                 href={item.href}
-                className="inline-flex min-h-[36px] shrink-0 items-center rounded-full px-2.5 font-mono text-[9.5px] font-semibold uppercase tracking-[0.14em] transition-opacity hover:opacity-100 opacity-75"
+                className="inline-flex min-h-[44px] shrink-0 items-center rounded-full px-2.5 font-mono text-[9.5px] font-semibold uppercase tracking-[0.14em] transition-opacity hover:opacity-100 opacity-75"
               >
                 {item.label}
               </a>
@@ -1638,7 +1908,7 @@ export function TravelVoyageSite({
                           : 'bg-[#E5A23C] text-[#0B111C] hover:bg-[#F3B857]'
                       }`}
                     >
-                      {boardedPass ? 'Seat Reserved' : 'Hold Seat 14A'}
+                      {boardedPass ? copy.seatReserved : `${copy.holdSeatPrefix} ${activeAtlas.seat}`}
                     </button>
                   </div>
                 </div>
@@ -1646,22 +1916,35 @@ export function TravelVoyageSite({
 
               {/* Right: Expandable Day 1 / Day 2 / Day 3 Curated Expedition Itinerary */}
               <div className="space-y-2.5">
-                <div className="flex items-center justify-between px-1">
+                <div className="flex flex-wrap items-center justify-between gap-2 px-1">
                   <span
                     className="font-mono text-[9.5px] font-bold uppercase tracking-[0.2em]"
                     style={{ color: palette.mutedInk }}
                   >
                     CURATED 3-DAY EXPEDITION · {activeAtlas.tabLabel.toUpperCase()}
                   </span>
-                  <span
-                    className="font-mono text-[9.5px] uppercase tracking-[0.14em]"
-                    style={{ color: palette.secondaryAccent }}
-                  >
-                    01 — 03
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {customHighlights.length > 0 ? (
+                      <span
+                        className="rounded-full border px-2 py-0.5 font-mono text-[8.5px] font-bold uppercase tracking-[0.14em]"
+                        style={{
+                          borderColor: palette.secondaryAccent,
+                          color: palette.secondaryAccent,
+                        }}
+                      >
+                        {copy.customItineraryBadge}
+                      </span>
+                    ) : null}
+                    <span
+                      className="font-mono text-[9.5px] uppercase tracking-[0.14em]"
+                      style={{ color: palette.secondaryAccent }}
+                    >
+                      01 — 03
+                    </span>
+                  </div>
                 </div>
 
-                {activeAtlas.itinerary.map((step, idx) => {
+                {resolvedActiveItinerary.map((step, idx) => {
                   const isOpen = openDayIdx === idx;
                   return (
                     <div
@@ -1826,7 +2109,7 @@ export function TravelVoyageSite({
                         setShadeLevel((prev) => (prev === 'open' ? 'dusk' : 'open'))
                       }
                       aria-pressed={shadeLevel === 'dusk'}
-                      className="min-h-[36px] rounded-full border border-white/20 bg-white/10 px-3 font-mono text-[9px] font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-white/20"
+                      className="min-h-[44px] rounded-full border border-white/20 bg-white/10 px-3.5 font-mono text-[9px] font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-white/20"
                     >
                       {shadeLevel === 'dusk' ? 'Raise Shade' : 'Dusk Tint'}
                     </button>
@@ -2106,6 +2389,209 @@ export function TravelVoyageSite({
         </section>
 
         {/* ================================================================= */}
+        {/* SECTION 5B: COLLECTIBLE TRAVEL PASSPORT STAMP BOOK (X/4 STAMPED)  */}
+        {/* ================================================================= */}
+        <section
+          id="wz-travel-passport"
+          className="border-t px-3 py-9 sm:px-7 sm:py-12"
+          style={{
+            borderColor: palette.border,
+            backgroundColor: palette.outerBg,
+          }}
+        >
+          <div className="mx-auto max-w-[1140px]">
+            <div className="rounded-[24px] border p-4 shadow-sm sm:p-6" style={{ borderColor: palette.border, backgroundColor: palette.cardBg }}>
+              <div className="flex flex-wrap items-end justify-between gap-3 border-b pb-4" style={{ borderColor: palette.border }}>
+                <div className="max-w-xl">
+                  <p
+                    className="font-mono text-[9.5px] font-semibold uppercase tracking-[0.22em]"
+                    style={{ color: palette.secondaryAccent }}
+                  >
+                    {copy.chapterPassportEyebrow}
+                  </p>
+                  <h2
+                    className="mt-1 font-editorial text-2xl leading-tight sm:text-3xl"
+                    style={langSafe}
+                  >
+                    {copy.chapterPassportTitle}
+                  </h2>
+                  <p
+                    className="mt-1.5 font-sans text-xs leading-relaxed sm:text-sm"
+                    style={{ color: palette.mutedInk, ...langSafe }}
+                  >
+                    {copy.chapterPassportDesc}
+                  </p>
+                </div>
+
+                {/* Live X/4 Stamped Progress Counter + Quick Actions */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <span
+                    aria-live="polite"
+                    className="inline-flex min-h-[44px] items-center gap-2 rounded-full border px-3.5 font-mono text-[10.5px] font-bold uppercase tracking-[0.14em]"
+                    style={{
+                      borderColor: palette.secondaryAccent,
+                      color: palette.secondaryAccent,
+                    }}
+                  >
+                    <span className="h-2 w-2 rounded-full" style={{ backgroundColor: palette.secondaryAccent }} aria-hidden="true" />
+                    <span>
+                      {stampedCount}/4 {copy.passportStampedWord}
+                    </span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={stampedCount === 4 ? resetPassportStops : stampAllPassportStops}
+                    className="inline-flex min-h-[44px] items-center rounded-full border px-3.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] transition active:scale-95"
+                    style={{
+                      borderColor: palette.border,
+                      color: palette.ink,
+                    }}
+                  >
+                    {stampedCount === 4 ? copy.passportReset : copy.passportStampAll}
+                  </button>
+                </div>
+              </div>
+
+              {/* Passport Progress Rail */}
+              <div className="mt-3.5 h-1.5 w-full overflow-hidden rounded-full" style={{ backgroundColor: palette.sectionAltBg }}>
+                <div
+                  className="h-full rounded-full transition-all duration-300"
+                  style={{
+                    width: `${(stampedCount / PASSPORT_STAMPS.length) * 100}%`,
+                    backgroundColor: palette.secondaryAccent,
+                  }}
+                />
+              </div>
+
+              {/* 4 Curated Destination Passport Ink Cards */}
+              <div className="wz-tv-passport-grid mt-5">
+                {PASSPORT_STAMPS.map((stop, idx) => {
+                  const isStamped = Boolean(stampedCities[stop.id]);
+                  return (
+                    <button
+                      key={stop.id}
+                      type="button"
+                      aria-pressed={isStamped}
+                      onClick={() => togglePassportStamp(stop.id)}
+                      className="group relative flex min-h-[158px] flex-col justify-between overflow-hidden rounded-2xl border p-3.5 text-left transition-all duration-200 active:scale-[0.98]"
+                      style={{
+                        borderColor: isStamped ? stop.inkHex : palette.border,
+                        backgroundColor: palette.isDark
+                          ? isStamped
+                            ? 'rgba(255,255,255,0.06)'
+                            : 'rgba(255,255,255,0.02)'
+                          : isStamped
+                            ? '#FBF7EE'
+                            : palette.sectionAltBg,
+                      }}
+                    >
+                      {/* Top Visa Header */}
+                      <div className="flex items-center justify-between gap-2">
+                        <span
+                          className="font-mono text-[9px] font-bold uppercase tracking-[0.18em]"
+                          style={{ color: palette.mutedInk }}
+                        >
+                          {stop.visaCode}
+                        </span>
+                        <span
+                          className="rounded-sm border px-1.5 py-0.5 font-mono text-[8.5px] font-bold uppercase tracking-[0.14em]"
+                          style={{
+                            borderColor: isStamped ? stop.inkHex : palette.border,
+                            color: isStamped ? stop.inkHex : palette.mutedInk,
+                          }}
+                        >
+                          {stop.code}
+                        </span>
+                      </div>
+
+                      {/* City Name & Tagline */}
+                      <div className="relative z-10 my-2">
+                        <p className="font-editorial text-xl leading-tight" style={langSafe}>
+                          {stop.city}
+                        </p>
+                        <p
+                          className="mt-0.5 font-mono text-[8.5px] uppercase tracking-[0.14em]"
+                          style={{ color: palette.mutedInk }}
+                        >
+                          {stop.country} · {stop.coordinates}
+                        </p>
+                        <p
+                          className="mt-1.5 text-[11px] leading-snug"
+                          style={{ color: palette.mutedInk, ...langSafe }}
+                        >
+                          {stop.tagline[coreLang]}
+                        </p>
+                      </div>
+
+                      {/* Bottom Ink Status Line */}
+                      <div className="relative z-10 flex items-center justify-between gap-2 border-t pt-2" style={{ borderColor: palette.border }}>
+                        <span
+                          className="font-mono text-[9px] font-bold uppercase tracking-[0.14em]"
+                          style={{ color: isStamped ? stop.inkHex : palette.mutedInk }}
+                        >
+                          {isStamped ? copy.passportInked : copy.passportTapToStamp}
+                        </span>
+                        <span
+                          className="flex h-6 w-6 items-center justify-center rounded-full border font-mono text-[10px] font-bold"
+                          style={{
+                            borderColor: isStamped ? stop.inkHex : palette.border,
+                            backgroundColor: isStamped ? stop.inkHex : 'transparent',
+                            color: isStamped ? '#FFFFFF' : palette.mutedInk,
+                          }}
+                          aria-hidden="true"
+                        >
+                          {isStamped ? 'OK' : '+'}
+                        </span>
+                      </div>
+
+                      {/* Tactile Inked Immigration Seal SVG Overlay when Stamped */}
+                      {isStamped ? (
+                        <svg
+                          viewBox="0 0 96 96"
+                          aria-hidden="true"
+                          className={`pointer-events-none absolute -right-2 top-5 h-20 w-20 opacity-80 transition-transform duration-300 ${
+                            idx % 2 === 0 ? '-rotate-12' : 'rotate-12'
+                          }`}
+                          style={{ color: stop.inkHex }}
+                        >
+                          <circle cx="48" cy="48" r="40" fill="none" stroke="currentColor" strokeWidth="2.4" strokeDasharray="5 2.5" />
+                          <circle cx="48" cy="48" r="31" fill="none" stroke="currentColor" strokeWidth="1.2" />
+                          <line x1="16" y1="48" x2="80" y2="48" stroke="currentColor" strokeWidth="1" opacity="0.6" />
+                          <text
+                            x="48"
+                            y="42"
+                            textAnchor="middle"
+                            fill="currentColor"
+                            fontSize="9.5"
+                            fontWeight="800"
+                            letterSpacing="1.6"
+                            fontFamily="ui-monospace, SFMono-Regular, monospace"
+                          >
+                            {stop.code}
+                          </text>
+                          <text
+                            x="48"
+                            y="59"
+                            textAnchor="middle"
+                            fill="currentColor"
+                            fontSize="7"
+                            fontWeight="700"
+                            letterSpacing="1.4"
+                            fontFamily="ui-monospace, SFMono-Regular, monospace"
+                          >
+                            VERIFIED
+                          </text>
+                        </svg>
+                      ) : null}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ================================================================= */}
         {/* SECTION 6: CONCIERGE TRIP INQUIRY & DIRECT WHATSAPP CTA            */}
         {/* ================================================================= */}
         <section
@@ -2118,7 +2604,7 @@ export function TravelVoyageSite({
         >
           <div className="mx-auto max-w-[1140px]">
             <div className="wz-tv-concierge-split">
-              {/* Left: Editorial Personal Note & Mood Selector */}
+              {/* Left: Editorial Personal Note, Mood Selector & Season Selector */}
               <div className="space-y-5">
                 <div>
                   <p
@@ -2169,11 +2655,52 @@ export function TravelVoyageSite({
                             color: isSelected ? palette.accentInk : palette.ink,
                           }}
                         >
-                          <span className="font-editorial text-base leading-snug">
-                            {mood.label}
+                          <span className="font-editorial text-base leading-snug" style={langSafe}>
+                            {mood.label[coreLang]}
                           </span>
                           <span className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.12em] opacity-75">
-                            {mood.pace}
+                            {mood.pace[coreLang]}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Preferred Travel Season Pill Row */}
+                <div>
+                  <p
+                    className="mb-2 font-mono text-[9.5px] font-bold uppercase tracking-[0.18em]"
+                    style={{ color: palette.mutedInk }}
+                  >
+                    {copy.seasonPrompt}
+                  </p>
+                  <div
+                    role="radiogroup"
+                    aria-label={copy.seasonPrompt}
+                    className="grid grid-cols-2 gap-2 sm:grid-cols-4"
+                  >
+                    {TRIP_SEASONS.map((season) => {
+                      const isSelected = season.id === activeSeason.id;
+                      return (
+                        <button
+                          key={season.id}
+                          type="button"
+                          role="radio"
+                          aria-checked={isSelected}
+                          onClick={() => setSelectedSeasonId(season.id)}
+                          className="flex min-h-[48px] flex-col items-center justify-center rounded-xl border px-2.5 py-1.5 text-center transition active:scale-95"
+                          style={{
+                            backgroundColor: isSelected ? palette.secondaryAccent : palette.cardBg,
+                            borderColor: isSelected ? palette.secondaryAccent : palette.border,
+                            color: isSelected ? '#FFFFFF' : palette.ink,
+                          }}
+                        >
+                          <span className="text-xs font-bold leading-tight" style={langSafe}>
+                            {season.label[coreLang]}
+                          </span>
+                          <span className="font-mono text-[8.5px] uppercase tracking-[0.1em] opacity-80">
+                            {season.months}
                           </span>
                         </button>
                       );
@@ -2205,28 +2732,42 @@ export function TravelVoyageSite({
                       className="font-mono text-[9.5px] uppercase tracking-[0.14em]"
                       style={{ color: palette.mutedInk }}
                     >
-                      {activeAtlas.flightNo} · {activeAtlas.destCode}
+                      {stampedCount}/4 · {activeAtlas.flightNo}
                     </span>
                   </div>
 
                   <dl className="mt-4 space-y-3 text-xs">
                     <div className="flex items-baseline justify-between gap-3">
                       <dt className="font-mono text-[9.5px] uppercase tracking-[0.14em]" style={{ color: palette.mutedInk }}>
-                        Lead Destination
+                        {copy.passportRouteLabel}
                       </dt>
-                      <dd className="font-editorial text-base">{activeAtlas.tabLabel}</dd>
+                      <dd className="text-right font-editorial text-base">
+                        {stampedList.length > 0
+                          ? stampedList.map((s) => s.city).join(' · ')
+                          : activeAtlas.tabLabel}
+                      </dd>
                     </div>
                     <div className="flex items-baseline justify-between gap-3">
                       <dt className="font-mono text-[9.5px] uppercase tracking-[0.14em]" style={{ color: palette.mutedInk }}>
-                        Travel Rhythm
+                        Travel Mood
                       </dt>
-                      <dd className="font-editorial text-base">{activeMood.label}</dd>
+                      <dd className="text-right font-editorial text-base" style={langSafe}>
+                        {activeMood.label[coreLang]}
+                      </dd>
+                    </div>
+                    <div className="flex items-baseline justify-between gap-3">
+                      <dt className="font-mono text-[9.5px] uppercase tracking-[0.14em]" style={{ color: palette.mutedInk }}>
+                        {copy.seasonLabel}
+                      </dt>
+                      <dd className="text-right font-sans font-semibold" style={langSafe}>
+                        {activeSeason.label[coreLang]} ({activeSeason.months})
+                      </dd>
                     </div>
                     <div className="flex items-baseline justify-between gap-3">
                       <dt className="font-mono text-[9.5px] uppercase tracking-[0.14em]" style={{ color: palette.mutedInk }}>
                         {copy.curatedByLabel}
                       </dt>
-                      <dd className="font-sans font-semibold">{curatorName}</dd>
+                      <dd className="text-right font-sans font-semibold">{curatorName}</dd>
                     </div>
                   </dl>
 
@@ -2235,9 +2776,10 @@ export function TravelVoyageSite({
                     style={{
                       borderColor: palette.border,
                       color: palette.mutedInk,
+                      ...langSafe,
                     }}
                   >
-                    {activeMood.tagline}
+                    {activeMood.tagline[coreLang]}
                   </p>
                 </div>
 

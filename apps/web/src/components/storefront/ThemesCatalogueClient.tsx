@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import React, { useEffect, useMemo, useState } from 'react';
-import { getSiteCopy, getStorefrontCopy, LanguageCode, pickLocalizedText } from '@webzy/core';
+import { getSiteCopy, getStorefrontCopy, pickLocalizedText } from '@webzy/core';
 import { OCCASION_LABELS, ThemeManifest, ThemeOccasion } from '@webzy/themes';
 import { useLanguage } from '../shell/LanguageProvider';
 import { ThemeCard } from './ThemeCard';
@@ -24,12 +24,6 @@ const OCCASIONS: Array<'all' | ThemeOccasion> = [
   'festival',
 ];
 
-const ALL_LANGUAGES_LABEL: Record<string, string> = {
-  en: 'All languages',
-  hinglish: 'All languages',
-  hi: 'सभी भाषाएँ',
-};
-
 type SortMode = 'featured' | 'price_asc' | 'price_desc';
 
 export function ThemesCatalogueClient({
@@ -45,7 +39,6 @@ export function ThemesCatalogueClient({
     : 'all';
 
   const [occasion, setOccasion] = useState<string>(normalizedInitial);
-  const [langFilter, setLangFilter] = useState<'all' | LanguageCode>('all');
   const [maxPrice, setMaxPrice] = useState<number>(0);
   const [sortBy, setSortBy] = useState<SortMode>('featured');
   const [searchQuery, setSearchQuery] = useState('');
@@ -59,6 +52,11 @@ export function ThemesCatalogueClient({
   const nonWeddingThemes = useMemo(
     () => themes.filter((t) => t.occasion !== 'wedding'),
     [themes],
+  );
+
+  const hasBudget29 = useMemo(
+    () => nonWeddingThemes.some((t) => t.price.base <= 29),
+    [nonWeddingThemes],
   );
 
   // Live counts per occasion pill so visitors immediately know what is inside each shelf
@@ -75,11 +73,9 @@ export function ThemesCatalogueClient({
     [occasionCounts],
   );
 
-  const activeExtraFilterCount =
-    (langFilter !== 'all' ? 1 : 0) + (maxPrice > 0 ? 1 : 0) + (sortBy !== 'featured' ? 1 : 0);
+  const activeExtraFilterCount = (maxPrice > 0 ? 1 : 0) + (sortBy !== 'featured' ? 1 : 0);
   const hasAnyFilter =
     occasion !== 'all' ||
-    langFilter !== 'all' ||
     maxPrice > 0 ||
     sortBy !== 'featured' ||
     searchQuery.trim().length > 0;
@@ -88,7 +84,6 @@ export function ThemesCatalogueClient({
     const q = searchQuery.trim().toLowerCase();
     const list = nonWeddingThemes.filter((t) => {
       if (occasion !== 'all' && t.occasion !== occasion) return false;
-      if (langFilter !== 'all' && !t.languages.includes(langFilter)) return false;
       if (maxPrice > 0 && t.price.base > maxPrice) return false;
       if (q) {
         const hay = `${t.id} ${t.occasion} ₹${t.price.base} ${t.price.base} ${pickLocalizedText(t.name, language)} ${pickLocalizedText(t.audience, language)} ${pickLocalizedText(t.signatureMoment, language)}`.toLowerCase();
@@ -104,60 +99,24 @@ export function ThemesCatalogueClient({
       return [...list].sort((a, b) => b.price.base - a.price.base);
     }
     return list;
-  }, [nonWeddingThemes, occasion, langFilter, maxPrice, sortBy, searchQuery, language]);
+  }, [nonWeddingThemes, occasion, maxPrice, sortBy, searchQuery, language]);
 
   function resetFilters() {
     setOccasion('all');
-    setLangFilter('all');
     setMaxPrice(0);
     setSortBy('featured');
     setSearchQuery('');
   }
 
-  const allLanguagesText = ALL_LANGUAGES_LABEL[language] || 'All languages';
-
   return (
     <div className="min-h-screen bg-[#FCFAF7]">
-      {/* Editorial Header Band */}
+      {/* Compact Sticky-Ready Filter & Search Bar */}
       <section className="border-b border-webzy-ink/[0.08] bg-white">
-        <div className="mx-auto max-w-7xl px-3.5 pb-4 pt-5 sm:px-6 sm:pb-6 sm:pt-7">
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <div className="min-w-0 max-w-2xl">
-              <p className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-webzy-primary sm:text-[11px]">
-                READY-MADE COLLECTION
-              </p>
-              <div className="mt-1 flex items-baseline gap-2.5">
-                <h1 className="font-heading text-2xl font-bold tracking-tight text-webzy-ink sm:text-4xl">
-                  {copy.featuredTitle}
-                </h1>
-                <span className="shrink-0 rounded-full border border-webzy-ink/10 bg-[#FAF6F0] px-2.5 py-0.5 font-mono text-[11px] font-bold text-webzy-ink/70 font-tabular">
-                  {filtered.length}
-                </span>
-              </div>
-              <p className="mt-1 text-xs leading-relaxed text-webzy-ink/65 sm:text-sm">
-                {copy.featuredSubtitle}
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Link
-                href="/weddings"
-                className="btn-spring inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-[#C9A243]/50 bg-[#1A1317] px-3.5 text-[11.5px] font-bold text-[#F5E0A3] shadow-2xs transition hover:bg-[#2B1F26] sm:h-10 sm:px-4 sm:text-xs"
-              >
-                <span>Wedding Suites</span>
-                <span aria-hidden="true">→</span>
-              </Link>
-              <Link
-                href="/studio"
-                className="btn-spring hidden h-10 shrink-0 items-center gap-1.5 rounded-full border border-webzy-ink/15 bg-white px-4 text-xs font-bold text-webzy-ink transition hover:border-webzy-primary/40 hover:text-webzy-primary sm:inline-flex"
-              >
-                <span>Custom Made</span>
-              </Link>
-            </div>
-          </div>
+        <div className="mx-auto max-w-7xl px-3.5 py-3.5 sm:px-6 sm:py-4">
+          <h1 className="sr-only">{copy.featuredTitle}</h1>
 
           {/* Search + Controls Row */}
-          <div className="mt-4 flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <div className="relative flex-1 sm:max-w-sm">
               <svg
                 className="pointer-events-none absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-webzy-ink/45"
@@ -198,11 +157,10 @@ export function ThemesCatalogueClient({
               type="button"
               onClick={() => setMobileFiltersOpen((prev) => !prev)}
               aria-expanded={mobileFiltersOpen}
-              className={`inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-xs font-bold transition sm:hidden ${
-                mobileFiltersOpen || activeExtraFilterCount > 0
+              className={`inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-xs font-bold transition sm:hidden ${mobileFiltersOpen || activeExtraFilterCount > 0
                   ? 'border-webzy-primary bg-webzy-surface text-webzy-primary'
                   : 'border-webzy-ink/[0.12] bg-white text-webzy-ink/80'
-              }`}
+                }`}
             >
               <svg
                 className="h-3.5 w-3.5"
@@ -225,25 +183,13 @@ export function ThemesCatalogueClient({
             {/* Desktop Inline Filters */}
             <div className="hidden items-center gap-2 sm:flex">
               <select
-                aria-label={site.common.languageLabel}
-                value={langFilter}
-                onChange={(e) => setLangFilter(e.target.value as 'all' | LanguageCode)}
-                className="h-10 rounded-full border border-webzy-ink/[0.12] bg-white px-3.5 text-xs font-semibold text-webzy-ink outline-none transition hover:border-webzy-primary/50 focus:border-webzy-primary"
-              >
-                <option value="all">{allLanguagesText}</option>
-                <option value="hinglish">Hinglish</option>
-                <option value="hi">हिन्दी</option>
-                <option value="en">English</option>
-              </select>
-
-              <select
                 aria-label={site.common.budgetLabel}
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(Number(e.target.value))}
                 className="h-10 rounded-full border border-webzy-ink/[0.12] bg-white px-3.5 text-xs font-semibold text-webzy-ink outline-none transition hover:border-webzy-primary/50 focus:border-webzy-primary"
               >
                 <option value={0}>{site.common.anyPrice}</option>
-                <option value={29}>₹29</option>
+                {hasBudget29 ? <option value={29}>₹29</option> : null}
                 <option value={49}>Up to ₹49</option>
                 <option value={79}>Up to ₹79</option>
                 <option value={99}>Up to ₹99</option>
@@ -274,19 +220,7 @@ export function ThemesCatalogueClient({
 
           {/* Mobile Secondary Filter Drawer */}
           {mobileFiltersOpen ? (
-            <div className="mt-2.5 grid grid-cols-3 gap-2 rounded-2xl border border-webzy-ink/[0.08] bg-[#FAF6F0] p-2.5 sm:hidden">
-              <select
-                aria-label={site.common.languageLabel}
-                value={langFilter}
-                onChange={(e) => setLangFilter(e.target.value as 'all' | LanguageCode)}
-                className="h-9 w-full rounded-xl border border-webzy-ink/[0.1] bg-white px-2 text-[11px] font-semibold text-webzy-ink"
-              >
-                <option value="all">{allLanguagesText}</option>
-                <option value="hinglish">Hinglish</option>
-                <option value="hi">हिन्दी</option>
-                <option value="en">English</option>
-              </select>
-
+            <div className="mt-2.5 grid grid-cols-2 gap-2 rounded-2xl border border-webzy-ink/[0.08] bg-[#FAF6F0] p-2.5 sm:hidden">
               <select
                 aria-label={site.common.budgetLabel}
                 value={maxPrice}
@@ -294,7 +228,7 @@ export function ThemesCatalogueClient({
                 className="h-9 w-full rounded-xl border border-webzy-ink/[0.1] bg-white px-2 text-[11px] font-semibold text-webzy-ink"
               >
                 <option value={0}>{site.common.anyPrice}</option>
-                <option value={29}>₹29</option>
+                {hasBudget29 ? <option value={29}>₹29</option> : null}
                 <option value={49}>≤ ₹49</option>
                 <option value={79}>≤ ₹79</option>
                 <option value={99}>≤ ₹99</option>
@@ -324,11 +258,10 @@ export function ThemesCatalogueClient({
                   type="button"
                   onClick={() => setOccasion(item)}
                   aria-pressed={active}
-                  className={`inline-flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-[11.5px] font-bold transition sm:h-9 sm:px-3.5 sm:text-xs ${
-                    active
+                  className={`inline-flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-[11.5px] font-bold transition sm:h-9 sm:px-3.5 sm:text-xs ${active
                       ? 'bg-webzy-ink text-white shadow-2xs'
                       : 'border border-webzy-ink/[0.1] bg-white text-webzy-ink/80 hover:border-webzy-ink/30 hover:text-webzy-ink'
-                  }`}
+                    }`}
                 >
                   <span>
                     {item === 'all'
@@ -336,9 +269,8 @@ export function ThemesCatalogueClient({
                       : pickLocalizedText(OCCASION_LABELS[item], language)}
                   </span>
                   <span
-                    className={`rounded-full px-1.5 py-0.2 text-[10px] font-tabular ${
-                      active ? 'bg-white/20 text-white' : 'bg-stone-100 text-webzy-ink/55'
-                    }`}
+                    className={`rounded-full px-1.5 py-0.2 text-[10px] font-tabular ${active ? 'bg-white/20 text-white' : 'bg-stone-100 text-webzy-ink/55'
+                      }`}
                   >
                     {count}
                   </span>

@@ -171,6 +171,16 @@ export function HomeClient({ themes }: HomeClientProps) {
     return picked;
   }, [themes]);
 
+  const lowestReadyMadePrice = useMemo(() => {
+    const prices = themes.filter((t) => t.occasion !== 'wedding').map((t) => t.price.base);
+    return prices.length > 0 ? Math.min(...prices) : 49;
+  }, [themes]);
+
+  const lowestRomancePrice = useMemo(() => {
+    const prices = themes.filter((t) => t.occasion === 'love').map((t) => t.price.base);
+    return prices.length > 0 ? Math.min(...prices) : 49;
+  }, [themes]);
+
   const celebrationHubs = useMemo(
     () => [
       {
@@ -209,9 +219,9 @@ export function HomeClient({ themes }: HomeClientProps) {
         tag: site.home.hubs.romance.tag,
         title: site.home.hubs.romance.title,
         subtitle: site.home.hubs.romance.subtitle,
-        price: '₹29',
-        compareAt: '₹99',
-        thumb: '/templates/occasions/will-you/cover.jpg',
+        price: `₹${lowestRomancePrice}`,
+        compareAt: lowestRomancePrice <= 29 ? '₹99' : '₹149',
+        thumb: '/templates/occasions/will-you/velvet-envelope-art.jpg',
       },
       {
         id: 'business',
@@ -234,7 +244,7 @@ export function HomeClient({ themes }: HomeClientProps) {
         thumb: '/templates/creative/creatie-hills.jpg',
       },
     ],
-    [site.home.hubs],
+    [site.home.hubs, lowestRomancePrice],
   );
 
   const sampleDemoHref = sampleTheme
@@ -326,35 +336,16 @@ export function HomeClient({ themes }: HomeClientProps) {
                 <div>
                   <dt className="text-[11px] font-medium text-webzy-ink/55">Ready-made pricing</dt>
                   <dd className="mt-0.5 font-heading text-sm font-bold text-webzy-ink sm:text-base font-tabular">
-                    From ₹29 · GST incl.
+                    From ₹{lowestReadyMadePrice} · GST incl.
                   </dd>
                 </div>
                 <div>
                   <dt className="text-[11px] font-medium text-webzy-ink/55">Languages</dt>
                   <dd className="mt-0.5 font-heading text-sm font-bold text-webzy-ink sm:text-base">
-                    10 Indian scripts
+                    9 Indian scripts
                   </dd>
                 </div>
               </dl>
-
-              <div className="hidden items-center gap-2 pt-1 lg:flex">
-                <span className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-webzy-ink/45">
-                  Popular:
-                </span>
-                {[
-                  { label: 'Wedding Suites · ₹499', href: '/weddings' },
-                  { label: 'Travel Ink · ₹99', href: '/themes/travel-voyage-01' },
-                  { label: 'Birthday 3-in-1 · ₹49', href: '/themes/birthday-confetti-01' },
-                ].map((chip) => (
-                  <Link
-                    key={chip.href}
-                    href={chip.href}
-                    className="rounded-full border border-webzy-ink/10 bg-white px-3 py-1 text-[11px] font-semibold text-webzy-ink/80 transition hover:border-webzy-primary/40 hover:text-webzy-primary"
-                  >
-                    {chip.label}
-                  </Link>
-                ))}
-              </div>
             </div>
           </div>
 
@@ -693,7 +684,9 @@ export function HomeClient({ themes }: HomeClientProps) {
                     ? '/themes'
                     : tier.id === 'semi_custom'
                       ? '/weddings'
-                      : '/studio'
+                      : tier.id === 'business_plan'
+                        ? '/themes?occasion=business'
+                        : '/studio'
                 }
                 className="group flex flex-col justify-between rounded-2xl border border-webzy-ink/[0.08] bg-white p-4 shadow-2xs transition hover:-translate-y-0.5 hover:border-webzy-primary/35 hover:shadow-md sm:rounded-3xl sm:p-5"
               >
@@ -750,12 +743,6 @@ export function HomeClient({ themes }: HomeClientProps) {
                 className="btn-spring inline-flex min-h-[48px] shrink-0 items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-bold text-[#1A1614] transition hover:bg-[#F5EFE6]"
               >
                 {site.home.studioStripCta}
-              </Link>
-              <Link
-                href="/request"
-                className="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-full border border-white/20 px-5 py-2.5 text-xs font-bold text-white/90 transition hover:bg-white/10"
-              >
-                {copy.customBanner.cta}
               </Link>
             </div>
           </div>

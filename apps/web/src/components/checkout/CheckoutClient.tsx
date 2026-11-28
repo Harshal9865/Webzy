@@ -442,6 +442,11 @@ export function CheckoutClient({
         throw new Error(data.error || 'Could not start payment. Please retry.');
       }
       redirecting = true;
+      try {
+        window.localStorage.removeItem('webzy_preferred_addons');
+      } catch {
+        // Ignore storage errors
+      }
       window.dispatchEvent(new Event('webzy_orders_updated'));
       router.push(data.redirectUrl);
     } catch (err) {
@@ -726,9 +731,16 @@ export function CheckoutClient({
       ) : (
         <form onSubmit={handleCheckout} className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-12">
           <section className="space-y-4 sm:space-y-5 rounded-2xl sm:rounded-3xl border border-webzy-tint bg-webzy-surface/60 p-4 sm:p-6 lg:col-span-7">
-            <h2 className="font-heading text-lg sm:text-xl font-bold text-webzy-ink">
-              Your details & consent
-            </h2>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="font-heading text-lg sm:text-xl font-bold text-webzy-ink">
+                Your details &amp; consent
+              </h2>
+              {clientProfile?.email ? (
+                <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-900">
+                  Step 2 of 2 · {clientProfile.email}
+                </span>
+              ) : null}
+            </div>
 
             <div>
               <label htmlFor="chk-name" className="block text-xs font-bold text-webzy-ink">

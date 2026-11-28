@@ -17,14 +17,28 @@ import {
   HyperspeedWarpFlash,
   WordByWordFadeLine,
 } from './shared/OccasionCinematicFX';
+import {
+  playLanternPullChime,
+  playPaperUnsealSfx,
+} from './shared/OccasionCraftPrimitives';
 
-type WrappedChapterId = 'orbit' | 'highlights' | 'memories' | 'soundtrack' | 'pass';
-type IntentionId = 'roadtrips' | 'mornings' | 'wins' | 'chai';
+type WrappedChapterId = 'orbit' | 'highlights' | 'trophies' | 'memories' | 'soundtrack' | 'pass';
+type WishId = 'travel' | 'mornings' | 'creative' | 'health' | 'roadtrips' | 'family';
+type TrophyId = 'core-memory' | 'unplanned-adventure' | 'strongest-moment';
 
-interface IntentionDefinition {
-  id: IntentionId;
+interface WishDefinition {
+  id: WishId;
   label: string;
   tagline: string;
+}
+
+interface TrophyDefinition {
+  id: TrophyId;
+  code: string;
+  awardTitle: string;
+  sealedHint: string;
+  defaultCitation: (receiver: string, sender: string) => string;
+  highlightCitation: (title: string) => string;
 }
 
 interface WrappedCopy {
@@ -41,6 +55,7 @@ interface WrappedCopy {
   orbitBadge: string;
   narrativeOpener: (receiver: string, sender: string) => string;
   daysLabel: string;
+  daysShortBadge: string;
   syncLabel: string;
   noteEyebrow: string;
   signedByLabel: string;
@@ -56,6 +71,14 @@ interface WrappedCopy {
   chapterLabel: string;
   previousSlide: string;
   nextSlide: string;
+  trophyBadge: string;
+  trophyTitle: string;
+  trophySubtitle: string;
+  trophyProgress: (revealed: number, total: number) => string;
+  trophyTapUnveil: string;
+  trophyUnveiledTag: string;
+  trophyCompleteNote: string;
+  trophies: readonly TrophyDefinition[];
   memoriesBadge: string;
   memoriesTitle: string;
   memoriesHint: string;
@@ -65,24 +88,33 @@ interface WrappedCopy {
   soundtrackBadge: string;
   soundtrackHeading: string;
   tracks: readonly CurvedTrackItem[];
-  intentionBadge: string;
-  intentionTitle: string;
-  intentionSubtitle: string;
-  intentions: readonly IntentionDefinition[];
+  wishBadge: string;
+  wishTitle: string;
+  wishSubtitle: string;
+  wishCounter: (selected: number, target: number) => string;
+  wishSelectHint: string;
+  sealPassCta: string;
+  sealedPassCta: string;
+  sealedStampLabel: string;
+  wishes: readonly WishDefinition[];
   passBadge: string;
   passTitle: string;
-  passIntentionLabel: string;
+  passRouteLabel: string;
+  passWishesLabel: string;
   passRecipientLabel: string;
   passSenderLabel: string;
   passSerialLabel: string;
+  passGateLabel: string;
   copyShareCta: string;
   copyToast: string;
   whatsappCta: string;
+  whatsappMessage: (receiver: string, sender: string, wishesText: string) => string;
 }
 
 const CHAPTER_ORDER: readonly WrappedChapterId[] = [
   'orbit',
   'highlights',
+  'trophies',
   'memories',
   'soundtrack',
   'pass',
@@ -102,6 +134,7 @@ const WRAPPED_COPY: Record<CoreLanguageCode, WrappedCopy> = {
     chapterJumps: {
       orbit: 'Orbit',
       highlights: 'Highlights',
+      trophies: 'Trophies',
       memories: 'Memories',
       soundtrack: 'Soundtrack',
       pass: '2027 Pass',
@@ -110,6 +143,7 @@ const WRAPPED_COPY: Record<CoreLanguageCode, WrappedCopy> = {
     narrativeOpener: (receiver, sender) =>
       `Three hundred and sixty-five rotations later, ${receiver}, here is the light ${sender} kept for you.`,
     daysLabel: 'DAYS IN ORBIT',
+    daysShortBadge: '365 DAYS',
     syncLabel: 'MOMENT INDEX',
     noteEyebrow: 'PERSONAL DEDICATION',
     signedByLabel: 'With warmth,',
@@ -125,6 +159,42 @@ const WRAPPED_COPY: Record<CoreLanguageCode, WrappedCopy> = {
     chapterLabel: 'Slide',
     previousSlide: 'Prev',
     nextSlide: 'Next',
+    trophyBadge: 'YEAR-IN-REVIEW TROPHY SHELF',
+    trophyTitle: 'Tap to Unveil 3 Superlatives',
+    trophySubtitle: 'Tap each golden foil plaque to reveal our bespoke 2026 keepsake awards.',
+    trophyProgress: (revealed, total) => `${revealed}/${total} unveiled`,
+    trophyTapUnveil: 'Tap Golden Foil',
+    trophyUnveiledTag: 'AWARDED',
+    trophyCompleteNote: 'All 3 golden superlatives unveiled — a year worth framing forever.',
+    trophies: [
+      {
+        id: 'core-memory',
+        code: 'AWARD 01',
+        awardTitle: 'Core Memory of the Year',
+        sealedHint: 'Tap to reveal top memory award',
+        defaultCitation: (receiver, sender) =>
+          `Presented to ${receiver} & ${sender} for the single golden moment that defined all 12 months.`,
+        highlightCitation: (title) => `Honoring "${title}" — the standout memory we still replay in full color.`,
+      },
+      {
+        id: 'unplanned-adventure',
+        code: 'AWARD 02',
+        awardTitle: 'Best Unplanned Adventure',
+        sealedHint: 'Tap to reveal spontaneous detour award',
+        defaultCitation: (receiver, sender) =>
+          `For turning spontaneous detours, late plans, and open roads into ${receiver} & ${sender}'s best stories.`,
+        highlightCitation: (title) => `Spotlight on "${title}" — proof that the finest plans are never scripted.`,
+      },
+      {
+        id: 'strongest-moment',
+        code: 'AWARD 03',
+        awardTitle: 'Strongest Moment Together',
+        sealedHint: 'Tap to reveal resilience award',
+        defaultCitation: (receiver, sender) =>
+          `For showing up with steady warmth, patience, and quiet strength through every curve of the year.`,
+        highlightCitation: (title) => `Celebrating "${title}" — where showing up for each other mattered most.`,
+      },
+    ],
     memoriesBadge: 'CRYSTAL ARCHIVE',
     memoriesTitle: 'Captured Frames · 2026',
     memoriesHint: 'Tap any memory frame to open it full-screen.',
@@ -156,24 +226,35 @@ const WRAPPED_COPY: Record<CoreLanguageCode, WrappedCopy> = {
         note: 'Soft morning chords for new goals, calm starts, and brighter days ahead.',
       },
     ],
-    intentionBadge: '2027 INTENTION',
-    intentionTitle: 'Lock Our 2027 Intention',
-    intentionSubtitle: 'Pick one guiding focus to seal onto your collectible metallic pass.',
-    intentions: [
-      { id: 'roadtrips', label: 'More Roadtrips', tagline: 'Open highways & playlists' },
-      { id: 'mornings', label: 'Slow Mornings', tagline: 'Unhurried sunlit starts' },
-      { id: 'wins', label: 'Bigger Wins', tagline: 'Bold goals & milestones' },
-      { id: 'chai', label: 'More Chai Dates', tagline: 'Long talks over warm cups' },
+    wishBadge: 'MANIFEST NEXT YEAR · SEAL 3 WISHES',
+    wishTitle: 'Choose 3 Wishes for 2027',
+    wishSubtitle: 'Pick 3 curated goals below to stamp onto your Next-Year Golden Boarding Pass.',
+    wishCounter: (selected, target) => `${selected}/${target} wishes`,
+    wishSelectHint: 'Select 3 wishes to seal your Golden Boarding Pass.',
+    sealPassCta: 'Stamp & Seal 3 Wishes on Pass',
+    sealedPassCta: '3 Wishes Sealed · Re-Stamp Pass',
+    sealedStampLabel: 'SEALED · 2027',
+    wishes: [
+      { id: 'travel', label: 'More Travel', tagline: 'New stamps & window seats' },
+      { id: 'mornings', label: 'Calm Mornings', tagline: 'Unhurried sunlit starts' },
+      { id: 'creative', label: 'Big Creative Wins', tagline: 'Bold ideas brought to life' },
+      { id: 'health', label: 'Health & Peace', tagline: 'Steady energy & calm minds' },
+      { id: 'roadtrips', label: 'Unplanned Road Trips', tagline: 'Spontaneous highways & music' },
+      { id: 'family', label: 'More Family Dinners', tagline: 'Long tables & warm laughter' },
     ],
-    passBadge: 'COLLECTIBLE KEEPSAKE PASS',
-    passTitle: '2026 -> 2027 Prism Pass',
-    passIntentionLabel: 'SEALED 2027 INTENTION',
-    passRecipientLabel: 'ISSUED TO',
+    passBadge: 'NEXT-YEAR GOLDEN BOARDING PASS',
+    passTitle: '2026 -> 2027 Keepsake Pass',
+    passRouteLabel: 'DEPART 2026 -> ARRIVE 2027',
+    passWishesLabel: 'SEALED 2027 WISHES',
+    passRecipientLabel: 'PASSENGER',
     passSenderLabel: 'FROM',
-    passSerialLabel: 'PASS ID',
-    copyShareCta: 'Copy Keepsake Pass',
-    copyToast: 'Keepsake pass copied to clipboard.',
+    passSerialLabel: 'BOARDING ID',
+    passGateLabel: 'GATE 27A',
+    copyShareCta: 'Copy Wrapped & Next-Year Wishes for WhatsApp',
+    copyToast: 'Wrapped recap & 3 Next-Year wishes copied for WhatsApp.',
     whatsappCta: 'Send Reply on WhatsApp',
+    whatsappMessage: (receiver, sender, wishesText) =>
+      `Loved our 2026 -> 2027 Year Wrapped, ${sender}! Sealed my 3 wishes for next year: ${wishesText}. Here is to an even brighter year ahead! — ${receiver}`,
   },
   hinglish: {
     editionPrefix: 'EDITION 2026 -> 2027',
@@ -188,6 +269,7 @@ const WRAPPED_COPY: Record<CoreLanguageCode, WrappedCopy> = {
     chapterJumps: {
       orbit: 'Orbit',
       highlights: 'Highlights',
+      trophies: 'Trophies',
       memories: 'Memories',
       soundtrack: 'Soundtrack',
       pass: '2027 Pass',
@@ -196,6 +278,7 @@ const WRAPPED_COPY: Record<CoreLanguageCode, WrappedCopy> = {
     narrativeOpener: (receiver, sender) =>
       `Poore 365 dinon ki yaadein samet kar, ${receiver}, ye khaas roshni ${sender} ne aapke liye rakhi hai.`,
     daysLabel: 'DAYS IN ORBIT',
+    daysShortBadge: '365 DIN',
     syncLabel: 'VIBE SCORE',
     noteEyebrow: 'DIL SE NOTE',
     signedByLabel: 'Pyaar aur duaon ke saath,',
@@ -211,6 +294,42 @@ const WRAPPED_COPY: Record<CoreLanguageCode, WrappedCopy> = {
     chapterLabel: 'Slide',
     previousSlide: 'Pichla',
     nextSlide: 'Agla',
+    trophyBadge: 'YEAR-IN-REVIEW TROPHY SHELF',
+    trophyTitle: '3 Golden Superlatives Unveil Karo',
+    trophySubtitle: 'Har golden foil card par tap karo aur 2026 ke special awards dekho.',
+    trophyProgress: (revealed, total) => `${revealed}/${total} khule`,
+    trophyTapUnveil: 'Tap Karke Unveil Karo',
+    trophyUnveiledTag: 'AWARDED',
+    trophyCompleteNote: 'Teeno golden awards khul gaye — 2026 sach mein yaadgaar raha.',
+    trophies: [
+      {
+        id: 'core-memory',
+        code: 'AWARD 01',
+        awardTitle: 'Core Memory of the Year',
+        sealedHint: 'Saal ki sabse pyari yaad dekhne ke liye tap karo',
+        defaultCitation: (receiver, sender) =>
+          `${receiver} aur ${sender} ke naam — us ek sunahre pal ke liye jisne poora saal bana diya.`,
+        highlightCitation: (title) => `"${title}" ke naam — woh pal jo aaj bhi dil mein taaza hai.`,
+      },
+      {
+        id: 'unplanned-adventure',
+        code: 'AWARD 02',
+        awardTitle: 'Best Unplanned Adventure',
+        sealedHint: 'Sabse mast unplanned plan dekhne ke liye tap karo',
+        defaultCitation: (receiver, sender) =>
+          `Achanak bane plans, lambe raaste aur ${receiver} & ${sender} ki behtareen kahaniyon ke naam.`,
+        highlightCitation: (title) => `"${title}" ke naam — sabse best yaadein bina planning ke hi banti hain.`,
+      },
+      {
+        id: 'strongest-moment',
+        code: 'AWARD 03',
+        awardTitle: 'Strongest Moment Together',
+        sealedHint: 'Saath nibhaane ka sabse khaas award kholo',
+        defaultCitation: () =>
+          `Har mushkil aur khushi mein bina kahe ek-doosre ka saath dene ki himmat ke naam.`,
+        highlightCitation: (title) => `"${title}" ke naam — jab saath khade rehna sabse zyada maayne rakhta tha.`,
+      },
+    ],
     memoriesBadge: 'CRYSTAL ARCHIVE',
     memoriesTitle: '2026 Ki Yaadgaar Tasveerein',
     memoriesHint: 'Bada dekhne ke liye kisi bhi photo par tap karein.',
@@ -242,28 +361,39 @@ const WRAPPED_COPY: Record<CoreLanguageCode, WrappedCopy> = {
         note: '2027 ki nayi subah, naye sapne aur aur bhi behtar dinon ka aaghaz.',
       },
     ],
-    intentionBadge: '2027 INTENTION',
-    intentionTitle: '2027 Ka Intention Lock Karo',
-    intentionSubtitle: 'Apne collectible metallic pass par seal karne ke liye ek focus chuno.',
-    intentions: [
-      { id: 'roadtrips', label: 'More Roadtrips', tagline: 'Highways aur non-stop music' },
-      { id: 'mornings', label: 'Slow Mornings', tagline: 'Sukoon bhari subah' },
-      { id: 'wins', label: 'Bigger Wins', tagline: 'Naye goals aur badi jeet' },
-      { id: 'chai', label: 'More Chai Dates', tagline: 'Garma-garam chai aur baatein' },
+    wishBadge: 'MANIFEST NEXT YEAR · 3 WISHES SEAL KARO',
+    wishTitle: '2027 Ke Liye 3 Wishes Chuno',
+    wishSubtitle: 'Apne Golden Boarding Pass par stamp karne ke liye 3 goals select karo.',
+    wishCounter: (selected, target) => `${selected}/${target} wishes`,
+    wishSelectHint: 'Golden Boarding Pass stamp karne ke liye 3 wishes chuno.',
+    sealPassCta: '3 Wishes Boarding Pass Par Seal Karo',
+    sealedPassCta: '3 Wishes Sealed · Phir Se Stamp Karo',
+    sealedStampLabel: 'SEALED · 2027',
+    wishes: [
+      { id: 'travel', label: 'More Travel', tagline: 'Naye shehar aur window seats' },
+      { id: 'mornings', label: 'Calm Mornings', tagline: 'Sukoon bhari dhoop aur chai' },
+      { id: 'creative', label: 'Big Creative Wins', tagline: 'Naye ideas aur badi jeet' },
+      { id: 'health', label: 'Health & Peace', tagline: 'Achhi sehat aur shaant mann' },
+      { id: 'roadtrips', label: 'Unplanned Road Trips', tagline: 'Bina plan ke highways aur music' },
+      { id: 'family', label: 'More Family Dinners', tagline: 'Apno ke saath garma-garam dinner' },
     ],
-    passBadge: 'COLLECTIBLE KEEPSAKE PASS',
-    passTitle: '2026 -> 2027 Prism Pass',
-    passIntentionLabel: 'LOCKED 2027 INTENTION',
-    passRecipientLabel: 'ISSUED TO',
+    passBadge: 'NEXT-YEAR GOLDEN BOARDING PASS',
+    passTitle: '2026 -> 2027 Keepsake Pass',
+    passRouteLabel: 'DEPART 2026 -> ARRIVE 2027',
+    passWishesLabel: 'SEALED 2027 WISHES',
+    passRecipientLabel: 'PASSENGER',
     passSenderLabel: 'FROM',
-    passSerialLabel: 'PASS ID',
-    copyShareCta: 'Copy / Share Pass',
-    copyToast: 'Keepsake pass details copy ho gayi hain.',
+    passSerialLabel: 'BOARDING ID',
+    passGateLabel: 'GATE 27A',
+    copyShareCta: 'WhatsApp Ke Liye Wrapped & Wishes Copy Karo',
+    copyToast: 'Wrapped recap aur 3 Next-Year wishes WhatsApp ke liye copy ho gayi.',
     whatsappCta: 'WhatsApp par reply bhejo',
+    whatsappMessage: (receiver, sender, wishesText) =>
+      `2026 -> 2027 Year Wrapped bahut pasand aaya ${sender}! Maine agle saal ke liye apni 3 wishes seal kar di hain: ${wishesText}. Naya saal aur bhi kamaal hoga! — ${receiver}`,
   },
   hi: {
-    editionPrefix: 'EDITION 2026 -> 2027',
-    editionForLabel: 'FOR',
+    editionPrefix: 'संस्करण 2026 -> 2027',
+    editionForLabel: 'प्रिय',
     fromLabel: 'प्रेषक',
     gateSubtitle: '2026 के सबसे प्यारे पल और 2027 की नई उम्मीदें एक सुनहरे कैप्सूल में।',
     holdLabel: '2027 प्रिज्म चार्ज करें',
@@ -274,6 +404,7 @@ const WRAPPED_COPY: Record<CoreLanguageCode, WrappedCopy> = {
     chapterJumps: {
       orbit: 'सारांश',
       highlights: 'खास पल',
+      trophies: 'सम्मान',
       memories: 'यादें',
       soundtrack: 'संगीत',
       pass: '2027 पास',
@@ -282,6 +413,7 @@ const WRAPPED_COPY: Record<CoreLanguageCode, WrappedCopy> = {
     narrativeOpener: (receiver, sender) =>
       `पूरे 365 दिनों की यादों को समेटकर, ${receiver}, यह उजाला ${sender} ने आपके लिए सहेजा है।`,
     daysLabel: 'यादगार दिन',
+    daysShortBadge: '365 दिन',
     syncLabel: 'मेमोरी स्कोर',
     noteEyebrow: 'दिल से संदेश',
     signedByLabel: 'स्नेह सहित,',
@@ -297,6 +429,42 @@ const WRAPPED_COPY: Record<CoreLanguageCode, WrappedCopy> = {
     chapterLabel: 'स्लाइड',
     previousSlide: 'पिछला',
     nextSlide: 'अगला',
+    trophyBadge: 'वर्ष-समीक्षा सम्मान पट्टिका',
+    trophyTitle: '3 सुनहरे सम्मान अनावरित करें',
+    trophySubtitle: 'हर सुनहरे फ़ॉइल कार्ड पर टैप करें और 2026 के ख़ास सम्मान देखें।',
+    trophyProgress: (revealed, total) => `${revealed}/${total} अनावरित`,
+    trophyTapUnveil: 'खोलने के लिए टैप करें',
+    trophyUnveiledTag: 'सम्मानित',
+    trophyCompleteNote: 'तीनों सुनहरे सम्मान खुल गए — यह वर्ष सचमुच अविस्मरणीय रहा।',
+    trophies: [
+      {
+        id: 'core-memory',
+        code: 'सम्मान 01',
+        awardTitle: 'वर्ष की सबसे अनमोल याद',
+        sealedHint: 'साल की सबसे प्यारी याद देखने के लिए टैप करें',
+        defaultCitation: (receiver, sender) =>
+          `${receiver} और ${sender} के नाम — उस एक सुनहरे पल के लिए जिसने पूरे वर्ष को रोशन किया।`,
+        highlightCitation: (title) => `"${title}" को समर्पित — वह अनमोल स्मृति जो आज भी मन को मुस्कुराती है।`,
+      },
+      {
+        id: 'unplanned-adventure',
+        code: 'सम्मान 02',
+        awardTitle: 'सर्वश्रेष्ठ अनियोजित सफ़र',
+        sealedHint: 'सबसे यादगार अचानक सफ़र देखने के लिए टैप करें',
+        defaultCitation: (receiver, sender) =>
+          `अचानक बने सफ़र और ${receiver} व ${sender} की सबसे खूबसूरत कहानियों के नाम।`,
+        highlightCitation: (title) => `"${title}" के नाम — क्योंकि सबसे सुंदर यादें बिना योजना के बनती हैं।`,
+      },
+      {
+        id: 'strongest-moment',
+        code: 'सम्मान 03',
+        awardTitle: 'साथ निभाने का सबसे मज़बूत पल',
+        sealedHint: 'धैर्य और साथ का ख़ास सम्मान खोलें',
+        defaultCitation: () =>
+          `हर मोड़ पर स्नेह, धैर्य और अटूट विश्वास के साथ खड़े रहने के लिए।`,
+        highlightCitation: (title) => `"${title}" के नाम — जहाँ एक-दूसरे का साथ सबसे बड़ा संबल बना।`,
+      },
+    ],
     memoriesBadge: 'क्रिस्टल संग्रह',
     memoriesTitle: '2026 की संजोई यादें',
     memoriesHint: 'फ़ोटो बड़ा देखने के लिए किसी भी फ्रेम पर टैप करें।',
@@ -328,24 +496,35 @@ const WRAPPED_COPY: Record<CoreLanguageCode, WrappedCopy> = {
         note: '2027 की नई सुबह, नए सपनों और शांत मुस्कुराहटों के नाम।',
       },
     ],
-    intentionBadge: '2027 संकल्प',
-    intentionTitle: '2027 का संकल्प चुनें',
-    intentionSubtitle: 'अपने कलेक्टिबल मेटैलिक पास पर सील करने के लिए एक संकल्प चुनें।',
-    intentions: [
-      { id: 'roadtrips', label: 'More Roadtrips', tagline: 'लंबे सफ़र और खुला आसमान' },
-      { id: 'mornings', label: 'Slow Mornings', tagline: 'सुकून भरी शांत सुबह' },
-      { id: 'wins', label: 'Bigger Wins', tagline: 'बड़े लक्ष्य और नई सफलता' },
-      { id: 'chai', label: 'More Chai Dates', tagline: 'चाय की चुस्की और लंबी बातें' },
+    wishBadge: 'आने वाले वर्ष के 3 संकल्प सील करें',
+    wishTitle: '2027 के लिए 3 शुभकामनाएँ चुनें',
+    wishSubtitle: 'अपने सुनहरे बोर्डिंग पास पर अंकित करने के लिए नीचे से 3 लक्ष्य चुनें।',
+    wishCounter: (selected, target) => `${selected}/${target} चयनित`,
+    wishSelectHint: 'सुनहरे बोर्डिंग पास पर मुहर लगाने के लिए 3 संकल्प चुनें।',
+    sealPassCta: '3 संकल्प बोर्डिंग पास पर सील करें',
+    sealedPassCta: '3 संकल्प सील हुए · फिर से मुहर लगाएँ',
+    sealedStampLabel: 'सील · 2027',
+    wishes: [
+      { id: 'travel', label: 'अधिक यात्राएँ', tagline: 'नए शहर और खिड़की वाली सीट' },
+      { id: 'mornings', label: 'शांत सुबहें', tagline: 'सुकून भरी गुनगुनी सुबह' },
+      { id: 'creative', label: 'बड़ी रचनात्मक जीत', tagline: 'नए सपने और बड़ी सफलता' },
+      { id: 'health', label: 'स्वास्थ्य और शांति', tagline: 'अच्छी सेहत और शांत मन' },
+      { id: 'roadtrips', label: 'अनियोजित रोड ट्रिप', tagline: 'खुली सड़कें और पसंदीदा गीत' },
+      { id: 'family', label: 'परिवार संग रात्रिभोज', tagline: 'अपनों के साथ स्नेह भरी शामें' },
     ],
-    passBadge: 'कलेक्टिबल कीपसेक पास',
-    passTitle: '2026 -> 2027 प्रिज्म पास',
-    passIntentionLabel: 'चुना गया 2027 संकल्प',
-    passRecipientLabel: 'प्राप्तकर्ता',
+    passBadge: 'अगले वर्ष का सुनहरा बोर्डिंग पास',
+    passTitle: '2026 -> 2027 स्मृति पास',
+    passRouteLabel: 'प्रस्थान 2026 -> आगमन 2027',
+    passWishesLabel: 'सील किए गए 2027 संकल्प',
+    passRecipientLabel: 'यात्री',
     passSenderLabel: 'प्रेषक',
     passSerialLabel: 'पास कोड',
-    copyShareCta: 'पास कॉपी / शेयर करें',
-    copyToast: 'कीपसेक पास क्लिपबोर्ड पर कॉपी हो गया।',
+    passGateLabel: 'गेट 27A',
+    copyShareCta: 'व्हाट्सऐप के लिए रैप्ड और 3 संकल्प कॉपी करें',
+    copyToast: 'रैप्ड सारांश और 3 संकल्प व्हाट्सऐप के लिए कॉपी हो गए।',
     whatsappCta: 'व्हाट्सऐप पर जवाब भेजें',
+    whatsappMessage: (receiver, sender, wishesText) =>
+      `${sender}, हमारा 2026 -> 2027 ईयर रैप्ड बेहद सुंदर लगा! मैंने अगले वर्ष के लिए 3 संकल्प सील किए हैं: ${wishesText}। आने वाला वर्ष और भी उजला हो! — ${receiver}`,
   },
 };
 
@@ -398,13 +577,45 @@ function PrismEmblemIcon({ className = 'h-7 w-7' }: { className?: string }) {
   );
 }
 
-function IntentionIcon({ id, active }: { id: IntentionId; active: boolean }) {
+function TrophyIconSvg({ id, revealed }: { id: TrophyId; revealed: boolean }) {
+  const stroke = revealed ? '#FCD34D' : '#F59E0B';
+  if (id === 'core-memory') {
+    return (
+      <svg viewBox="0 0 28 28" className="h-7 w-7" fill="none" stroke={stroke} strokeWidth={1.7} aria-hidden="true">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8 5h12v6a6 6 0 01-12 0V5z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8 7H5a2.5 2.5 0 002.5 5H8M20 7h3a2.5 2.5 0 01-2.5 5H20" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M14 17v4M10 22h8" />
+      </svg>
+    );
+  }
+  if (id === 'unplanned-adventure') {
+    return (
+      <svg viewBox="0 0 28 28" className="h-7 w-7" fill="none" stroke={stroke} strokeWidth={1.7} aria-hidden="true">
+        <circle cx="14" cy="14" r="9.5" />
+        <polygon points="14,7.5 16.5,14 14,20.5 11.5,14" fill={revealed ? 'rgba(245, 158, 11, 0.35)' : 'none'} />
+        <circle cx="14" cy="14" r="1.4" fill={stroke} />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 28 28" className="h-7 w-7" fill="none" stroke={stroke} strokeWidth={1.7} aria-hidden="true">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M14 4l7.5 3.2v5.8c0 5-3.2 8.7-7.5 10.5C9.7 21.7 6.5 18 6.5 13V7.2L14 4z"
+      />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M10.8 14.2l2.1 2.1 4.4-4.6" />
+    </svg>
+  );
+}
+
+function WishIconSvg({ id, active }: { id: WishId; active: boolean }) {
   const stroke = active ? '#F59E0B' : '#C4B5FD';
   switch (id) {
-    case 'roadtrips':
+    case 'travel':
       return (
         <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke={stroke} strokeWidth={1.7} aria-hidden="true">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M6 20L10 4M18 20L14 4M12 7v2m0 4v2m0 4v1" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l18-7-4 15-4.5-4.5L9 18v-4.5L17 7" />
         </svg>
       );
     case 'mornings':
@@ -414,7 +625,7 @@ function IntentionIcon({ id, active }: { id: IntentionId; active: boolean }) {
           <path strokeLinecap="round" d="M4 18h16M12 4v2.5M6.3 7.3l1.8 1.8M17.7 7.3l-1.8 1.8" />
         </svg>
       );
-    case 'wins':
+    case 'creative':
       return (
         <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke={stroke} strokeWidth={1.7} aria-hidden="true">
           <path
@@ -424,14 +635,27 @@ function IntentionIcon({ id, active }: { id: IntentionId; active: boolean }) {
           />
         </svg>
       );
-    case 'chai':
+    case 'health':
       return (
         <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke={stroke} strokeWidth={1.7} aria-hidden="true">
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
-            d="M5 10h11v5a5 5 0 01-5 5h-1a5 5 0 01-5-5v-5zm11 1.5h1.8a2.2 2.2 0 010 4.4H16M8.5 5.5c0 1 .9 1.5.9 2.5M12.5 5.5c0 1 .9 1.5.9 2.5"
+            d="M12 20s-7-4.5-8.5-8.5C2.3 8.2 4.7 5 8 5c1.9 0 3.3 1.1 4 2.4C12.7 6.1 14.1 5 16 5c3.3 0 5.7 3.2 4.5 6.5C19 15.5 12 20 12 20z"
           />
+        </svg>
+      );
+    case 'roadtrips':
+      return (
+        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke={stroke} strokeWidth={1.7} aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6 20L10 4M18 20L14 4M12 7v2m0 4v2m0 4v1" />
+        </svg>
+      );
+    case 'family':
+      return (
+        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke={stroke} strokeWidth={1.7} aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 11l8-6 8 6v8a1 1 0 01-1 1H5a1 1 0 01-1-1v-8z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9.5 20v-6h5v6" />
         </svg>
       );
   }
@@ -451,7 +675,14 @@ export function OurYearWrappedSite({
   const [activeChapter, setActiveChapter] = useState<WrappedChapterId>('orbit');
   const [ringAnimated, setRingAnimated] = useState(false);
   const [slideIdx, setSlideIdx] = useState(0);
-  const [selectedIntention, setSelectedIntention] = useState<IntentionId>('roadtrips');
+  const [horizonFailed, setHorizonFailed] = useState(false);
+  const [revealedTrophies, setRevealedTrophies] = useState<TrophyId[]>([]);
+  const [selectedWishes, setSelectedWishes] = useState<WishId[]>([
+    'travel',
+    'mornings',
+    'creative',
+  ]);
+  const [passStamped, setPassStamped] = useState(false);
   const [copyToastVisible, setCopyToastVisible] = useState(false);
 
   const onOpenedRef = useRef(onOpened);
@@ -460,12 +691,14 @@ export function OurYearWrappedSite({
   const sectionRefs = useRef<Record<WrappedChapterId, HTMLElement | null>>({
     orbit: null,
     highlights: null,
+    trophies: null,
     memories: null,
     soundtrack: null,
     pass: null,
   });
 
   const coreLang = toCoreLanguageCode(language);
+  const isDevanagari = coreLang === 'hi';
   const copy = WRAPPED_COPY[coreLang] ?? WRAPPED_COPY.en;
 
   const primaryColor = manifest.palette.primary || '#8B5CF6';
@@ -529,8 +762,13 @@ export function OurYearWrappedSite({
   const boundedSlideIdx = Math.min(slideIdx, storySlides.length - 1);
   const activeSlide = storySlides[boundedSlideIdx];
 
-  const currentIntentionObj =
-    copy.intentions.find((item) => item.id === selectedIntention) ?? copy.intentions[0];
+  const selectedWishObjects = useMemo(
+    () =>
+      selectedWishes
+        .map((id) => copy.wishes.find((item) => item.id === id))
+        .filter((item): item is WishDefinition => Boolean(item)),
+    [copy.wishes, selectedWishes],
+  );
 
   const soundtrackTracks = useMemo<readonly CurvedTrackItem[]>(() => {
     const manifestTrackLabel = manifest.music?.[0]?.label?.trim();
@@ -541,6 +779,45 @@ export function OurYearWrappedSite({
   }, [copy.tracks, manifest.music]);
 
   const serialCode = `PRISM-${String(202700 + (nameSeed % 900)).slice(-4)}`;
+
+  const handleToggleTrophy = useCallback(
+    (trophyId: TrophyId, idx: number) => {
+      const alreadyRevealed = revealedTrophies.includes(trophyId);
+      if (alreadyRevealed) {
+        playPaperUnsealSfx(idx);
+        setRevealedTrophies((prev) => prev.filter((item) => item !== trophyId));
+      } else {
+        const nextLength = revealedTrophies.length + 1;
+        if (nextLength === copy.trophies.length) {
+          playLanternPullChime();
+        } else {
+          playPaperUnsealSfx(idx + 1);
+        }
+        setRevealedTrophies((prev) => (prev.includes(trophyId) ? prev : [...prev, trophyId]));
+      }
+    },
+    [copy.trophies.length, revealedTrophies],
+  );
+
+  const handleToggleWish = useCallback((wishId: WishId, idx: number) => {
+    playPaperUnsealSfx(idx);
+    setSelectedWishes((prev) => {
+      if (prev.includes(wishId)) {
+        return prev.filter((item) => item !== wishId);
+      }
+      if (prev.length >= 3) {
+        return [...prev.slice(1), wishId];
+      }
+      return [...prev, wishId];
+    });
+    setPassStamped(false);
+  }, []);
+
+  const handleStampPass = useCallback(() => {
+    if (selectedWishes.length < 3) return;
+    playLanternPullChime();
+    setPassStamped(true);
+  }, [selectedWishes.length]);
 
   const startWarp = useCallback(() => {
     if (opened || warping) return;
@@ -577,13 +854,31 @@ export function OurYearWrappedSite({
     });
   }, []);
 
+  const formattedWishesSummary = useMemo(
+    () => selectedWishObjects.map((wish) => wish.label).join(' / '),
+    [selectedWishObjects],
+  );
+
   async function handleCopyKeepsakePass() {
+    const trophyLine =
+      revealedTrophies.length > 0
+        ? `${copy.trophyTitle}: ${copy.trophies
+            .filter((t) => revealedTrophies.includes(t.id))
+            .map((t) => t.awardTitle)
+            .join(' · ')}`
+        : '';
+
     const shareSummary = [
       `${copy.editionPrefix} // ${data.receiverName}`,
-      `${copy.passIntentionLabel}: ${currentIntentionObj.label}`,
+      `${copy.passWishesLabel}: ${formattedWishesSummary || copy.wishes[0].label}`,
+      trophyLine,
       `${copy.passSenderLabel}: ${data.senderName}`,
       `${copy.passSerialLabel}: ${serialCode}`,
-      messageText,
+      copy.whatsappMessage(
+        data.receiverName,
+        data.senderName,
+        formattedWishesSummary || copy.wishes[0].label,
+      ),
     ]
       .filter(Boolean)
       .join('\n');
@@ -606,6 +901,7 @@ export function OurYearWrappedSite({
       // Safe visual confirmation even when clipboard permissions are restricted
     }
 
+    playPaperUnsealSfx(2);
     setCopyToastVisible(true);
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     toastTimerRef.current = setTimeout(() => setCopyToastVisible(false), 2600);
@@ -715,7 +1011,11 @@ export function OurYearWrappedSite({
               <PrismEmblemIcon className="h-6 w-6" />
             </div>
 
-            <div className="inline-flex max-w-full flex-wrap items-center justify-center gap-1 rounded-full border border-[#F59E0B]/45 bg-[#F59E0B]/10 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-[#FCD34D]">
+            <div
+              className={`inline-flex max-w-full flex-wrap items-center justify-center gap-1 rounded-full border border-[#F59E0B]/45 bg-[#F59E0B]/10 px-3 py-1 font-mono text-[10px] font-bold text-[#FCD34D] ${
+                isDevanagari ? 'tracking-normal' : 'uppercase tracking-[0.14em]'
+              }`}
+            >
               <span>{copy.editionPrefix}</span>
               <span className="opacity-60">//</span>
               <span className="max-w-[140px] truncate">
@@ -870,7 +1170,11 @@ export function OurYearWrappedSite({
           className="scroll-mt-32 space-y-4 rounded-[24px] border border-[#A78BFA]/30 bg-white/[0.04] p-4 backdrop-blur-md shadow-[0_20px_50px_-24px_rgba(139,92,246,0.55)]"
         >
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#C4B5FD]">
+            <span
+              className={`font-mono text-[10px] font-bold text-[#C4B5FD] ${
+                isDevanagari ? 'tracking-normal' : 'uppercase tracking-[0.18em]'
+              }`}
+            >
               {copy.orbitBadge}
             </span>
             <span className="rounded-full border border-[#F59E0B]/40 bg-[#F59E0B]/10 px-2.5 py-0.5 font-mono text-[10px] font-bold text-[#F59E0B]">
@@ -937,7 +1241,11 @@ export function OurYearWrappedSite({
                 <span className="font-heading text-3xl font-black tracking-tight text-[#F8F7FC]">
                   365
                 </span>
-                <span className="font-mono text-[9px] font-bold uppercase tracking-[0.16em] text-[#F59E0B]">
+                <span
+                  className={`font-mono text-[9px] font-bold text-[#F59E0B] ${
+                    isDevanagari ? 'tracking-normal' : 'uppercase tracking-[0.16em]'
+                  }`}
+                >
                   {copy.daysLabel}
                 </span>
               </div>
@@ -946,28 +1254,41 @@ export function OurYearWrappedSite({
 
           {/* Full-Bleed Twilight Observatory & Sky Lanterns Art Plate */}
           <div className="overflow-hidden rounded-2xl border border-[#F59E0B]/40 bg-[#0B0718]">
-            <div className="relative aspect-[16/10] w-full overflow-hidden">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/templates/occasions/our-year/luminous-horizon-art.jpg"
-                alt="Twilight observatory terrace with floating golden sky lanterns under violet and gold clouds"
-                className="h-full w-full object-cover"
-              />
+            <div
+              className="relative aspect-[16/10] w-full overflow-hidden"
+              style={{
+                background:
+                  'linear-gradient(145deg, #1E1042 0%, #3B1E6D 48%, #92400E 100%)',
+              }}
+            >
+              {!horizonFailed ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src="/templates/occasions/our-year/luminous-horizon-art.jpg"
+                  alt="Twilight observatory terrace with floating golden sky lanterns under violet and gold clouds"
+                  onError={() => setHorizonFailed(true)}
+                  className="h-full w-full object-cover"
+                />
+              ) : null}
               <div
                 aria-hidden="true"
                 className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0B0718]/90 via-[#0B0718]/15 to-transparent"
               />
               <div className="absolute inset-x-3.5 bottom-3 flex items-end justify-between gap-2 text-left">
                 <div className="min-w-0">
-                  <p className="font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-[#F59E0B]">
-                    2026 -&gt; 2027 · LUMINOUS HORIZON
+                  <p
+                    className={`font-mono text-[9px] font-bold text-[#F59E0B] ${
+                      isDevanagari ? 'tracking-normal' : 'uppercase tracking-[0.18em]'
+                    }`}
+                  >
+                    {copy.editionPrefix}
                   </p>
                   <p className="truncate font-heading text-sm font-bold text-[#F8F7FC]">
                     {data.receiverName} &amp; {data.senderName}
                   </p>
                 </div>
                 <span className="shrink-0 rounded-full border border-[#F59E0B]/50 bg-[#0B0718]/80 px-2.5 py-0.5 font-mono text-[9.5px] font-bold text-[#F59E0B]">
-                  365 DAYS
+                  {copy.daysShortBadge}
                 </span>
               </div>
             </div>
@@ -1010,7 +1331,11 @@ export function OurYearWrappedSite({
             />
             <div className="relative z-10 space-y-2">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="font-mono text-[9.5px] font-bold uppercase tracking-[0.18em] text-[#F59E0B]">
+                <span
+                  className={`font-mono text-[9.5px] font-bold text-[#F59E0B] ${
+                    isDevanagari ? 'tracking-normal' : 'uppercase tracking-[0.18em]'
+                  }`}
+                >
                   {copy.noteEyebrow}
                 </span>
                 {data.relation ? (
@@ -1050,7 +1375,11 @@ export function OurYearWrappedSite({
         >
           <div className="flex items-center justify-between gap-2">
             <div>
-              <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#C4B5FD]">
+              <span
+                className={`font-mono text-[10px] font-bold text-[#C4B5FD] ${
+                  isDevanagari ? 'tracking-normal' : 'uppercase tracking-[0.18em]'
+                }`}
+              >
                 {copy.highlightsBadge}
               </span>
               <h2 className="mt-0.5 font-heading text-lg font-extrabold text-[#F8F7FC]">
@@ -1172,7 +1501,147 @@ export function OurYearWrappedSite({
           ) : null}
         </section>
 
-        {/* SECTION 3: Adaptive Memories */}
+        {/* SECTION 3: Year-in-Review Trophy Shelf (3 Tap-to-Reveal Superlatives) */}
+        <section
+          ref={(el) => {
+            sectionRefs.current.trophies = el;
+          }}
+          data-chapter="trophies"
+          className="scroll-mt-32 space-y-3.5 rounded-[24px] border border-[#F59E0B]/35 bg-white/[0.04] p-4 backdrop-blur-md shadow-[0_20px_50px_-24px_rgba(245,158,11,0.35)]"
+        >
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <span
+                className={`font-mono text-[10px] font-bold text-[#F59E0B] ${
+                  isDevanagari ? 'tracking-normal' : 'uppercase tracking-[0.18em]'
+                }`}
+              >
+                {copy.trophyBadge}
+              </span>
+              <h2 className="mt-0.5 font-heading text-lg font-extrabold text-[#F8F7FC]">
+                {copy.trophyTitle}
+              </h2>
+              <p className="mt-0.5 text-xs leading-relaxed text-[#F8F7FC]/75">
+                {copy.trophySubtitle}
+              </p>
+            </div>
+            <span
+              role="status"
+              className="shrink-0 rounded-full border border-[#F59E0B]/50 bg-[#F59E0B]/15 px-2.5 py-1 font-mono text-[10px] font-bold text-[#FCD34D]"
+            >
+              {copy.trophyProgress(revealedTrophies.length, copy.trophies.length)}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+            {copy.trophies.map((trophy, idx) => {
+              const isRevealed = revealedTrophies.includes(trophy.id);
+              const customHighlight = highlightsList[idx];
+              const customTitle = customHighlight
+                ? pickLocalizedText(customHighlight.title, language).trim()
+                : '';
+              const citationText = customTitle
+                ? trophy.highlightCitation(customTitle)
+                : trophy.defaultCitation(data.receiverName, data.senderName);
+
+              return (
+                <button
+                  key={trophy.id}
+                  type="button"
+                  onClick={() => handleToggleTrophy(trophy.id, idx)}
+                  aria-pressed={isRevealed}
+                  className={`group relative flex min-h-[168px] flex-col justify-between overflow-hidden rounded-2xl border p-3.5 text-left transition-all duration-300 active:scale-[0.98] ${
+                    isRevealed
+                      ? 'border-[#F59E0B] bg-gradient-to-b from-[#2A1B47] via-[#120B26] to-[#1E1338] shadow-[0_14px_30px_-14px_rgba(245,158,11,0.65)]'
+                      : 'border-[#F59E0B]/45 bg-gradient-to-br from-[#2B1F0A] via-[#140D26] to-[#261742] hover:border-[#FCD34D]'
+                  }`}
+                >
+                  {/* Subtle golden foil diagonal sheen */}
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute -inset-x-6 -top-8 h-16 rotate-[-10deg] opacity-30 blur-lg"
+                    style={{
+                      background:
+                        'linear-gradient(90deg, transparent, #FCD34D, #A78BFA, transparent)',
+                    }}
+                  />
+
+                  <div className="relative z-10 flex w-full items-center justify-between gap-2">
+                    <span
+                      className={`font-mono text-[9px] font-bold text-[#FCD34D] ${
+                        isDevanagari ? 'tracking-normal' : 'uppercase tracking-[0.16em]'
+                      }`}
+                    >
+                      {trophy.code}
+                    </span>
+                    <span
+                      className={`rounded-full px-2 py-0.5 font-mono text-[8.5px] font-bold ${
+                        isRevealed
+                          ? 'border border-[#F59E0B]/55 bg-[#F59E0B]/20 text-[#FCD34D]'
+                          : 'border border-white/15 bg-white/10 text-[#DDD6FE]'
+                      }`}
+                    >
+                      {isRevealed ? copy.trophyUnveiledTag : copy.trophyTapUnveil}
+                    </span>
+                  </div>
+
+                  {isRevealed ? (
+                    <div className="relative z-10 my-auto space-y-1.5 py-2">
+                      <div className="flex items-center gap-2">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#F59E0B]/45 bg-[#F59E0B]/15">
+                          <TrophyIconSvg id={trophy.id} revealed />
+                        </div>
+                        <h3
+                          className={`font-heading text-sm font-extrabold text-[#FCD34D] ${
+                            isDevanagari ? 'leading-snug' : 'leading-tight'
+                          }`}
+                        >
+                          {trophy.awardTitle}
+                        </h3>
+                      </div>
+                      <p className="text-xs leading-relaxed text-[#F8F7FC]/90">
+                        {citationText}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="relative z-10 my-auto flex flex-col items-center py-3 text-center">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#F59E0B]/55 bg-[#0B0718]/75 shadow-inner transition-transform duration-300 group-hover:scale-105">
+                        <TrophyIconSvg id={trophy.id} revealed={false} />
+                      </div>
+                      <p className="mt-2.5 text-xs font-bold text-[#F8F7FC]">
+                        {trophy.awardTitle}
+                      </p>
+                      <p className="mt-0.5 text-[10.5px] leading-snug text-[#DDD6FE]/75">
+                        {trophy.sealedHint}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Shelf accent bar */}
+                  <div
+                    aria-hidden="true"
+                    className={`relative z-10 h-1 w-full rounded-full ${
+                      isRevealed
+                        ? 'bg-gradient-to-r from-[#A78BFA] via-[#F59E0B] to-[#FCD34D]'
+                        : 'bg-white/15'
+                    }`}
+                  />
+                </button>
+              );
+            })}
+          </div>
+
+          {revealedTrophies.length === copy.trophies.length ? (
+            <p
+              role="status"
+              className="rounded-xl border border-[#F59E0B]/45 bg-[#F59E0B]/15 px-3 py-2 text-center text-xs font-semibold text-[#FCD34D]"
+            >
+              {copy.trophyCompleteNote}
+            </p>
+          ) : null}
+        </section>
+
+        {/* SECTION 4: Adaptive Memories */}
         <section
           ref={(el) => {
             sectionRefs.current.memories = el;
@@ -1182,7 +1651,11 @@ export function OurYearWrappedSite({
         >
           <div className="flex items-center justify-between gap-2">
             <div>
-              <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#C4B5FD]">
+              <span
+                className={`font-mono text-[10px] font-bold text-[#C4B5FD] ${
+                  isDevanagari ? 'tracking-normal' : 'uppercase tracking-[0.18em]'
+                }`}
+              >
                 {copy.memoriesBadge}
               </span>
               <h2 className="mt-0.5 font-heading text-lg font-extrabold text-[#F8F7FC]">
@@ -1221,7 +1694,7 @@ export function OurYearWrappedSite({
           ) : null}
         </section>
 
-        {/* SECTION 4: Year Soundtrack Sanctuary */}
+        {/* SECTION 5: Year Soundtrack Sanctuary */}
         <section
           ref={(el) => {
             sectionRefs.current.soundtrack = el;
@@ -1230,7 +1703,11 @@ export function OurYearWrappedSite({
           className="scroll-mt-32 space-y-2.5"
         >
           <div className="px-1">
-            <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#C4B5FD]">
+            <span
+              className={`font-mono text-[10px] font-bold text-[#C4B5FD] ${
+                isDevanagari ? 'tracking-normal' : 'uppercase tracking-[0.18em]'
+              }`}
+            >
               {copy.soundtrackBadge}
             </span>
           </div>
@@ -1243,7 +1720,7 @@ export function OurYearWrappedSite({
           />
         </section>
 
-        {/* SECTION 5: 2027 Intention Picker & Collectible Metallic Pass */}
+        {/* SECTION 6: Manifest Next Year (Seal 3 Wishes) & Next-Year Golden Boarding Pass */}
         <section
           ref={(el) => {
             sectionRefs.current.pass = el;
@@ -1251,45 +1728,60 @@ export function OurYearWrappedSite({
           data-chapter="pass"
           className="scroll-mt-32 space-y-4 rounded-[24px] border border-[#A78BFA]/30 bg-white/[0.04] p-4 backdrop-blur-md shadow-[0_20px_50px_-24px_rgba(139,92,246,0.55)]"
         >
-          <div>
-            <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#F59E0B]">
-              {copy.intentionBadge}
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <span
+                className={`font-mono text-[10px] font-bold text-[#F59E0B] ${
+                  isDevanagari ? 'tracking-normal' : 'uppercase tracking-[0.18em]'
+                }`}
+              >
+                {copy.wishBadge}
+              </span>
+              <h2 className="mt-0.5 font-heading text-lg font-extrabold text-[#F8F7FC]">
+                {copy.wishTitle}
+              </h2>
+              <p className="mt-0.5 text-xs leading-relaxed text-[#F8F7FC]/75">
+                {copy.wishSubtitle}
+              </p>
+            </div>
+            <span
+              role="status"
+              className="shrink-0 rounded-full border border-[#F59E0B]/45 bg-[#F59E0B]/15 px-2.5 py-1 font-mono text-[10px] font-bold text-[#FCD34D]"
+            >
+              {copy.wishCounter(selectedWishes.length, 3)}
             </span>
-            <h2 className="mt-0.5 font-heading text-lg font-extrabold text-[#F8F7FC]">
-              {copy.intentionTitle}
-            </h2>
-            <p className="mt-0.5 text-xs leading-relaxed text-[#F8F7FC]/75">
-              {copy.intentionSubtitle}
-            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-2.5">
-            {copy.intentions.map((intention) => {
-              const isSelected = intention.id === selectedIntention;
+            {copy.wishes.map((wish, idx) => {
+              const pickOrder = selectedWishes.indexOf(wish.id);
+              const isSelected = pickOrder !== -1;
               return (
                 <button
-                  key={intention.id}
+                  key={wish.id}
                   type="button"
                   aria-pressed={isSelected}
-                  onClick={() => setSelectedIntention(intention.id)}
-                  className={`flex min-h-[84px] min-w-0 flex-col items-start justify-between rounded-2xl border p-3 text-left transition-all duration-200 active:scale-[0.98] ${
+                  onClick={() => handleToggleWish(wish.id, idx)}
+                  className={`flex min-h-[88px] min-w-0 flex-col items-start justify-between rounded-2xl border p-3 text-left transition-all duration-200 active:scale-[0.98] ${
                     isSelected
                       ? 'border-[#F59E0B] bg-[#A78BFA]/20 shadow-[0_10px_24px_-10px_rgba(245,158,11,0.6)]'
                       : 'border-white/15 bg-[#0B0718]/75 hover:border-[#A78BFA]/55 hover:bg-white/[0.08]'
                   }`}
                 >
                   <div className="flex w-full items-center justify-between gap-2">
-                    <IntentionIcon id={intention.id} active={isSelected} />
+                    <WishIconSvg id={wish.id} active={isSelected} />
                     {isSelected ? (
-                      <span className="h-2.5 w-2.5 rounded-full bg-[#F59E0B]" aria-hidden="true" />
+                      <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#F59E0B] px-1.5 font-mono text-[9.5px] font-black text-[#070512]">
+                        0{pickOrder + 1}
+                      </span>
                     ) : null}
                   </div>
                   <div className="mt-2 w-full min-w-0">
                     <p className="break-words text-xs font-bold text-[#F8F7FC]">
-                      {intention.label}
+                      {wish.label}
                     </p>
                     <p className="mt-0.5 break-words text-[10.5px] leading-tight text-[#F8F7FC]/70">
-                      {intention.tagline}
+                      {wish.tagline}
                     </p>
                   </div>
                 </button>
@@ -1297,17 +1789,42 @@ export function OurYearWrappedSite({
             })}
           </div>
 
-          {/* Collectible Metallic Keepsake Pass */}
+          <button
+            type="button"
+            onClick={handleStampPass}
+            disabled={selectedWishes.length < 3}
+            className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full border border-[#F59E0B]/65 bg-[#F59E0B]/20 px-4 text-xs font-bold text-[#FCD34D] transition hover:bg-[#F59E0B]/30 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45"
+          >
+            <span className="h-2 w-2 rounded-full bg-[#F59E0B]" aria-hidden="true" />
+            <span>
+              {selectedWishes.length < 3
+                ? copy.wishSelectHint
+                : passStamped
+                  ? copy.sealedPassCta
+                  : copy.sealPassCta}
+            </span>
+          </button>
+
+          {/* Collectible Next-Year Golden Boarding Pass / Keepsake */}
           <div
-            className="relative overflow-hidden rounded-[22px] border border-[#F59E0B]/60 p-4 shadow-[0_24px_54px_-18px_rgba(139,92,246,0.75)] sm:p-5"
+            className="relative overflow-hidden rounded-[22px] border border-[#F59E0B]/70 p-4 shadow-[0_24px_54px_-18px_rgba(245,158,11,0.45)] sm:p-5"
             style={{
               background:
-                'linear-gradient(145deg, #1A1236 0%, #090616 48%, #25154B 100%)',
+                'linear-gradient(145deg, #241840 0%, #0A0718 46%, #2C1B12 100%)',
             }}
           >
+            {/* Boarding Pass Side Perforation Notches */}
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute -left-2.5 top-1/2 h-5 w-5 -translate-y-1/2 rounded-full border border-[#F59E0B]/45 bg-[#070512]"
+            />
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute -right-2.5 top-1/2 h-5 w-5 -translate-y-1/2 rounded-full border border-[#F59E0B]/45 bg-[#070512]"
+            />
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute -right-14 -top-14 h-40 w-40 rounded-full bg-[#F59E0B]/15 blur-2xl"
+              className="pointer-events-none absolute -right-14 -top-14 h-40 w-40 rounded-full bg-[#F59E0B]/20 blur-2xl"
             />
             <div
               aria-hidden="true"
@@ -1317,40 +1834,76 @@ export function OurYearWrappedSite({
             <div className="relative z-10 space-y-4">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <span className="inline-block rounded-full border border-[#F59E0B]/45 bg-[#F59E0B]/15 px-2.5 py-0.5 font-mono text-[9.5px] font-bold uppercase tracking-[0.16em] text-[#F59E0B]">
+                  <span
+                    className={`inline-block rounded-full border border-[#F59E0B]/55 bg-[#F59E0B]/15 px-2.5 py-0.5 font-mono text-[9.5px] font-bold text-[#FCD34D] ${
+                      isDevanagari ? 'tracking-normal' : 'uppercase tracking-[0.16em]'
+                    }`}
+                  >
                     {copy.passBadge}
                   </span>
                   <h3 className="mt-2 break-words font-heading text-xl font-black tracking-tight text-[#F8F7FC]">
                     {copy.passTitle}
                   </h3>
+                  <p
+                    className={`mt-0.5 font-mono text-[9.5px] font-bold text-[#C4B5FD] ${
+                      isDevanagari ? 'tracking-normal' : 'uppercase tracking-[0.14em]'
+                    }`}
+                  >
+                    {copy.passRouteLabel}
+                  </p>
                 </div>
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#F59E0B]/45 bg-[#0B0718]/75">
-                  <PrismEmblemIcon className="h-6 w-6" />
+
+                <div className="flex flex-col items-end gap-1.5">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#F59E0B]/50 bg-[#0B0718]/80">
+                    <PrismEmblemIcon className="h-6 w-6" />
+                  </div>
+                  {passStamped ? (
+                    <span className="-rotate-6 rounded border border-[#FCD34D] bg-[#F59E0B]/25 px-2 py-0.5 font-mono text-[8.5px] font-black text-[#FCD34D] shadow-xs">
+                      {copy.sealedStampLabel}
+                    </span>
+                  ) : null}
                 </div>
               </div>
 
-              {/* Sealed 2027 Intention Highlight */}
-              <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#A78BFA]/45 bg-white/[0.06] px-3.5 py-3">
-                <div className="min-w-0">
-                  <p className="font-mono text-[9.5px] font-bold uppercase tracking-[0.15em] text-[#C4B5FD]">
-                    {copy.passIntentionLabel}
-                  </p>
-                  <p className="mt-0.5 break-words font-heading text-base font-extrabold text-[#F59E0B]">
-                    {currentIntentionObj.label}
-                  </p>
-                  <p className="break-words text-[11px] text-[#F8F7FC]/75">
-                    {currentIntentionObj.tagline}
-                  </p>
-                </div>
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#F59E0B]/40 bg-[#0B0718]/80">
-                  <IntentionIcon id={currentIntentionObj.id} active />
-                </div>
+              {/* Sealed 2027 Wishes List */}
+              <div className="rounded-2xl border border-[#F59E0B]/35 bg-white/[0.06] p-3.5">
+                <p
+                  className={`font-mono text-[9.5px] font-bold text-[#FCD34D] ${
+                    isDevanagari ? 'tracking-normal' : 'uppercase tracking-[0.15em]'
+                  }`}
+                >
+                  {copy.passWishesLabel}
+                </p>
+
+                {selectedWishObjects.length > 0 ? (
+                  <div className="mt-2 grid grid-cols-1 gap-1.5 sm:grid-cols-3">
+                    {selectedWishObjects.map((wish, idx) => (
+                      <div
+                        key={wish.id}
+                        className="flex items-center gap-2 rounded-xl border border-[#F59E0B]/35 bg-[#0B0718]/75 px-2.5 py-2"
+                      >
+                        <span className="font-mono text-[9.5px] font-black text-[#F59E0B]">
+                          0{idx + 1}
+                        </span>
+                        <span className="min-w-0 truncate text-xs font-bold text-[#F8F7FC]">
+                          {wish.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-2 text-xs text-[#F8F7FC]/70">{copy.wishSelectHint}</p>
+                )}
               </div>
 
-              {/* Issued To & From Grid */}
+              {/* Passenger & From Grid */}
               <div className="grid grid-cols-2 gap-2.5 border-t border-white/10 pt-3">
                 <div className="min-w-0">
-                  <p className="font-mono text-[9.5px] font-bold uppercase tracking-[0.14em] text-[#F8F7FC]/55">
+                  <p
+                    className={`font-mono text-[9.5px] font-bold text-[#F8F7FC]/55 ${
+                      isDevanagari ? 'tracking-normal' : 'uppercase tracking-[0.14em]'
+                    }`}
+                  >
                     {copy.passRecipientLabel}
                   </p>
                   <p className="mt-0.5 break-words text-sm font-bold text-[#F8F7FC]">
@@ -1358,7 +1911,11 @@ export function OurYearWrappedSite({
                   </p>
                 </div>
                 <div className="min-w-0 text-right">
-                  <p className="font-mono text-[9.5px] font-bold uppercase tracking-[0.14em] text-[#F8F7FC]/55">
+                  <p
+                    className={`font-mono text-[9.5px] font-bold text-[#F8F7FC]/55 ${
+                      isDevanagari ? 'tracking-normal' : 'uppercase tracking-[0.14em]'
+                    }`}
+                  >
                     {copy.passSenderLabel}
                   </p>
                   <p className="mt-0.5 break-words text-sm font-bold text-[#F59E0B]">
@@ -1367,11 +1924,30 @@ export function OurYearWrappedSite({
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center justify-between gap-2 border-t border-dashed border-white/15 pt-2.5 font-mono text-[10px] tracking-[0.14em] text-[#F8F7FC]/65">
-                <span>
-                  {copy.passSerialLabel}: {serialCode}
-                </span>
-                <span>{data.relation ? data.relation.toUpperCase() : '2026 -> 2027'}</span>
+              {/* Perforated Tear Line + Serial + Barcode */}
+              <div className="flex flex-wrap items-center justify-between gap-2 border-t border-dashed border-[#F59E0B]/35 pt-3 font-mono text-[10px] tracking-[0.12em] text-[#F8F7FC]/75">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span>
+                    {copy.passSerialLabel}: {serialCode}
+                  </span>
+                  <span className="text-[#F59E0B]">·</span>
+                  <span>{copy.passGateLabel}</span>
+                </div>
+                {/* Crisp metallic gold barcode SVG */}
+                <svg viewBox="0 0 48 18" className="h-4 w-12 shrink-0" shapeRendering="crispEdges" aria-hidden="true">
+                  <rect x="0" y="1" width="2" height="16" fill="#FCD34D" />
+                  <rect x="4" y="1" width="1" height="16" fill="#FCD34D" />
+                  <rect x="7" y="1" width="3" height="16" fill="#F59E0B" />
+                  <rect x="12" y="1" width="1" height="16" fill="#FCD34D" />
+                  <rect x="15" y="1" width="2" height="16" fill="#F59E0B" />
+                  <rect x="19" y="1" width="3" height="16" fill="#FCD34D" />
+                  <rect x="24" y="1" width="1" height="16" fill="#F59E0B" />
+                  <rect x="27" y="1" width="2" height="16" fill="#FCD34D" />
+                  <rect x="31" y="1" width="3" height="16" fill="#F59E0B" />
+                  <rect x="36" y="1" width="1" height="16" fill="#FCD34D" />
+                  <rect x="39" y="1" width="2" height="16" fill="#F59E0B" />
+                  <rect x="44" y="1" width="3" height="16" fill="#FCD34D" />
+                </svg>
               </div>
             </div>
           </div>
@@ -1383,11 +1959,11 @@ export function OurYearWrappedSite({
               onClick={handleCopyKeepsakePass}
               className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#A78BFA] to-[#F59E0B] px-5 text-xs font-bold text-[#070512] shadow-[0_10px_28px_-8px_rgba(245,158,11,0.55)] transition hover:brightness-110 active:scale-[0.98]"
             >
-              <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <svg className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path d="M7 3.5A1.5 1.5 0 018.5 2h6A1.5 1.5 0 0116 3.5v9a1.5 1.5 0 01-1.5 1.5h-6A1.5 1.5 0 017 12.5v-9z" />
                 <path d="M4 6.5A1.5 1.5 0 015.5 5H6v7.5A2.5 2.5 0 008.5 15H13v.5a1.5 1.5 0 01-1.5 1.5h-6A1.5 1.5 0 014 15.5v-9z" />
               </svg>
-              <span>{copy.copyShareCta}</span>
+              <span className="truncate">{copy.copyShareCta}</span>
             </button>
 
             {copyToastVisible ? (
@@ -1404,7 +1980,11 @@ export function OurYearWrappedSite({
               {hasValidWhatsapp ? (
                 <a
                   href={`https://wa.me/${sanitizedPhone}?text=${encodeURIComponent(
-                    `2026 -> 2027 Prism Pass (${currentIntentionObj.label}) — thank you, ${data.senderName}!`,
+                    copy.whatsappMessage(
+                      data.receiverName,
+                      data.senderName,
+                      formattedWishesSummary || copy.wishes[0].label,
+                    ),
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"

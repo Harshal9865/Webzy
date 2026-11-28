@@ -52,7 +52,8 @@ export default async function ProfilePage() {
         ? session.user.user_metadata.avatar_storage_key
         : null;
 
-    const [consentRes, ordersRes, draftsRes, requestsRes, avatarRes] = await Promise.all([
+    const userEmail = (session.user.email || '').trim().toLowerCase();
+    const [consentRes, ordersRes, draftsRes, requestsRes, waitlistRes, avatarRes] = await Promise.all([
       db
         .from('consent_log')
         .select('id', { count: 'exact', head: true })
@@ -78,6 +79,14 @@ export default async function ProfilePage() {
         .eq('user_id', session.user.id)
         .order('created_at', { ascending: false })
         .limit(6),
+      userEmail
+        ? db
+            .from('business_waitlist')
+            .select('id, category, budget_tier, status, created_at')
+            .ilike('email', userEmail)
+            .order('created_at', { ascending: false })
+            .limit(6)
+        : Promise.resolve({ data: [] }),
       avatarKey && adminConfigured
         ? createSupabaseAdminClient()
             .storage.from('webzy-media')
@@ -152,6 +161,21 @@ export default async function ProfilePage() {
         quotedAmountInr: typeof r.quoted_amount_inr === 'number' ? r.quoted_amount_inr : null,
         createdAt: String(r.created_at || ''),
       }));
+    }
+
+    if (Array.isArray(waitlistRes?.data)) {
+      const studioItems: ProfileCustomRequestItem[] = waitlistRes.data.map((w) => ({
+        id: `studio-${String(w.id)}`,
+        occasion: `Studio · ${String(w.category || 'custom')}`,
+        budgetTier: String(w.budget_tier || '1499'),
+        status: String(w.status || 'new'),
+        targetDate: null,
+        quotedAmountInr: null,
+        createdAt: String(w.created_at || ''),
+      }));
+      customRequests = [...customRequests, ...studioItems]
+        .sort((a, b) => Date.parse(b.createdAt || '0') - Date.parse(a.createdAt || '0'))
+        .slice(0, 8);
     }
 
     if (avatarRes?.data?.signedUrl) {

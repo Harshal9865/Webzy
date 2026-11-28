@@ -10,6 +10,8 @@ export type CafeArtisanMode = 'roast' | 'maison';
 
 type MenuCategoryKey = 'all' | 'iced' | 'milk' | 'specialty' | 'atelier';
 type EventPackageKey = 'tasting' | 'wedding' | 'office';
+type PairingMoodKey = 'bold' | 'velvet' | 'chilled';
+type PickupSlotKey = 'now' | 'evening' | 'weekend';
 type ProductArtKey =
   | 'matcha'
   | 'tonic'
@@ -19,6 +21,23 @@ type ProductArtKey =
   | 'cortado'
   | 'pastry'
   | 'bouquet';
+
+interface BaristaPairingPreset {
+  key: PairingMoodKey;
+  label: Record<'en' | 'hinglish' | 'hi', string>;
+  vibeTag: Record<'en' | 'hinglish' | 'hi', string>;
+  note: Record<'en' | 'hinglish' | 'hi', string>;
+  drinkId: string;
+  companionId: string;
+  accentHex: string;
+}
+
+interface PickupSlotOption {
+  key: PickupSlotKey;
+  label: Record<'en' | 'hinglish' | 'hi', string>;
+  sublabel: Record<'en' | 'hinglish' | 'hi', string>;
+  waLabel: string;
+}
 
 interface HeroSlide {
   id: string;
@@ -323,6 +342,117 @@ const CATEGORY_TABS: ReadonlyArray<{ key: MenuCategoryKey; label: string }> = [
   { key: 'atelier', label: 'Pastries & Blooms' },
 ];
 
+const BARISTA_PAIRINGS: readonly BaristaPairingPreset[] = [
+  {
+    key: 'bold',
+    label: {
+      en: 'Bold & Spiced',
+      hinglish: 'Bold & Spiced',
+      hi: 'बोल्ड और मसालेदार',
+    },
+    vibeTag: {
+      en: 'ROAST + WARM BUTTER PASTRY',
+      hinglish: 'ROAST + WARM BUTTER PASTRY',
+      hi: 'रोस्ट और बटर पेस्ट्री जोड़ी',
+    },
+    note: {
+      en: '72-hour Chikmagalur espresso tonic bright with blood orange zest, balanced beside flaky French butter croissants.',
+      hinglish: '72-hour espresso tonic aur blood orange zest ke saath garma-garam French butter croissant box.',
+      hi: '72-घंटे के एस्प्रेसो टॉनिक और ब्लड ऑरेंज ज़ेस्ट के साथ ताज़ा फ्रेंच बटर क्रॉइसैन बॉक्स।',
+    },
+    drinkId: 'cf-2',
+    companionId: 'cf-7',
+    accentHex: '#5A3422',
+  },
+  {
+    key: 'velvet',
+    label: {
+      en: 'Velvet & Floral',
+      hinglish: 'Velvet & Floral',
+      hi: 'मखमली और पुष्प',
+    },
+    vibeTag: {
+      en: 'ROSE CORTADO + ATELIER POSY',
+      hinglish: 'ROSE CORTADO + ATELIER POSY',
+      hi: 'रोज़ कॉर्टाडो और गुलदस्ता',
+    },
+    note: {
+      en: 'Damask rose and crushed green cardamom ristretto paired with our hand-tied white ranunculus & crimson rose posy.',
+      hinglish: 'Damask rose cardamom cortado ke saath hand-tied ranunculus aur crimson rose bouquet.',
+      hi: 'दमिश्क गुलाब और इलायची कॉर्टाडो के साथ हस्तनिर्मित गुलदस्ता।',
+    },
+    drinkId: 'cf-6',
+    companionId: 'cf-8',
+    accentHex: '#590C15',
+  },
+  {
+    key: 'chilled',
+    label: {
+      en: 'Chilled Ceremonial',
+      hinglish: 'Chilled Ceremonial',
+      hi: 'ठंडा सेरेमोनियल माचा',
+    },
+    vibeTag: {
+      en: 'UJI MATCHA + PISTACHIO PASTRY',
+      hinglish: 'UJI MATCHA + PISTACHIO PASTRY',
+      hi: 'उजी माचा और पिस्ता पेस्ट्री',
+    },
+    note: {
+      en: 'First-harvest Kyoto Uji matcha whisked over chilled oat milk, paired with Dawn-baked pistachio cream pastries.',
+      hinglish: 'Kyoto Uji iced matcha aur chilled oat milk ke saath pistachio cream & dark ganache pastry box.',
+      hi: 'क्योटो उजी आइस्ड माचा और ओट मिल्क के साथ पिस्ता क्रीम पेस्ट्री बॉक्स।',
+    },
+    drinkId: 'cf-1',
+    companionId: 'cf-7',
+    accentHex: '#5D6E22',
+  },
+];
+
+const PICKUP_SLOTS: readonly PickupSlotOption[] = [
+  {
+    key: 'now',
+    label: {
+      en: 'Now / 20 mins',
+      hinglish: 'Abhi / 20 mins',
+      hi: 'अभी / 20 मिनट',
+    },
+    sublabel: {
+      en: 'Express Bar Pickup',
+      hinglish: 'Express Bar Pickup',
+      hi: 'तुरंत पिकअप',
+    },
+    waLabel: 'Now / 20 mins (Express Bar Pickup)',
+  },
+  {
+    key: 'evening',
+    label: {
+      en: 'Today Evening',
+      hinglish: 'Aaj Shaam',
+      hi: 'आज शाम',
+    },
+    sublabel: {
+      en: '5:00 PM — 8:30 PM',
+      hinglish: '5:00 PM — 8:30 PM',
+      hi: 'शाम 5:00 — 8:30',
+    },
+    waLabel: 'Today Evening (5:00 PM - 8:30 PM)',
+  },
+  {
+    key: 'weekend',
+    label: {
+      en: 'Weekend Tasting',
+      hinglish: 'Weekend Tasting',
+      hi: 'वीकेंड टेस्टिंग',
+    },
+    sublabel: {
+      en: 'Sat / Sun Table',
+      hinglish: 'Sat / Sun Table',
+      hi: 'शनि / रवि टेबल',
+    },
+    waLabel: 'Weekend Tasting Table (Sat / Sun)',
+  },
+];
+
 const CAFE_SITE_CSS = `
 .wz-cafe-root {
   container-type: inline-size;
@@ -387,6 +517,12 @@ const CAFE_SITE_CSS = `
   gap: 1.25rem;
   align-items: center;
 }
+.wz-cafe-pairing-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+  align-items: center;
+}
 .wz-cafe-section-px {
   padding-left: 1rem;
   padding-right: 1rem;
@@ -423,6 +559,10 @@ const CAFE_SITE_CSS = `
   .wz-cafe-drop-grid {
     grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
     gap: 2rem;
+  }
+  .wz-cafe-pairing-grid {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    gap: 1.5rem;
   }
   .wz-cafe-section-px {
     padding-left: 1.75rem;
@@ -1297,6 +1437,8 @@ export function CafeArtisanSite({
   const [storyExpanded, setStoryExpanded] = useState<boolean>(false);
 
   const [activeCategory, setActiveCategory] = useState<MenuCategoryKey>('all');
+  const [activePairingMood, setActivePairingMood] = useState<PairingMoodKey>('bold');
+  const [selectedSlot, setSelectedSlot] = useState<PickupSlotKey>('now');
   const [favorites, setFavorites] = useState<Record<string, boolean>>({ 'cf-1': true, 'cf-8': true });
   const [basket, setBasket] = useState<Record<string, number>>({ 'cf-1': 1 });
   const [seasonalDiscountApplied, setSeasonalDiscountApplied] = useState<boolean>(false);
@@ -1377,9 +1519,9 @@ export function CafeArtisanSite({
       (mode === 'maison' ? 'Luxury Floral & Patisserie Atelier' : 'Small-Batch Roastery & Atelier');
   const monogram = extractMonogram(brandTitle);
 
-  const localizedHeadline = pickLocalizedText(data.headline, language).trim();
+  const localizedHeadline = data.headline ? pickLocalizedText(data.headline, language).trim() : '';
   const localizedMessage =
-    pickLocalizedText(data.message, language).trim() ||
+    (data.message ? pickLocalizedText(data.message, language).trim() : '') ||
     (mode === 'maison'
       ? 'Each pour and floral arrangement is shaped like quiet architecture — crafted by hand to linger long after the last sip.'
       : 'Single-origin harvests roasted in micro-batches, stone-milled Uji matcha, and hand-tied seasonal stems under one sunlit roof.');
@@ -1389,8 +1531,8 @@ export function CafeArtisanSite({
     if (!Array.isArray(data.highlights)) return [];
     return data.highlights
       .map((item) => ({
-        title: pickLocalizedText(item.title, language).trim(),
-        detail: pickLocalizedText(item.detail, language).trim(),
+        title: item?.title ? pickLocalizedText(item.title, language).trim() : '',
+        detail: item?.detail ? pickLocalizedText(item.detail, language).trim() : '',
       }))
       .filter((item) => item.title.length > 0 || item.detail.length > 0);
   }, [data.highlights, language]);
@@ -1451,6 +1593,17 @@ export function CafeArtisanSite({
   const discountAmount = seasonalDiscountApplied ? Math.round(rawSubtotal * 0.2) : 0;
   const finalTotal = Math.max(0, rawSubtotal - discountAmount);
 
+  const activePairing =
+    BARISTA_PAIRINGS.find((p) => p.key === activePairingMood) ?? BARISTA_PAIRINGS[0];
+  const pairingDrink =
+    MENU_ITEMS.find((item) => item.id === activePairing.drinkId) ?? MENU_ITEMS[0];
+  const pairingCompanion =
+    MENU_ITEMS.find((item) => item.id === activePairing.companionId) ?? MENU_ITEMS[6];
+  const pairingCombinedPrice = pairingDrink.price + pairingCompanion.price;
+
+  const activeSlotObj =
+    PICKUP_SLOTS.find((slot) => slot.key === selectedSlot) ?? PICKUP_SLOTS[0];
+
   const validWaPhone = sanitizeWhatsappPhone(data.whatsappPhone);
 
   const whatsappOrderText = useMemo(() => {
@@ -1459,14 +1612,25 @@ export function CafeArtisanSite({
       ...basketLineItems.map(
         (item) => `- ${item.name} x${item.qty} (₹${(item.price * item.qty).toLocaleString('en-IN')})`,
       ),
+      `Pickup / Table Slot: ${activeSlotObj.waLabel}`,
       seasonalDiscountApplied
         ? `Seasonal Launch Privilege (20% Off): -₹${discountAmount.toLocaleString('en-IN')}`
         : '',
+      localizedOffer ? `Offer Tag: ${localizedOffer}` : '',
       orderNote.trim() ? `Barista / Floral Note: ${orderNote.trim()}` : '',
       `Total Payable: ₹${finalTotal.toLocaleString('en-IN')}`,
     ].filter(Boolean);
     return lines.join('\n');
-  }, [basketLineItems, brandTitle, discountAmount, finalTotal, orderNote, seasonalDiscountApplied]);
+  }, [
+    basketLineItems,
+    brandTitle,
+    activeSlotObj.waLabel,
+    discountAmount,
+    finalTotal,
+    localizedOffer,
+    orderNote,
+    seasonalDiscountApplied,
+  ]);
 
   const activeEventPkg =
     EVENT_PACKAGES.find((pkg) => pkg.key === selectedEvent) ?? EVENT_PACKAGES[0];
@@ -1555,6 +1719,15 @@ export function CafeArtisanSite({
     showToast('Coconut Iced Latte added · 20% Launch Offer active.');
   }
 
+  function handleAddPairingToBasket() {
+    setBasket((prev) => ({
+      ...prev,
+      [pairingDrink.id]: (prev[pairingDrink.id] ?? 0) + 1,
+      [pairingCompanion.id]: (prev[pairingCompanion.id] ?? 0) + 1,
+    }));
+    showToast(`${pairingDrink.name} + ${pairingCompanion.name} added to basket.`);
+  }
+
   function scrollToRef(ref: React.RefObject<HTMLElement | null>) {
     ref.current?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' });
   }
@@ -1570,6 +1743,11 @@ export function CafeArtisanSite({
         addBtn: '+ बास्केट',
         slideGlass: 'फ्लूटेड ग्लास स्लाइड करें',
         reserveEvent: 'WhatsApp पर बुक करें',
+        pairingEyebrow: 'बेरिस्ता और फ़्लोरल पेयरिंग',
+        pairingTitle: 'आज के मूड के अनुसार जोड़ी चुनें',
+        addPairingCta: 'दोनों बास्केट में जोड़ें',
+        slotLabel: 'पिकअप / टेबल समय स्लॉट',
+        slotActivePrefix: 'स्लॉट',
       };
     }
     if (coreLang === 'hinglish') {
@@ -1582,6 +1760,11 @@ export function CafeArtisanSite({
         addBtn: '+ Add',
         slideGlass: 'Slide Fluted Glass',
         reserveEvent: 'Reserve on WhatsApp',
+        pairingEyebrow: 'BARISTA & FLORAL PAIRING',
+        pairingTitle: 'Apne Mood Ki Signature Pairing Chunein',
+        addPairingCta: 'Add Pairing to Basket',
+        slotLabel: 'Pickup / Table Reservation Slot',
+        slotActivePrefix: 'Slot',
       };
     }
     return {
@@ -1593,6 +1776,11 @@ export function CafeArtisanSite({
       addBtn: '+ Add to Basket',
       slideGlass: 'Slide Fluted Glass',
       reserveEvent: 'Reserve on WhatsApp',
+      pairingEyebrow: 'BARISTA & FLORAL PAIRING RECOMMENDER',
+      pairingTitle: 'Find Your Mood-Matched Pour & Atelier Pairing',
+      addPairingCta: 'Add Pairing to Basket',
+      slotLabel: 'Pickup / Table Reservation Time Slot',
+      slotActivePrefix: 'Slot',
     };
   }, [coreLang]);
 
@@ -1748,10 +1936,18 @@ export function CafeArtisanSite({
 
         {/* Kinetic Stage: Giant Display Word + Orbiting 3D Elements + Featured Cup/Bouquet */}
         <div className="wz-cafe-stage wz-cafe-section-px relative z-10 mx-auto flex max-w-6xl flex-col items-center justify-end">
-          {/* Origin micro-pill */}
-          <div className="relative z-20 mb-2 inline-flex items-center gap-2 rounded-full border border-white/30 bg-black/15 px-3 py-1 font-mono text-[9.5px] font-bold uppercase tracking-[0.18em] text-white/95 backdrop-blur-xs">
-            <span className="h-1.5 w-1.5 rounded-full bg-white" aria-hidden="true" />
-            <span>{activeSlide.originNote}</span>
+          {/* Origin micro-pill + Optional Customized Offer Tag */}
+          <div className="relative z-20 mb-2 flex flex-wrap items-center justify-center gap-2">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-black/15 px-3 py-1 font-mono text-[9.5px] font-bold uppercase tracking-[0.18em] text-white/95 backdrop-blur-xs">
+              <span className="h-1.5 w-1.5 rounded-full bg-white" aria-hidden="true" />
+              <span>{activeSlide.originNote}</span>
+            </div>
+            {localizedOffer ? (
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-[#FDE6C4]/60 bg-[#2B1209]/70 px-3 py-1 font-mono text-[9.5px] font-bold uppercase tracking-[0.14em] text-[#FDE6C4] shadow-xs backdrop-blur-xs">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#FDE6C4]" aria-hidden="true" />
+                <span>{localizedOffer}</span>
+              </div>
+            ) : null}
           </div>
 
           {/* Giant ultra-bold uppercase background display word (outer parallax + inner spring reveal) */}
@@ -2318,6 +2514,138 @@ export function CafeArtisanSite({
             </button>
           </div>
 
+          {/* INTERACTIVE BARISTA & FLORAL PAIRING RECOMMENDER */}
+          <div className="mt-6 overflow-hidden rounded-[24px] border border-[#DFD2C2] bg-white p-4 shadow-[0_14px_32px_-20px_rgba(62,31,20,0.28)] sm:p-5">
+            <div className="wz-cafe-pairing-grid">
+              <div>
+                <p className="font-mono text-[9.5px] font-bold uppercase tracking-[0.2em] text-[#9E6A48]">
+                  {uiCopy.pairingEyebrow}
+                </p>
+                <h3 className="mt-1 font-editorial text-xl font-normal leading-snug text-[#2B1810] sm:text-2xl">
+                  {uiCopy.pairingTitle}
+                </h3>
+
+                {/* 3 Quick Mood Toggles */}
+                <div
+                  role="tablist"
+                  aria-label={uiCopy.pairingEyebrow}
+                  className="mt-3 flex flex-wrap gap-2"
+                >
+                  {BARISTA_PAIRINGS.map((preset) => {
+                    const isSelected = preset.key === activePairing.key;
+                    return (
+                      <button
+                        key={preset.key}
+                        type="button"
+                        role="tab"
+                        aria-selected={isSelected}
+                        onClick={() => setActivePairingMood(preset.key)}
+                        className={`min-h-[44px] rounded-full border px-4 py-2 text-xs font-bold transition-all active:scale-95 ${
+                          isSelected
+                            ? 'text-white shadow-xs'
+                            : 'border-[#DFD2C2] bg-[#FAF6F1] text-[#4A2E20] hover:border-[#B47D59]'
+                        }`}
+                        style={
+                          isSelected
+                            ? { backgroundColor: preset.accentHex, borderColor: preset.accentHex }
+                            : undefined
+                        }
+                      >
+                        {preset.label[coreLang]}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <p className="mt-3 text-xs leading-relaxed text-[#6A5042]">
+                  {activePairing.note[coreLang]}
+                </p>
+              </div>
+
+              {/* Recommended Pairing Card + 1-Tap Add Pairing Action */}
+              <div className="rounded-2xl border border-[#E6DACB] bg-[#FAF6F1] p-3.5 sm:p-4">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-mono text-[9px] font-bold uppercase tracking-[0.16em] text-[#8C6149]">
+                    {activePairing.vibeTag[coreLang]}
+                  </span>
+                  <span className="font-tabular rounded-full bg-white px-2.5 py-0.5 text-[11px] font-black text-[#2B1810]">
+                    ₹{pairingCombinedPrice.toLocaleString('en-IN')}
+                  </span>
+                </div>
+
+                <div className="mt-2.5 grid grid-cols-2 gap-2">
+                  {[pairingDrink, pairingCompanion].map((pairedItem) => (
+                    <div
+                      key={pairedItem.id}
+                      className="rounded-xl border border-[#DFD2C2]/80 bg-white p-2.5"
+                    >
+                      <p className="font-mono text-[8.5px] font-bold uppercase tracking-[0.14em] text-[#9E6A48]">
+                        {pairedItem.badge}
+                      </p>
+                      <p className="mt-0.5 line-clamp-1 font-festive text-xs font-extrabold text-[#2B1810]">
+                        {pairedItem.name}
+                      </p>
+                      <p className="font-tabular mt-0.5 text-[10.5px] font-bold text-[#6A5042]">
+                        ₹{pairedItem.price.toLocaleString('en-IN')}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleAddPairingToBasket}
+                  className="mt-3 flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full px-4 text-xs font-extrabold uppercase tracking-[0.1em] text-white shadow-xs transition hover:brightness-110 active:scale-[0.98]"
+                  style={{ backgroundColor: activePairing.accentHex }}
+                >
+                  <span>+ {uiCopy.addPairingCta}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* PICKUP / TABLE RESERVATION TIME SLOT SELECTOR (WIRED TO WHATSAPP) */}
+          <div className="mt-4 rounded-2xl border border-[#DFD2C2] bg-[#F5EFE6]/85 p-3.5 sm:p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="font-mono text-[9.5px] font-bold uppercase tracking-[0.18em] text-[#7A5B49]">
+                {uiCopy.slotLabel}
+              </span>
+              <span className="font-mono text-[9.5px] font-semibold text-[#590C15]">
+                {uiCopy.slotActivePrefix}: {activeSlotObj.label[coreLang]}
+              </span>
+            </div>
+            <div
+              role="radiogroup"
+              aria-label={uiCopy.slotLabel}
+              className="mt-2.5 grid grid-cols-1 gap-2 sm:grid-cols-3"
+            >
+              {PICKUP_SLOTS.map((slot) => {
+                const isSelected = slot.key === selectedSlot;
+                return (
+                  <button
+                    key={slot.key}
+                    type="button"
+                    role="radio"
+                    aria-checked={isSelected}
+                    onClick={() => setSelectedSlot(slot.key)}
+                    className={`flex min-h-[44px] items-center justify-between gap-2 rounded-xl border px-3.5 py-2 text-left transition active:scale-[0.99] ${
+                      isSelected
+                        ? mode === 'maison'
+                          ? 'border-[#590C15] bg-[#590C15] text-[#FAF3EC] shadow-xs'
+                          : 'border-[#3E1F14] bg-[#3E1F14] text-[#FAF6F1] shadow-xs'
+                        : 'border-[#DFD2C2] bg-white text-[#3E1F14] hover:border-[#B47D59]'
+                    }`}
+                  >
+                    <span className="text-xs font-extrabold">{slot.label[coreLang]}</span>
+                    <span className="font-mono text-[9px] uppercase tracking-[0.1em] opacity-80">
+                      {slot.sublabel[coreLang]}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Smooth Category Filter Pill Tabs */}
           <div
             role="tablist"
@@ -2333,7 +2661,7 @@ export function CafeArtisanSite({
                   role="tab"
                   aria-selected={selected}
                   onClick={() => setActiveCategory(tab.key)}
-                  className={`min-h-[38px] shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-xs font-bold transition-all active:scale-95 ${
+                  className={`min-h-[44px] shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-xs font-bold transition-all active:scale-95 ${
                     selected
                       ? mode === 'maison'
                         ? 'bg-[#590C15] text-[#FAF3EC] shadow-xs'
@@ -2468,9 +2796,14 @@ export function CafeArtisanSite({
                 <h3 className="-mt-1 font-festive text-3xl font-black leading-none tracking-tight text-[#4A1F12] sm:text-5xl">
                   Coconut Iced Latte
                 </h3>
-                <p className="mt-3 max-w-md text-xs leading-relaxed text-[#5E3224] sm:text-sm">
-                  {localizedOffer ||
-                    'Chilled single-origin cold brew poured over velvety coconut cream, crisp ice, and toasted oat milk. Bright, cooling, and crafted for sunlit afternoons.'}
+                {localizedOffer ? (
+                  <div className="mt-2.5 inline-flex items-center gap-1.5 rounded-full border border-[#8F1627]/30 bg-white/80 px-3 py-1 font-mono text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#8F1627]">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#8F1627]" aria-hidden="true" />
+                    <span>{localizedOffer}</span>
+                  </div>
+                ) : null}
+                <p className="mt-2.5 max-w-md text-xs leading-relaxed text-[#5E3224] sm:text-sm">
+                  Chilled single-origin cold brew poured over velvety coconut cream, crisp ice, and toasted oat milk. Bright, cooling, and crafted for sunlit afternoons.
                 </p>
 
                 {/* Tasting Badge Breakdown */}
@@ -2772,9 +3105,10 @@ export function CafeArtisanSite({
                   <span className="font-tabular">₹{finalTotal.toLocaleString('en-IN')}</span>
                 </p>
                 <p className="truncate text-[9.5px] text-white/65">
+                  {activeSlotObj.label[coreLang]}
                   {seasonalDiscountApplied
-                    ? `20% Launch Offer applied (-₹${discountAmount.toLocaleString('en-IN')})`
-                    : 'Tap to review items or checkout'}
+                    ? ` · 20% Off (-₹${discountAmount.toLocaleString('en-IN')})`
+                    : ' · Tap to review items'}
                 </p>
               </div>
             </button>
@@ -2904,6 +3238,33 @@ export function CafeArtisanSite({
                       {seasonalDiscountApplied ? 'Applied' : 'Tap to Apply'}
                     </span>
                   </button>
+
+                  {/* Pickup / Table Time Slot inside Drawer */}
+                  <div>
+                    <p className="mb-1.5 font-mono text-[9.5px] font-bold uppercase tracking-[0.14em] text-[#7A5B49]">
+                      {uiCopy.slotLabel}
+                    </p>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {PICKUP_SLOTS.map((slot) => {
+                        const isSelected = slot.key === selectedSlot;
+                        return (
+                          <button
+                            key={`drawer-slot-${slot.key}`}
+                            type="button"
+                            aria-pressed={isSelected}
+                            onClick={() => setSelectedSlot(slot.key)}
+                            className={`min-h-[44px] rounded-xl border px-2 py-1.5 text-center text-[10.5px] font-bold leading-tight transition ${
+                              isSelected
+                                ? 'border-[#3E1F14] bg-[#3E1F14] text-white'
+                                : 'border-[#DFD2C2] bg-white text-[#4A2E20] hover:border-[#B47D59]'
+                            }`}
+                          >
+                            {slot.label[coreLang]}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
 
                   {/* Optional Barista / Bouquet Note */}
                   <div>

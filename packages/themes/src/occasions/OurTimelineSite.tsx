@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useId, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { type CoreLanguageCode, pickLocalizedText, toCoreLanguageCode } from '@webzy/core';
 import {
   getWebzyFooterLabel,
@@ -502,9 +502,8 @@ function PressedPetalSvg({ size, color }: { size: number; color: string }) {
 interface MilestoneChapterMood {
   id: '6m' | '1y' | '2y' | 'forever';
   pill: Record<CoreLanguageCode, string>;
-  statChapters: string;
-  statSunsets: string;
-  statJokes: string;
+  statChapters: Record<CoreLanguageCode, string>;
+  statSunsets: Record<CoreLanguageCode, string>;
   vow: Record<CoreLanguageCode, string>;
 }
 
@@ -512,9 +511,8 @@ const MILESTONE_CHAPTER_MOODS: readonly MilestoneChapterMood[] = [
   {
     id: '6m',
     pill: { en: '6 Months', hinglish: '6 Mahine', hi: '6 महीने' },
-    statChapters: '180+ Days',
-    statSunsets: '42 Chai Dates',
-    statJokes: '99+ Jokes',
+    statChapters: { en: '180+ Days', hinglish: '180+ Din', hi: '180+ दिन' },
+    statSunsets: { en: '42 Chai Dates', hinglish: '42 Chai Dates', hi: '42 चाय मुलाक़ातें' },
     vow: {
       en: 'Six months in and every small catch-up still feels like the best part of the week.',
       hinglish: '6 mahine beet gaye aur abhi bhi tumse milna poore hafte ka sabse pyara hissa lagta hai.',
@@ -524,9 +522,8 @@ const MILESTONE_CHAPTER_MOODS: readonly MilestoneChapterMood[] = [
   {
     id: '1y',
     pill: { en: '1 Year', hinglish: '1 Saal', hi: '1 वर्ष' },
-    statChapters: '365 Days',
-    statSunsets: '4 Seasons',
-    statJokes: '300+ Laughs',
+    statChapters: { en: '365 Days', hinglish: '365 Din', hi: '365 दिन' },
+    statSunsets: { en: '4 Seasons', hinglish: '4 Mausam', hi: '4 मौसम' },
     vow: {
       en: 'One full turn around the sun — every season brighter because we walked through it together.',
       hinglish: 'Ek poora saal saath — har mausam aur khubsurat laga kyunki hum saath the.',
@@ -536,9 +533,8 @@ const MILESTONE_CHAPTER_MOODS: readonly MilestoneChapterMood[] = [
   {
     id: '2y',
     pill: { en: '2+ Years', hinglish: '2+ Saal', hi: '2+ वर्ष' },
-    statChapters: '730+ Days',
-    statSunsets: '12+ Trips',
-    statJokes: 'Endless',
+    statChapters: { en: '730+ Days', hinglish: '730+ Din', hi: '730+ दिन' },
+    statSunsets: { en: '12+ Trips', hinglish: '12+ Trips', hi: '12+ यात्राएँ' },
     vow: {
       en: 'Years of shared playlists, quiet routines, and still choosing each other every single morning.',
       hinglish: 'Kai saalon ki playlists, chhoti aadatein, aur har subah phir se ek-doosre ko chunna.',
@@ -548,9 +544,8 @@ const MILESTONE_CHAPTER_MOODS: readonly MilestoneChapterMood[] = [
   {
     id: 'forever',
     pill: { en: 'Always', hinglish: 'Hamesha', hi: 'सदैव' },
-    statChapters: 'All Chapters',
-    statSunsets: 'Infinite',
-    statJokes: 'Lifetime',
+    statChapters: { en: 'All Chapters', hinglish: 'Har Chapter', hi: 'सभी अध्याय' },
+    statSunsets: { en: 'Infinite', hinglish: 'Beshumaar', hi: 'अनगिनत' },
     vow: {
       en: 'No matter how many film rolls we fill, my favorite frame will always be the next one with you.',
       hinglish: 'Chahe jitni bhi film rolls bhar jayein, meri sabse pyari tasveer hamesha agali wali hogi.',
@@ -558,6 +553,220 @@ const MILESTONE_CHAPTER_MOODS: readonly MilestoneChapterMood[] = [
     },
   },
 ];
+
+type DateJarId = 'rooftop' | 'hills' | 'movie';
+
+interface StoryTriviaCard {
+  id: 'first-spark' | 'comfort-ritual' | 'favorite-detour';
+  code: string;
+  tag: Record<CoreLanguageCode, string>;
+  question: Record<CoreLanguageCode, string>;
+  answer: (receiver: string, sender: string, highlightTitle?: string) => Record<CoreLanguageCode, string>;
+}
+
+const STORY_TRIVIA_CARDS: readonly StoryTriviaCard[] = [
+  {
+    id: 'first-spark',
+    code: '01',
+    tag: { en: 'CHAPTER ONE', hinglish: 'PEHLA PAL', hi: 'पहला अध्याय' },
+    question: {
+      en: 'What quietly turned an ordinary day into our favorite memory?',
+      hinglish: 'Kis chhoti baat ne ek mamooli din ko hamari sabse pyari yaad bana diya?',
+      hi: 'किस छोटी सी बात ने एक साधारण दिन को हमारी सबसे प्यारी याद बना दिया?',
+    },
+    answer: (receiver, sender, highlightTitle) => ({
+      en: highlightTitle
+        ? `${highlightTitle} — the moment ${sender} knew every chapter with ${receiver} would feel like home.`
+        : `The effortless laughter between ${receiver} and ${sender}, where hours felt like minutes.`,
+      hinglish: highlightTitle
+        ? `${highlightTitle} — woh pal jab ${sender} ko samajh aa gaya ki ${receiver} ke saath har din ghar jaisa hai.`
+        : `${receiver} aur ${sender} ki woh befikar hansi, jismein ghante bhi pal bhar lagte hain.`,
+      hi: highlightTitle
+        ? `${highlightTitle} — वही पल जब ${sender} ने जाना कि ${receiver} के साथ हर दिन घर जैसा सुकून है।`
+        : `${receiver} और ${sender} की वह निश्छल हँसी, जिसमें घंटे भी पल भर में बीत जाते हैं।`,
+    }),
+  },
+  {
+    id: 'comfort-ritual',
+    code: '02',
+    tag: { en: 'OUR RITUAL', hinglish: 'HAMARI AADAT', hi: 'हमारी आदत' },
+    question: {
+      en: 'What is our undefeated cure for any long, tiring week?',
+      hinglish: 'Kisi bhi thaka dene wale hafte ka hamara sabse pakka ilaaj kya hai?',
+      hi: 'किसी भी थका देने वाले सप्ताह का हमारा सबसे पक्का सुकून क्या है?',
+    },
+    answer: (receiver, sender) => ({
+      en: `Two warm cups, our shared playlist, and ${sender} making ${receiver} smile before the first song ends.`,
+      hinglish: `Do garam cup chai, hamari favorite playlist, aur pehla gaana khatam hone se pehle ${receiver} ki muskaan.`,
+      hi: `दो गरम प्याले चाय, हमारी पसंदीदा धुनें और पहले गीत से पहले ही ${receiver} के चेहरे पर मुस्कान।`,
+    }),
+  },
+  {
+    id: 'favorite-detour',
+    code: '03',
+    tag: { en: 'PLOT TWIST', hinglish: 'KHAAS SAFAR', hi: 'सुंदर मोड़' },
+    question: {
+      en: 'Which part of our story still makes us grin every single time?',
+      hinglish: 'Hamari kahani ka kaunsa hissa aaj bhi soch kar chehre par muskaan le aata hai?',
+      hi: 'हमारी कहानी का कौन-सा हिस्सा आज भी याद आते ही मुस्कान ले आता है?',
+    },
+    answer: (receiver, sender, highlightTitle) => ({
+      en: highlightTitle
+        ? `Reliving "${highlightTitle}" — proof that the best memories with ${receiver} were never scripted.`
+        : `Every unplanned detour we took together — because ${sender} would choose that same road with ${receiver} all over again.`,
+      hinglish: highlightTitle
+        ? `"${highlightTitle}" ko phir yaad karna — saboot hai ki ${receiver} ke saath best pal kabhi plan nahi hote.`
+        : `Har unplanned rasta jo humne saath chuna — kyunki ${sender} wohi safar ${receiver} ke saath phir chunenge.`,
+      hi: highlightTitle
+        ? `"${highlightTitle}" को फिर याद करना — यही बताता है कि ${receiver} के साथ सबसे सुंदर पल बिना योजना के बनते हैं।`
+        : `हर अनियोजित सफ़र जो हमने साथ तय किया — क्योंकि ${sender} वही राह ${receiver} के साथ फिर चुनेंगे।`,
+    }),
+  },
+];
+
+interface DateJarIdea {
+  id: DateJarId;
+  code: string;
+  title: Record<CoreLanguageCode, string>;
+  subtitle: Record<CoreLanguageCode, string>;
+}
+
+const DATE_JAR_IDEAS: readonly DateJarIdea[] = [
+  {
+    id: 'rooftop',
+    code: '01 · DUSK',
+    title: {
+      en: 'Sunset Rooftop Dinner',
+      hinglish: 'Sunset Rooftop Dinner',
+      hi: 'सूर्यास्त रूफ़टॉप डिनर',
+    },
+    subtitle: {
+      en: 'Warm string lights, golden sky & unhurried desserts.',
+      hinglish: 'Warm lights, sunahra aasmaan aur bina jaldi ke dinner.',
+      hi: 'गुनगुनी रोशनी, सुनहरा आकाश और सुकून भरा रात्रिभोज।',
+    },
+  },
+  {
+    id: 'hills',
+    code: '02 · ESCAPE',
+    title: {
+      en: 'Weekend Hill Escape',
+      hinglish: 'Weekend Hill Escape',
+      hi: 'वीकेंड पहाड़ी सफ़र',
+    },
+    subtitle: {
+      en: 'Misty mornings, scenic turns & fresh mountain air.',
+      hinglish: 'Dhundh bhari subah, pahadi raste aur garma-garam chai.',
+      hi: 'धुंध भरी सुबह, घुमावदार वादियाँ और ताज़ा पहाड़ी हवा।',
+    },
+  },
+  {
+    id: 'movie',
+    code: '03 · COZY',
+    title: {
+      en: 'Cozy Home Movie Marathon',
+      hinglish: 'Cozy Home Movie Marathon',
+      hi: 'घर पर मूवी मैराथन',
+    },
+    subtitle: {
+      en: 'Soft blankets, favorite snacks & our classic comfort films.',
+      hinglish: 'Warm blankets, favorite snacks aur back-to-back comfort movies.',
+      hi: 'मुलायम कंबल, पसंदीदा स्नैक्स और हमारी चुनिंदा फ़िल्में।',
+    },
+  },
+];
+
+function ChampagneClinkSvg({ clinked, className = 'h-14 w-24' }: { clinked: boolean; className?: string }) {
+  return (
+    <svg viewBox="0 0 110 68" fill="none" aria-hidden="true" className={className}>
+      {/* Golden shimmer rays on clink */}
+      <g
+        style={{
+          opacity: clinked ? 1 : 0.25,
+          transition: 'opacity 320ms ease',
+        }}
+      >
+        <path d="M55 6V14" stroke="#EAB354" strokeWidth="2" strokeLinecap="round" />
+        <path d="M43 10L48 16" stroke="#F6C86E" strokeWidth="1.8" strokeLinecap="round" />
+        <path d="M67 10L62 16" stroke="#F6C86E" strokeWidth="1.8" strokeLinecap="round" />
+        <circle cx="55" cy="18" r="2.2" fill="#EAB354" />
+      </g>
+      {/* Left flute */}
+      <g
+        style={{
+          transformOrigin: '42px 58px',
+          transform: clinked ? 'rotate(10deg) translateX(2px)' : 'rotate(-4deg)',
+          transition: 'transform 420ms cubic-bezier(0.22, 1, 0.36, 1)',
+        }}
+      >
+        <path d="M33 20H46L44 37C43.6 40.5 41.2 43 39.5 43C37.8 43 35.4 40.5 35 37L33 20Z" fill="#FFFDF8" stroke="#7A5438" strokeWidth="1.7" />
+        <path d="M34.5 29H44.5L43.6 36.8C43.2 39.5 41 41.5 39.5 41.5C38 41.5 35.8 39.5 35.4 36.8L34.5 29Z" fill="#F6C86E" fillOpacity="0.82" />
+        <path d="M39.5 43V57M33 57H46" stroke="#7A5438" strokeWidth="1.7" strokeLinecap="round" />
+        <circle cx="38" cy="34" r="1" fill="#FFFDF8" />
+        <circle cx="41" cy="31.5" r="0.9" fill="#FFFDF8" />
+      </g>
+      {/* Right flute */}
+      <g
+        style={{
+          transformOrigin: '68px 58px',
+          transform: clinked ? 'rotate(-10deg) translateX(-2px)' : 'rotate(4deg)',
+          transition: 'transform 420ms cubic-bezier(0.22, 1, 0.36, 1)',
+        }}
+      >
+        <path d="M64 20H77L75 37C74.6 40.5 72.2 43 70.5 43C68.8 43 66.4 40.5 66 37L64 20Z" fill="#FFFDF8" stroke="#7A5438" strokeWidth="1.7" />
+        <path d="M65.5 29H75.5L74.6 36.8C74.2 39.5 72 41.5 70.5 41.5C69 41.5 66.8 39.5 66.4 36.8L65.5 29Z" fill="#EAB354" fillOpacity="0.84" />
+        <path d="M70.5 43V57M64 57H77" stroke="#7A5438" strokeWidth="1.7" strokeLinecap="round" />
+        <circle cx="69.5" cy="34" r="1" fill="#FFFDF8" />
+        <circle cx="72" cy="31.5" r="0.9" fill="#FFFDF8" />
+      </g>
+    </svg>
+  );
+}
+
+function DateIdeaIconSvg({ id, active }: { id: DateJarId; active: boolean }) {
+  const stroke = active ? '#F1BE6B' : '#7A5438';
+  if (id === 'rooftop') {
+    return (
+      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke={stroke} strokeWidth="1.7" aria-hidden="true">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4 17h16M7 17a5 5 0 0110 0M12 6v2.5M6.8 9.2l1.6 1.6M17.2 9.2l-1.6 1.6" />
+      </svg>
+    );
+  }
+  if (id === 'hills') {
+    return (
+      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke={stroke} strokeWidth="1.7" aria-hidden="true">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 18l6-9 4 5 3-4 5 8H3z" />
+        <circle cx="17.5" cy="6.5" r="2" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke={stroke} strokeWidth="1.7" aria-hidden="true">
+      <rect x="3" y="6" width="18" height="12" rx="2.5" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M10 9.5l5 2.5-5 2.5v-5z" />
+    </svg>
+  );
+}
+
+async function copyTextSafely(text: string): Promise<void> {
+  try {
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else if (typeof document !== 'undefined') {
+      const helper = document.createElement('textarea');
+      helper.value = text;
+      helper.setAttribute('readonly', '');
+      helper.style.position = 'fixed';
+      helper.style.opacity = '0';
+      document.body.appendChild(helper);
+      helper.select();
+      document.execCommand('copy');
+      document.body.removeChild(helper);
+    }
+  } catch {
+    // Graceful silent fallback when clipboard access is restricted
+  }
+}
 
 interface BucketStampItem {
   id: 'sunrise' | 'cook' | 'rain' | 'letter';
@@ -594,11 +803,32 @@ const EXTRA_TIMELINE_COPY: Record<
     ledgerEyebrow: string;
     ledgerTitle: string;
     statFramesLabel: string;
+    statFramesValue: (count: string) => string;
     statTimeLabel: string;
     statMomentsLabel: string;
     soundtrackTitle: string;
     soundtrackTap: string;
     soundtrackPlaying: string;
+    triviaEyebrow: string;
+    triviaTitle: string;
+    triviaSubtitle: string;
+    triviaProgress: (flipped: number, total: number) => string;
+    triviaTapReveal: string;
+    triviaTapHide: string;
+    triviaCompleteNote: string;
+    toastEyebrow: string;
+    toastTitle: string;
+    toastSubtitle: string;
+    toastButton: string;
+    toastAgainButton: string;
+    toastBadge: (count: number) => string;
+    dateJarHeading: string;
+    dateJarDrawCta: string;
+    dateJarSelectedLabel: string;
+    copyReplyCta: (sender: string) => string;
+    copyReplyToast: string;
+    whatsappDirectCta: string;
+    replyMessage: (receiver: string, sender: string, dateTitle: string, toastCount: number) => string;
     capsuleEyebrow: string;
     capsuleClosedTitle: string;
     capsuleClosedHint: string;
@@ -614,11 +844,35 @@ const EXTRA_TIMELINE_COPY: Record<
     ledgerEyebrow: 'CHAPTER LEDGER · KEEPSAKE STATS',
     ledgerTitle: 'Our Milestone Chapter',
     statFramesLabel: '35MM FRAMES',
+    statFramesValue: (count) => `${count} Frames`,
     statTimeLabel: 'TOGETHER',
     statMomentsLabel: 'MEMORIES',
     soundtrackTitle: 'Golden-Hour Vinyl · Side A',
     soundtrackTap: 'Play Our Soundtrack',
     soundtrackPlaying: 'Spinning Side A...',
+    triviaEyebrow: 'MEMORY PROMPTS · 3-CARD FLIP',
+    triviaTitle: 'How Well Do We Know Our Story?',
+    triviaSubtitle: 'Tap each archival card to flip and reveal a quiet anniversary note.',
+    triviaProgress: (flipped, total) => `${flipped}/${total} flipped`,
+    triviaTapReveal: 'Tap to flip',
+    triviaTapHide: 'Tap to flip back',
+    triviaCompleteNote: 'All 3 story cards unveiled — every chapter is still our favorite.',
+    toastEyebrow: 'ANNIVERSARY TOAST & DATE JAR',
+    toastTitle: 'Raise a Toast to Next Year',
+    toastSubtitle: 'Clink glasses for a warm golden shimmer, then draw our next celebration date.',
+    toastButton: 'Clink Glasses · Raise a Toast',
+    toastAgainButton: 'Clink Glasses Again',
+    toastBadge: (count) => (count === 1 ? '1 Toast Raised' : `${count} Toasts Raised`),
+    dateJarHeading: 'Pick or Draw from the Next-Year Date Jar',
+    dateJarDrawCta: 'Draw Random Idea',
+    dateJarSelectedLabel: 'PICKED',
+    copyReplyCta: (sender) => `Copy Sweet WhatsApp Reply for ${sender}`,
+    copyReplyToast: 'Sweet anniversary reply copied — ready to paste on WhatsApp.',
+    whatsappDirectCta: 'Open in WhatsApp',
+    replyMessage: (receiver, sender, dateTitle, toastCount) =>
+      `Hey ${sender}, I just went through our timeline keepsake and loved every frame! ${
+        toastCount > 0 ? 'Raised a toast to us too. ' : ''
+      }Let us lock in "${dateTitle}" for our next celebration soon. — ${receiver}`,
     capsuleEyebrow: 'WAX-SEALED TIME CAPSULE',
     capsuleClosedTitle: 'A Promise Sealed For Our Next Chapter',
     capsuleClosedHint: 'Tap the crimson wax seal to open our future vow & stamp our next-year bucket list.',
@@ -634,11 +888,35 @@ const EXTRA_TIMELINE_COPY: Record<
     ledgerEyebrow: 'CHAPTER LEDGER · YAADON KA HISAB',
     ledgerTitle: 'Hamara Safar Ab Tak',
     statFramesLabel: '35MM FRAMES',
+    statFramesValue: (count) => `${count} Yaadein`,
     statTimeLabel: 'SAATH KA WAQT',
     statMomentsLabel: 'YAADEIN',
     soundtrackTitle: 'Sunahri Shaam · Side A',
     soundtrackTap: 'Hamara Gaana Chalao',
     soundtrackPlaying: 'Side A Chal Raha Hai...',
+    triviaEyebrow: 'MEMORY PROMPTS · 3-CARD FLIP',
+    triviaTitle: 'Hum Apni Kahani Kitna Jaante Hain?',
+    triviaSubtitle: 'Har card par tap karo aur peeche chhupa meetha note padho.',
+    triviaProgress: (flipped, total) => `${flipped}/${total} flipped`,
+    triviaTapReveal: 'Flip karne ke liye tap karo',
+    triviaTapHide: 'Wapas palatne ke liye tap karo',
+    triviaCompleteNote: 'Teeno story cards khul gaye — har chapter ab bhi dil ke sabse kareeb hai.',
+    toastEyebrow: 'ANNIVERSARY TOAST & DATE JAR',
+    toastTitle: 'Agle Saal Ke Naam Ek Toast',
+    toastSubtitle: 'Glasses clink karo aur agle celebration ke liye Date Jar se ek plan chuno.',
+    toastButton: 'Clink Glasses · Raise a Toast',
+    toastAgainButton: 'Phir Se Cheers Karein',
+    toastBadge: (count) => `${count} Toast Raised`,
+    dateJarHeading: 'Next-Year Date Jar Se Plan Chuno',
+    dateJarDrawCta: 'Jar Se Random Nikalo',
+    dateJarSelectedLabel: 'LOCKED',
+    copyReplyCta: (sender) => `${sender} ke liye WhatsApp Reply Copy Karo`,
+    copyReplyToast: 'Pyara reply copy ho gaya — ab WhatsApp par paste karke bhej do.',
+    whatsappDirectCta: 'WhatsApp par bhejo',
+    replyMessage: (receiver, sender, dateTitle, toastCount) =>
+      `Hey ${sender}, humara timeline keepsake dekh kar dil khush ho gaya! ${
+        toastCount > 0 ? 'Agle saal ke naam cheers bhi kar diya. ' : ''
+      }Agla celebration "${dateTitle}" pakka rakhte hain! — ${receiver}`,
     capsuleEyebrow: 'WAX-SEALED TIME CAPSULE',
     capsuleClosedTitle: 'Agle Chapter Ka Ek Chhupa Waada',
     capsuleClosedHint: 'Future vow padhne aur agle saal ki bucket list stamp karne ke liye seal todo.',
@@ -654,11 +932,35 @@ const EXTRA_TIMELINE_COPY: Record<
     ledgerEyebrow: 'स्मृति अध्याय · सफ़रनामा',
     ledgerTitle: 'हमारा अब तक का सफ़र',
     statFramesLabel: '35MM फ़्रेम्स',
+    statFramesValue: (count) => `${count} फ़्रेम`,
     statTimeLabel: 'साथ का समय',
     statMomentsLabel: 'मधुर पल',
     soundtrackTitle: 'सुनहरी शाम · साइड A',
     soundtrackTap: 'हमारी धुन सुनें',
     soundtrackPlaying: 'धुन बज रही है...',
+    triviaEyebrow: 'यादों की पहेली · 3 फ़्लिप कार्ड',
+    triviaTitle: 'हम अपनी कहानी कितनी जानते हैं?',
+    triviaSubtitle: 'हर कार्ड को पलटने के लिए टैप करें और पीछे लिखा स्नेह भरा उत्तर पढ़ें।',
+    triviaProgress: (flipped, total) => `${flipped}/${total} पलटे गए`,
+    triviaTapReveal: 'पलटने के लिए टैप करें',
+    triviaTapHide: 'वापस पलटें',
+    triviaCompleteNote: 'तीनों स्मृति कार्ड खुल गए — हमारी कहानी का हर अध्याय अनमोल है।',
+    toastEyebrow: 'सालगिरह की शुभकामना और डेट जार',
+    toastTitle: 'अगले वर्ष के नाम एक सुनहरा जाम',
+    toastSubtitle: 'सुनहरी चमक के लिए गिलास टकराएँ और अगले उत्सव की योजना चुनें।',
+    toastButton: 'गिलास टकराएँ · शुभकामना दें',
+    toastAgainButton: 'फिर से शुभकामना दें',
+    toastBadge: (count) => `${count} बार शुभकामना`,
+    dateJarHeading: 'अगले वर्ष के डेट जार से योजना चुनें',
+    dateJarDrawCta: 'जार से एक चुनें',
+    dateJarSelectedLabel: 'चयनित',
+    copyReplyCta: (sender) => `${sender} के लिए व्हाट्सऐप जवाब कॉपी करें`,
+    copyReplyToast: 'मधुर संदेश कॉपी हो गया — अब व्हाट्सऐप पर भेजें।',
+    whatsappDirectCta: 'व्हाट्सऐप पर भेजें',
+    replyMessage: (receiver, sender, dateTitle, toastCount) =>
+      `प्रिय ${sender}, हमारी यादों का यह सफ़रनामा देखकर मन बेहद प्रसन्न हो गया! ${
+        toastCount > 0 ? 'अगले वर्ष के नाम सुनहरी शुभकामना भी दी। ' : ''
+      }आइए जल्द ही "${dateTitle}" की योजना पक्की करते हैं। — ${receiver}`,
     capsuleEyebrow: 'मोहरबंद भविष्य पत्र',
     capsuleClosedTitle: 'अगले अध्याय के लिए एक ख़ास वादा',
     capsuleClosedHint: 'भविष्य का वादा पढ़ने और अगले वर्ष के सपने चुनने के लिए मोहर खोलें।',
@@ -690,11 +992,19 @@ export function OurTimelineSite({
   const [activeIdx, setActiveIdx] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [failedPhotos, setFailedPhotos] = useState<Record<string, boolean>>({});
+  const [sceneFailed, setSceneFailed] = useState(false);
   const [pressedCount, setPressedCount] = useState(0);
   const [milestoneMoodId, setMilestoneMoodId] = useState<MilestoneChapterMood['id']>('1y');
   const [capsuleOpen, setCapsuleOpen] = useState(false);
   const [stampedGoals, setStampedGoals] = useState<string[]>([]);
+  const [flippedTriviaIds, setFlippedTriviaIds] = useState<string[]>([]);
+  const [toastCount, setToastCount] = useState(0);
+  const [toastShimmering, setToastShimmering] = useState(false);
+  const [selectedDateId, setSelectedDateId] = useState<DateJarId>('rooftop');
+  const [replyCopied, setReplyCopied] = useState(false);
   const openedNotifiedRef = useRef(false);
+  const toastShimmerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const copyReplyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const coreLang = toCoreLanguageCode(language);
   const isDevanagari = coreLang === 'hi';
@@ -702,10 +1012,22 @@ export function OurTimelineSite({
   const extraCopy = EXTRA_TIMELINE_COPY[coreLang] ?? EXTRA_TIMELINE_COPY.en;
   const activeMood =
     MILESTONE_CHAPTER_MOODS.find((m) => m.id === milestoneMoodId) ?? MILESTONE_CHAPTER_MOODS[1];
+  const activeDateIdea =
+    DATE_JAR_IDEAS.find((idea) => idea.id === selectedDateId) ?? DATE_JAR_IDEAS[0];
+  const sanitizedPhone = data.whatsappPhone?.replace(/\D/g, '') ?? '';
+  const hasValidWhatsapp = sanitizedPhone.length >= 7;
+  const soundtrackLabel = manifest.music?.[0]?.label?.trim() || extraCopy.soundtrackTitle;
 
   const themeLabel = pickLocalizedText(manifest.name, language);
   const headlineText = pickLocalizedText(data.headline, language);
   const messageText = pickLocalizedText(data.message, language);
+
+  useEffect(() => {
+    return () => {
+      if (toastShimmerTimerRef.current) clearTimeout(toastShimmerTimerRef.current);
+      if (copyReplyTimerRef.current) clearTimeout(copyReplyTimerRef.current);
+    };
+  }, []);
 
   const notifyOpenedOnce = useCallback(() => {
     if (!openedNotifiedRef.current) {
@@ -728,6 +1050,7 @@ export function OurTimelineSite({
       let dateStamp = curated.dateStamp;
       let title = curated.title;
       let note = curated.note;
+      let ticketStop = curated.ticketStop;
 
       if (highlight) {
         const parsed = splitMilestoneTitle(
@@ -736,6 +1059,9 @@ export function OurTimelineSite({
         );
         dateStamp = parsed.dateStamp;
         title = parsed.title || curated.title;
+        if (parsed.title) {
+          ticketStop = parsed.title.toUpperCase().slice(0, 22);
+        }
         const localizedDetail = pickLocalizedText(highlight.detail, language);
         if (localizedDetail.trim()) {
           note = localizedDetail;
@@ -751,7 +1077,7 @@ export function OurTimelineSite({
         quartzStamp: curated.quartzStamp,
         title,
         note,
-        ticketStop: curated.ticketStop,
+        ticketStop,
         tiltDeg: tilts[idx % tilts.length],
       };
     });
@@ -792,6 +1118,61 @@ export function OurTimelineSite({
     },
     [notifyOpenedOnce],
   );
+
+  const handleToggleTriviaCard = useCallback(
+    (cardId: string, idx: number) => {
+      playPaperUnsealSfx(idx);
+      setFlippedTriviaIds((prev) =>
+        prev.includes(cardId) ? prev.filter((item) => item !== cardId) : [...prev, cardId],
+      );
+      notifyOpenedOnce();
+    },
+    [notifyOpenedOnce],
+  );
+
+  const handleRaiseToast = useCallback(() => {
+    playLanternPullChime();
+    setToastCount((prev) => prev + 1);
+    setToastShimmering(true);
+    notifyOpenedOnce();
+    if (toastShimmerTimerRef.current) clearTimeout(toastShimmerTimerRef.current);
+    toastShimmerTimerRef.current = setTimeout(() => setToastShimmering(false), 1800);
+  }, [notifyOpenedOnce]);
+
+  const handleDrawRandomDate = useCallback(() => {
+    playPaperUnsealSfx(1);
+    setSelectedDateId((current) => {
+      const others = DATE_JAR_IDEAS.filter((idea) => idea.id !== current);
+      const next = others[Math.floor(Math.random() * others.length)] ?? DATE_JAR_IDEAS[0];
+      return next.id;
+    });
+    notifyOpenedOnce();
+  }, [notifyOpenedOnce]);
+
+  const handleCopyWhatsAppReply = useCallback(async () => {
+    const sender = data.senderName?.trim() || 'you';
+    const receiver = data.receiverName?.trim() || '';
+    const text = extraCopy.replyMessage(
+      receiver,
+      sender,
+      activeDateIdea.title[coreLang],
+      toastCount,
+    );
+    await copyTextSafely(text);
+    playPaperUnsealSfx(3);
+    setReplyCopied(true);
+    notifyOpenedOnce();
+    if (copyReplyTimerRef.current) clearTimeout(copyReplyTimerRef.current);
+    copyReplyTimerRef.current = setTimeout(() => setReplyCopied(false), 2600);
+  }, [
+    activeDateIdea.title,
+    coreLang,
+    data.receiverName,
+    data.senderName,
+    extraCopy,
+    notifyOpenedOnce,
+    toastCount,
+  ]);
 
   const markPhotoFailed = useCallback((src: string) => {
     setFailedPhotos((prev) => (prev[src] ? prev : { ...prev, [src]: true }));
@@ -845,6 +1226,14 @@ export function OurTimelineSite({
           0% { opacity: 0.55; transform: scale(0.985); }
           100% { opacity: 1; transform: scale(1); }
         }
+        @keyframes sbChampagneShimmer-${uid} {
+          0% { opacity: 0; transform: translateX(-120%) skewX(-18deg); }
+          35% { opacity: 0.85; }
+          100% { opacity: 0; transform: translateX(220%) skewX(-18deg); }
+        }
+        .sb-champagne-shimmer-${uid} {
+          animation: sbChampagneShimmer-${uid} 1.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
         .sb-sway-left-${uid} {
           transform-origin: bottom center;
           animation: sbSwayLeft-${uid} 7.5s ease-in-out infinite;
@@ -887,7 +1276,8 @@ export function OurTimelineSite({
           .sb-sun-mote-${uid},
           .sb-sun-beam-${uid},
           .sb-petal-scatter-${uid},
-          .sb-frame-enter-${uid} {
+          .sb-frame-enter-${uid},
+          .sb-champagne-shimmer-${uid} {
             animation: none !important;
           }
           .sb-polaroid-card-${uid} {
@@ -1020,6 +1410,12 @@ export function OurTimelineSite({
             <span className="inline-flex items-center rounded-full border border-[#2E241E]/15 bg-[#231D19] px-2.5 py-1 font-mono text-[10px] font-bold tracking-[0.14em] text-[#F1BE6B]">
               {activeFrame.frameCode} / {String(frames.length).padStart(2, '0')}A
             </span>
+
+            {data.relation ? (
+              <span className="inline-flex items-center rounded-full border border-[#B85A56]/30 bg-[#FFFDF8]/90 px-2.5 py-1 text-[10px] font-semibold text-[#8F4D3E]">
+                {data.relation}
+              </span>
+            ) : null}
           </div>
 
           <h1 className="mt-3 max-w-full break-words font-royal-serif text-3xl font-semibold leading-tight text-[#2E241E] sm:text-4xl">
@@ -1042,20 +1438,32 @@ export function OurTimelineSite({
           aria-label={copy.rollTag}
           className="overflow-hidden rounded-[20px] border border-[#D4C2A8]/85 bg-[#FFFDF8] p-2 shadow-[0_16px_34px_-18px_rgba(46,36,30,0.3)]"
         >
-          <div className="relative aspect-[16/9] w-full overflow-hidden rounded-[14px] bg-[#2E241E]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/templates/occasions/our-timeline/scene.jpg"
-              alt={copy.rollTag}
-              className="h-full w-full object-cover"
-            />
+          <div
+            className="relative aspect-[16/9] w-full overflow-hidden rounded-[14px] bg-[#2E241E]"
+            style={{
+              backgroundImage: 'linear-gradient(135deg, #4B382A 0%, #8F5B3C 52%, #D99B66 100%)',
+            }}
+          >
+            {!sceneFailed ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src="/templates/occasions/our-timeline/scene.jpg"
+                alt={copy.rollTag}
+                onError={() => setSceneFailed(true)}
+                className="h-full w-full object-cover"
+              />
+            ) : null}
             <div
               aria-hidden="true"
               className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#231D19]/80 via-transparent to-transparent"
             />
             <div className="absolute inset-x-3.5 bottom-2.5 flex items-end justify-between gap-2 text-[#FAF4E8]">
               <div className="min-w-0">
-                <p className="font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-[#F1BE6B]">
+                <p
+                  className={`font-mono text-[9px] font-bold text-[#F1BE6B] ${
+                    isDevanagari ? 'tracking-normal' : 'uppercase tracking-[0.18em]'
+                  }`}
+                >
                   {copy.rollTag}
                 </p>
                 <p className="truncate font-royal-serif text-sm font-semibold">
@@ -1340,9 +1748,9 @@ export function OurTimelineSite({
                 type="button"
                 onClick={() => selectFrame(safeIdx - 1)}
                 aria-label={copy.prevFrameLabel}
-                className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[#E5A952]/30 bg-[#26211E] text-[#F1BE6B] transition hover:border-[#F1BE6B] hover:bg-[#322A25] active:scale-95"
+                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full border border-[#E5A952]/30 bg-[#26211E] text-[#F1BE6B] transition hover:border-[#F1BE6B] hover:bg-[#322A25] active:scale-95"
               >
-                <svg viewBox="0 0 20 20" className="h-3.5 w-3.5 fill-none stroke-current stroke-[2]" aria-hidden="true">
+                <svg viewBox="0 0 20 20" className="h-4 w-4 fill-none stroke-current stroke-[2]" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12.5 5.5L8 10l4.5 4.5" />
                 </svg>
               </button>
@@ -1350,9 +1758,9 @@ export function OurTimelineSite({
                 type="button"
                 onClick={() => selectFrame(safeIdx + 1)}
                 aria-label={copy.nextFrameLabel}
-                className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[#E5A952]/30 bg-[#26211E] text-[#F1BE6B] transition hover:border-[#F1BE6B] hover:bg-[#322A25] active:scale-95"
+                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full border border-[#E5A952]/30 bg-[#26211E] text-[#F1BE6B] transition hover:border-[#F1BE6B] hover:bg-[#322A25] active:scale-95"
               >
-                <svg viewBox="0 0 20 20" className="h-3.5 w-3.5 fill-none stroke-current stroke-[2]" aria-hidden="true">
+                <svg viewBox="0 0 20 20" className="h-4 w-4 fill-none stroke-current stroke-[2]" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 5.5L12 10l-4.5 4.5" />
                 </svg>
               </button>
@@ -1446,7 +1854,7 @@ export function OurTimelineSite({
           </div>
 
           {/* 4 Milestone Mood Selector Pills */}
-          <div className="mt-3.5 grid grid-cols-4 gap-1.5">
+          <div className="mt-3.5 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-1.5">
             {MILESTONE_CHAPTER_MOODS.map((mood, idx) => {
               const active = mood.id === milestoneMoodId;
               return (
@@ -1456,9 +1864,10 @@ export function OurTimelineSite({
                   onClick={() => {
                     playPaperUnsealSfx(idx);
                     setMilestoneMoodId(mood.id);
+                    notifyOpenedOnce();
                   }}
                   aria-pressed={active}
-                  className={`min-h-[40px] rounded-full border px-2 text-[11px] font-semibold transition active:scale-95 ${
+                  className={`min-h-[44px] rounded-full border px-2 text-[11px] font-semibold transition active:scale-95 ${
                     active
                       ? 'border-[#8F4D3E] bg-[#231D19] text-[#F1BE6B] shadow-2xs'
                       : 'border-[#D4C2A8] bg-[#FAF4E8] text-[#5C4535] hover:border-[#B85A56]/50'
@@ -1473,27 +1882,39 @@ export function OurTimelineSite({
           {/* 3 Brass-Framed Archival Flip-Stats */}
           <div className="mt-3.5 grid grid-cols-3 gap-2 text-center">
             <div className="rounded-xl border border-[#DFD0B8] bg-[#FAF4E8] px-2 py-2.5">
-              <p className="font-mono text-[8.5px] font-bold tracking-[0.12em] text-[#8F5B3C]">
+              <p
+                className={`font-mono text-[8.5px] font-bold text-[#8F5B3C] ${
+                  isDevanagari ? 'tracking-normal' : 'uppercase tracking-[0.12em]'
+                }`}
+              >
                 {extraCopy.statFramesLabel}
               </p>
               <p className="mt-1 font-royal-serif text-sm font-bold text-[#2E241E]">
-                0{frames.length} Rolls
+                {extraCopy.statFramesValue(String(frames.length).padStart(2, '0'))}
               </p>
             </div>
             <div className="rounded-xl border border-[#DFD0B8] bg-[#FAF4E8] px-2 py-2.5">
-              <p className="font-mono text-[8.5px] font-bold tracking-[0.12em] text-[#8F5B3C]">
+              <p
+                className={`font-mono text-[8.5px] font-bold text-[#8F5B3C] ${
+                  isDevanagari ? 'tracking-normal' : 'uppercase tracking-[0.12em]'
+                }`}
+              >
                 {extraCopy.statTimeLabel}
               </p>
               <p className="mt-1 font-royal-serif text-sm font-bold text-[#2E241E]">
-                {activeMood.statChapters}
+                {activeMood.statChapters[coreLang]}
               </p>
             </div>
             <div className="rounded-xl border border-[#DFD0B8] bg-[#FAF4E8] px-2 py-2.5">
-              <p className="font-mono text-[8.5px] font-bold tracking-[0.12em] text-[#8F5B3C]">
+              <p
+                className={`font-mono text-[8.5px] font-bold text-[#8F5B3C] ${
+                  isDevanagari ? 'tracking-normal' : 'uppercase tracking-[0.12em]'
+                }`}
+              >
                 {extraCopy.statMomentsLabel}
               </p>
               <p className="mt-1 font-royal-serif text-sm font-bold text-[#2E241E]">
-                {activeMood.statSunsets}
+                {activeMood.statSunsets[coreLang]}
               </p>
             </div>
           </div>
@@ -1509,14 +1930,340 @@ export function OurTimelineSite({
           </p>
         </section>
 
+        {/* HOW WELL DO WE KNOW OUR STORY? 3-CARD FLIP TRIVIA / MEMORY PROMPTS */}
+        <section
+          aria-label={extraCopy.triviaTitle}
+          className="rounded-[20px] border border-[#D4C2A8]/85 bg-[#FFFDF8]/92 p-4 shadow-[0_14px_30px_-18px_rgba(46,36,30,0.2)] sm:p-5"
+        >
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <span
+                className={`font-mono text-[9.5px] font-bold text-[#8F5B3C] ${
+                  isDevanagari ? 'tracking-normal' : 'uppercase tracking-[0.18em]'
+                }`}
+              >
+                {extraCopy.triviaEyebrow}
+              </span>
+              <h2
+                className={`mt-1 text-xl font-semibold text-[#2E241E] ${
+                  isDevanagari ? 'font-heading leading-snug' : 'font-royal-serif'
+                }`}
+              >
+                {extraCopy.triviaTitle}
+              </h2>
+              <p className="mt-0.5 text-xs leading-relaxed text-[#6B5647]">
+                {extraCopy.triviaSubtitle}
+              </p>
+            </div>
+            <span
+              role="status"
+              className="shrink-0 rounded-full border border-[#B85A56]/35 bg-[#231D19] px-3 py-1 font-mono text-[10px] font-bold text-[#F1BE6B]"
+            >
+              {extraCopy.triviaProgress(flippedTriviaIds.length, STORY_TRIVIA_CARDS.length)}
+            </span>
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {STORY_TRIVIA_CARDS.map((card, idx) => {
+              const isFlipped = flippedTriviaIds.includes(card.id);
+              const customHighlight = data.highlights?.[idx];
+              const highlightTitle = customHighlight
+                ? splitMilestoneTitle(
+                    pickLocalizedText(customHighlight.title, language),
+                    '',
+                  ).title
+                : undefined;
+              const answerMap = card.answer(
+                data.receiverName || 'you',
+                data.senderName || 'us',
+                highlightTitle,
+              );
+
+              return (
+                <div key={card.id} className={`sb-polaroid-scene-${uid} w-full`}>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleTriviaCard(card.id, idx)}
+                    aria-pressed={isFlipped}
+                    className="block min-h-[224px] w-full cursor-pointer text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#B85A56] sm:min-h-[244px]"
+                  >
+                    <div
+                      className={`sb-polaroid-card-${uid} relative min-h-[224px] w-full sm:min-h-[244px]`}
+                      style={{
+                        transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                      }}
+                    >
+                      {/* Trivia Card Front */}
+                      <div
+                        className={`sb-polaroid-face-${uid} absolute inset-0 flex flex-col justify-between rounded-2xl border border-[#D4C2A8] bg-gradient-to-b from-[#FAF4E8] to-[#F3E6CC] p-3.5 shadow-[0_10px_22px_-14px_rgba(46,36,30,0.28)]`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span
+                            className={`rounded border border-[#8F5B3C]/35 bg-[#FFFDF8] px-2 py-0.5 font-mono text-[8.5px] font-bold text-[#8F5B3C] ${
+                              isDevanagari ? 'tracking-normal' : 'uppercase tracking-[0.14em]'
+                            }`}
+                          >
+                            {card.tag[coreLang]}
+                          </span>
+                          <span className="font-mono text-[10px] font-extrabold text-[#B85A56]">
+                            {card.code}
+                          </span>
+                        </div>
+
+                        <p
+                          className={`my-auto py-2 text-[#2E241E] ${
+                            isDevanagari
+                              ? 'text-[13px] font-semibold leading-relaxed'
+                              : 'font-royal-serif text-[14.5px] font-semibold leading-snug'
+                          }`}
+                        >
+                          {card.question[coreLang]}
+                        </p>
+
+                        <div className="flex items-center justify-between border-t border-dashed border-[#B89B72]/55 pt-2 text-[10px] font-semibold text-[#7A5438]">
+                          <span>{extraCopy.triviaTapReveal}</span>
+                          <svg
+                            viewBox="0 0 20 20"
+                            className="h-3.5 w-3.5 fill-none stroke-current stroke-[1.8]"
+                            aria-hidden="true"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 10a6 6 0 0 1 10.3-4.2L16 7.5M16 4v3.5h-3.5" />
+                          </svg>
+                        </div>
+                      </div>
+
+                      {/* Trivia Card Back (Revealed Sweet Answer) */}
+                      <div
+                        className={`sb-polaroid-face-${uid} sb-polaroid-back-${uid} absolute inset-0 flex flex-col justify-between rounded-2xl border-2 border-[#B85A56]/70 bg-[#231D19] p-3.5 text-[#FAF4E8] shadow-[0_14px_26px_-14px_rgba(35,29,25,0.55)]`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-mono text-[9px] font-bold text-[#F1BE6B]">
+                            {card.code} · {card.tag[coreLang]}
+                          </span>
+                          <span className="h-2 w-2 rounded-full bg-[#F1BE6B]" aria-hidden="true" />
+                        </div>
+
+                        <p
+                          className={`my-auto py-2 text-[#FAF4E8] ${
+                            isDevanagari
+                              ? 'text-xs leading-relaxed'
+                              : 'font-royal-serif text-[13.5px] italic leading-relaxed'
+                          }`}
+                        >
+                          {answerMap[coreLang]}
+                        </p>
+
+                        <div className="flex items-center justify-between border-t border-[#F1BE6B]/25 pt-2 text-[10px] font-medium text-[#E5C99E]">
+                          <span>{extraCopy.triviaTapHide}</span>
+                          <PressedPetalSvg size={12} color="#F1BE6B" />
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
+          {flippedTriviaIds.length === STORY_TRIVIA_CARDS.length ? (
+            <p
+              role="status"
+              className="mt-3.5 rounded-xl border border-[#6E8568]/35 bg-[#F2F6EE] px-3.5 py-2 text-center text-xs font-semibold text-[#4A6147]"
+            >
+              {extraCopy.triviaCompleteNote}
+            </p>
+          ) : null}
+        </section>
+
         {/* GOLDEN-HOUR VINYL SOUNDTRACK CASSETTE */}
         <OccasionCassettePlayer
-          trackTitle={extraCopy.soundtrackTitle}
+          trackTitle={soundtrackLabel}
           mood="romantic"
           tapLabel={extraCopy.soundtrackTap}
           playingLabel={extraCopy.soundtrackPlaying}
           accentColor="#B85A56"
         />
+
+        {/* ANNIVERSARY TOAST & NEXT-YEAR DATE JAR */}
+        <section
+          aria-label={extraCopy.toastTitle}
+          className="relative overflow-hidden rounded-[20px] border border-[#C7A97E]/85 bg-gradient-to-b from-[#FFFDF8] via-[#FAF2DF] to-[#F3E3C2] p-5 shadow-[0_16px_34px_-18px_rgba(46,36,30,0.28)] sm:p-6"
+        >
+          {/* Champagne-Gold Shimmer Sweep on Clink */}
+          {toastShimmering ? (
+            <div
+              key={`shimmer-${toastCount}`}
+              aria-hidden="true"
+              className={`sb-champagne-shimmer-${uid} pointer-events-none absolute inset-y-0 left-0 z-20 w-1/2`}
+              style={{
+                background:
+                  'linear-gradient(90deg, transparent 0%, rgba(246, 200, 110, 0.48) 50%, transparent 100%)',
+              }}
+            />
+          ) : null}
+
+          <div className="relative z-10 text-center">
+            <span
+              className={`font-mono text-[9.5px] font-bold text-[#8F5B3C] ${
+                isDevanagari ? 'tracking-normal' : 'uppercase tracking-[0.18em]'
+              }`}
+            >
+              {extraCopy.toastEyebrow}
+            </span>
+            <h2
+              className={`mt-1 text-xl font-semibold text-[#2E241E] ${
+                isDevanagari ? 'font-heading leading-snug' : 'font-royal-serif'
+              }`}
+            >
+              {extraCopy.toastTitle}
+            </h2>
+            <p className="mx-auto mt-1 max-w-sm text-xs leading-relaxed text-[#6B5647]">
+              {extraCopy.toastSubtitle}
+            </p>
+
+            <div className="mt-3 flex flex-col items-center">
+              <ChampagneClinkSvg clinked={toastCount > 0} className="h-16 w-28" />
+
+              <div className="mt-2.5 flex flex-wrap items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleRaiseToast}
+                  className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-[#D4A44C]/60 bg-gradient-to-r from-[#231D19] via-[#3A2B20] to-[#231D19] px-5 py-2.5 text-xs font-bold text-[#F6C86E] shadow-[0_12px_24px_-10px_rgba(46,36,30,0.65)] transition hover:brightness-110 active:scale-95"
+                >
+                  <span className="h-2 w-2 rounded-full bg-[#F6C86E]" aria-hidden="true" />
+                  <span>{toastCount > 0 ? extraCopy.toastAgainButton : extraCopy.toastButton}</span>
+                </button>
+
+                {toastCount > 0 ? (
+                  <span
+                    role="status"
+                    className="inline-flex min-h-[36px] items-center rounded-full border border-[#C7A97E] bg-[#FFFDF8] px-3 py-1 font-mono text-[10px] font-bold text-[#7A5438]"
+                  >
+                    {extraCopy.toastBadge(toastCount)}
+                  </span>
+                ) : null}
+              </div>
+            </div>
+
+            {/* Next-Year Date Jar Picker */}
+            <div className="mt-5 border-t border-dashed border-[#B89B72]/65 pt-4 text-left">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p
+                  className={`font-mono text-[9.5px] font-bold text-[#7A5438] ${
+                    isDevanagari ? 'tracking-normal' : 'uppercase tracking-[0.14em]'
+                  }`}
+                >
+                  {extraCopy.dateJarHeading}
+                </p>
+                <button
+                  type="button"
+                  onClick={handleDrawRandomDate}
+                  className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full border border-[#8F5B3C]/45 bg-[#FFFDF8] px-3.5 text-[11px] font-bold text-[#7A5438] transition hover:border-[#B85A56] hover:text-[#B85A56] active:scale-95"
+                >
+                  <svg
+                    viewBox="0 0 20 20"
+                    className="h-3.5 w-3.5 fill-none stroke-current stroke-[1.8]"
+                    aria-hidden="true"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 7h11l-2.5-2.5M16 13H5l2.5 2.5" />
+                  </svg>
+                  <span>{extraCopy.dateJarDrawCta}</span>
+                </button>
+              </div>
+
+              <div className="mt-2.5 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                {DATE_JAR_IDEAS.map((idea) => {
+                  const isPicked = idea.id === selectedDateId;
+                  return (
+                    <button
+                      key={idea.id}
+                      type="button"
+                      onClick={() => {
+                        playPaperUnsealSfx(2);
+                        setSelectedDateId(idea.id);
+                        notifyOpenedOnce();
+                      }}
+                      aria-pressed={isPicked}
+                      className={`flex min-h-[92px] flex-col justify-between rounded-xl border p-3 text-left transition active:scale-[0.98] ${
+                        isPicked
+                          ? 'border-[#8F4D3E] bg-[#231D19] text-[#FAF4E8] shadow-[0_10px_22px_-12px_rgba(35,29,25,0.65)]'
+                          : 'border-[#D4C2A8] bg-[#FFFDF8]/90 text-[#2E241E] hover:border-[#B85A56]/60'
+                      }`}
+                    >
+                      <div className="flex w-full items-center justify-between gap-2">
+                        <DateIdeaIconSvg id={idea.id} active={isPicked} />
+                        {isPicked ? (
+                          <span className="rounded bg-[#F1BE6B]/20 px-1.5 py-0.5 font-mono text-[8.5px] font-bold text-[#F1BE6B]">
+                            {extraCopy.dateJarSelectedLabel}
+                          </span>
+                        ) : (
+                          <span className="font-mono text-[8.5px] font-bold text-[#8F5B3C]">
+                            {idea.code}
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-2">
+                        <p className="text-xs font-bold leading-snug">{idea.title[coreLang]}</p>
+                        <p
+                          className={`mt-0.5 text-[10.5px] leading-snug ${
+                            isPicked ? 'text-[#E5D7C1]' : 'text-[#6B5647]'
+                          }`}
+                        >
+                          {idea.subtitle[coreLang]}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Copy Sweet WhatsApp Reply & Optional Direct WhatsApp Link */}
+              <div className="mt-4 flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={handleCopyWhatsAppReply}
+                  className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full border border-[#B85A56]/35 bg-[#B85A56] px-4 py-2.5 text-xs font-bold text-[#FFFDF9] shadow-[0_10px_22px_-10px_rgba(184,90,86,0.65)] transition hover:bg-[#9E4945] active:scale-[0.98]"
+                >
+                  <svg className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path d="M7 3.5A1.5 1.5 0 018.5 2h6A1.5 1.5 0 0116 3.5v9a1.5 1.5 0 01-1.5 1.5h-6A1.5 1.5 0 017 12.5v-9z" />
+                    <path d="M4 6.5A1.5 1.5 0 015.5 5H6v7.5A2.5 2.5 0 008.5 15H13v.5a1.5 1.5 0 01-1.5 1.5h-6A1.5 1.5 0 014 15.5v-9z" />
+                  </svg>
+                  <span className="truncate">
+                    {extraCopy.copyReplyCta(data.senderName || 'you')}
+                  </span>
+                </button>
+
+                {hasValidWhatsapp ? (
+                  <a
+                    href={`https://wa.me/${sanitizedPhone}?text=${encodeURIComponent(
+                      extraCopy.replyMessage(
+                        data.receiverName || '',
+                        data.senderName || 'you',
+                        activeDateIdea.title[coreLang],
+                        toastCount,
+                      ),
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-h-[44px] w-full items-center justify-center rounded-full border border-[#8F5B3C]/40 bg-[#FFFDF8] px-4 text-xs font-bold text-[#5C4535] transition hover:border-[#8F4D3E] hover:text-[#2E241E]"
+                  >
+                    {extraCopy.whatsappDirectCta}
+                  </a>
+                ) : null}
+
+                {replyCopied ? (
+                  <p
+                    role="status"
+                    aria-live="polite"
+                    className="rounded-xl border border-[#6E8568]/40 bg-[#F2F6EE] px-3 py-2 text-center text-xs font-semibold text-[#4A6147]"
+                  >
+                    {extraCopy.copyReplyToast}
+                  </p>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* WAX-SEALED FUTURE TIME CAPSULE & BUCKET-LIST POSTMARKS */}
         <section
@@ -1571,7 +2318,11 @@ export function OurTimelineSite({
 
               <div className="border-t border-dashed border-[#B89B72]/60 pt-3.5 text-left">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="font-mono text-[9.5px] font-bold uppercase tracking-[0.14em] text-[#7A5438]">
+                  <p
+                    className={`font-mono text-[9.5px] font-bold text-[#7A5438] ${
+                      isDevanagari ? 'tracking-normal' : 'uppercase tracking-[0.14em]'
+                    }`}
+                  >
                     {extraCopy.stampsHeading}
                   </p>
                   <span className="rounded-full bg-[#231D19] px-2.5 py-0.5 font-mono text-[9.5px] font-bold text-[#F1BE6B]">

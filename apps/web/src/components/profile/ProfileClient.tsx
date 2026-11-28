@@ -440,30 +440,6 @@ export function ProfileClient({
         </a>
       </div>
 
-      {/* Quick Navigation to Orders Banner */}
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-webzy-primary/20 bg-gradient-to-r from-webzy-surface via-white to-webzy-surface p-4 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-webzy-primary text-white shadow-btn-primary">
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-            </svg>
-          </div>
-          <div>
-            <p className="font-heading text-sm font-bold text-webzy-ink">Looking for your celebration orders?</p>
-            <p className="text-xs text-webzy-ink/70">Check live delivery signals, fix typos in name/message, and view GST receipts.</p>
-          </div>
-        </div>
-        <Link
-          href="/orders"
-          className="btn-spring inline-flex min-h-[38px] items-center gap-1.5 rounded-full bg-webzy-ink px-4 text-xs font-bold text-white shadow-sm hover:bg-webzy-ink/90"
-        >
-          <span>Go to Orders Page</span>
-          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-          </svg>
-        </Link>
-      </div>
-
       <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-12">
         {/* Left Column: Personal Identity & Info */}
         <div className="space-y-6 md:col-span-7">
@@ -791,8 +767,8 @@ export function ProfileClient({
                   <CheckIcon />
                 </span>
                 <div>
-                  <strong className="text-webzy-ink">Deleted after 30 days:</strong>
-                  <p className="text-[11px] text-webzy-ink/70">Uploaded photos are automatically removed after 30 days.</p>
+                  <strong className="text-webzy-ink">Auto photo cleanup:</strong>
+                  <p className="text-[11px] text-webzy-ink/70">Uploaded photos are automatically removed 30 days after expiry (unless Lifetime Hosting is selected).</p>
                 </div>
               </div>
 
@@ -943,18 +919,6 @@ export function ProfileClient({
               >
                 Cookie Preferences
               </button>
-              <Link
-                href="/contact"
-                className="inline-flex h-8 items-center rounded-full border border-webzy-tint bg-white px-3 text-[11px] font-bold text-webzy-ink hover:border-webzy-primary/40"
-              >
-                Contact Support
-              </Link>
-              <Link
-                href="/refund"
-                className="inline-flex h-8 items-center rounded-full border border-webzy-tint bg-white px-3 text-[11px] font-bold text-webzy-ink hover:border-webzy-primary/40"
-              >
-                Refund Policy
-              </Link>
               {profile.role === 'admin' ? (
                 <Link
                   href="/admin"

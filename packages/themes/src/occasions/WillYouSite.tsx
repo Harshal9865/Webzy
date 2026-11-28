@@ -23,6 +23,8 @@ function hasDevanagari(text: string): boolean {
 type StageId = 'cover' | 'keepsakes' | 'proposal' | 'accepted';
 type KeepsakeId = 'bouquet' | 'letter' | 'scrapbook' | 'vinyl';
 type DreamDateId = 'coffee' | 'picnic' | 'terrace' | 'walk';
+type EveningVowId = 'hand' | 'smile' | 'last-bite';
+type EveningTimeId = 'golden-hour' | 'candlelit' | 'starlit';
 
 const ART = {
   velvetEnvelope: '/templates/occasions/will-you/velvet-envelope-art.jpg',
@@ -247,6 +249,94 @@ const VINYL_POSTCARDS: ReadonlyArray<{
   },
 ];
 
+interface EveningVowItem {
+  id: EveningVowId;
+  num: string;
+  text: Record<CoreLanguageCode, string>;
+}
+
+const EVENING_VOWS: readonly EveningVowItem[] = [
+  {
+    id: 'hand',
+    num: '01',
+    text: {
+      en: 'Hold your hand on every walk',
+      hinglish: 'Har walk mein tumhara haath thaam kar chalna',
+      hi: 'हर सैर में तुम्हारा हाथ थामकर चलना',
+    },
+  },
+  {
+    id: 'smile',
+    num: '02',
+    text: {
+      en: 'Never let a day end without making you smile',
+      hinglish: 'Koi bhi din tumhari muskaan ke bina khatam na ho',
+      hi: 'कोई भी दिन तुम्हारी मुस्कान के बिना समाप्त न हो',
+    },
+  },
+  {
+    id: 'last-bite',
+    num: '03',
+    text: {
+      en: 'Always save the last bite for you',
+      hinglish: 'Har treat ka aakhiri bite hamesha tumhare liye',
+      hi: 'हर मिठाई का आख़िरी टुकड़ा हमेशा तुम्हारे लिए',
+    },
+  },
+];
+
+interface EveningTimeOption {
+  id: EveningTimeId;
+  label: Record<CoreLanguageCode, string>;
+  time: string;
+  vibe: Record<CoreLanguageCode, string>;
+}
+
+const EVENING_TIME_OPTIONS: readonly EveningTimeOption[] = [
+  {
+    id: 'golden-hour',
+    label: {
+      en: 'Golden Hour',
+      hinglish: 'Golden Hour',
+      hi: 'सुनहरी शाम',
+    },
+    time: '6:30 PM',
+    vibe: {
+      en: 'Warm sunset breeze',
+      hinglish: 'Dhalti dhoop & hawa',
+      hi: 'ठंडी हवा और ढलती धूप',
+    },
+  },
+  {
+    id: 'candlelit',
+    label: {
+      en: 'Candlelit Dinner',
+      hinglish: 'Candlelight Dinner',
+      hi: 'दीपों भरा डिनर',
+    },
+    time: '8:00 PM',
+    vibe: {
+      en: 'Soft glow & slow talks',
+      hinglish: 'Dheemi roshni & baatein',
+      hi: 'धीमी रोशनी और बातें',
+    },
+  },
+  {
+    id: 'starlit',
+    label: {
+      en: 'Starlit Dessert',
+      hinglish: 'Starlit Dessert',
+      hi: 'सितारों तले मिठाई',
+    },
+    time: '9:30 PM',
+    vibe: {
+      en: 'Sweet treats under stars',
+      hinglish: 'Meetha & sitaron ki shaam',
+      hi: 'मिठाई और तारों भरी रात',
+    },
+  },
+];
+
 interface WillYouCopy {
   coverEyebrow: string;
   coverHeadline: string;
@@ -276,6 +366,12 @@ interface WillYouCopy {
   vinylSongTitle: string;
   vinylTap: string;
   vinylPlaying: string;
+  vowsEyebrow: string;
+  vowsHeading: string;
+  vowsHint: string;
+  vowsSealedCount: (n: number, total: number) => string;
+  vowsAllSealedNote: string;
+  vowSealedBadge: string;
   proceedToAskCta: string;
   proposalEyebrow: string;
   proposalBanner: string;
@@ -289,6 +385,7 @@ interface WillYouCopy {
   acceptedTitle: (receiver: string) => string;
   acceptedSub: (sender: string) => string;
   datePickerTitle: string;
+  timePickerTitle: string;
   copyYesCta: string;
   copiedYesToast: string;
   petalShowerCta: string;
@@ -338,6 +435,12 @@ const COPY_BY_LANG: Record<CoreLanguageCode, WillYouCopy> = {
     vinylSongTitle: 'Twilight Rose Terrace · Side A',
     vinylTap: 'Spin Record & Play Melody',
     vinylPlaying: 'Spinning Side A...',
+    vowsEyebrow: 'SEALABLE KEEPSAKE CARD',
+    vowsHeading: 'Evening Vows & Little Promises',
+    vowsHint: 'Tap each wax seal to stamp the promises we are keeping tonight.',
+    vowsSealedCount: (n, total) => `${n}/${total} vows sealed`,
+    vowsAllSealedNote: 'All three little promises are sealed in crimson wax.',
+    vowSealedBadge: 'SEALED',
     proceedToAskCta: 'Step Onto The Candlelit Terrace',
     proposalEyebrow: 'A TABLE FOR TWO UNDER THE MOON',
     proposalBanner: 'Everything tonight was arranged with you in mind',
@@ -356,6 +459,7 @@ const COPY_BY_LANG: Record<CoreLanguageCode, WillYouCopy> = {
     acceptedTitle: (r) => `Our evening is officially set, ${r}`,
     acceptedSub: (s) => `${s} cannot stop smiling right now.`,
     datePickerTitle: 'Choose the scene for our first celebration',
+    timePickerTitle: 'Pick our evening time & vibe',
     copyYesCta: 'Copy My YES Reply for WhatsApp',
     copiedYesToast: 'Copied! Ready to send straight back on WhatsApp.',
     petalShowerCta: 'Shower Rose Petals',
@@ -404,6 +508,12 @@ const COPY_BY_LANG: Record<CoreLanguageCode, WillYouCopy> = {
     vinylSongTitle: 'Chaandni Gulaab Terrace · Side A',
     vinylTap: 'Vinyl Chalao',
     vinylPlaying: 'Side A Chal Raha Hai...',
+    vowsEyebrow: 'SEALABLE KEEPSAKE CARD',
+    vowsHeading: 'Shaam Ke Chhote Pyaare Waade',
+    vowsHint: 'Har wax seal par tap karke hamare chhote waade pakke karo.',
+    vowsSealedCount: (n, total) => `${n}/${total} waade sealed`,
+    vowsAllSealedNote: 'Teeno pyaare waade laal wax seal se pakke ho gaye.',
+    vowSealedBadge: 'SEALED',
     proceedToAskCta: 'Ab Chaandni Terrace Par Chalo',
     proposalEyebrow: 'CHAANDNI MEIN SIRF HUM DO',
     proposalBanner: 'Aaj ki poori shaam sirf tumhare liye sajayi hai',
@@ -422,6 +532,7 @@ const COPY_BY_LANG: Record<CoreLanguageCode, WillYouCopy> = {
     acceptedTitle: (r) => `Ye shaam hamari rahi, ${r}`,
     acceptedSub: (s) => `${s} ke chehre par abhi sabse pyaari muskaan hai.`,
     datePickerTitle: 'Hamari pehli date ka scene chuno',
+    timePickerTitle: 'Shaam ka time aur vibe chuno',
     copyYesCta: 'Mera YES Reply Copy Karo (WhatsApp)',
     copiedYesToast: 'Copy ho gaya! Seedha WhatsApp par bhej do.',
     petalShowerCta: 'Gulaab Ki Pankhudiyan Barsao',
@@ -470,6 +581,12 @@ const COPY_BY_LANG: Record<CoreLanguageCode, WillYouCopy> = {
     vinylSongTitle: 'चाँदनी गुलाब छत · साइड A',
     vinylTap: 'मधुर धुन चलाएँ',
     vinylPlaying: 'धुन बज रही है...',
+    vowsEyebrow: 'मोहरबंद स्मृति पत्रिका',
+    vowsHeading: 'संध्या के छोटे कोमल वादे',
+    vowsHint: 'प्रत्येक मोहर पर टैप करके आज की शाम के छोटे वादे पक्के करें।',
+    vowsSealedCount: (n, total) => `${n}/${total} वादे मोहरबंद`,
+    vowsAllSealedNote: 'तीनों कोमल वादे स्नेह की मोहर से पक्के हो चुके हैं।',
+    vowSealedBadge: 'पक्का',
     proceedToAskCta: 'चाँदनी छत पर चलिए',
     proposalEyebrow: 'चाँदनी में हमारे लिए सजी मेज़',
     proposalBanner: 'आज की यह संपूर्ण संध्या केवल तुम्हारे लिए सजाई है',
@@ -488,6 +605,7 @@ const COPY_BY_LANG: Record<CoreLanguageCode, WillYouCopy> = {
     acceptedTitle: (r) => `यह शाम हमारी रही, ${r}`,
     acceptedSub: (s) => `${s} के चेहरे पर अभी सबसे प्यारी मुस्कान है।`,
     datePickerTitle: 'हमारी पहली ख़ास मुलाक़ात का दृश्य चुनें',
+    timePickerTitle: 'हमारी शाम का समय और माहौल चुनें',
     copyYesCta: 'मेरा हाँ जवाब कॉपी करें (WhatsApp)',
     copiedYesToast: 'कॉपी हो गया! सीधे WhatsApp पर भेज दें।',
     petalShowerCta: 'गुलाब की पंखुड़ियाँ बरसाएँ',
@@ -567,7 +685,9 @@ export function WillYouSite({
   const [candlesLit, setCandlesLit] = useState(true);
   const [activePostcardIdx, setActivePostcardIdx] = useState(0);
   const [nudgeCount, setNudgeCount] = useState(0);
+  const [sealedVowIds, setSealedVowIds] = useState<EveningVowId[]>([]);
   const [selectedDateId, setSelectedDateId] = useState<DreamDateId>('terrace');
+  const [selectedTimeId, setSelectedTimeId] = useState<EveningTimeId>('candlelit');
   const [burstKey, setBurstKey] = useState(0);
   const [showBurst, setShowBurst] = useState(false);
   const [zoomIdx, setZoomIdx] = useState<number | null>(null);
@@ -586,8 +706,8 @@ export function WillYouSite({
     ? { fontStyle: 'normal', letterSpacing: '0em' }
     : undefined;
 
-  const senderDisplay = (data.senderName || 'A').trim();
-  const receiverDisplay = (data.receiverName || 'You').trim();
+  const senderDisplay = data.senderName?.trim() || (isHindi ? 'मैं' : 'A');
+  const receiverDisplay = data.receiverName?.trim() || (isHindi ? 'आप' : 'You');
   const senderInitial = senderDisplay.charAt(0).toUpperCase() || 'A';
   const receiverInitial = receiverDisplay.charAt(0).toUpperCase() || 'Y';
 
@@ -648,6 +768,8 @@ export function WillYouSite({
 
   const selectedDateObj =
     DREAM_DATE_OPTIONS.find((d) => d.id === selectedDateId) ?? DREAM_DATE_OPTIONS[2];
+  const selectedTimeObj =
+    EVENING_TIME_OPTIONS.find((t) => t.id === selectedTimeId) ?? EVENING_TIME_OPTIONS[1];
   const activeBloom = bloomNotes[activeBloomIdx] ?? bloomNotes[0];
   const activePostcard = VINYL_POSTCARDS[activePostcardIdx] ?? VINYL_POSTCARDS[0];
 
@@ -714,14 +836,20 @@ export function WillYouSite({
     notifyOpenedOnce();
   }, [notifyOpenedOnce, triggerPetalBurst]);
 
+  const handleToggleVow = useCallback((id: EveningVowId, idx: number) => {
+    playPaperUnsealSfx(idx);
+    setSealedVowIds((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
+  }, []);
+
   const handleCopyYesReply = useCallback(async () => {
     const chosenDateLabel = selectedDateObj.label[coreLang];
+    const chosenTimeLabel = `${selectedTimeObj.label[coreLang]} (${selectedTimeObj.time})`;
     const reply =
       coreLang === 'hi'
-        ? `हाँ, बिल्कुल ${senderDisplay}! मैंने हमारे स्मृति टिकट पर "${chosenDateLabel}" चुन लिया है।`
+        ? `हाँ, बिल्कुल ${senderDisplay}! मैंने हमारे स्मृति टिकट पर "${chosenDateLabel}" और समय "${chosenTimeLabel}" चुन लिया है।`
         : coreLang === 'hinglish'
-          ? `Haan bilkul ${senderDisplay}! Keepsake ticket par "${chosenDateLabel}" stamp kar diya hai.`
-          : `YES, always ${senderDisplay}! I chose "${chosenDateLabel}" on our keepsake date ticket.`;
+          ? `Haan bilkul ${senderDisplay}! Keepsake ticket par "${chosenDateLabel}" · ${chosenTimeLabel} stamp kar diya hai.`
+          : `YES, always ${senderDisplay}! I chose "${chosenDateLabel}" for ${chosenTimeLabel} on our keepsake date ticket.`;
     try {
       if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(reply);
@@ -732,12 +860,14 @@ export function WillYouSite({
     setCopiedYes(true);
     if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
     copyTimerRef.current = setTimeout(() => setCopiedYes(false), 3200);
-  }, [coreLang, selectedDateObj, senderDisplay]);
+  }, [coreLang, selectedDateObj, selectedTimeObj, senderDisplay]);
 
   const handleReplay = useCallback(() => {
     setZoomIdx(null);
     setNudgeCount(0);
     setCoverNoCount(0);
+    setCopiedYes(false);
+    if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
     setStage('cover');
   }, []);
 
@@ -826,7 +956,9 @@ export function WillYouSite({
               <button
                 type="button"
                 onClick={() => setStage('keepsakes')}
-                className={`min-h-[36px] rounded-full px-3 text-xs font-bold transition ${
+                aria-current={stage === 'keepsakes' ? 'step' : undefined}
+                style={hindiSafe}
+                className={`min-h-[44px] rounded-full px-3.5 text-xs font-bold transition ${
                   stage === 'keepsakes'
                     ? 'bg-[#8F1522] text-[#FAF2E4]'
                     : isGinghamStage
@@ -839,7 +971,9 @@ export function WillYouSite({
               <button
                 type="button"
                 onClick={() => setStage('proposal')}
-                className={`min-h-[36px] rounded-full px-3 text-xs font-bold transition ${
+                aria-current={stage === 'proposal' || stage === 'accepted' ? 'step' : undefined}
+                style={hindiSafe}
+                className={`min-h-[44px] rounded-full px-3.5 text-xs font-bold transition ${
                   stage === 'proposal' || stage === 'accepted'
                     ? 'bg-[#8F1522] text-[#FAF2E4]'
                     : isGinghamStage
@@ -853,7 +987,8 @@ export function WillYouSite({
             <button
               type="button"
               onClick={handleReplay}
-              className={`inline-flex min-h-[36px] items-center rounded-full border px-3 text-[11px] font-semibold transition ${
+              style={hindiSafe}
+              className={`inline-flex min-h-[44px] items-center rounded-full border px-3.5 text-[11px] font-semibold transition ${
                 isGinghamStage
                   ? 'border-[#D4BC9E] bg-white text-[#5C1A22] hover:bg-[#F5E9D6]'
                   : 'border-white/20 bg-white/10 text-[#FAF2E4] hover:bg-white/15'
@@ -951,7 +1086,12 @@ export function WillYouSite({
               {/* Bottom Recipient Nameplate Ribbon */}
               <div className="absolute inset-x-3 bottom-3 flex items-end justify-between gap-2 text-left">
                 <div className="min-w-0">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#FDE68A]/90">
+                  <p
+                    style={hindiSafe}
+                    className={`text-[10px] font-semibold text-[#FDE68A]/90 ${
+                      isHindi ? '' : 'uppercase tracking-[0.16em]'
+                    }`}
+                  >
                     {copy.forPrefix}
                   </p>
                   <p
@@ -963,7 +1103,10 @@ export function WillYouSite({
                     {receiverDisplay}
                   </p>
                 </div>
-                <span className="shrink-0 rounded-full border border-[#FDE68A]/55 bg-[#4A0912]/90 px-3 py-1 text-[10.5px] font-bold text-[#FDE68A] backdrop-blur-xs">
+                <span
+                  style={hindiSafe}
+                  className="shrink-0 rounded-full border border-[#FDE68A]/55 bg-[#4A0912]/90 px-3 py-1 text-[10.5px] font-bold text-[#FDE68A] backdrop-blur-xs"
+                >
                   {copy.tapSealPill}
                 </span>
               </div>
@@ -972,7 +1115,7 @@ export function WillYouSite({
 
           {/* Twine-Tied Cream Stationery Prompt */}
           <div className="w-full rounded-[20px] border border-[#E5CFAF]/75 bg-[#FAF2E4] px-5 py-4 text-[#3B181E] shadow-xl">
-            <p className="text-[11px] font-semibold text-[#8F1522]">
+            <p style={hindiSafe} className="text-[11px] font-semibold text-[#8F1522]">
               {copy.fromPrefix} {senderDisplay}
             </p>
             <p
@@ -1092,7 +1235,9 @@ export function WillYouSite({
                     <p style={hindiSafe} className="font-heading text-xs font-bold text-[#4A0912]">
                       {meta.title}
                     </p>
-                    <p className="text-[10px] font-semibold text-[#8F1522]/80">{meta.tag}</p>
+                    <p style={hindiSafe} className="text-[10px] font-semibold text-[#8F1522]/80">
+                      {meta.tag}
+                    </p>
                   </div>
                 </button>
               );
@@ -1118,7 +1263,10 @@ export function WillYouSite({
                       {copy.bouquetHint}
                     </p>
                   </div>
-                  <span className="shrink-0 rounded-full border border-[#DFC7A5] bg-[#FAF2E4] px-2.5 py-1 font-mono text-[10px] font-bold text-[#8F1522]">
+                  <span
+                    style={hindiSafe}
+                    className="shrink-0 rounded-full border border-[#DFC7A5] bg-[#FAF2E4] px-2.5 py-1 font-mono text-[10px] font-bold text-[#8F1522]"
+                  >
                     {copy.bouquetCount(discoveredBlooms.length, 4)}
                   </span>
                 </div>
@@ -1139,14 +1287,15 @@ export function WillYouSite({
                         key={spot.id}
                         type="button"
                         onClick={() => handleTapBloom(idx)}
+                        aria-pressed={isCurrent}
                         aria-label={`${spot.bloomName[coreLang]} — ${spot.titleText}`}
                         style={{ left: `${spot.leftPct}%`, top: `${spot.topPct}%` }}
-                        className="absolute -translate-x-1/2 -translate-y-1/2 focus-visible:outline-none"
+                        className="absolute flex min-h-[44px] min-w-[44px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FDE68A] focus-visible:ring-offset-2 focus-visible:ring-offset-[#4A0912]"
                       >
                         {!isSeen ? (
                           <span
                             aria-hidden="true"
-                            className={`wy3-pulse-${uid} absolute inset-0 rounded-full bg-[#FDE68A]`}
+                            className={`wy3-pulse-${uid} absolute h-9 w-9 rounded-full bg-[#FDE68A]`}
                           />
                         ) : null}
                         <span
@@ -1168,7 +1317,12 @@ export function WillYouSite({
                   role="status"
                   className="rounded-2xl border border-[#DFC7A5] bg-[#FBF6EC] px-4 py-3.5 text-center"
                 >
-                  <span className="font-mono text-[9.5px] font-bold uppercase tracking-[0.16em] text-[#8F1522]/80">
+                  <span
+                    style={hindiSafe}
+                    className={`text-[9.5px] font-bold text-[#8F1522]/80 ${
+                      isHindi ? '' : 'font-mono uppercase tracking-[0.16em]'
+                    }`}
+                  >
                     0{activeBloomIdx + 1} · {activeBloom.bloomName[coreLang]}
                   </span>
                   <h4 style={hindiSafe} className="mt-1 font-heading text-base font-bold text-[#4A0912]">
@@ -1202,7 +1356,9 @@ export function WillYouSite({
                       playPaperUnsealSfx(candlesLit ? 0 : 2);
                       setCandlesLit((v) => !v);
                     }}
-                    className="absolute bottom-2.5 right-2.5 inline-flex min-h-[38px] items-center gap-1.5 rounded-full border border-[#FDE68A]/60 bg-[#2B050B]/85 px-3.5 py-1 text-[11px] font-bold text-[#FDE68A] backdrop-blur-xs transition hover:bg-[#4A0912]"
+                    aria-pressed={candlesLit}
+                    style={hindiSafe}
+                    className="absolute bottom-2.5 right-2.5 inline-flex min-h-[44px] items-center gap-1.5 rounded-full border border-[#FDE68A]/60 bg-[#2B050B]/85 px-3.5 py-1 text-[11px] font-bold text-[#FDE68A] backdrop-blur-xs transition hover:bg-[#4A0912]"
                   >
                     <span
                       className={`h-2 w-2 rounded-full ${
@@ -1223,7 +1379,9 @@ export function WillYouSite({
                 >
                   <span
                     style={hindiSafe}
-                    className="font-mono text-[9.5px] font-bold uppercase tracking-[0.16em] text-[#8F1522]"
+                    className={`text-[9.5px] font-bold text-[#8F1522] ${
+                      isHindi ? '' : 'font-mono uppercase tracking-[0.16em]'
+                    }`}
                   >
                     {copy.letterHeading}
                   </span>
@@ -1242,7 +1400,12 @@ export function WillYouSite({
                   >
                     {messageText}
                   </p>
-                  <p className="mt-4 font-heading text-sm font-bold italic text-[#8F1522]">
+                  <p
+                    style={hindiSafe}
+                    className={`mt-4 font-heading text-sm font-bold text-[#8F1522] ${
+                      isHindi || hasDevanagari(senderDisplay) ? 'not-italic' : 'italic'
+                    }`}
+                  >
                     {copy.fromPrefix} {senderDisplay}
                   </p>
                 </div>
@@ -1274,8 +1437,9 @@ export function WillYouSite({
                       <button
                         key={`scrap-photo-${idx}`}
                         type="button"
+                        disabled={isFailed}
                         onClick={() => !isFailed && setZoomIdx(idx)}
-                        className={`group relative flex flex-col rounded-xl border border-[#D8C2A6] bg-white p-2 pb-3 text-left shadow-md transition hover:z-10 hover:rotate-0 hover:scale-[1.03] active:scale-95 ${tilts[idx % 3]}`}
+                        className={`group relative flex flex-col rounded-xl border border-[#D8C2A6] bg-white p-2 pb-3 text-left shadow-md transition hover:z-10 hover:rotate-0 hover:scale-[1.03] active:scale-95 disabled:cursor-default disabled:opacity-80 ${tilts[idx % 3]}`}
                       >
                         <div className="aspect-[4/3] w-full overflow-hidden rounded-lg bg-[#4A0912] sm:aspect-square">
                           {!isFailed ? (
@@ -1295,10 +1459,20 @@ export function WillYouSite({
                             </div>
                           )}
                         </div>
-                        <span className="mt-2 font-mono text-[8.5px] font-bold tracking-[0.14em] text-[#8F1522]/75">
+                        <span
+                          style={hindiSafe}
+                          className={`mt-2 text-[8.5px] font-bold text-[#8F1522]/75 ${
+                            isHindi ? '' : 'font-mono tracking-[0.14em]'
+                          }`}
+                        >
                           {item.momentTag}
                         </span>
-                        <span className="truncate font-heading text-xs font-bold italic text-[#4A0912]">
+                        <span
+                          style={hindiSafe}
+                          className={`truncate font-heading text-xs font-bold text-[#4A0912] ${
+                            isHindi || hasDevanagari(item.caption) ? 'not-italic' : 'italic'
+                          }`}
+                        >
                           {item.caption}
                         </span>
                       </button>
@@ -1343,7 +1517,12 @@ export function WillYouSite({
                       </div>
                     </div>
                     <div className="absolute inset-x-3.5 bottom-3 text-left text-[#FFF8EF]">
-                      <p className="font-mono text-[9.5px] font-bold uppercase tracking-[0.16em] text-[#FDE68A]">
+                      <p
+                        style={hindiSafe}
+                        className={`text-[9.5px] font-bold text-[#FDE68A] ${
+                          isHindi ? '' : 'font-mono uppercase tracking-[0.16em]'
+                        }`}
+                      >
                         {activePostcard.title[coreLang]}
                       </p>
                       <p
@@ -1362,11 +1541,13 @@ export function WillYouSite({
                     <button
                       key={`pc-${idx}`}
                       type="button"
+                      aria-pressed={activePostcardIdx === idx}
                       onClick={() => {
                         playPaperUnsealSfx(idx);
                         setActivePostcardIdx(idx);
                       }}
-                      className={`min-h-[38px] rounded-full border px-2 text-[11px] font-bold transition ${
+                      style={hindiSafe}
+                      className={`min-h-[44px] rounded-full border px-2 text-[11px] font-bold transition ${
                         activePostcardIdx === idx
                           ? 'border-[#8F1522] bg-[#8F1522] text-[#FFF8EF]'
                           : 'border-[#DFC7A5] bg-[#FAF2E4] text-[#5C1A22]'
@@ -1388,12 +1569,118 @@ export function WillYouSite({
             ) : null}
           </section>
 
+          {/* EVENING VOWS & LITTLE PROMISES — SEALABLE KEEPSAKE CARD */}
+          <section
+            aria-label={copy.vowsHeading}
+            className="rounded-[24px] border-2 border-[#DFC7A5] bg-[#FAF2E4]/95 p-4 shadow-[0_16px_32px_-16px_rgba(74,9,18,0.28)] sm:p-5"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="min-w-0">
+                <span
+                  style={hindiSafe}
+                  className={`block text-[9.5px] font-bold text-[#8F1522] ${
+                    isHindi ? '' : 'font-mono uppercase tracking-[0.18em]'
+                  }`}
+                >
+                  {copy.vowsEyebrow}
+                </span>
+                <h3
+                  style={hindiSafe}
+                  className={`mt-0.5 font-heading text-lg font-bold text-[#4A0912] ${
+                    isHindi ? 'not-italic' : 'italic'
+                  }`}
+                >
+                  {copy.vowsHeading}
+                </h3>
+              </div>
+              <span
+                role="status"
+                style={hindiSafe}
+                className={`shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-bold transition-colors ${
+                  sealedVowIds.length === EVENING_VOWS.length
+                    ? 'border-[#8F1522] bg-[#8F1522] text-[#FDE68A]'
+                    : 'border-[#D8C2A6] bg-[#FFFDF8] text-[#8F1522]'
+                } ${isHindi ? '' : 'font-mono'}`}
+              >
+                {copy.vowsSealedCount(sealedVowIds.length, EVENING_VOWS.length)}
+              </span>
+            </div>
+
+            <p style={hindiSafe} className="mt-1 text-[11.5px] text-[#6B3B40]">
+              {sealedVowIds.length === EVENING_VOWS.length ? copy.vowsAllSealedNote : copy.vowsHint}
+            </p>
+
+            <div className="mt-3 space-y-2">
+              {EVENING_VOWS.map((vow, idx) => {
+                const isSealed = sealedVowIds.includes(vow.id);
+                return (
+                  <button
+                    key={vow.id}
+                    type="button"
+                    onClick={() => handleToggleVow(vow.id, idx)}
+                    aria-pressed={isSealed}
+                    className={`flex min-h-[48px] w-full items-center gap-3 rounded-2xl border px-3.5 py-2.5 text-left transition-all duration-200 active:scale-[0.98] ${
+                      isSealed
+                        ? 'border-[#8F1522] bg-[#FFFDF8] shadow-[0_10px_20px_-14px_rgba(143,21,34,0.45)]'
+                        : 'border-[#DFC7A5] bg-[#FFFDF8]/75 hover:border-[#8F1522]/55'
+                    }`}
+                  >
+                    {/* Tactile Wax-Dot Checkmark */}
+                    <span
+                      aria-hidden="true"
+                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-200 ${
+                        isSealed
+                          ? 'scale-105 border-[#FDE68A] bg-[#8F1522] text-[#FDE68A] shadow-sm'
+                          : 'border-[#C6A984] bg-[#FAF2E4] text-[#8F1522]/70'
+                      }`}
+                    >
+                      {isSealed ? (
+                        <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none">
+                          <path
+                            d="M3.5 8.2L6.6 11.3L12.5 4.8"
+                            stroke="currentColor"
+                            strokeWidth="2.3"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      ) : (
+                        <span className="font-mono text-[9px] font-bold">{vow.num}</span>
+                      )}
+                    </span>
+
+                    <span
+                      style={hindiSafe}
+                      className={`flex-1 font-serif text-[13.5px] leading-snug ${
+                        isSealed ? 'font-semibold text-[#4A0912]' : 'text-[#5C2D33]'
+                      }`}
+                    >
+                      {vow.text[coreLang]}
+                    </span>
+
+                    {isSealed ? (
+                      <span
+                        style={hindiSafe}
+                        className={`shrink-0 -rotate-2 rounded border border-[#8F1522]/40 bg-[#8F1522]/10 px-1.5 py-0.5 text-[8.5px] font-bold text-[#8F1522] ${
+                          isHindi ? '' : 'font-mono tracking-[0.12em]'
+                        }`}
+                      >
+                        {copy.vowSealedBadge}
+                      </span>
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
           <button
             type="button"
             onClick={() => {
               playLanternPullChime();
               setStage('proposal');
             }}
+            style={hindiSafe}
             className="inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-full border-2 border-[#FAF2E4] bg-[#4A0912] px-6 py-3 text-sm font-bold text-[#FFF8EF] shadow-[0_14px_30px_-10px_rgba(74,9,18,0.65)] transition hover:bg-[#640D19] active:scale-[0.98]"
           >
             <span>{copy.proceedToAskCta}</span>
@@ -1443,7 +1730,7 @@ export function WillYouSite({
               >
                 {copy.proposalQuestion}
               </h2>
-              <p style={hindiSafe} className="mt-2 font-serif text-xs leading-relaxed text-[#6B3B40]">
+              <p role="status" style={hindiSafe} className="mt-2 font-serif text-xs leading-relaxed text-[#6B3B40]">
                 {nudgeLine}
               </p>
 
@@ -1491,16 +1778,26 @@ export function WillYouSite({
                 className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#24040A]/85 via-transparent to-[#24040A]/30"
               />
               <div className="absolute inset-x-4 top-3 flex items-center justify-between gap-2">
-                <span className="rounded-full border border-[#FDE68A]/50 bg-[#2B050B]/80 px-2.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-[#FDE68A]">
+                <span
+                  style={hindiSafe}
+                  className={`rounded-full border border-[#FDE68A]/50 bg-[#2B050B]/80 px-2.5 py-0.5 text-[9px] font-bold text-[#FDE68A] ${
+                    isHindi ? '' : 'font-mono uppercase tracking-[0.14em]'
+                  }`}
+                >
                   {copy.acceptedEyebrow}
                 </span>
-                <span className="-rotate-2 rounded border border-[#FDE68A] bg-[#8F1522]/90 px-2 py-0.5 font-mono text-[9px] font-bold text-[#FFF8EF]">
+                <span
+                  style={hindiSafe}
+                  className={`-rotate-2 rounded border border-[#FDE68A] bg-[#8F1522]/90 px-2 py-0.5 text-[9px] font-bold text-[#FFF8EF] ${
+                    isHindi ? '' : 'font-mono'
+                  }`}
+                >
                   {copy.acceptedStamp}
                 </span>
               </div>
               <div className="absolute inset-x-4 bottom-3 text-left text-[#FFF8EF]">
-                <p className="font-mono text-[9.5px] font-bold text-[#FDE68A]">
-                  {selectedDateObj.code} · {selectedDateObj.label[coreLang]}
+                <p style={hindiSafe} className="text-[10px] font-bold text-[#FDE68A]">
+                  {selectedDateObj.code} · {selectedDateObj.label[coreLang]} · {selectedTimeObj.time}
                 </p>
               </div>
             </div>
@@ -1535,7 +1832,7 @@ export function WillYouSite({
                           setSelectedDateId(opt.id);
                         }}
                         aria-pressed={picked}
-                        className={`overflow-hidden rounded-xl border-2 text-left transition active:scale-[0.98] ${
+                        className={`min-h-[44px] overflow-hidden rounded-xl border-2 text-left transition active:scale-[0.98] ${
                           picked
                             ? 'border-[#8F1522] bg-[#8F1522] text-[#FFF8EF]'
                             : 'border-[#DFC7A5] bg-white text-[#4A0912] hover:border-[#8F1522]/50'
@@ -1551,10 +1848,11 @@ export function WillYouSite({
                           />
                         </div>
                         <div className="p-2">
-                          <span className="block text-[11px] font-bold leading-snug">
+                          <span style={hindiSafe} className="block text-[11px] font-bold leading-snug">
                             {opt.label[coreLang]}
                           </span>
                           <span
+                            style={hindiSafe}
                             className={`mt-0.5 block text-[9.5px] ${
                               picked ? 'text-[#FDE68A]' : 'text-[#7A4B50]'
                             }`}
@@ -1562,6 +1860,56 @@ export function WillYouSite({
                             {opt.vibe[coreLang]}
                           </span>
                         </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Pick Our Evening Time & Vibe — 3 Tactile Chips */}
+              <div className="mt-4 space-y-2">
+                <p style={hindiSafe} className="text-[11px] font-bold text-[#4A0912]">
+                  {copy.timePickerTitle}
+                </p>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {EVENING_TIME_OPTIONS.map((slot, idx) => {
+                    const picked = slot.id === selectedTimeId;
+                    return (
+                      <button
+                        key={slot.id}
+                        type="button"
+                        onClick={() => {
+                          playPaperUnsealSfx(idx);
+                          setSelectedTimeId(slot.id);
+                        }}
+                        aria-pressed={picked}
+                        className={`flex min-h-[56px] flex-col items-center justify-center rounded-xl border-2 px-2 py-2 text-center transition active:scale-[0.97] ${
+                          picked
+                            ? 'border-[#8F1522] bg-[#8F1522] text-[#FFF8EF] shadow-xs'
+                            : 'border-[#DFC7A5] bg-white text-[#4A0912] hover:border-[#8F1522]/50'
+                        }`}
+                      >
+                        <span
+                          style={hindiSafe}
+                          className="block text-[10.5px] font-bold leading-tight"
+                        >
+                          {slot.label[coreLang]}
+                        </span>
+                        <span
+                          className={`mt-0.5 block font-mono text-[9.5px] font-bold ${
+                            picked ? 'text-[#FDE68A]' : 'text-[#8F1522]'
+                          }`}
+                        >
+                          {slot.time}
+                        </span>
+                        <span
+                          style={hindiSafe}
+                          className={`mt-0.5 line-clamp-1 block text-[8.5px] ${
+                            picked ? 'text-[#FFF8EF]/85' : 'text-[#7A4B50]'
+                          }`}
+                        >
+                          {slot.vibe[coreLang]}
+                        </span>
                       </button>
                     );
                   })}
@@ -1646,12 +1994,18 @@ export function WillYouSite({
                   className="max-h-[65dvh] w-full rounded-xl bg-[#4A0912] object-cover"
                 />
                 <div className="mt-2.5 flex items-center justify-between gap-2 px-1">
-                  <span className="truncate font-heading text-xs font-bold italic text-[#4A0912]">
+                  <span
+                    style={hindiSafe}
+                    className={`truncate font-heading text-xs font-bold text-[#4A0912] ${
+                      isHindi || hasDevanagari(polaroids[zoomIdx].caption) ? 'not-italic' : 'italic'
+                    }`}
+                  >
                     {polaroids[zoomIdx].caption}
                   </span>
                   <button
                     type="button"
                     onClick={() => setZoomIdx(null)}
+                    style={hindiSafe}
                     className="min-h-[44px] rounded-full bg-[#8F1522] px-4 text-xs font-bold text-[#FFF8EF] transition hover:bg-[#74101B]"
                   >
                     {copy.closeLabel}

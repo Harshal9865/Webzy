@@ -12,10 +12,163 @@ interface StudioIdentity {
   roleTitle: string;
   locationTag: string;
   headline: string;
+  hasCustomHeadline: boolean;
   bio: string;
   offerTag: string;
   initials: string;
 }
+
+type StudioDeliverableId = 'landing-3d' | 'interactive-portfolio' | 'brand-motion';
+type StudioPaceId = 'sprint-1w' | 'standard-3w' | 'flagship-6w';
+
+interface SynthPadSpec {
+  id: string;
+  label: string;
+  note: string;
+  freq: number;
+  accentHex: string;
+  glowRgba: string;
+  barProfile: readonly number[];
+}
+
+const SYNTH_PADS: readonly SynthPadSpec[] = [
+  {
+    id: 'pad-pulse',
+    label: 'PULSE',
+    note: 'C5',
+    freq: 523.25,
+    accentHex: '#F59E0B',
+    glowRgba: 'rgba(245, 158, 11, 0.45)',
+    barProfile: [78, 96, 62, 48, 86, 54, 42, 70],
+  },
+  {
+    id: 'pad-prism',
+    label: 'PRISM',
+    note: 'D5',
+    freq: 587.33,
+    accentHex: '#38BDF8',
+    glowRgba: 'rgba(56, 189, 248, 0.45)',
+    barProfile: [48, 72, 95, 84, 58, 90, 68, 52],
+  },
+  {
+    id: 'pad-voxel',
+    label: 'VOXEL',
+    note: 'E5',
+    freq: 659.25,
+    accentHex: '#10B981',
+    glowRgba: 'rgba(16, 185, 129, 0.45)',
+    barProfile: [64, 52, 78, 96, 88, 60, 82, 56],
+  },
+  {
+    id: 'pad-nova',
+    label: 'NOVA',
+    note: 'G5',
+    freq: 783.99,
+    accentHex: '#F472B6',
+    glowRgba: 'rgba(244, 114, 182, 0.45)',
+    barProfile: [56, 84, 68, 74, 98, 92, 76, 88],
+  },
+];
+
+const STUDIO_DELIVERABLES: ReadonlyArray<{
+  id: StudioDeliverableId;
+  label: Record<CoreLanguageCode, string>;
+  enLabel: string;
+  spec: Record<CoreLanguageCode, string>;
+}> = [
+  {
+    id: 'landing-3d',
+    label: {
+      en: '3D Landing Page',
+      hinglish: '3D Landing Page',
+      hi: '3D लैंडिंग पेज',
+    },
+    enLabel: '3D Landing Page',
+    spec: {
+      en: 'Hero canvas/WebGL focal stage, custom motion & conversion CTA flow',
+      hinglish: 'Hero 3D canvas stage, custom motion aur high-converting CTA flow',
+      hi: 'हीरो 3D कैनवास, कस्टम मोशन और तेज़ रूपांतरण प्रवाह',
+    },
+  },
+  {
+    id: 'interactive-portfolio',
+    label: {
+      en: 'Interactive Portfolio',
+      hinglish: 'Interactive Portfolio',
+      hi: 'इंटरैक्टिव पोर्टफोलियो',
+    },
+    enLabel: 'Interactive Portfolio',
+    spec: {
+      en: 'Multi-mode creative flagship, case study drawers & mobile-first craft',
+      hinglish: 'Multi-mode creative showcase, case study drawers aur mobile craft',
+      hi: 'मल्टी-मोड क्रिएटिव पोर्टफोलियो और इंटरैक्टिव केस स्टडीज़',
+    },
+  },
+  {
+    id: 'brand-motion',
+    label: {
+      en: 'Brand Motion System',
+      hinglish: 'Brand Motion System',
+      hi: 'ब्रांड मोशन सिस्टम',
+    },
+    enLabel: 'Brand Motion System',
+    spec: {
+      en: 'Reusable kinetic tokens, spring physics library & audio-visual cues',
+      hinglish: 'Reusable motion tokens, spring physics library aur sound cues',
+      hi: 'पुनः प्रयोज्य मोशन टोकन, स्प्रिंग फिजिक्स और विज़ुअल पहचान',
+    },
+  },
+];
+
+const STUDIO_PACES: ReadonlyArray<{
+  id: StudioPaceId;
+  label: Record<CoreLanguageCode, string>;
+  enLabel: string;
+  cadence: Record<CoreLanguageCode, string>;
+}> = [
+  {
+    id: 'sprint-1w',
+    label: {
+      en: 'Sprint 1 wk',
+      hinglish: 'Sprint 1 wk',
+      hi: 'स्प्रिंट 1 सप्ताह',
+    },
+    enLabel: 'Sprint (1 Week)',
+    cadence: {
+      en: 'Rapid concept -> interactive build -> launch in 7 days',
+      hinglish: 'Concept -> interactive build -> 7 din mein live launch',
+      hi: '7 दिनों में कॉन्सेप्ट से लाइव लॉन्च तक तेज़ निर्माण',
+    },
+  },
+  {
+    id: 'standard-3w',
+    label: {
+      en: 'Standard 3 wks',
+      hinglish: 'Standard 3 wks',
+      hi: 'स्टैंडर्ड 3 सप्ताह',
+    },
+    enLabel: 'Standard (3 Weeks)',
+    cadence: {
+      en: 'Art direction, bespoke 3D scenes, QA & responsive polish',
+      hinglish: 'Art direction, custom 3D scenes, QA aur full polish',
+      hi: 'आर्ट डायरेक्शन, 3D दृश्य, परीक्षण और पूर्ण पॉलिश',
+    },
+  },
+  {
+    id: 'flagship-6w',
+    label: {
+      en: 'Flagship 6 wks',
+      hinglish: 'Flagship 6 wks',
+      hi: 'फ्लैगशिप 6 सप्ताह',
+    },
+    enLabel: 'Flagship (6 Weeks)',
+    cadence: {
+      en: 'Full brand world, multi-page motion kit & post-launch care',
+      hinglish: 'Full brand world, multi-page motion system aur launch care',
+      hi: 'संपूर्ण ब्रांड वर्ल्ड, मल्टी-पेज मोशन सिस्टम और लॉन्च सहयोग',
+    },
+  },
+];
 
 interface CaseStudyItem {
   id: string;
@@ -383,6 +536,16 @@ const WORLD_COPY: Record<
     askPlaceholder: string;
     askSend: string;
     availableForWork: string;
+    synthEyebrow: string;
+    synthTitle: string;
+    soundOn: string;
+    soundMuted: string;
+    playSequence: string;
+    estimatorEyebrow: string;
+    estimatorTitle: string;
+    deliverableLabel: string;
+    paceLabel: string;
+    briefPreviewLabel: string;
   }
 > = {
   en: {
@@ -400,6 +563,16 @@ const WORLD_COPY: Record<
     askPlaceholder: 'Ask anything about 3D builds, motion, or booking...',
     askSend: 'Ask',
     availableForWork: 'Studio Edition',
+    synthEyebrow: 'INTERACTIVE STUDIO SYNTH · WEBAUDIO PENTATONIC DECK',
+    synthTitle: 'Sound-Light Pad Deck',
+    soundOn: 'Sound On',
+    soundMuted: 'Muted',
+    playSequence: 'Play Sequence',
+    estimatorEyebrow: 'PROJECT SCOPE & TIMELINE ESTIMATOR',
+    estimatorTitle: 'Build Your Studio Brief',
+    deliverableLabel: '01 · Deliverable',
+    paceLabel: '02 · Pace',
+    briefPreviewLabel: 'READY-TO-SEND STUDIO BRIEF',
   },
   hinglish: {
     artModeLabel: 'ART MODE',
@@ -416,6 +589,16 @@ const WORLD_COPY: Record<
     askPlaceholder: '3D builds, motion ya booking ke baare mein poochein...',
     askSend: 'Poochein',
     availableForWork: 'Studio Edition',
+    synthEyebrow: 'INTERACTIVE STUDIO SYNTH · SOUND-LIGHT PAD DECK',
+    synthTitle: 'Studio Synth Pad Deck',
+    soundOn: 'Sound On',
+    soundMuted: 'Muted',
+    playSequence: 'Sequence Bajayein',
+    estimatorEyebrow: 'PROJECT SCOPE & TIMELINE ESTIMATOR',
+    estimatorTitle: 'Apna Studio Brief Tayyar Karein',
+    deliverableLabel: '01 · Deliverable Chunein',
+    paceLabel: '02 · Timeline Pace',
+    briefPreviewLabel: 'READY-TO-SEND STUDIO BRIEF',
   },
   hi: {
     artModeLabel: 'आर्ट मोड',
@@ -432,6 +615,16 @@ const WORLD_COPY: Record<
     askPlaceholder: '3D डिज़ाइन, मोशन या बुकिंग के बारे में पूछें...',
     askSend: 'पूछें',
     availableForWork: 'स्टूडियो संस्करण',
+    synthEyebrow: 'इंटरैक्टिव स्टूडियो सिंथ · साउंड-लाइट पैड डेक',
+    synthTitle: 'स्टूडियो सिंथ पैड डेक',
+    soundOn: 'ध्वनि चालू',
+    soundMuted: 'म्यूट',
+    playSequence: 'धुन बजाएँ',
+    estimatorEyebrow: 'प्रोजेक्ट स्कोप और समयसीमा अनुमानक',
+    estimatorTitle: 'अपना स्टूडियो ब्रीफ़ बनाएँ',
+    deliverableLabel: '01 · डिलीवरेबल चुनें',
+    paceLabel: '02 · गति व समयसीमा',
+    briefPreviewLabel: 'भेजने के लिए तैयार स्टूडियो ब्रीफ़',
   },
 };
 
@@ -809,6 +1002,13 @@ function getInitials(name: string): string {
   return `${parts[0][0] ?? ''}${parts[parts.length - 1][0] ?? ''}`.toUpperCase();
 }
 
+function hiSafeStyle(language: LanguageCode): React.CSSProperties | undefined {
+  if (language === 'hi') {
+    return { fontStyle: 'normal', letterSpacing: '0em' };
+  }
+  return undefined;
+}
+
 function parseStudioIdentity(
   data: OccasionSiteProps['data'],
   language: LanguageCode,
@@ -824,14 +1024,13 @@ function parseStudioIdentity(
   const displayName = segments[0] || 'Nova Craft Studio';
   const roleTitle = segments[1] || '3D & Interactive Creator Studio';
   const locationTag = (data.senderName ?? '').trim() || 'Interactive Lab · Worldwide';
-  const headline =
-    pickLocalizedText(data.headline, language).trim() ||
-    'BOOST YOUR BRAND';
+  const customHeadline = data.headline ? pickLocalizedText(data.headline, language).trim() : '';
+  const headline = customHeadline || 'BOOST YOUR BRAND';
   const bio =
-    pickLocalizedText(data.message, language).trim() ||
+    (data.message ? pickLocalizedText(data.message, language).trim() : '') ||
     'We craft interactive 3D web experiences, playful voxel worlds, and sunlit digital stories that turn visitors into lifelong fans.';
   const offerTag =
-    pickLocalizedText(data.offerTag, language).trim() ||
+    (data.offerTag ? pickLocalizedText(data.offerTag, language).trim() : '') ||
     'Booking Q2 Interactive Sprints';
 
   return {
@@ -839,6 +1038,7 @@ function parseStudioIdentity(
     roleTitle,
     locationTag,
     headline,
+    hasCustomHeadline: customHeadline.length > 0,
     bio,
     offerTag,
     initials: getInitials(displayName),
@@ -2113,6 +2313,7 @@ function Particle3DWorld({
 function VoxelQuestWorld({
   identity,
   data,
+  language,
   coreLang,
   whatsappHref,
   onCopyBrief,
@@ -2120,12 +2321,14 @@ function VoxelQuestWorld({
 }: {
   identity: StudioIdentity;
   data: OccasionSiteProps['data'];
+  language: LanguageCode;
   coreLang: CoreLanguageCode;
   whatsappHref: string | null;
   onCopyBrief: () => void;
   copiedBrief: boolean;
 }) {
   const copy = WORLD_COPY[coreLang];
+  const langSafe = hiSafeStyle(language);
   const [score, setScore] = useState(6350);
   const [pulseHeartIdx, setPulseHeartIdx] = useState<number | null>(null);
   const [xpPop, setXpPop] = useState<{ id: number; amount: number } | null>(null);
@@ -2137,6 +2340,21 @@ function VoxelQuestWorld({
   const [biomePhotoFailed, setBiomePhotoFailed] = useState(false);
   const xpTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const heartTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const resolvedBiomes = useMemo<BiomeProject[]>(() => {
+    const highlights = Array.isArray(data.highlights) ? data.highlights : [];
+    return BIOME_PROJECTS.map((project, idx) => {
+      const override = highlights[idx];
+      const customTitle = override?.title ? pickLocalizedText(override.title, language).trim() : '';
+      const customDetail = override?.detail ? pickLocalizedText(override.detail, language).trim() : '';
+      if (!customTitle && !customDetail) return project;
+      return {
+        ...project,
+        title: customTitle || project.title,
+        summary: customDetail || project.summary,
+      };
+    });
+  }, [data.highlights, language]);
 
   useEffect(() => {
     return () => {
@@ -2231,16 +2449,32 @@ function VoxelQuestWorld({
         <section className="wz-cv-pixel-box mt-4 overflow-hidden rounded-2xl bg-[#FAF8F2]">
           <div className="wz-cv-hero-grid p-4 sm:p-6">
             <div className="flex flex-col justify-center">
-              <div className="inline-flex w-fit items-center gap-2 rounded-lg border border-[#6BAF5D]/40 bg-[#6BAF5D]/15 px-2.5 py-1">
-                <VoxelCubeSvg className="h-3.5 w-3.5 text-[#3F7A34]" />
-                <span className="font-pixel text-[9.5px] uppercase tracking-[0.14em] text-[#2F5E26]">
-                  BLOCKFOLIO · {identity.displayName}
-                </span>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="inline-flex w-fit items-center gap-2 rounded-lg border border-[#6BAF5D]/40 bg-[#6BAF5D]/15 px-2.5 py-1">
+                  <VoxelCubeSvg className="h-3.5 w-3.5 text-[#3F7A34]" />
+                  <span className="font-pixel text-[9.5px] uppercase tracking-[0.14em] text-[#2F5E26]">
+                    BLOCKFOLIO · {identity.displayName}
+                  </span>
+                </div>
+                {identity.offerTag ? (
+                  <span className="rounded-lg border border-[#2B231E]/25 bg-[#FDE047]/80 px-2.5 py-1 font-mono text-[9.5px] font-bold uppercase tracking-[0.12em] text-[#2B231E]">
+                    {identity.offerTag}
+                  </span>
+                ) : null}
               </div>
 
-              <h1 className="mt-3 font-pixel text-[26px] font-bold leading-[1.12] tracking-tight text-[#2B231E] sm:text-[36px]">
-                Build · Create{' '}
-                <span className="text-[#569848]">Explore</span>
+              <h1
+                className="mt-3 font-pixel text-[26px] font-bold leading-[1.12] tracking-tight text-[#2B231E] sm:text-[36px]"
+                style={langSafe}
+              >
+                {identity.hasCustomHeadline ? (
+                  identity.headline
+                ) : (
+                  <>
+                    Build · Create{' '}
+                    <span className="text-[#569848]">Explore</span>
+                  </>
+                )}
               </h1>
 
               <p className="mt-2.5 font-sans text-xs leading-relaxed text-[#2B231E]/75 sm:text-sm">
@@ -2324,7 +2558,7 @@ function VoxelQuestWorld({
           </div>
 
           <div className="wz-cv-biome-grid mt-3.5">
-            {BIOME_PROJECTS.map((project, idx) => (
+            {resolvedBiomes.map((project, idx) => (
               <button
                 key={project.id}
                 type="button"
@@ -2670,6 +2904,7 @@ function VoxelQuestWorld({
 function ScrapbookCreatieWorld({
   identity,
   data,
+  language,
   coreLang,
   reducedMotion,
   whatsappHref,
@@ -2678,6 +2913,7 @@ function ScrapbookCreatieWorld({
 }: {
   identity: StudioIdentity;
   data: OccasionSiteProps['data'];
+  language: LanguageCode;
   coreLang: CoreLanguageCode;
   reducedMotion: boolean;
   whatsappHref: string | null;
@@ -2685,6 +2921,7 @@ function ScrapbookCreatieWorld({
   copiedBrief: boolean;
 }) {
   const copy = WORLD_COPY[coreLang];
+  const langSafe = hiSafeStyle(language);
   const [activeBadgeId, setActiveBadgeId] = useState<string>(CREATIE_BADGES[0].id);
   const [activeDock, setActiveDock] = useState<'hills' | 'notebook' | 'reach' | 'contact'>('hills');
   const [activeTabId, setActiveTabId] = useState<string>(SCRAPBOOK_TABS[0].id);
@@ -2695,14 +2932,24 @@ function ScrapbookCreatieWorld({
   const [polaroidZoomed, setPolaroidZoomed] = useState(false);
   const [caseStackIdx, setCaseStackIdx] = useState(0);
 
-  const hillsCases = useMemo(
-    () => [
+  const hillsCases = useMemo(() => {
+    const baseCases = [
       { tag: '2026 · MOTION', title: 'SUNLIT LAUNCH PAGE', detail: 'View Notebook' },
       { tag: '2026 · BRAND', title: 'PASTEL CREATOR KIT', detail: 'View Social Reach' },
       { tag: '2025 · 3D WEB', title: 'INTERACTIVE FOLIO', detail: 'Start a Sprint' },
-    ],
-    [],
-  );
+    ];
+    const highlights = Array.isArray(data.highlights) ? data.highlights : [];
+    return baseCases.map((item, idx) => {
+      const override = highlights[idx];
+      const customTitle = override?.title ? pickLocalizedText(override.title, language).trim() : '';
+      const customDetail = override?.detail ? pickLocalizedText(override.detail, language).trim() : '';
+      return {
+        ...item,
+        title: customTitle || item.title,
+        detail: customDetail ? customDetail.slice(0, 32) : item.detail,
+      };
+    });
+  }, [data.highlights, language]);
   const activeStackCase = hillsCases[caseStackIdx] ?? hillsCases[0];
 
   const hillsRef = useRef<HTMLElement | null>(null);
@@ -2795,8 +3042,11 @@ function ScrapbookCreatieWorld({
 
         {/* Centerpiece Kinetic White Headline + Floating Tilted Pastel Skill Badges */}
         <div className="relative z-10 mx-auto my-5 max-w-xl text-center sm:my-6">
-          <h1 className="font-festive text-[26px] font-extrabold uppercase leading-[0.98] tracking-[-0.03em] text-white drop-shadow-[0_6px_22px_rgba(0,0,0,0.28)] xs:text-[32px] sm:text-[52px]">
-            DESIGN THAT MAKES PEOPLE LOOK TWICE
+          <h1
+            className="font-festive text-[26px] font-extrabold uppercase leading-[0.98] tracking-[-0.03em] text-white drop-shadow-[0_6px_22px_rgba(0,0,0,0.28)] xs:text-[32px] sm:text-[52px]"
+            style={langSafe}
+          >
+            {identity.hasCustomHeadline ? identity.headline : 'DESIGN THAT MAKES PEOPLE LOOK TWICE'}
           </h1>
 
           {/* Floating Tilted Pastel Skill Badges */}
@@ -3153,6 +3403,464 @@ function ScrapbookCreatieWorld({
   );
 }
 
+/* ---------- Interactive Studio Synth Pad Deck + Scope & Timeline Estimator ---------- */
+
+function StudioSynthAndEstimatorSection({
+  activeWorld,
+  language,
+  coreLang,
+  reducedMotion,
+  deliverableId,
+  paceId,
+  onSelectDeliverable,
+  onSelectPace,
+  inquiryBrief,
+  whatsappHref,
+  onCopyBrief,
+  copiedBrief,
+}: {
+  activeWorld: CreativeWorldMode;
+  language: LanguageCode;
+  coreLang: CoreLanguageCode;
+  reducedMotion: boolean;
+  deliverableId: StudioDeliverableId;
+  paceId: StudioPaceId;
+  onSelectDeliverable: (id: StudioDeliverableId) => void;
+  onSelectPace: (id: StudioPaceId) => void;
+  inquiryBrief: string;
+  whatsappHref: string | null;
+  onCopyBrief: () => void;
+  copiedBrief: boolean;
+}) {
+  const copy = WORLD_COPY[coreLang];
+  const langSafe = hiSafeStyle(language);
+
+  const [muted, setMuted] = useState(false);
+  const [activePadId, setActivePadId] = useState<string | null>(null);
+  const [barHeights, setBarHeights] = useState<number[]>([22, 34, 28, 40, 32, 26, 36, 24]);
+  const [tapCount, setTapCount] = useState(0);
+
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const decayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const seqTimersRef = useRef<Array<ReturnType<typeof setTimeout>>>([]);
+
+  useEffect(() => {
+    return () => {
+      if (decayTimerRef.current) clearTimeout(decayTimerRef.current);
+      seqTimersRef.current.forEach((t) => clearTimeout(t));
+      seqTimersRef.current = [];
+      const ctx = audioCtxRef.current;
+      if (ctx && typeof ctx.close === 'function') {
+        void ctx.close().catch(() => {});
+      }
+      audioCtxRef.current = null;
+    };
+  }, []);
+
+  const playPentatonicTone = useCallback(
+    (freq: number) => {
+      if (muted || typeof window === 'undefined') return;
+      try {
+        const AudioCtxCtor =
+          window.AudioContext ||
+          (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+        if (!AudioCtxCtor) return;
+        if (!audioCtxRef.current) {
+          audioCtxRef.current = new AudioCtxCtor();
+        }
+        const ctx = audioCtxRef.current;
+        if (ctx.state === 'suspended') {
+          void ctx.resume().catch(() => {});
+        }
+        const now = ctx.currentTime;
+        const oscMain = ctx.createOscillator();
+        const oscHarmonic = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        oscMain.type = 'sine';
+        oscMain.frequency.setValueAtTime(freq, now);
+
+        oscHarmonic.type = 'triangle';
+        oscHarmonic.frequency.setValueAtTime(freq * 2, now);
+
+        const harmonicGain = ctx.createGain();
+        harmonicGain.gain.setValueAtTime(0.14, now);
+
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(0.18, now + 0.018);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.34);
+
+        oscMain.connect(gain);
+        oscHarmonic.connect(harmonicGain);
+        harmonicGain.connect(gain);
+        gain.connect(ctx.destination);
+
+        oscMain.start(now);
+        oscHarmonic.start(now);
+        oscMain.stop(now + 0.36);
+        oscHarmonic.stop(now + 0.36);
+      } catch {
+        // Safe fallback when WebAudio is blocked
+      }
+    },
+    [muted],
+  );
+
+  const triggerPad = useCallback(
+    (pad: SynthPadSpec) => {
+      playPentatonicTone(pad.freq);
+      setActivePadId(pad.id);
+      setTapCount((c) => c + 1);
+      setBarHeights([...pad.barProfile]);
+      if (decayTimerRef.current) clearTimeout(decayTimerRef.current);
+      decayTimerRef.current = setTimeout(() => {
+        setActivePadId(null);
+        setBarHeights([22, 34, 28, 40, 32, 26, 36, 24]);
+      }, 420);
+    },
+    [playPentatonicTone],
+  );
+
+  const playArpeggio = useCallback(() => {
+    seqTimersRef.current.forEach((t) => clearTimeout(t));
+    seqTimersRef.current = [];
+    SYNTH_PADS.forEach((pad, idx) => {
+      const timer = setTimeout(() => {
+        triggerPad(pad);
+      }, idx * 170);
+      seqTimersRef.current.push(timer);
+    });
+  }, [triggerPad]);
+
+  const activeDeliverable =
+    STUDIO_DELIVERABLES.find((d) => d.id === deliverableId) ?? STUDIO_DELIVERABLES[0];
+  const activePace =
+    STUDIO_PACES.find((p) => p.id === paceId) ?? STUDIO_PACES[0];
+
+  const isDark = activeWorld === 'particle3d';
+  const isVoxel = activeWorld === 'voxel';
+
+  const sectionBgClass = isDark
+    ? 'border-t border-white/10 bg-[#06070B] text-white'
+    : isVoxel
+      ? 'border-t-2 border-[#2B231E]/20 bg-[#F7F2E3] text-[#2B231E]'
+      : 'border-t border-[#EBC6D2] bg-[#FFF6F8] text-[#2B1B2E]';
+
+  const cardClass = isDark
+    ? 'rounded-2xl border border-white/15 bg-[#0D1018]'
+    : isVoxel
+      ? 'wz-cv-pixel-box rounded-2xl bg-[#FAF4DC]'
+      : 'rounded-2xl border border-[#E7BDC8] bg-[#FFFDFA] shadow-sm';
+
+  const subSurfaceClass = isDark
+    ? 'rounded-xl border border-white/10 bg-white/[0.04]'
+    : isVoxel
+      ? 'rounded-xl border-2 border-[#2B231E]/20 bg-white'
+      : 'rounded-xl border border-[#F2D3DD] bg-[#FFF6F8]';
+
+  const mutedTextClass = isDark
+    ? 'text-white/65'
+    : isVoxel
+      ? 'text-[#2B231E]/75'
+      : 'text-[#6B4354]';
+
+  const eyebrowClass = isDark
+    ? 'text-[#FBBF24]'
+    : isVoxel
+      ? 'text-[#569848]'
+      : 'text-[#BE185D]';
+
+  const activePadObj = SYNTH_PADS.find((p) => p.id === activePadId);
+
+  return (
+    <section
+      aria-label="Studio synth deck and scope estimator"
+      className={`relative z-10 px-3.5 pb-10 pt-2 sm:px-6 ${sectionBgClass}`}
+    >
+      <div className="mx-auto grid w-full max-w-[1080px] grid-cols-1 gap-5 lg:grid-cols-2">
+        {/* LEFT: INTERACTIVE STUDIO SYNTH / SOUND-LIGHT PAD DECK */}
+        <div className={`${cardClass} flex flex-col justify-between p-4 sm:p-5`}>
+          <div>
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div>
+                <p className={`font-mono text-[9.5px] font-bold uppercase tracking-[0.18em] ${eyebrowClass}`}>
+                  {copy.synthEyebrow}
+                </p>
+                <h2
+                  className={`mt-1 text-xl font-bold leading-tight sm:text-2xl ${
+                    isVoxel ? 'font-pixel text-base sm:text-lg' : 'font-editorial'
+                  }`}
+                  style={langSafe}
+                >
+                  {copy.synthTitle}
+                </h2>
+              </div>
+
+              {/* Mute Safety Toggle + Sequence Demo */}
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setMuted((prev) => !prev)}
+                  aria-pressed={muted}
+                  className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-full border px-3 font-mono text-[10px] font-bold uppercase tracking-[0.12em] transition active:scale-95 ${
+                    isDark
+                      ? muted
+                        ? 'border-white/15 bg-white/5 text-white/60'
+                        : 'border-[#38BDF8]/50 bg-[#38BDF8]/15 text-[#93C5FD]'
+                      : isVoxel
+                        ? muted
+                          ? 'border-[#2B231E]/30 bg-white text-[#2B231E]/65'
+                          : 'border-[#2B231E] bg-[#FDE047] text-[#2B231E]'
+                        : muted
+                          ? 'border-[#E7BDC8] bg-white text-[#6B4354]'
+                          : 'border-[#E11D63]/40 bg-[#FCE7F3] text-[#831843]'
+                  }`}
+                >
+                  <span
+                    className="h-2 w-2 rounded-full"
+                    style={{ backgroundColor: muted ? '#9CA3AF' : '#10B981' }}
+                    aria-hidden="true"
+                  />
+                  <span>{muted ? copy.soundMuted : copy.soundOn}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={playArpeggio}
+                  className={`inline-flex min-h-[44px] items-center rounded-full border px-3 font-mono text-[10px] font-bold uppercase tracking-[0.12em] transition active:scale-95 ${
+                    isDark
+                      ? 'border-white/20 bg-white/[0.06] text-white hover:border-[#FBBF24]/60'
+                      : isVoxel
+                        ? 'wz-cv-pixel-btn bg-[#6BAF5D] text-white'
+                        : 'border-[#D98EA2] bg-white text-[#831843] hover:bg-rose-50'
+                  }`}
+                >
+                  {copy.playSequence}
+                </button>
+              </div>
+            </div>
+
+            {/* Live Reactive Sound-Light Equalizer Bars */}
+            <div
+              aria-hidden="true"
+              className={`${subSurfaceClass} mt-4 flex h-16 items-end justify-between gap-1.5 px-3 pb-2.5 pt-3`}
+            >
+              {barHeights.map((pct, idx) => (
+                <div key={`eq-bar-${idx}`} className="flex h-full flex-1 items-end">
+                  <div
+                    className="w-full rounded-t-sm"
+                    style={{
+                      height: `${reducedMotion ? Math.min(72, pct) : pct}%`,
+                      backgroundColor: activePadObj
+                        ? activePadObj.accentHex
+                        : SYNTH_PADS[idx % SYNTH_PADS.length].accentHex,
+                      opacity: activePadObj ? 0.95 : 0.45,
+                      transition: reducedMotion
+                        ? 'none'
+                        : 'height 160ms cubic-bezier(0.22, 1, 0.36, 1), background-color 160ms ease',
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* 4 Tactile Neon / Studio Pentatonic Pads */}
+            <div className="mt-3.5 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+              {SYNTH_PADS.map((pad, idx) => {
+                const isLit = activePadId === pad.id;
+                return (
+                  <button
+                    key={pad.id}
+                    type="button"
+                    onClick={() => triggerPad(pad)}
+                    className={`flex min-h-[84px] flex-col items-start justify-between rounded-xl border-2 p-3 text-left transition-all active:scale-95 ${
+                      isDark
+                        ? 'bg-[#080A11] text-white'
+                        : isVoxel
+                          ? 'bg-white text-[#2B231E] shadow-[0_3px_0_#2B231E]'
+                          : 'bg-white text-[#2B1B2E]'
+                    }`}
+                    style={{
+                      borderColor: isLit
+                        ? pad.accentHex
+                        : isDark
+                          ? 'rgba(255,255,255,0.16)'
+                          : isVoxel
+                            ? '#2B231E'
+                            : '#E7BDC8',
+                      boxShadow: isLit ? `0 0 22px ${pad.glowRgba}` : undefined,
+                      transform: isLit && !reducedMotion ? 'translateY(-2px)' : undefined,
+                    }}
+                  >
+                    <div className="flex w-full items-center justify-between">
+                      <span className="font-mono text-[9px] font-bold opacity-65">0{idx + 1}</span>
+                      <span
+                        className="h-2.5 w-2.5 rounded-full transition-transform"
+                        style={{
+                          backgroundColor: pad.accentHex,
+                          transform: isLit ? 'scale(1.35)' : 'scale(1)',
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <p className="font-mono text-xs font-extrabold tracking-wider">{pad.label}</p>
+                      <p className="font-mono text-[9px] uppercase opacity-65">
+                        {pad.note} · {Math.round(pad.freq)}Hz
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className={`mt-3.5 flex items-center justify-between font-mono text-[9.5px] uppercase tracking-[0.14em] ${mutedTextClass}`}>
+            <span>PENTATONIC WEBAUDIO · C5 — G5</span>
+            <span>{tapCount} TRIGGERED</span>
+          </div>
+        </div>
+
+        {/* RIGHT: PROJECT SCOPE & TIMELINE ESTIMATOR */}
+        <div className={`${cardClass} flex flex-col justify-between p-4 sm:p-5`}>
+          <div>
+            <p className={`font-mono text-[9.5px] font-bold uppercase tracking-[0.18em] ${eyebrowClass}`}>
+              {copy.estimatorEyebrow}
+            </p>
+            <h2
+              className={`mt-1 text-xl font-bold leading-tight sm:text-2xl ${
+                isVoxel ? 'font-pixel text-base sm:text-lg' : 'font-editorial'
+              }`}
+              style={langSafe}
+            >
+              {copy.estimatorTitle}
+            </h2>
+
+            {/* Deliverable Selector */}
+            <div className="mt-3.5">
+              <p className={`mb-2 font-mono text-[9.5px] font-bold uppercase tracking-[0.14em] ${mutedTextClass}`}>
+                {copy.deliverableLabel}
+              </p>
+              <div role="radiogroup" aria-label={copy.deliverableLabel} className="grid grid-cols-1 gap-1.5 sm:grid-cols-3">
+                {STUDIO_DELIVERABLES.map((item) => {
+                  const selected = item.id === deliverableId;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      onClick={() => onSelectDeliverable(item.id)}
+                      className={`min-h-[44px] rounded-xl border px-3 py-2 text-left text-xs font-bold transition active:scale-[0.98] ${
+                        selected
+                          ? isDark
+                            ? 'border-[#FBBF24] bg-[#FBBF24] text-[#06070B]'
+                            : isVoxel
+                              ? 'border-[#2B231E] bg-[#6BAF5D] text-white'
+                              : 'border-[#E11D63] bg-[#E11D63] text-white'
+                          : isDark
+                            ? 'border-white/15 bg-white/[0.04] text-white/85 hover:border-white/35'
+                            : isVoxel
+                              ? 'border-[#2B231E]/30 bg-white text-[#2B231E] hover:border-[#2B231E]'
+                              : 'border-[#E7BDC8] bg-white text-[#2B1B2E] hover:border-[#E11D63]'
+                      }`}
+                      style={langSafe}
+                    >
+                      {item.label[coreLang]}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className={`mt-1.5 text-[11px] leading-relaxed ${mutedTextClass}`} style={langSafe}>
+                {activeDeliverable.spec[coreLang]}
+              </p>
+            </div>
+
+            {/* Pace Selector */}
+            <div className="mt-3.5">
+              <p className={`mb-2 font-mono text-[9.5px] font-bold uppercase tracking-[0.14em] ${mutedTextClass}`}>
+                {copy.paceLabel}
+              </p>
+              <div role="radiogroup" aria-label={copy.paceLabel} className="grid grid-cols-3 gap-1.5">
+                {STUDIO_PACES.map((pace) => {
+                  const selected = pace.id === paceId;
+                  return (
+                    <button
+                      key={pace.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      onClick={() => onSelectPace(pace.id)}
+                      className={`min-h-[44px] rounded-xl border px-2.5 py-2 text-center text-[11px] font-bold transition active:scale-[0.98] ${
+                        selected
+                          ? isDark
+                            ? 'border-[#38BDF8] bg-[#38BDF8]/20 text-[#93C5FD]'
+                            : isVoxel
+                              ? 'border-[#2B231E] bg-[#FDE047] text-[#2B231E]'
+                              : 'border-[#831843] bg-[#FCE7F3] text-[#831843]'
+                          : isDark
+                            ? 'border-white/15 bg-white/[0.04] text-white/75 hover:border-white/35'
+                            : isVoxel
+                              ? 'border-[#2B231E]/30 bg-white text-[#2B231E] hover:border-[#2B231E]'
+                              : 'border-[#E7BDC8] bg-white text-[#2B1B2E] hover:border-[#D98EA2]'
+                      }`}
+                      style={langSafe}
+                    >
+                      {pace.label[coreLang]}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className={`mt-1.5 text-[11px] leading-relaxed ${mutedTextClass}`} style={langSafe}>
+                {activePace.cadence[coreLang]}
+              </p>
+            </div>
+
+            {/* Live Studio Brief Preview */}
+            <div className={`${subSurfaceClass} mt-3.5 p-3`}>
+              <p className={`font-mono text-[9px] font-bold uppercase tracking-[0.16em] ${eyebrowClass}`}>
+                {copy.briefPreviewLabel}
+              </p>
+              <p className="mt-1 text-xs leading-relaxed opacity-90">&ldquo;{inquiryBrief}&rdquo;</p>
+            </div>
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            {whatsappHref ? (
+              <a
+                href={whatsappHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`inline-flex min-h-[44px] flex-1 items-center justify-center gap-1.5 rounded-full px-4 text-xs font-extrabold transition active:scale-95 ${
+                  isDark
+                    ? 'bg-gradient-to-r from-[#FBBF24] to-[#F59E0B] text-[#06070B]'
+                    : isVoxel
+                      ? 'wz-cv-pixel-btn bg-[#6BAF5D] text-white'
+                      : 'bg-[#E11D63] text-white'
+                }`}
+              >
+                <span>{copy.startProject}</span>
+                <ArrowUpRightSvg className="h-3.5 w-3.5" />
+              </a>
+            ) : null}
+            <button
+              type="button"
+              onClick={onCopyBrief}
+              className={`inline-flex min-h-[44px] flex-1 items-center justify-center rounded-full border px-4 text-xs font-bold transition active:scale-95 ${
+                isDark
+                  ? 'border-white/20 bg-white/[0.06] text-white hover:border-[#60A5FA]'
+                  : isVoxel
+                    ? 'wz-cv-pixel-btn bg-white text-[#2B231E]'
+                    : 'border-[#D98EA2] bg-rose-50 text-[#831843] hover:bg-rose-100'
+              }`}
+            >
+              {copiedBrief ? copy.briefCopied : copy.copyBrief}
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /* ---------- Main Exported Component: CreativeVoxelSite ---------- */
 
 export function CreativeVoxelSite({
@@ -3165,10 +3873,13 @@ export function CreativeVoxelSite({
   const reducedMotion = usePrefersReducedMotion();
   const coreLang = toCoreLanguageCode(language);
   const copy = WORLD_COPY[coreLang];
+  const langSafe = hiSafeStyle(language);
 
   const [activeWorld, setActiveWorld] = useState<CreativeWorldMode>(() =>
     resolveWorldMode(data.relation),
   );
+  const [deliverableId, setDeliverableId] = useState<StudioDeliverableId>('landing-3d');
+  const [paceId, setPaceId] = useState<StudioPaceId>('standard-3w');
   const [copiedBrief, setCopiedBrief] = useState(false);
   const openedOnceRef = useRef(false);
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -3195,10 +3906,22 @@ export function CreativeVoxelSite({
     [data, language],
   );
 
+  const selectedDeliverable =
+    STUDIO_DELIVERABLES.find((d) => d.id === deliverableId) ?? STUDIO_DELIVERABLES[0];
+  const selectedPace =
+    STUDIO_PACES.find((p) => p.id === paceId) ?? STUDIO_PACES[0];
+
   const inquiryBrief = useMemo(
     () =>
-      `Hi ${identity.displayName}, loved your ${copy.modes[activeWorld]} experience and want to start a project together.`,
-    [identity.displayName, copy.modes, activeWorld],
+      `Hi ${identity.displayName}, loved your ${copy.modes[activeWorld]} world! Looking to scope a ${selectedDeliverable.enLabel} at ${selectedPace.enLabel} pace (${identity.offerTag}).`,
+    [
+      identity.displayName,
+      identity.offerTag,
+      copy.modes,
+      activeWorld,
+      selectedDeliverable.enLabel,
+      selectedPace.enLabel,
+    ],
   );
 
   const whatsappHref = useMemo(
@@ -3244,7 +3967,7 @@ export function CreativeVoxelSite({
     <div
       data-theme-id={manifest.id}
       className="wz-cv-shell relative flex min-h-full w-full flex-col justify-between overflow-x-clip rounded-[28px]"
-      style={{ backgroundColor: outerBg }}
+      style={{ backgroundColor: outerBg, ...langSafe }}
     >
       <style>{CREATIVE_VOXEL_CSS}</style>
 
@@ -3325,7 +4048,7 @@ export function CreativeVoxelSite({
                     role="tab"
                     aria-selected={isSelected}
                     onClick={() => setActiveWorld(mode.id)}
-                    className={`inline-flex min-h-[34px] items-center gap-1 rounded-full px-2.5 text-[10.5px] font-bold whitespace-nowrap transition-all duration-200 active:scale-95 sm:px-3 sm:text-[11px] ${
+                    className={`inline-flex min-h-[40px] items-center gap-1 rounded-full px-2.5 text-[10.5px] font-bold whitespace-nowrap transition-all duration-200 active:scale-95 sm:px-3 sm:text-[11px] ${
                       isSelected
                         ? 'bg-gradient-to-r from-[#FEF3C7] via-white to-[#DBEAFE] text-[#090B12] shadow-[0_0_16px_rgba(251,191,36,0.45)]'
                         : 'text-white/75 hover:bg-white/10 hover:text-white'
@@ -3358,6 +4081,7 @@ export function CreativeVoxelSite({
           <VoxelQuestWorld
             identity={identity}
             data={data}
+            language={language}
             coreLang={coreLang}
             whatsappHref={whatsappHref}
             onCopyBrief={handleCopyBrief}
@@ -3367,6 +4091,7 @@ export function CreativeVoxelSite({
           <ScrapbookCreatieWorld
             identity={identity}
             data={data}
+            language={language}
             coreLang={coreLang}
             reducedMotion={reducedMotion}
             whatsappHref={whatsappHref}
@@ -3374,6 +4099,21 @@ export function CreativeVoxelSite({
             copiedBrief={copiedBrief}
           />
         )}
+
+        <StudioSynthAndEstimatorSection
+          activeWorld={activeWorld}
+          language={language}
+          coreLang={coreLang}
+          reducedMotion={reducedMotion}
+          deliverableId={deliverableId}
+          paceId={paceId}
+          onSelectDeliverable={setDeliverableId}
+          onSelectPace={setPaceId}
+          inquiryBrief={inquiryBrief}
+          whatsappHref={whatsappHref}
+          onCopyBrief={handleCopyBrief}
+          copiedBrief={copiedBrief}
+        />
       </main>
 
       {/* WEBZY FOOTER */}

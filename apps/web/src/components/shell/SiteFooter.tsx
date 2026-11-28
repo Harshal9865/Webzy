@@ -71,6 +71,12 @@ export function SiteFooter({ config }: SiteFooterProps) {
             prices shown are GST-inclusive.
           </span>
           <div className="flex flex-wrap items-center gap-4">
+            <Link href="/weddings" className="inline-flex min-h-[44px] items-center text-[11px] font-semibold text-webzy-ink/65 hover:text-webzy-primary">
+              {copy.nav.weddings}
+            </Link>
+            <Link href="/themes" className="inline-flex min-h-[44px] items-center text-[11px] font-semibold text-webzy-ink/65 hover:text-webzy-primary">
+              {copy.nav.occasions}
+            </Link>
             <Link href="/pricing" className="inline-flex min-h-[44px] items-center text-[11px] font-semibold text-webzy-ink/65 hover:text-webzy-primary">
               {copy.nav.prices}
             </Link>
