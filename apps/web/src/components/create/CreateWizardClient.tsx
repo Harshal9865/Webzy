@@ -28,6 +28,11 @@ export interface UploadedPhotoItem {
   localObjectUrl?: string;
 }
 
+export interface CustomCardItem {
+  title: string;
+  detail: string;
+}
+
 interface CreateWizardClientProps {
   theme: ThemeManifest;
   supabaseConfigured: boolean;
@@ -35,15 +40,72 @@ interface CreateWizardClientProps {
   userEmail?: string;
   initialDraftToken?: string;
   initialLanguage?: LanguageCode;
-  initialContent?: {
-    receiverName?: string;
-    senderName?: string;
-    relation?: string;
-    message?: string;
-    whatsappPhone?: string;
-  };
+  initialContent?: Record<string, unknown>;
   initialPhotos?: UploadedPhotoItem[];
   initialRevealAt?: string | null;
+}
+
+function readStringField(obj: Record<string, unknown> | undefined, key: string): string {
+  const val = obj?.[key];
+  return typeof val === 'string' ? val : '';
+}
+
+function readHighlightsField(obj: Record<string, unknown> | undefined): CustomCardItem[] {
+  const raw = obj?.highlights;
+  const slots: CustomCardItem[] = Array.from({ length: 4 }, () => ({ title: '', detail: '' }));
+  if (Array.isArray(raw)) {
+    raw.slice(0, 4).forEach((item, idx) => {
+      if (item && typeof item === 'object') {
+        const rec = item as Record<string, unknown>;
+        slots[idx] = {
+          title: typeof rec.title === 'string' ? rec.title : '',
+          detail: typeof rec.detail === 'string' ? rec.detail : '',
+        };
+      }
+    });
+  }
+  return slots;
+}
+
+function getCardsSectionCopy(theme: ThemeManifest): { heading: string; helper: string; slotNoun: string } {
+  switch (theme.id) {
+    case 'will-you-01':
+      return {
+        heading: 'Personalize 4 Rose Bouquet Notes',
+        helper: 'Tap pins on the rose bouquet in the preview to see your custom reasons update live.',
+        slotNoun: 'Bloom Note',
+      };
+    case 'maan-jao-01':
+      return {
+        heading: 'Personalize 4 Clipped Care Promises',
+        helper: 'Each pastel paper-clipped sticky note on the page updates live with your own promises.',
+        slotNoun: 'Care Promise',
+      };
+    case 'our-timeline-01':
+      return {
+        heading: 'Personalize Timeline Chapters',
+        helper: 'Customize up to 4 milestone chapters (e.g. First Meet, First Trip, Favorite Memory, Today).',
+        slotNoun: 'Chapter',
+      };
+    case 'birthday-ashirwad-01':
+      return {
+        heading: 'Personalize Family Blessing Cards',
+        helper: 'Add personal wishes, memories, or prayers from family members (up to 4 cards).',
+        slotNoun: 'Blessing',
+      };
+    case 'make-them-smile-01':
+      return {
+        heading: 'Personalize "Open When" Notes',
+        helper: 'Write up to 4 thoughtful envelopes or gratitude notes they can tap to open.',
+        slotNoun: 'Note',
+      };
+    default:
+      return {
+        heading: 'Personalize Highlight Cards (Up to 4)',
+        helper: 'Leave blank to keep the curated editorial cards, or type your own to override them live.',
+        slotNoun: 'Card',
+      };
+  }
 }
 
 function utcIsoToIstDatetimeLocal(iso: string | null | undefined): string {
@@ -108,17 +170,39 @@ export function CreateWizardClient({
     return ist.toISOString().slice(0, 10);
   });
 
-  const [receiverName, setReceiverName] = useState(initialContent?.receiverName || '');
-  const [senderName, setSenderName] = useState(initialContent?.senderName || '');
+  const [receiverName, setReceiverName] = useState(() => readStringField(initialContent, 'receiverName'));
+  const [senderName, setSenderName] = useState(() => readStringField(initialContent, 'senderName'));
   const [relation, setRelation] = useState(
-    initialContent?.relation ||
-    theme.fields.find((f) => f.key === 'relation')?.options?.[0]?.value ||
-    '',
+    () =>
+      readStringField(initialContent, 'relation') ||
+      theme.fields.find((f) => f.key === 'relation')?.options?.[0]?.value ||
+      '',
   );
-  const [message, setMessage] = useState(initialContent?.message || '');
-  const [whatsappPhone, setWhatsappPhone] = useState(initialContent?.whatsappPhone || '');
+  const [headline, setHeadline] = useState(() => readStringField(initialContent, 'headline'));
+  const [message, setMessage] = useState(() => readStringField(initialContent, 'message'));
+  const [offerTag, setOfferTag] = useState(() => readStringField(initialContent, 'offerTag'));
+  const [highlights, setHighlights] = useState<CustomCardItem[]>(() => readHighlightsField(initialContent));
+  const [showAdvancedCards, setShowAdvancedCards] = useState<boolean>(() => {
+    const hasHeadline = Boolean(readStringField(initialContent, 'headline'));
+    const hasOffer = Boolean(readStringField(initialContent, 'offerTag'));
+    const hasCards = readHighlightsField(initialContent).some((c) => c.title || c.detail);
+    return hasHeadline || hasOffer || hasCards;
+  });
+  const [whatsappPhone, setWhatsappPhone] = useState(() => readStringField(initialContent, 'whatsappPhone'));
   const [revealAt, setRevealAt] = useState(() => utcIsoToIstDatetimeLocal(initialRevealAt));
   const [photos, setPhotos] = useState<UploadedPhotoItem[]>(initialPhotos);
+
+  const cardsCopy = useMemo(() => getCardsSectionCopy(theme), [theme]);
+  const customizedCardCount = useMemo(
+    () => highlights.filter((item) => item.title.trim() || item.detail.trim()).length,
+    [highlights],
+  );
+
+  function handleHighlightChange(idx: number, field: 'title' | 'detail', value: string) {
+    setHighlights((prev) =>
+      prev.map((item, i) => (i === idx ? { ...item, [field]: value } : item)),
+    );
+  }
 
   function handleRevealModeChange(mode: 'instant' | 'midnight' | 'morning' | 'custom', dateStr = revealDate) {
     setRevealMode(mode);
@@ -176,13 +260,21 @@ export function CreateWizardClient({
     try {
       const cached = window.localStorage.getItem(localKey);
       if (!cached) return;
-      const parsed = JSON.parse(cached) as Record<string, string>;
-      if (parsed.receiverName) setReceiverName(parsed.receiverName);
-      if (parsed.senderName) setSenderName(parsed.senderName);
-      if (parsed.message) setMessage(parsed.message);
-      if (parsed.relation) setRelation(parsed.relation);
-      if (parsed.whatsappPhone) setWhatsappPhone(parsed.whatsappPhone);
-      if (parsed.draftToken) setDraftToken(parsed.draftToken);
+      const parsed = JSON.parse(cached) as Record<string, unknown>;
+      if (typeof parsed.receiverName === 'string' && parsed.receiverName) setReceiverName(parsed.receiverName);
+      if (typeof parsed.senderName === 'string' && parsed.senderName) setSenderName(parsed.senderName);
+      if (typeof parsed.headline === 'string' && parsed.headline) setHeadline(parsed.headline);
+      if (typeof parsed.message === 'string' && parsed.message) setMessage(parsed.message);
+      if (typeof parsed.offerTag === 'string' && parsed.offerTag) setOfferTag(parsed.offerTag);
+      if (typeof parsed.relation === 'string' && parsed.relation) setRelation(parsed.relation);
+      if (typeof parsed.whatsappPhone === 'string' && parsed.whatsappPhone) setWhatsappPhone(parsed.whatsappPhone);
+      if (Array.isArray(parsed.highlights)) {
+        const restored = readHighlightsField({ highlights: parsed.highlights });
+        if (restored.some((c) => c.title || c.detail)) {
+          setHighlights(restored);
+        }
+      }
+      if (typeof parsed.draftToken === 'string' && parsed.draftToken) setDraftToken(parsed.draftToken);
     } catch {
       // Ignore strict storage errors
     }
@@ -196,7 +288,10 @@ export function CreateWizardClient({
           receiverName,
           senderName,
           relation,
+          headline,
           message,
+          offerTag,
+          highlights,
           whatsappPhone,
           draftToken,
         }),
@@ -204,15 +299,22 @@ export function CreateWizardClient({
     } catch {
       // Ignore storage failures
     }
-  }, [localKey, receiverName, senderName, relation, message, whatsappPhone, draftToken]);
+  }, [localKey, receiverName, senderName, relation, headline, message, offerTag, highlights, whatsappPhone, draftToken]);
 
   const liveScamWarning = useMemo(() => {
     const msgCheck = detectScamPatterns(message);
     if (!msgCheck.allowed) return msgCheck.reason || 'Links, phones & UPI IDs are blocked.';
-    const nameCheck = detectScamPatterns(`${receiverName} ${senderName}`);
-    if (!nameCheck.allowed) return nameCheck.reason || 'Invalid characters in name.';
+    const nameCheck = detectScamPatterns(`${receiverName} ${senderName} ${headline} ${offerTag}`);
+    if (!nameCheck.allowed) return nameCheck.reason || 'Invalid characters in name or headline.';
+    for (let i = 0; i < highlights.length; i += 1) {
+      const cardText = `${highlights[i]?.title || ''} ${highlights[i]?.detail || ''}`.trim();
+      if (cardText) {
+        const cardCheck = detectScamPatterns(cardText);
+        if (!cardCheck.allowed) return cardCheck.reason || `Card ${i + 1} contains blocked links or numbers.`;
+      }
+    }
     return '';
-  }, [message, receiverName, senderName]);
+  }, [message, receiverName, senderName, headline, offerTag, highlights]);
 
   const previewPayload = useMemo(
     () =>
@@ -220,12 +322,28 @@ export function CreateWizardClient({
         receiverName,
         senderName,
         relation,
+        headline,
         message,
+        offerTag: theme.occasion === 'business' ? offerTag : undefined,
+        highlights,
         whatsappPhone: isBusinessTheme ? whatsappPhone : '',
         photos: photos.map((p) => p.signedUrl || p.localObjectUrl || '').filter(Boolean),
         revealAt: revealAt || undefined,
       }),
-    [theme, receiverName, senderName, relation, message, isBusinessTheme, whatsappPhone, photos, revealAt],
+    [
+      theme,
+      receiverName,
+      senderName,
+      relation,
+      headline,
+      message,
+      offerTag,
+      highlights,
+      isBusinessTheme,
+      whatsappPhone,
+      photos,
+      revealAt,
+    ],
   );
 
   const ensureServerDraft = useCallback(async (): Promise<string | null> => {
@@ -242,7 +360,10 @@ export function CreateWizardClient({
           receiverName,
           senderName,
           relation,
+          headline,
           message,
+          offerTag: theme.occasion === 'business' ? offerTag : undefined,
+          highlights,
           whatsappPhone: isBusinessTheme ? whatsappPhone : undefined,
         },
       }),
@@ -261,11 +382,15 @@ export function CreateWizardClient({
     supabaseConfigured,
     draftToken,
     theme.id,
+    theme.occasion,
     draftLang,
     receiverName,
     senderName,
     relation,
+    headline,
     message,
+    offerTag,
+    highlights,
     isBusinessTheme,
     whatsappPhone,
   ]);
@@ -298,7 +423,10 @@ export function CreateWizardClient({
             receiverName,
             senderName,
             relation,
+            headline,
             message,
+            offerTag: theme.occasion === 'business' ? offerTag : undefined,
+            highlights,
             whatsappPhone: isBusinessTheme ? whatsappPhone : undefined,
           },
         }),
@@ -783,6 +911,114 @@ export function CreateWizardClient({
                   />
                 </div>
               ) : null}
+
+              {/* Optional Deep Customization Accordion: Custom Headline, Offer Badge & Up to 4 Cards */}
+              <div className="rounded-2xl border border-webzy-tint bg-white p-4">
+                <button
+                  type="button"
+                  onClick={() => setShowAdvancedCards((open) => !open)}
+                  aria-expanded={showAdvancedCards}
+                  className="flex w-full items-center justify-between gap-3 text-left"
+                >
+                  <div>
+                    <span className="block text-xs font-bold text-webzy-ink">
+                      {cardsCopy.heading} &amp; Cover Headline
+                    </span>
+                    <span className="mt-0.5 block text-[11px] text-webzy-ink/65">
+                      Optional — leave blank to keep curated defaults, or customize every card live
+                      {customizedCardCount > 0 || headline.trim()
+                        ? ` (${customizedCardCount} card${customizedCardCount === 1 ? '' : 's'} customized)`
+                        : ''}
+                    </span>
+                  </div>
+                  <span className="shrink-0 rounded-full border border-webzy-tint bg-webzy-surface px-3 py-1 text-[11px] font-bold text-webzy-primary">
+                    {showAdvancedCards ? 'Hide' : 'Customize'}
+                  </span>
+                </button>
+
+                {showAdvancedCards ? (
+                  <div className="mt-4 space-y-4 border-t border-webzy-tint/70 pt-4">
+                    <div>
+                      <label htmlFor="cw-headline" className="block text-xs font-bold text-webzy-ink">
+                        Custom Cover Headline (optional)
+                      </label>
+                      <input
+                        id="cw-headline"
+                        type="text"
+                        maxLength={90}
+                        value={headline}
+                        onChange={(e) => setHeadline(e.target.value)}
+                        placeholder={pickLocalizedText(theme.demoData.headline, draftLang)}
+                        className="mt-1.5 min-h-[44px] w-full rounded-xl border border-webzy-tint bg-webzy-surface/35 px-3.5 text-sm text-webzy-ink outline-none focus:border-webzy-primary focus:bg-white"
+                      />
+                    </div>
+
+                    {theme.occasion === 'business' ? (
+                      <div>
+                        <label htmlFor="cw-offer" className="block text-xs font-bold text-webzy-ink">
+                          Special Offer / Privilege Badge (optional)
+                        </label>
+                        <input
+                          id="cw-offer"
+                          type="text"
+                          maxLength={120}
+                          value={offerTag}
+                          onChange={(e) => setOfferTag(e.target.value)}
+                          placeholder={
+                            pickLocalizedText(theme.demoData.offerTag, draftLang) ||
+                            'e.g. SAVE 20% · FIRST ORDER'
+                          }
+                          className="mt-1.5 min-h-[44px] w-full rounded-xl border border-webzy-tint bg-webzy-surface/35 px-3.5 text-sm text-webzy-ink outline-none focus:border-webzy-primary focus:bg-white"
+                        />
+                      </div>
+                    ) : null}
+
+                    <div>
+                      <p className="text-xs font-bold text-webzy-ink">{cardsCopy.heading}</p>
+                      <p className="mt-0.5 text-[11px] text-webzy-ink/65">{cardsCopy.helper}</p>
+                      <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        {highlights.map((card, idx) => {
+                          const defaultCard = theme.demoData.highlights?.[idx];
+                          const titlePh =
+                            pickLocalizedText(defaultCard?.title, draftLang) ||
+                            `${cardsCopy.slotNoun} ${idx + 1} title`;
+                          const detailPh =
+                            pickLocalizedText(defaultCard?.detail, draftLang) ||
+                            'Short personal note (optional)';
+                          return (
+                            <div
+                              key={`card-slot-${idx}`}
+                              className="rounded-xl border border-webzy-tint/80 bg-webzy-surface/30 p-3"
+                            >
+                              <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-webzy-primary">
+                                {cardsCopy.slotNoun} 0{idx + 1}
+                              </span>
+                              <input
+                                type="text"
+                                maxLength={60}
+                                value={card.title}
+                                onChange={(e) => handleHighlightChange(idx, 'title', e.target.value)}
+                                placeholder={titlePh}
+                                aria-label={`${cardsCopy.slotNoun} ${idx + 1} title`}
+                                className="mt-1.5 min-h-[40px] w-full rounded-lg border border-webzy-tint bg-white px-3 text-xs font-semibold text-webzy-ink outline-none focus:border-webzy-primary"
+                              />
+                              <textarea
+                                rows={2}
+                                maxLength={180}
+                                value={card.detail}
+                                onChange={(e) => handleHighlightChange(idx, 'detail', e.target.value)}
+                                placeholder={detailPh}
+                                aria-label={`${cardsCopy.slotNoun} ${idx + 1} note`}
+                                className="mt-1.5 w-full rounded-lg border border-webzy-tint bg-white px-3 py-2 text-xs text-webzy-ink outline-none focus:border-webzy-primary"
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
             </div>
           ) : null}
 
@@ -983,6 +1219,8 @@ export function CreateWizardClient({
                 </p>
                 <p className="mt-1">
                   <strong>Photos:</strong> {photos.length} attached
+                  {customizedCardCount > 0 ? ` · ${customizedCardCount} custom cards` : ''}
+                  {headline.trim() ? ' · Custom headline' : ''}
                 </p>
               </div>
 

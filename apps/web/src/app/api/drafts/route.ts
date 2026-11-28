@@ -247,13 +247,48 @@ export async function POST(request: NextRequest) {
     if (typeof rawContent.relation === 'string' && rawContent.relation.trim()) {
       sanitizedContent.relation = rawContent.relation.trim().slice(0, 32);
     }
+    if (typeof rawContent.headline === 'string' && rawContent.headline.trim()) {
+      sanitizedContent.headline = assertSafeReadyMadeText(
+        'Custom headline',
+        rawContent.headline.slice(0, 90),
+      );
+    }
     if (typeof rawContent.message === 'string' && rawContent.message.trim()) {
       sanitizedContent.message = assertSafeReadyMadeText(
         'Message',
         rawContent.message.slice(0, 320),
       );
     }
-    if (theme.occasion === 'business' && typeof rawContent.whatsappPhone === 'string') {
+    if (
+      theme.occasion === 'business' &&
+      typeof rawContent.offerTag === 'string' &&
+      rawContent.offerTag.trim()
+    ) {
+      sanitizedContent.offerTag = assertSafeReadyMadeText(
+        'Offer badge',
+        rawContent.offerTag.slice(0, 120),
+      );
+    }
+    if (Array.isArray(rawContent.highlights)) {
+      const cleanedHighlights = rawContent.highlights
+        .slice(0, 4)
+        .filter((h): h is Record<string, unknown> => Boolean(h && typeof h === 'object' && !Array.isArray(h)))
+        .map((h, idx) => {
+          const rawTitle = typeof h.title === 'string' ? h.title.trim().slice(0, 60) : '';
+          const rawDetail = typeof h.detail === 'string' ? h.detail.trim().slice(0, 180) : '';
+          return {
+            title: rawTitle ? assertSafeReadyMadeText(`Card ${idx + 1} title`, rawTitle) : '',
+            detail: rawDetail ? assertSafeReadyMadeText(`Card ${idx + 1} note`, rawDetail) : '',
+          };
+        });
+      if (cleanedHighlights.some((h) => h.title || h.detail)) {
+        sanitizedContent.highlights = cleanedHighlights;
+      }
+    }
+    const allowsWhatsapp =
+      theme.occasion === 'business' ||
+      theme.fields.some((f) => f.key === 'whatsappPhone');
+    if (allowsWhatsapp && typeof rawContent.whatsappPhone === 'string') {
       const normalizedWa = validateBusinessWhatsappNumber(rawContent.whatsappPhone);
       if (normalizedWa) sanitizedContent.whatsappPhone = normalizedWa;
     }

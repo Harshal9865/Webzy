@@ -466,6 +466,17 @@ export function MaanJaoSite({
   const spoilReply =
     spoilCount > 0 ? copy.spoilMoreReplies[(spoilCount - 1) % copy.spoilMoreReplies.length] : null;
 
+  const resolvedCareNotes = STICKY_CARE_NOTES.map((item, idx) => {
+    const custom = data.highlights?.[idx];
+    const customTitle = custom ? pickLocalizedText(custom.title, language).trim() : '';
+    const customDetail = custom ? pickLocalizedText(custom.detail, language).trim() : '';
+    return {
+      ...item,
+      resolvedTitle: customTitle || item.title[coreLang],
+      resolvedNote: customDetail || item.note[coreLang],
+    };
+  });
+
   function handleToggleNote(id: CarePromiseId, idx: number) {
     playRaindropPluck(idx);
     setAcceptedIds((prev) =>
@@ -789,7 +800,7 @@ export function MaanJaoSite({
           </div>
 
           <div className="grid grid-cols-2 gap-3.5 pt-2">
-            {STICKY_CARE_NOTES.map((item, idx) => {
+            {resolvedCareNotes.map((item, idx) => {
               const accepted = acceptedIds.includes(item.id);
               return (
                 <button
@@ -817,10 +828,10 @@ export function MaanJaoSite({
 
                   <div className="mt-2">
                     <p style={hindiSafe} className="font-heading text-sm font-bold leading-snug">
-                      {item.title[coreLang]}
+                      {item.resolvedTitle}
                     </p>
                     <p style={hindiSafe} className="mt-1 text-[11px] font-medium opacity-80">
-                      {item.note[coreLang]}
+                      {item.resolvedNote}
                     </p>
                   </div>
                 </button>

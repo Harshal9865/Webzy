@@ -362,12 +362,41 @@ export async function PATCH(
     if (typeof incoming.relation === 'string') {
       nextContent.relation = incoming.relation.trim().slice(0, 32);
     }
+    if (typeof incoming.headline === 'string') {
+      nextContent.headline = incoming.headline.trim()
+        ? assertSafeReadyMadeText('Custom headline', incoming.headline.slice(0, 90))
+        : '';
+    }
     if (typeof incoming.message === 'string') {
       nextContent.message = incoming.message.trim()
         ? assertSafeReadyMadeText('Message', incoming.message.slice(0, 320))
         : '';
     }
-    if (theme.occasion === 'business' && typeof incoming.whatsappPhone === 'string') {
+    if (theme.occasion === 'business' && typeof incoming.offerTag === 'string') {
+      nextContent.offerTag = incoming.offerTag.trim()
+        ? assertSafeReadyMadeText('Offer badge', incoming.offerTag.slice(0, 120))
+        : '';
+    }
+    if (Array.isArray(incoming.highlights)) {
+      const cleanedHighlights = incoming.highlights
+        .slice(0, 4)
+        .filter((h): h is Record<string, unknown> => Boolean(h && typeof h === 'object' && !Array.isArray(h)))
+        .map((h, idx) => {
+          const rawTitle = typeof h.title === 'string' ? h.title.trim().slice(0, 60) : '';
+          const rawDetail = typeof h.detail === 'string' ? h.detail.trim().slice(0, 180) : '';
+          return {
+            title: rawTitle ? assertSafeReadyMadeText(`Card ${idx + 1} title`, rawTitle) : '',
+            detail: rawDetail ? assertSafeReadyMadeText(`Card ${idx + 1} note`, rawDetail) : '',
+          };
+        });
+      nextContent.highlights = cleanedHighlights.some((h) => h.title || h.detail)
+        ? cleanedHighlights
+        : [];
+    }
+    const allowsWhatsapp =
+      theme.occasion === 'business' ||
+      theme.fields.some((f) => f.key === 'whatsappPhone');
+    if (allowsWhatsapp && typeof incoming.whatsappPhone === 'string') {
       nextContent.whatsappPhone = validateBusinessWhatsappNumber(incoming.whatsappPhone) || '';
     }
     if (

@@ -1,7 +1,8 @@
 import crypto from 'node:crypto';
 import { NextResponse, type NextRequest } from 'next/server';
-import { logEvent, WebzyError } from '@webzy/core';
+import { getWebzyPublicConfig, logEvent, WebzyError } from '@webzy/core';
 import { sanitizeUploadedImage } from '@webzy/core/server';
+import { getThemeById } from '@webzy/themes';
 import { guardMutationRequest } from '../../../../../../infra/security/requestGuard';
 import { getAuthSessionState } from '../../../../../../infra/supabase/auth';
 import { getSupabaseEnv } from '../../../../../../infra/supabase/env';
@@ -65,11 +66,18 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const themeManifest =
+      typeof draft.theme_id === 'string'
+        ? getThemeById(draft.theme_id, { includeMaanJao: getWebzyPublicConfig().flags.maanJaoTheme })
+        : undefined;
+    const declaredPhotoMax = themeManifest?.fields.find(
+      (f) => f.type === 'images' || f.type === 'image',
+    )?.max;
     const maxPhotosForDraft =
       typeof draft.theme_id === 'string' && draft.theme_id.startsWith('wedding-')
         ? 6
-        : draft.theme_id === 'small-business-01' || draft.theme_id === 'portfolio-01'
-          ? 5
+        : typeof declaredPhotoMax === 'number' && declaredPhotoMax > 0
+          ? Math.min(6, declaredPhotoMax)
           : MAX_PHOTOS_PER_DRAFT;
 
     const { count: existingCount } = await admin

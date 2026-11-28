@@ -140,10 +140,20 @@ export function ThemeDemoClient({ theme, defaultValidityDays }: ThemeDemoClientP
           </div>
 
           <div className="mt-5 sm:mt-6">
-            <h2 className="text-sm font-bold text-webzy-ink">
-              Inputs needed ({theme.fields.length} quick steps)
-            </h2>
-            <ul className="mt-2.5 space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-sm font-bold text-webzy-ink">
+                100% Customizable Before You Pay
+              </h2>
+              <span className="rounded-full bg-webzy-surface px-2.5 py-0.5 text-[11px] font-bold text-webzy-primary">
+                Ready in 60 sec
+              </span>
+            </div>
+            <p className="mt-1 text-xs leading-relaxed text-webzy-ink/70">
+              Every buyer personalizes their own private shareable link — swap names, write your own
+              letter, edit the interactive cards &amp; headline, and upload your own photos while
+              watching the live preview update instantly.
+            </p>
+            <ul className="mt-3 space-y-2">
               {theme.fields.map((field, idx) => (
                 <li
                   key={field.key}
@@ -158,7 +168,33 @@ export function ThemeDemoClient({ theme, defaultValidityDays }: ThemeDemoClientP
                   </span>
                 </li>
               ))}
+              <li className="flex items-center justify-between rounded-xl border border-dashed border-webzy-tint bg-webzy-surface/40 px-3.5 py-2.5 text-sm">
+                <span>
+                  <span className="mr-2 font-bold text-webzy-primary">+</span>
+                  Custom Cover Headline &amp; Up to 4 Personal Cards / Promises
+                </span>
+                <span className="text-xs text-webzy-ink/60">Optional</span>
+              </li>
             </ul>
+          </div>
+
+          <div className="mt-5 grid grid-cols-2 gap-2.5 rounded-2xl border border-webzy-ink/[0.08] bg-webzy-surface/45 p-3.5 text-xs text-webzy-ink/80">
+            <div>
+              <p className="font-bold text-webzy-ink">Live Instant Preview</p>
+              <p className="mt-0.5 text-[11px] text-webzy-ink/65">Test every tap &amp; animation free before paying</p>
+            </div>
+            <div>
+              <p className="font-bold text-webzy-ink">Private Link + QR Code</p>
+              <p className="mt-0.5 text-[11px] text-webzy-ink/65">Opens smoothly inside WhatsApp, no app needed</p>
+            </div>
+            <div>
+              <p className="font-bold text-webzy-ink">Scheduled Countdown</p>
+              <p className="mt-0.5 text-[11px] text-webzy-ink/65">Optional 12:00 AM midnight or custom IST unlock</p>
+            </div>
+            <div>
+              <p className="font-bold text-webzy-ink">Privacy Protected</p>
+              <p className="mt-0.5 text-[11px] text-webzy-ink/65">Hidden from Google, EXIF stripped, optional PIN</p>
+            </div>
           </div>
 
           <div className="mt-5 sm:mt-6">
@@ -177,7 +213,7 @@ export function ThemeDemoClient({ theme, defaultValidityDays }: ThemeDemoClientP
               }
               className="inline-flex min-h-[48px] flex-1 items-center justify-center rounded-full bg-webzy-primary px-6 py-3 text-sm font-bold text-white shadow-sm transition hover:opacity-95"
             >
-              Use this theme ({formatInr(theme.price.base)})
+              Personalize This Edition ({formatInr(theme.price.base)})
             </Link>
             <Link
               href="/request"
@@ -188,6 +224,74 @@ export function ThemeDemoClient({ theme, defaultValidityDays }: ThemeDemoClientP
           </div>
         </aside>
       </div>
+
+      {/* Detailed Product Ownership & Customization Breakdown */}
+      <section className="mt-10 rounded-3xl border border-webzy-ink/[0.08] bg-white p-5 sm:mt-14 sm:p-8">
+        <div className="flex flex-wrap items-end justify-between gap-4 border-b border-webzy-ink/[0.08] pb-5">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-webzy-primary">
+              Your Custom Edition · Built To Share
+            </p>
+            <h2 className="mt-1.5 font-heading text-xl font-bold text-webzy-ink sm:text-2xl">
+              How you personalize &amp; publish in under 60 seconds
+            </h2>
+          </div>
+          <Link
+            href={
+              theme.occasion === 'wedding'
+                ? `/weddings/${theme.id}/customize`
+                : `/create/${theme.id}`
+            }
+            className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-webzy-ink/15 bg-webzy-surface px-5 text-xs font-bold text-webzy-ink transition hover:border-webzy-primary hover:text-webzy-primary"
+          >
+            Open Live Customizer →
+          </Link>
+        </div>
+
+        <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="rounded-2xl border border-webzy-ink/[0.07] bg-webzy-surface/40 p-5">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-webzy-primary text-xs font-bold text-white">
+              01
+            </span>
+            <h3 className="mt-3 font-heading text-base font-bold text-webzy-ink">
+              Make every word &amp; card yours
+            </h3>
+            <p className="mt-1.5 text-xs leading-relaxed text-webzy-ink/75">
+              Enter their name, choose English, Hinglish, or Hindi, write your letter (or use tone
+              ideas), and optionally customize the cover headline and up to 4 personal highlight
+              cards or promises.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-webzy-ink/[0.07] bg-webzy-surface/40 p-5">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-webzy-primary text-xs font-bold text-white">
+              02
+            </span>
+            <h3 className="mt-3 font-heading text-base font-bold text-webzy-ink">
+              Add photos &amp; preview live free
+            </h3>
+            <p className="mt-1.5 text-xs leading-relaxed text-webzy-ink/75">
+              Upload your own photos (auto-compressed &amp; GPS-stripped for privacy), set an
+              optional midnight countdown unlock, and test every animation on mobile before paying
+              a single rupee.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-webzy-ink/[0.07] bg-webzy-surface/40 p-5">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-webzy-primary text-xs font-bold text-white">
+              03
+            </span>
+            <h3 className="mt-3 font-heading text-base font-bold text-webzy-ink">
+              Pay once via UPI &amp; share instantly
+            </h3>
+            <p className="mt-1.5 text-xs leading-relaxed text-webzy-ink/75">
+              Unlock your watermark-free private link and printable QR code immediately after UPI
+              or card checkout. Optional Secret PIN Lock and Lifetime Archive upgrades are
+              available at checkout.
+            </p>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

@@ -40,7 +40,7 @@ export default async function CreateWizardPage({
 
   let initialDraftToken = '';
   let initialLanguage: LanguageCode | undefined = undefined;
-  let initialContent: Record<string, string> | undefined = undefined;
+  let initialContent: Record<string, unknown> | undefined = undefined;
   let initialRevealAt: string | null = null;
   const initialPhotos: UploadedPhotoItem[] = [];
 
@@ -64,7 +64,7 @@ export default async function CreateWizardPage({
       if (draft) {
         initialDraftToken = draftTokenParam;
         initialLanguage = parseLanguageCode(draft.language);
-        initialContent = (draft.content_json as Record<string, string>) || {};
+        initialContent = (draft.content_json as Record<string, unknown>) || {};
         initialRevealAt = draft.reveal_at;
 
         const { data: assets } = await admin
@@ -74,7 +74,7 @@ export default async function CreateWizardPage({
           .eq('status', 'ready')
           .is('deleted_at', null)
           .order('created_at', { ascending: true })
-          .limit(3);
+          .limit(6);
 
         const validAssets = (assets || []).filter(
           (a): a is { id: string; storage_key: string } => Boolean(a.storage_key),

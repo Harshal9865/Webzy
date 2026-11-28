@@ -1383,6 +1383,64 @@ export function HarvestGreetingSite({
             })}
           </div>
 
+          {(() => {
+            const festivalArtMap: Record<
+              FestivalKey,
+              { src: string; caption: Record<CoreLanguageCode, string> }
+            > = {
+              sankranti: {
+                src: '/templates/occasions/harvest-greeting/sankranti-kites-art.jpg',
+                caption: {
+                  en: 'Golden-hour rooftops, soaring kites & brass platters of sesame til-gud.',
+                  hinglish: 'Dhoop bhari chhat, udate patang aur peetal ki thali mein til-gud.',
+                  hi: 'स्वर्णिम छत पर उड़ती पतंगें और पीतल की थाली में तिल-गुड़।',
+                },
+              },
+              lohri: {
+                src: '/templates/occasions/harvest-greeting/lohri-bonfire-art.jpg',
+                caption: {
+                  en: 'Warm golden Lohri bonfire, phulkari courtyard & bowls of rewri, peanuts & popcorn.',
+                  hinglish: 'Lohri ki garm aag, phulkari aangan aur moongfali-rewri ki khushboo.',
+                  hi: 'लोहड़ी की पावन अग्नि, फुलकारी आँगन और मूँगफली-रेवड़ी का उत्सव।',
+                },
+              },
+              pongal: {
+                src: '/templates/occasions/harvest-greeting/cover.jpg',
+                caption: {
+                  en: 'Sunlit courtyard harvest morning, overflowing sweet Pongal & auspicious kolam.',
+                  hinglish: 'Subah ka surya, meetha Pongal aur mangal rangoli.',
+                  hi: 'प्रातःकालीन सूर्य, पावन पोंगल और शुभ कोलम।',
+                },
+              },
+            };
+            const currentArt = festivalArtMap[activeFestival];
+            return (
+              <div className="overflow-hidden rounded-2xl border border-[#9A6B22]/35 bg-[#2D1B10]">
+                <div className="relative aspect-[4/3] w-full overflow-hidden">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    key={currentArt.src}
+                    src={currentArt.src}
+                    alt={FESTIVAL_META[activeFestival].tabLabel[coreLang]}
+                    className="h-full w-full object-cover transition duration-500"
+                  />
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#26140B]/85 via-transparent to-transparent"
+                  />
+                  <div className="absolute inset-x-3 bottom-2.5 text-left text-[#FFF7E6]">
+                    <p className="font-heading text-sm font-bold leading-snug">
+                      {FESTIVAL_META[activeFestival].tabLabel[coreLang]}
+                    </p>
+                    <p className="mt-0.5 text-[11.5px] leading-relaxed text-[#FDE8B8]/95">
+                      {currentArt.caption[coreLang]}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
           {activeFestival === 'sankranti' ? (
             <SankrantiStage
               uid={uid}

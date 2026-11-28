@@ -344,9 +344,40 @@ function ThaliOfferingSvg({ id, active }: { id: ThaliOfferingItem['id']; active:
 }
 
 const FALLBACK_HERITAGE_PHOTOS: readonly string[] = [
-  '/templates/occasions/birthday-ashirwad/cover.jpg',
-  '/templates/travel/jaipur-slices.jpg',
+  '/templates/occasions/birthday-ashirwad/courtyard-diya-art.jpg',
+  '/templates/occasions/birthday-ashirwad/family-veranda-art.jpg',
 ];
+
+const ASHIRWAD_ART_PLATES = [
+  {
+    id: 'courtyard' as const,
+    src: '/templates/occasions/birthday-ashirwad/courtyard-diya-art.jpg',
+    title: {
+      en: 'Morning Puja Thali & Jharokha',
+      hinglish: 'Subah Ka Aangan Aur Thali',
+      hi: 'प्रातःकालीन आँगन एवं मंगल थाली',
+    },
+    caption: {
+      en: 'Marigold garlands, sacred diya, sandalwood tilak & kesar mithai arranged with reverence.',
+      hinglish: 'Genda phool, mangal diya, chandan tilak aur kesar mithai aadar ke saath.',
+      hi: 'गेंदा पुष्पमाला, मंगल दीप, चंदन तिलक एवं केसर मिठाई सादर अर्पित।',
+    },
+  },
+  {
+    id: 'veranda' as const,
+    src: '/templates/occasions/birthday-ashirwad/family-veranda-art.jpg',
+    title: {
+      en: 'Sunlit Heritage Veranda',
+      hinglish: 'Dhoop Bhara Parivar Aangan',
+      hi: 'स्वर्णिम पारिवारिक बरामदा',
+    },
+    caption: {
+      en: 'Floating marigolds in a copper urli, warm brass chai tumblers & peaceful family mornings.',
+      hinglish: 'Tambe ke urli mein tairte phool, garam chai aur parivar ka sukoon.',
+      hi: 'ताँबे के उरली में तैरते पुष्प, गरम चाय और परिवार का मधुर सान्निध्य।',
+    },
+  },
+] as const;
 
 interface AmbientPetal {
   id: number;
@@ -999,6 +1030,7 @@ export function BirthdayAshirwadSite({
   const [openPillarId, setOpenPillarId] = useState<FamilyBlessingPillar['id']>('health');
   const [keepsakeSealed, setKeepsakeSealed] = useState(false);
   const [copiedReply, setCopiedReply] = useState(false);
+  const [activeScenePlate, setActiveScenePlate] = useState<'courtyard' | 'veranda'>('courtyard');
 
   const openedNotifiedRef = useRef(false);
   const waveCounterRef = useRef(0);
@@ -1358,6 +1390,87 @@ export function BirthdayAshirwadSite({
             </span>
           ) : null}
         </header>
+
+        {/* 1.5. Full-Bleed Sunlit Heritage Courtyard Fine-Art Showcase */}
+        <section
+          aria-label={ASHIRWAD_ART_PLATES[0].title[coreLang]}
+          className="overflow-hidden rounded-[24px] border border-[#D97706]/35 bg-[#FFFDF8] p-2 shadow-[0_14px_34px_-16px_rgba(120,53,15,0.28)]"
+        >
+          {(() => {
+            const currentPlate =
+              ASHIRWAD_ART_PLATES.find((p) => p.id === activeScenePlate) ?? ASHIRWAD_ART_PLATES[0];
+            return (
+              <>
+                <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[18px] bg-[#3B1F16]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={currentPlate.src}
+                    alt={currentPlate.title[coreLang]}
+                    className={`h-full w-full object-cover transition duration-700 ${
+                      diyaLit ? 'brightness-105 saturate-110' : 'brightness-95'
+                    }`}
+                  />
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#2A140C]/85 via-transparent to-transparent"
+                  />
+                  <div className="absolute inset-x-3.5 bottom-3 text-left text-[#FFFDF8]">
+                    <p
+                      style={hindiSafeStyle}
+                      className="font-heading text-base font-bold leading-snug drop-shadow"
+                    >
+                      {currentPlate.title[coreLang]}
+                    </p>
+                    <p
+                      style={hindiSafeStyle}
+                      className="mt-0.5 font-serif text-xs leading-relaxed text-[#FEF3C7]/92"
+                    >
+                      {currentPlate.caption[coreLang]}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-2 grid grid-cols-2 gap-1.5">
+                  {ASHIRWAD_ART_PLATES.map((plate, idx) => {
+                    const active = plate.id === activeScenePlate;
+                    return (
+                      <button
+                        key={plate.id}
+                        type="button"
+                        onClick={() => {
+                          playPaperUnsealSfx(idx);
+                          setActiveScenePlate(plate.id);
+                        }}
+                        aria-pressed={active}
+                        className={`flex min-h-[44px] items-center gap-2 rounded-xl border p-1.5 text-left transition active:scale-[0.98] ${
+                          active
+                            ? 'border-[#B45309] bg-[#FEF3C7]/75 text-[#78350F]'
+                            : 'border-[#E6D3B3] bg-[#FFFDF9] text-[#6E442C] hover:border-[#D97706]/50'
+                        }`}
+                      >
+                        <div className="h-9 w-12 shrink-0 overflow-hidden rounded-lg bg-[#3B1F16]">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={plate.src}
+                            alt=""
+                            loading="lazy"
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                        <span
+                          style={hindiSafeStyle}
+                          className="line-clamp-2 font-serif text-[11px] font-bold leading-tight"
+                        >
+                          {plate.title[coreLang]}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            );
+          })()}
+        </section>
 
         {/* 2. Interactive Brass Diya Lighting Ritual */}
         <section

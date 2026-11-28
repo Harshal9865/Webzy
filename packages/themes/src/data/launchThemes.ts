@@ -283,6 +283,13 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
         label: { hinglish: 'Aapka naam', hi: 'आपका नाम', en: 'Your name' },
       },
       {
+        key: 'photos',
+        type: 'images',
+        optional: true,
+        max: 3,
+        label: { hinglish: '3 pyaari photos (optional)', hi: '3 प्यारी फ़ोटो (वैकल्पिक)', en: 'Up to 3 polaroid photos' },
+      },
+      {
         key: 'message',
         type: 'longtext',
         required: true,
@@ -477,6 +484,13 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
         label: { hinglish: 'Kisko manana hai?', hi: 'किसे मनाना है?', en: 'Who is smiling soon?' },
       },
       {
+        key: 'photos',
+        type: 'images',
+        optional: true,
+        max: 3,
+        label: { hinglish: '3 yaadgaar photos (optional)', hi: '3 यादगार फ़ोटो (वैकल्पिक)', en: 'Up to 3 memory photos' },
+      },
+      {
         key: 'message',
         type: 'longtext',
         required: true,
@@ -568,6 +582,13 @@ const RAW_LAUNCH_THEMES: ThemeManifest[] = [
         required: true,
         max: 40,
         label: { hinglish: 'Unka naam', hi: 'उनका नाम', en: 'Recipient name' },
+      },
+      {
+        key: 'photos',
+        type: 'images',
+        optional: true,
+        max: 3,
+        label: { hinglish: '3 photos (optional)', hi: '3 फ़ोटो (वैकल्पिक)', en: 'Up to 3 photos' },
       },
       {
         key: 'message',

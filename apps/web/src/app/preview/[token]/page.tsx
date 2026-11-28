@@ -48,7 +48,7 @@ export default async function WatermarkedPreviewPage({
     .eq('status', 'ready')
     .is('deleted_at', null)
     .order('created_at', { ascending: true })
-    .limit(theme.occasion === 'wedding' ? 6 : 3);
+    .limit(6);
 
   const photoUrls: string[] = [];
   const storageKeys = (assets || [])

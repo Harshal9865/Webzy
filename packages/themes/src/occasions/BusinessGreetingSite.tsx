@@ -787,6 +787,38 @@ export function BusinessGreetingSite({
           </div>
         </section>
 
+        {/* 1.5. Luxury Bespoke Gift Hamper & Atelier Visual Plate */}
+        <section
+          aria-label={copy.showcaseHeading}
+          className="overflow-hidden rounded-2xl border border-[#C89D4C]/45 bg-white p-2 shadow-[0_14px_32px_-16px_rgba(12,27,51,0.22)]"
+        >
+          <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl bg-[#0C1B33]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/templates/occasions/business-greeting/royal-hamper-art.jpg"
+              alt="Luxury matte-obsidian festive gift hamper with glowing brass diya and artisanal saffron sweets"
+              className="h-full w-full object-cover"
+            />
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0A162B]/85 via-transparent to-transparent"
+            />
+            <div className="absolute inset-x-3.5 bottom-3 flex items-end justify-between gap-2 text-left text-[#FAF6EE]">
+              <div className="min-w-0">
+                <p className="font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-[#E5C583]">
+                  {copy.showcaseEyebrow}
+                </p>
+                <p className="truncate font-heading text-sm font-bold">
+                  {signatureName} · Festive Edition
+                </p>
+              </div>
+              <span className="shrink-0 rounded-full border border-[#C89D4C]/55 bg-[#0A162B]/80 px-2.5 py-0.5 font-mono text-[9px] font-bold text-[#E5C583]">
+                VIP EDITION
+              </span>
+            </div>
+          </div>
+        </section>
+
         {/* 2. The Privilege Ticket (Notched Metallic Sapphire-Gold Voucher) */}
         <section
           aria-label={copy.ticketHeader}
@@ -954,13 +986,39 @@ export function BusinessGreetingSite({
               accentColor="#C89D4C"
               captionPrefix={copy.galleryCaption}
               emptyFallback={
-                <div className="mt-3 rounded-xl border border-[#C89D4C]/35 bg-[#0C1B33] px-4 py-4 text-center text-[#FAF6EE]">
-                  <p className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#C89D4C]">
-                    {copy.emptyVaultTitle}
-                  </p>
-                  <p className="mt-1.5 text-xs leading-relaxed text-[#FAF6EE]/80">
-                    {copy.emptyVaultBody}
-                  </p>
+                <div className="mt-3 space-y-2.5">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="overflow-hidden rounded-xl border border-[#C89D4C]/35 bg-[#0C1B33]">
+                      <div className="aspect-[4/3] w-full overflow-hidden">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src="/templates/studio/atelier-hero.jpg"
+                          alt="Handcrafted heritage craft studio"
+                          loading="lazy"
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                    </div>
+                    <div className="overflow-hidden rounded-xl border border-[#C89D4C]/35 bg-[#0C1B33]">
+                      <div className="aspect-[4/3] w-full overflow-hidden">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src="/templates/studio/craft-fluted.jpg"
+                          alt="Architectural fluted glass and warm atelier craft"
+                          loading="lazy"
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="rounded-xl border border-[#C89D4C]/35 bg-[#0C1B33] px-4 py-3 text-center text-[#FAF6EE]">
+                    <p className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-[#C89D4C]">
+                      {copy.emptyVaultTitle}
+                    </p>
+                    <p className="mt-1.5 text-xs leading-relaxed text-[#FAF6EE]/80">
+                      {copy.emptyVaultBody}
+                    </p>
+                  </div>
                 </div>
               }
             />

@@ -944,6 +944,35 @@ export function OurYearWrappedSite({
             </div>
           </div>
 
+          {/* Full-Bleed Twilight Observatory & Sky Lanterns Art Plate */}
+          <div className="overflow-hidden rounded-2xl border border-[#F59E0B]/40 bg-[#0B0718]">
+            <div className="relative aspect-[16/10] w-full overflow-hidden">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/templates/occasions/our-year/luminous-horizon-art.jpg"
+                alt="Twilight observatory terrace with floating golden sky lanterns under violet and gold clouds"
+                className="h-full w-full object-cover"
+              />
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0B0718]/90 via-[#0B0718]/15 to-transparent"
+              />
+              <div className="absolute inset-x-3.5 bottom-3 flex items-end justify-between gap-2 text-left">
+                <div className="min-w-0">
+                  <p className="font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-[#F59E0B]">
+                    2026 -&gt; 2027 · LUMINOUS HORIZON
+                  </p>
+                  <p className="truncate font-heading text-sm font-bold text-[#F8F7FC]">
+                    {data.receiverName} &amp; {data.senderName}
+                  </p>
+                </div>
+                <span className="shrink-0 rounded-full border border-[#F59E0B]/50 bg-[#0B0718]/80 px-2.5 py-0.5 font-mono text-[9.5px] font-bold text-[#F59E0B]">
+                  365 DAYS
+                </span>
+              </div>
+            </div>
+          </div>
+
           {/* Compact Metric Trio */}
           <div className="grid grid-cols-3 gap-2">
             <div className="min-w-0 rounded-2xl border border-[#A78BFA]/25 bg-[#0B0718]/75 p-2.5 text-center">

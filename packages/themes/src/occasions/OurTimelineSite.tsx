@@ -1037,6 +1037,38 @@ export function OurTimelineSite({
           ) : null}
         </header>
 
+        {/* ARCHIVAL VISUAL COVER PLATE (35mm Editorial Desk & Scrapbook Atmosphere) */}
+        <section
+          aria-label={copy.rollTag}
+          className="overflow-hidden rounded-[20px] border border-[#D4C2A8]/85 bg-[#FFFDF8] p-2 shadow-[0_16px_34px_-18px_rgba(46,36,30,0.3)]"
+        >
+          <div className="relative aspect-[16/9] w-full overflow-hidden rounded-[14px] bg-[#2E241E]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/templates/occasions/our-timeline/scene.jpg"
+              alt={copy.rollTag}
+              className="h-full w-full object-cover"
+            />
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#231D19]/80 via-transparent to-transparent"
+            />
+            <div className="absolute inset-x-3.5 bottom-2.5 flex items-end justify-between gap-2 text-[#FAF4E8]">
+              <div className="min-w-0">
+                <p className="font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-[#F1BE6B]">
+                  {copy.rollTag}
+                </p>
+                <p className="truncate font-royal-serif text-sm font-semibold">
+                  {activeFrame.title} · {activeFrame.dateStamp}
+                </p>
+              </div>
+              <span className="shrink-0 rounded-full border border-[#F1BE6B]/50 bg-[#231D19]/80 px-2.5 py-0.5 font-mono text-[9.5px] font-bold text-[#F1BE6B]">
+                {activeFrame.frameCode}
+              </span>
+            </div>
+          </div>
+        </section>
+
         {/* CENTERPIECE: 3D Flippable Polaroid + Washi Tape + Cat Stickers + Vintage Ticket Stub */}
         <section aria-label={activeFrame.title} className="relative flex flex-col items-center">
           <div className="relative w-full max-w-[330px] pt-5 sm:max-w-[360px]">

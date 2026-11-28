@@ -203,14 +203,21 @@ export default async function ReceiverSitePage({
     return <WeddingScroll data={mergedWedding} guestName={guestName} />;
   }
 
-  const content = rawContent as Record<string, string>;
-  const language = parseLanguageCode(content.language);
+  const language = parseLanguageCode(typeof rawContent.language === 'string' ? rawContent.language : undefined);
+  const rawHighlights = Array.isArray(rawContent.highlights)
+    ? rawContent.highlights
+        .filter((h): h is { title?: string; detail?: string } => Boolean(h && typeof h === 'object'))
+        .slice(0, 4)
+    : undefined;
   const payload = buildThemePayloadFromDraft(theme, {
-    receiverName: content.receiverName,
-    senderName: content.senderName,
-    relation: content.relation,
-    message: content.message,
-    whatsappPhone: content.whatsappPhone,
+    receiverName: typeof rawContent.receiverName === 'string' ? rawContent.receiverName : undefined,
+    senderName: typeof rawContent.senderName === 'string' ? rawContent.senderName : undefined,
+    relation: typeof rawContent.relation === 'string' ? rawContent.relation : undefined,
+    headline: typeof rawContent.headline === 'string' ? rawContent.headline : undefined,
+    message: typeof rawContent.message === 'string' ? rawContent.message : undefined,
+    offerTag: typeof rawContent.offerTag === 'string' ? rawContent.offerTag : undefined,
+    highlights: rawHighlights,
+    whatsappPhone: typeof rawContent.whatsappPhone === 'string' ? rawContent.whatsappPhone : undefined,
     photos: signedPhotos,
   });
   const state: ReceiverPageState = 'live';

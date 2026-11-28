@@ -56,14 +56,21 @@ export function PreviewClient({
       })()
     : null;
 
-  const stringContent = content as Record<string, string>;
+  const rawHighlights = Array.isArray(content.highlights)
+    ? content.highlights
+        .filter((h): h is { title?: string; detail?: string } => Boolean(h && typeof h === 'object'))
+        .slice(0, 4)
+    : undefined;
   const payload = !isWedding
     ? buildThemePayloadFromDraft(theme, {
-        receiverName: stringContent.receiverName,
-        senderName: stringContent.senderName,
-        relation: stringContent.relation,
-        message: stringContent.message,
-        whatsappPhone: stringContent.whatsappPhone,
+        receiverName: typeof content.receiverName === 'string' ? content.receiverName : undefined,
+        senderName: typeof content.senderName === 'string' ? content.senderName : undefined,
+        relation: typeof content.relation === 'string' ? content.relation : undefined,
+        headline: typeof content.headline === 'string' ? content.headline : undefined,
+        message: typeof content.message === 'string' ? content.message : undefined,
+        offerTag: typeof content.offerTag === 'string' ? content.offerTag : undefined,
+        highlights: rawHighlights,
+        whatsappPhone: typeof content.whatsappPhone === 'string' ? content.whatsappPhone : undefined,
         photos: photoUrls,
         revealAt: revealAt || undefined,
       })
